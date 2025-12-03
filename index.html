@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>我的第一個網頁</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 16px 24px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 24px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #007aff;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      padding: 16px 0 24px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>嗨，我是喬喬喬 ?</h1>
+  </header>
+
+  <main>
+    <h2>我的第一個網頁</h2>
+    <p>這是我用 HTML + CSS 做出來的第一個小作品！</p>
+    <p>之後可以在這裡放作品集、自我介紹、照片、或是寫日記。</p>
+
+    <button class="btn" onclick="sayHi()">點我試試看</button>
+  </main>
+
+  <footer>
+    c 2025 My Webpage
+  </footer>
+
+  <script>
+    function sayHi() {
+      alert("網頁其實沒有那麼難 ??");
+    }
+  </script>
+</body>
+</html>
