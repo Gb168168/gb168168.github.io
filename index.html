@@ -1311,22 +1311,27 @@
     adminPwd.value = "";
   });
 
-  adminPersonName.addEventListener("keydown", (e) => {
+ adminPersonName.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addPersonBtn.click();
     }
   });
 
-  [adminRestaurantName, adminRestaurantPhone, adminRestaurantAddress, adminRestaurantNote, adminRestaurantImage].forEach(
-    (el) => {
-      el.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          addRestaurantBtn.click();
-        }
-      })
-  );
+  [
+    adminRestaurantName,
+    adminRestaurantPhone,
+    adminRestaurantAddress,
+    adminRestaurantNote,
+    adminRestaurantImage
+  ].forEach((el) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addRestaurantBtn.click();
+      }
+    });
+  });
 
   [adminFoodName, adminFoodBasePrice].forEach((el) => {
     el.addEventListener("keydown", (e) => {
