@@ -2,546 +2,792 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>點餐系統</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公司訂餐系統</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * { box-sizing: border-box; }
-
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f5f5f5;
       color: #222;
     }
-
     header {
       background: #111;
-      color: white;
-      padding: 16px 24px;
+      color: #fff;
+      padding: 16px 20px;
       font-size: 20px;
-      font-weight: 700;
-    }
-
-    main {
-      max-width: 1100px;
-      margin: 20px auto;
-      padding: 0 16px;
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-    }
-
-    .menu-section {
-      background: #fff;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      margin-bottom: 16px;
-    }
-
-    .menu-section h2 {
-      margin: 0 0 12px;
-      border-left: 4px solid #d99a00;
-      padding-left: 8px;
-      font-size: 18px;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 6px;
-    }
-
-    .menu-section h2 span {
-      font-size: 12px;
-      color: #777;
-      font-weight: 400;
-    }
-
-    .menu-item {
-      padding: 10px 0;
-      display: flex;
       justify-content: space-between;
-      border-bottom: 1px solid #eee;
-      gap: 12px;
     }
-
-    .menu-item:last-child { border-bottom: none; }
-
-    .item-info {
-      display: flex;
-      flex-direction: column;
+    header span {
+      font-size: 14px;
+      opacity: .8;
     }
-
-    .item-name {
-      font-weight: 600;
-      font-size: 15px;
+    main {
+      max-width: 1100px;
+      margin: 20px auto 40px;
+      padding: 0 16px;
     }
-
-    .item-price {
-      font-size: 13px;
-      color: #666;
-    }
-
-    .item-note {
-      font-size: 12px;
-      color: #999;
-    }
-
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-end;
-    }
-
-    .btn {
-      padding: 6px 12px;
-      font-size: 13px;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      background: #111;
-      white-space: nowrap;
-    }
-
-    .btn.secondary { background: #555; }
-    .btn:hover { opacity: 0.88; }
-
-    /* 自訂餐點表單 */
-    .add-item-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .add-item-row input {
-      flex: 1 1 120px;
-      padding: 6px 8px;
-      font-size: 13px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-    }
-
-    .add-item-row button {
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: none;
-      background: #000;
-      color: #fff;
-      font-size: 13px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .add-item-row button:hover { background: #444; }
-
-    .small-hint {
-      font-size: 12px;
-      color: #888;
-      margin: 4px 0 0;
-    }
-
-    /* 購物車 */
-    .cart {
+    .card {
       background: #fff;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      position: sticky;
-      top: 16px;
-      align-self: flex-start;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,.04);
     }
-
-    .cart h2 {
+    h2 {
       margin: 0 0 12px;
       font-size: 18px;
-      font-weight: 700;
     }
-
-    .cart-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px dotted #ccc;
-      font-size: 14px;
-      gap: 8px;
-    }
-
-    .cart-item:last-child { border-bottom: none; }
-
-    .cart-controls button {
-      padding: 3px 8px;
-      margin-left: 4px;
-      background: #333;
-      color: white;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-size: 12px;
-    }
-
-    .summary {
-      margin-top: 16px;
+    h3 {
+      margin: 16px 0 8px;
       font-size: 16px;
-      font-weight: 700;
     }
-
-    .empty {
+    label {
+      display: block;
+      font-size: 14px;
+      margin: 6px 0 2px;
+    }
+    select, input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      background: #111;
+      color: #fff;
+    }
+    button.secondary {
+      background: #eee;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .col {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+    .hidden {
+      display: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
       font-size: 13px;
-      color: #888;
     }
-
-    @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; }
-      .cart { position: static; }
+    th, td {
+      border-bottom: 1px solid #eee;
+      padding: 4px 6px;
+      text-align: left;
+    }
+    th {
+      background: #fafafa;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #f0f0f0;
+      margin-right: 4px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #222;
+      color: #fff;
+      margin-left: 4px;
+    }
+    .section-divider {
+      border-top: 1px dashed #ddd;
+      margin: 14px 0;
+    }
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
     }
   </style>
 </head>
-
 <body>
+  <header>
+    <div>公司訂餐系統</div>
+    <span id="currentRoleText">目前身分：未登入</span>
+  </header>
 
-<header>
-  <span id="store-name">點餐系統</span>
-</header>
-
-<main>
-
-  <!-- 左邊菜單 -->
-  <div>
-
-    <!-- A. 店長推薦 -->
-    <div class="menu-section">
-      <h2>🍱 店長人氣推薦 <span>推薦招牌</span></h2>
-
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">金酥脆雞腿</span>
-          <span class="item-price">便當 $130 ｜ 單點 $90</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('金酥脆雞腿','便當',130)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('金酥脆雞腿','單點',90)">+ 單點</button>
+  <main>
+    <!-- 身分選擇 / 登入 -->
+    <section class="card" id="roleCard">
+      <h2>選擇身分</h2>
+      <div class="row">
+        <div class="col">
+          <label for="roleSelect">身分</label>
+          <select id="roleSelect">
+            <option value="user">一般使用者</option>
+            <option value="admin">管理員</option>
+          </select>
         </div>
       </div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">酥炸椒鹽排骨</span>
-          <span class="item-price">便當 $120 ｜ 單點 $80</span>
+      <div id="adminLoginArea" class="row hidden" style="margin-top:8px;">
+        <div class="col">
+          <label for="adminPassword">管理員密碼</label>
+          <input type="password" id="adminPassword" placeholder="請輸入管理員密碼" />
         </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('酥炸椒鹽排骨','便當',120)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('酥炸椒鹽排骨','單點',80)">+ 單點</button>
-        </div>
-      </div>
-
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">燒肉盛宴</span>
-          <span class="item-price">便當 $110 ｜ 單點 $70</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('燒肉盛宴','便當',110)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('燒肉盛宴','單點',70)">+ 單點</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- B. 固定菜單（跟之前一樣，略） -->
-    <div class="menu-section">
-      <h2>🍱 美味現做便當 <span>每日新鮮製作</span></h2>
-
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">玫瑰油雞腿</span>
-          <span class="item-price">便當 $130 ｜ 單點 $90</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('玫瑰油雞腿','便當',130)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('玫瑰油雞腿','單點',90)">+ 單點</button>
+        <div class="col" style="align-self:flex-end;">
+          <button id="adminLoginBtn">管理員登入</button>
         </div>
       </div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">燒烤香雞腿</span>
-          <span class="item-price">便當 $130 ｜ 單點 $90</span>
+      <div style="margin-top:8px;">
+        <small>※ 此版本為前端 demo，管理員密碼只是前端檢查，不適合放到真正對外的公開網站喔。</small>
+      </div>
+    </section>
+
+    <!-- 一般使用者：點餐 -->
+    <section class="card hidden" id="userPanel">
+      <h2>一般使用者點餐</h2>
+
+      <div class="row">
+        <div class="col">
+          <label for="userDeptSelect">部門</label>
+          <select id="userDeptSelect">
+            <option value="">請選擇部門</option>
+          </select>
         </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('燒烤香雞腿','便當',130)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('燒烤香雞腿','單點',90)">+ 單點</button>
+        <div class="col">
+          <label for="userNameSelect">姓名（只會出現該部門的人）</label>
+          <select id="userNameSelect">
+            <option value="">請先選擇部門</option>
+          </select>
         </div>
       </div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">糖醋鮮嫩豬肉</span>
-          <span class="item-price">便當 $110 ｜ 單點 $70</span>
+      <div class="section-divider"></div>
+
+      <h3>選擇餐點</h3>
+      <div class="row">
+        <div class="col">
+          <label for="categorySelect">餐別</label>
+          <select id="categorySelect">
+            <option value="">請選擇</option>
+            <option value="早餐">早餐</option>
+            <option value="便當">便當</option>
+            <option value="粥品">粥品</option>
+            <option value="火鍋">火鍋</option>
+            <option value="飲料">飲料</option>
+          </select>
         </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('糖醋鮮嫩豬肉','便當',110)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('糖醋鮮嫩豬肉','單點',70)">+ 單點</button>
+        <div class="col">
+          <label for="restaurantSelect">店家</label>
+          <select id="restaurantSelect">
+            <option value="">請先選擇餐別</option>
+          </select>
+        </div>
+        <div class="col">
+          <label for="itemSelect">餐點</label>
+          <select id="itemSelect">
+            <option value="">請先選擇店家</option>
+          </select>
+        </div>
+      </div>
+      <button id="placeOrderBtn">送出訂單</button>
+
+      <div id="userMessage" style="margin-top:6px;font-size:13px;color:#c00;"></div>
+
+      <div class="section-divider"></div>
+
+      <h3>我的訂單</h3>
+      <div id="userOrdersArea">
+        <small>請先選擇部門與姓名。</small>
+      </div>
+    </section>
+
+    <!-- 管理員：管理 & 統計 -->
+    <section class="card hidden" id="adminPanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>管理員後台</h2>
+        <button class="secondary" id="adminLogoutBtn">切換為一般使用者</button>
+      </div>
+
+      <h3>人員管理</h3>
+      <div class="row">
+        <div class="col">
+          <label for="adminPersonName">姓名</label>
+          <input type="text" id="adminPersonName" placeholder="例如：小明" />
+        </div>
+        <div class="col">
+          <label for="adminPersonDept">部門</label>
+          <select id="adminPersonDept"></select>
+        </div>
+        <div class="col" style="align-self:flex-end;">
+          <button id="addPersonBtn">新增人員</button>
         </div>
       </div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">古早味油排骨</span>
-          <span class="item-price">便當 $120 ｜ 單點 $80</span>
+      <div id="peopleListArea" style="margin-top:8px;font-size:13px;"></div>
+
+      <div class="section-divider"></div>
+
+      <h3>餐廳管理</h3>
+      <div class="row">
+        <div class="col">
+          <label for="adminRestaurantCategory">餐別</label>
+          <select id="adminRestaurantCategory">
+            <option value="早餐">早餐</option>
+            <option value="便當">便當</option>
+            <option value="粥品">粥品</option>
+            <option value="火鍋">火鍋</option>
+            <option value="飲料">飲料</option>
+          </select>
         </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('古早味油排骨','便當',120)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('古早味油排骨','單點',80)">+ 單點</button>
+        <div class="col">
+          <label for="adminRestaurantName">餐廳名稱</label>
+          <input type="text" id="adminRestaurantName" placeholder="例如：弘爺、中和店" />
+        </div>
+        <div class="col" style="align-self:flex-end;">
+          <button id="addRestaurantBtn">新增餐廳</button>
         </div>
       </div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">蔥燒鯖魚</span>
-          <span class="item-price">便當 $100 ｜ 單點 $60</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('蔥燒鯖魚','便當',100)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('蔥燒鯖魚','單點',60)">+ 單點</button>
-        </div>
-      </div>
+      <div id="restaurantListArea" style="margin-top:8px;font-size:13px;"></div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">香烤炸鮭魚</span>
-          <span class="item-price">便當 $110 ｜ 單點 $70</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('香烤炸鮭魚','便當',110)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('香烤炸鮭魚','單點',70)">+ 單點</button>
-        </div>
-      </div>
+      <div class="section-divider"></div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">椒香滑嫩白肉</span>
-          <span class="item-price">便當 $110 ｜ 單點 $70</span>
+      <h3>餐點管理</h3>
+      <div class="row">
+        <div class="col">
+          <label for="adminItemRestaurant">餐廳</label>
+          <select id="adminItemRestaurant">
+            <option value="">請先新增餐廳</option>
+          </select>
         </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('椒香滑嫩白肉','便當',110)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('椒香滑嫩白肉','單點',70)">+ 單點</button>
+        <div class="col">
+          <label for="adminItemName">餐點名稱</label>
+          <input type="text" id="adminItemName" placeholder="例如：蛋餅、火腿蛋吐司…" />
+        </div>
+        <div class="col" style="align-self:flex-end;">
+          <button id="addItemBtn">新增餐點</button>
         </div>
       </div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">今日特餐</span>
-          <span class="item-price">便當 $100</span>
-          <span class="item-note">內容依當日公告為主</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('今日特餐','便當',100)">+ 便當</button>
-        </div>
-      </div>
+      <div id="itemListArea" style="margin-top:8px;font-size:13px;"></div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">鮮粉套餐</span>
-          <span class="item-price">單份 $80</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('鮮粉套餐','單份',80)">+ 加入</button>
-        </div>
-      </div>
+      <div class="section-divider"></div>
 
-      <div class="menu-item">
-        <div class="item-info">
-          <span class="item-name">酥炸香嫩排</span>
-          <span class="item-price">便當 $120 ｜ 單點 $80</span>
-        </div>
-        <div class="buttons">
-          <button class="btn" onclick="addItem('酥炸香嫩排','便當',120)">+ 便當</button>
-          <button class="btn secondary" onclick="addItem('酥炸香嫩排','單點',80)">+ 單點</button>
-        </div>
-      </div>
-    </div>
+      <h3>訂單統計（依人員）</h3>
+      <div id="statsArea" style="font-size:13px;"></div>
+    </section>
+  </main>
 
-    <!-- C. 自訂餐點 -->
-    <div class="menu-section">
-      <h2>➕ 自訂餐點</h2>
-      <div class="add-item-row">
-        <input id="newItemName" placeholder="餐點名稱，例如：香煎雞腿">
-        <input id="newItemBento" type="number" min="0" placeholder="便當價，例如：120">
-        <input id="newItemSingle" type="number" min="0" placeholder="單點價（可留白）">
-        <button type="button" onclick="handleAddCustomItem()">加入菜單</button>
-      </div>
-      <p class="small-hint">自訂餐點會儲存在本機瀏覽器，以「店名」區分。</p>
-      <div id="custom-items"></div>
-    </div>
+  <script>
+    // === 設定區 ===
+    const ADMIN_PASSWORD = "1234"; // 你可以改這個密碼
+    const DEPARTMENTS = ["管理部", "FAE", "TSE", "新場", "倉管", "數據分析", "RD", "線上客服", "維運"];
 
-  </div>
+    const STORAGE_KEY = "orderSystemData_v1";
 
-  <!-- 右邊購物車 -->
-  <div class="cart">
-    <h2>🛒 購物車</h2>
-    <div id="cart-list" class="empty">目前尚未點餐</div>
-    <div class="summary">
-      合計：<span id="total-qty">0</span> 份 ｜ $<span id="total-price">0</span>
-    </div>
-  </div>
+    function defaultData() {
+      return {
+        people: [], // {id, name, department}
+        restaurants: [], // {id, name, category}
+        items: [], // {id, restaurantId, name}
+        orders: [] // {id, personId, restaurantId, itemId, time}
+      };
+    }
 
-</main>
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultData();
+        return JSON.parse(raw);
+      } catch (e) {
+        console.error(e);
+        return defaultData();
+      }
+    }
 
-<script>
-  // 讀取網址上的 ?store= 參數，顯示在上方標題
-  const params = new URLSearchParams(location.search);
-  const storeName = params.get('store') || '食悠便當';
-  document.getElementById('store-name').textContent = storeName + ' 點餐系統';
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
 
-  const CUSTOM_KEY = 'gb_custom_items_' + storeName; // 每家店自己的 key
-  let customItems = [];
+    let data = loadData();
 
-  function loadCustomItems() {
-    try {
-      const raw = localStorage.getItem(CUSTOM_KEY);
-      if (!raw) {
-        customItems = [];
+    // ===== DOM =====
+    const currentRoleText = document.getElementById("currentRoleText");
+    const roleSelect = document.getElementById("roleSelect");
+    const adminLoginArea = document.getElementById("adminLoginArea");
+    const adminPasswordInput = document.getElementById("adminPassword");
+    const adminLoginBtn = document.getElementById("adminLoginBtn");
+
+    const userPanel = document.getElementById("userPanel");
+    const adminPanel = document.getElementById("adminPanel");
+
+    const userDeptSelect = document.getElementById("userDeptSelect");
+    const userNameSelect = document.getElementById("userNameSelect");
+    const categorySelect = document.getElementById("categorySelect");
+    const restaurantSelect = document.getElementById("restaurantSelect");
+    const itemSelect = document.getElementById("itemSelect");
+    const placeOrderBtn = document.getElementById("placeOrderBtn");
+    const userMessage = document.getElementById("userMessage");
+    const userOrdersArea = document.getElementById("userOrdersArea");
+
+    const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+    const adminPersonName = document.getElementById("adminPersonName");
+    const adminPersonDept = document.getElementById("adminPersonDept");
+    const addPersonBtn = document.getElementById("addPersonBtn");
+    const peopleListArea = document.getElementById("peopleListArea");
+
+    const adminRestaurantCategory = document.getElementById("adminRestaurantCategory");
+    const adminRestaurantName = document.getElementById("adminRestaurantName");
+    const addRestaurantBtn = document.getElementById("addRestaurantBtn");
+    const restaurantListArea = document.getElementById("restaurantListArea");
+
+    const adminItemRestaurant = document.getElementById("adminItemRestaurant");
+    const adminItemName = document.getElementById("adminItemName");
+    const addItemBtn = document.getElementById("addItemBtn");
+    const itemListArea = document.getElementById("itemListArea");
+
+    const statsArea = document.getElementById("statsArea");
+
+    let isAdmin = false;
+
+    // ===== 初始化下拉選單 =====
+    function initDepartmentSelects() {
+      // user 部門
+      userDeptSelect.innerHTML = '<option value="">請選擇部門</option>';
+      DEPARTMENTS.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        userDeptSelect.appendChild(opt);
+      });
+
+      // admin 人員管理部門
+      adminPersonDept.innerHTML = "";
+      DEPARTMENTS.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        adminPersonDept.appendChild(opt);
+      });
+    }
+
+    function refreshPeopleList() {
+      if (data.people.length === 0) {
+        peopleListArea.textContent = "目前尚未新增人員。";
+        return;
+      }
+      let html = "<table><thead><tr><th>姓名</th><th>部門</th></tr></thead><tbody>";
+      data.people.forEach(p => {
+        html += `<tr><td>${p.name}</td><td>${p.department}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      peopleListArea.innerHTML = html;
+    }
+
+    function refreshUserNameOptions() {
+      const dept = userDeptSelect.value;
+      userNameSelect.innerHTML = "";
+      if (!dept) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "請先選擇部門";
+        userNameSelect.appendChild(opt);
+        return;
+      }
+      const peopleInDept = data.people.filter(p => p.department === dept);
+      if (peopleInDept.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "此部門尚未新增人員（請請管理員新增）";
+        userNameSelect.appendChild(opt);
+        return;
+      }
+      const firstOpt = document.createElement("option");
+      firstOpt.value = "";
+      firstOpt.textContent = "請選擇姓名";
+      userNameSelect.appendChild(firstOpt);
+      peopleInDept.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        userNameSelect.appendChild(opt);
+      });
+    }
+
+    function refreshRestaurantList() {
+      if (data.restaurants.length === 0) {
+        restaurantListArea.textContent = "目前尚未新增餐廳。";
       } else {
-        customItems = JSON.parse(raw);
+        let html = "<table><thead><tr><th>餐廳名稱</th><th>餐別</th></tr></thead><tbody>";
+        data.restaurants.forEach(r => {
+          html += `<tr><td>${r.name}</td><td>${r.category}</td></tr>`;
+        });
+        html += "</tbody></table>";
+        restaurantListArea.innerHTML = html;
       }
-    } catch (e) {
-      customItems = [];
+
+      // 管理員新增餐點用的餐廳下拉
+      adminItemRestaurant.innerHTML = "";
+      if (data.restaurants.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "請先新增餐廳";
+        adminItemRestaurant.appendChild(opt);
+      } else {
+        const opt0 = document.createElement("option");
+        opt0.value = "";
+        opt0.textContent = "請選擇餐廳";
+        adminItemRestaurant.appendChild(opt0);
+        data.restaurants.forEach(r => {
+          const opt = document.createElement("option");
+          opt.value = r.id;
+          opt.textContent = `${r.name}（${r.category}）`;
+          adminItemRestaurant.appendChild(opt);
+        });
+      }
     }
-  }
 
-  function saveCustomItems() {
-    localStorage.setItem(CUSTOM_KEY, JSON.stringify(customItems));
-  }
-
-  function renderCustomItems() {
-    const container = document.getElementById('custom-items');
-    container.innerHTML = '';
-    customItems.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'menu-item';
-
-      let priceText = '';
-      if (item.bentoPrice != null) {
-        priceText += '便當 $' + item.bentoPrice;
+    function refreshItemList() {
+      if (data.items.length === 0) {
+        itemListArea.textContent = "目前尚未新增餐點。";
+        return;
       }
-      if (item.singlePrice != null) {
-        if (priceText) priceText += ' ｜ ';
-        priceText += '單點 $' + item.singlePrice;
-      }
+      let html = "<table><thead><tr><th>餐點名稱</th><th>餐廳</th></tr></thead><tbody>";
+      data.items.forEach(it => {
+        const restaurant = data.restaurants.find(r => r.id === it.restaurantId);
+        html += `<tr><td>${it.name}</td><td>${restaurant ? restaurant.name : "（已刪除餐廳）"}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      itemListArea.innerHTML = html;
+    }
 
-      div.innerHTML = `
-        <div class="item-info">
-          <span class="item-name">${item.name}</span>
-          <span class="item-price">${priceText}</span>
-        </div>
-        <div class="buttons">
-          ${item.bentoPrice != null ? `<button class="btn" onclick="addItem('${item.name}','便當',${item.bentoPrice})">+ 便當</button>` : ''}
-          ${item.singlePrice != null ? `<button class="btn secondary" onclick="addItem('${item.name}','單點',${item.singlePrice})">+ 單點</button>` : ''}
-        </div>
-      `;
-      container.appendChild(div);
+    function refreshRestaurantOptionsForUser() {
+      const category = categorySelect.value;
+      restaurantSelect.innerHTML = "";
+      itemSelect.innerHTML = '<option value="">請先選擇店家</option>';
+
+      if (!category) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "請先選擇餐別";
+        restaurantSelect.appendChild(opt);
+        return;
+      }
+      const list = data.restaurants.filter(r => r.category === category);
+      if (list.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "此餐別尚未新增餐廳（請請管理員新增）";
+        restaurantSelect.appendChild(opt);
+        return;
+      }
+      const firstOpt = document.createElement("option");
+      firstOpt.value = "";
+      firstOpt.textContent = "請選擇餐廳";
+      restaurantSelect.appendChild(firstOpt);
+      list.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = r.name;
+        restaurantSelect.appendChild(opt);
+      });
+    }
+
+    function refreshItemOptionsForUser() {
+      const restaurantId = restaurantSelect.value;
+      itemSelect.innerHTML = "";
+      if (!restaurantId) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "請先選擇店家";
+        itemSelect.appendChild(opt);
+        return;
+      }
+      const list = data.items.filter(it => it.restaurantId === restaurantId);
+      if (list.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "此店家尚未新增餐點（請請管理員新增）";
+        itemSelect.appendChild(opt);
+        return;
+      }
+      const firstOpt = document.createElement("option");
+      firstOpt.value = "";
+      firstOpt.textContent = "請選擇餐點";
+      itemSelect.appendChild(firstOpt);
+      list.forEach(it => {
+        const opt = document.createElement("option");
+        opt.value = it.id;
+        opt.textContent = it.name;
+        itemSelect.appendChild(opt);
+      });
+    }
+
+    function renderUserOrders() {
+      const personId = userNameSelect.value;
+      if (!personId) {
+        userOrdersArea.innerHTML = "<small>請先選擇部門與姓名。</small>";
+        return;
+      }
+      const myOrders = data.orders.filter(o => o.personId === personId);
+      if (myOrders.length === 0) {
+        userOrdersArea.innerHTML = "<small>目前尚未有訂單。</small>";
+        return;
+      }
+      let html = "<table><thead><tr><th>時間</th><th>餐別</th><th>餐廳</th><th>餐點</th></tr></thead><tbody>";
+      myOrders.forEach(o => {
+        const restaurant = data.restaurants.find(r => r.id === o.restaurantId);
+        const item = data.items.find(it => it.id === o.itemId);
+        const timeStr = new Date(o.time).toLocaleString();
+        html += `<tr>
+          <td>${timeStr}</td>
+          <td>${restaurant ? restaurant.category : ""}</td>
+          <td>${restaurant ? restaurant.name : ""}</td>
+          <td>${item ? item.name : ""}</td>
+        </tr>`;
+      });
+      html += "</tbody></table>";
+      userOrdersArea.innerHTML = html;
+    }
+
+    function renderStats() {
+      if (data.orders.length === 0) {
+        statsArea.textContent = "目前尚未有任何訂單。";
+        return;
+      }
+      const map = {}; // personId -> {count, detail}
+      data.orders.forEach(o => {
+        if (!map[o.personId]) {
+          map[o.personId] = { count: 0, detail: [] };
+        }
+        map[o.personId].count += 1;
+        const restaurant = data.restaurants.find(r => r.id === o.restaurantId);
+        const item = data.items.find(it => it.id === o.itemId);
+        map[o.personId].detail.push({
+          restaurant: restaurant ? restaurant.name : "",
+          category: restaurant ? restaurant.category : "",
+          item: item ? item.name : "",
+          time: o.time
+        });
+      });
+
+      let html = "";
+      data.people.forEach(p => {
+        const st = map[p.id];
+        const count = st ? st.count : 0;
+        html += `<div style="margin-bottom:8px;">
+          <strong>${p.name}</strong>
+          <span class="pill">${p.department}</span>
+          <span style="margin-left:8px;">共 ${count} 筆訂單</span>
+        </div>`;
+        if (st) {
+          html += "<table><thead><tr><th>時間</th><th>餐別</th><th>餐廳</th><th>餐點</th></tr></thead><tbody>";
+          st.detail
+            .sort((a, b) => a.time - b.time)
+            .forEach(d => {
+              html += `<tr>
+                <td>${new Date(d.time).toLocaleString()}</td>
+                <td>${d.category}</td>
+                <td>${d.restaurant}</td>
+                <td>${d.item}</td>
+              </tr>`;
+            });
+          html += "</tbody></table>";
+        } else {
+          html += "<small>尚未有訂單。</small>";
+        }
+        html += '<div class="section-divider"></div>';
+      });
+      statsArea.innerHTML = html;
+    }
+
+    // ===== 事件綁定 =====
+    roleSelect.addEventListener("change", () => {
+      const role = roleSelect.value;
+      if (role === "admin") {
+        adminLoginArea.classList.remove("hidden");
+        userPanel.classList.add("hidden");
+      } else {
+        adminLoginArea.classList.add("hidden");
+        adminPanel.classList.add("hidden");
+        userPanel.classList.remove("hidden");
+        isAdmin = false;
+        currentRoleText.textContent = "目前身分：一般使用者";
+      }
     });
-  }
 
-  function handleAddCustomItem() {
-    const nameInput   = document.getElementById('newItemName');
-    const bentoInput  = document.getElementById('newItemBento');
-    const singleInput = document.getElementById('newItemSingle');
-
-    const name = nameInput.value.trim();
-    const bentoVal  = bentoInput.value.trim();
-    const singleVal = singleInput.value.trim();
-
-    if (!name) {
-      alert('請輸入餐點名稱');
-      return;
-    }
-
-    if (!bentoVal && !singleVal) {
-      alert('請至少輸入一種價格');
-      return;
-    }
-
-    const bentoPrice  = bentoVal  ? parseInt(bentoVal, 10)  : null;
-    const singlePrice = singleVal ? parseInt(singleVal, 10) : null;
-
-    customItems.push({ name, bentoPrice, singlePrice });
-    saveCustomItems();
-    renderCustomItems();
-
-    nameInput.value = '';
-    bentoInput.value = '';
-    singleInput.value = '';
-  }
-
-  /* 購物車邏輯（跟你原本一樣） */
-  let cart = [];
-
-  function addItem(name, type, price) {
-    const key = name + '-' + type;
-    const found = cart.find(item => item.key === key);
-
-    if (found) {
-      found.qty++;
-    } else {
-      cart.push({ key, name, type, price, qty: 1 });
-    }
-    renderCart();
-  }
-
-  function updateQty(key, diff) {
-    const item = cart.find(i => i.key === key);
-    if (!item) return;
-
-    item.qty += diff;
-    if (item.qty <= 0) {
-      cart = cart.filter(i => i.key !== key);
-    }
-    renderCart();
-  }
-
-  function renderCart() {
-    const list = document.getElementById('cart-list');
-    list.innerHTML = '';
-
-    if (cart.length === 0) {
-      list.className = 'empty';
-      list.textContent = '目前尚未點餐';
-      document.getElementById('total-qty').textContent = '0';
-      document.getElementById('total-price').textContent = '0';
-      return;
-    } else {
-      list.className = '';
-    }
-
-    let totalQty = 0;
-    let totalPrice = 0;
-
-    cart.forEach(item => {
-      totalQty += item.qty;
-      totalPrice += item.qty * item.price;
-
-      const div = document.createElement('div');
-      div.className = 'cart-item';
-      div.innerHTML = `
-        <div>${item.name}（${item.type}）× ${item.qty}</div>
-        <div class="cart-controls">
-          <button onclick="updateQty('${item.key}', 1)">＋</button>
-          <button onclick="updateQty('${item.key}', -1)">－</button>
-        </div>
-      `;
-      list.appendChild(div);
+    adminLoginBtn.addEventListener("click", () => {
+      const pwd = adminPasswordInput.value;
+      if (pwd === ADMIN_PASSWORD) {
+        isAdmin = true;
+        adminPanel.classList.remove("hidden");
+        userPanel.classList.add("hidden");
+        currentRoleText.textContent = "目前身分：管理員";
+        adminPasswordInput.value = "";
+        renderStats();
+      } else {
+        alert("密碼錯誤");
+      }
     });
 
-    document.getElementById('total-qty').textContent = totalQty;
-    document.getElementById('total-price').textContent = totalPrice;
-  }
+    adminLogoutBtn.addEventListener("click", () => {
+      isAdmin = false;
+      adminPanel.classList.add("hidden");
+      userPanel.classList.remove("hidden");
+      roleSelect.value = "user";
+      adminLoginArea.classList.add("hidden");
+      currentRoleText.textContent = "目前身分：一般使用者";
+    });
 
-  // 初始化自訂餐點
-  loadCustomItems();
-  renderCustomItems();
-</script>
+    userDeptSelect.addEventListener("change", () => {
+      refreshUserNameOptions();
+      renderUserOrders();
+    });
 
+    userNameSelect.addEventListener("change", () => {
+      renderUserOrders();
+    });
+
+    categorySelect.addEventListener("change", () => {
+      refreshRestaurantOptionsForUser();
+    });
+
+    restaurantSelect.addEventListener("change", () => {
+      refreshItemOptionsForUser();
+    });
+
+    placeOrderBtn.addEventListener("click", () => {
+      userMessage.textContent = "";
+      const dept = userDeptSelect.value;
+      const personId = userNameSelect.value;
+      const category = categorySelect.value;
+      const restaurantId = restaurantSelect.value;
+      const itemId = itemSelect.value;
+
+      if (!dept || !personId || !category || !restaurantId || !itemId) {
+        userMessage.textContent = "請確認部門、姓名、餐別、餐廳與餐點都已選擇。";
+        return;
+      }
+
+      const order = {
+        id: "o_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+        personId,
+        restaurantId,
+        itemId,
+        time: Date.now()
+      };
+      data.orders.push(order);
+      saveData();
+      renderUserOrders();
+      renderStats();
+      userMessage.style.color = "#0a0";
+      userMessage.textContent = "已送出訂單！";
+      setTimeout(() => {
+        userMessage.textContent = "";
+      }, 2000);
+    });
+
+    addPersonBtn.addEventListener("click", () => {
+      const name = adminPersonName.value.trim();
+      const dept = adminPersonDept.value;
+      if (!name) {
+        alert("請輸入姓名");
+        return;
+      }
+      const person = {
+        id: "p_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+        name,
+        department: dept
+      };
+      data.people.push(person);
+      saveData();
+      adminPersonName.value = "";
+      refreshPeopleList();
+      refreshUserNameOptions();
+      renderStats();
+    });
+
+    addRestaurantBtn.addEventListener("click", () => {
+      const cat = adminRestaurantCategory.value;
+      const name = adminRestaurantName.value.trim();
+      if (!name) {
+        alert("請輸入餐廳名稱");
+        return;
+      }
+      const restaurant = {
+        id: "r_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+        name,
+        category: cat
+      };
+      data.restaurants.push(restaurant);
+      saveData();
+      adminRestaurantName.value = "";
+      refreshRestaurantList();
+      refreshRestaurantOptionsForUser();
+    });
+
+    addItemBtn.addEventListener("click", () => {
+      const restaurantId = adminItemRestaurant.value;
+      const name = adminItemName.value.trim();
+      if (!restaurantId) {
+        alert("請選擇餐廳");
+        return;
+      }
+      if (!name) {
+        alert("請輸入餐點名稱");
+        return;
+      }
+      const item = {
+        id: "i_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+        restaurantId,
+        name
+      };
+      data.items.push(item);
+      saveData();
+      adminItemName.value = "";
+      refreshItemList();
+      refreshItemOptionsForUser();
+    });
+
+    // ===== 初始化 =====
+    function init() {
+      initDepartmentSelects();
+      refreshPeopleList();
+      refreshRestaurantList();
+      refreshItemList();
+      currentRoleText.textContent = "目前身分：一般使用者";
+      userPanel.classList.remove("hidden");
+    }
+
+    init();
+  </script>
 </body>
 </html>
