@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>我的第一個網頁</title>
+  <meta charset="UTF-8">
+  <title>GoldBricks — 菜單選擇</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
@@ -11,74 +12,124 @@
     }
 
     header {
-      background: #222;
+      background: #000;
       color: #fff;
-      padding: 16px 24px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 24px;
+      padding: 18px 24px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
 
     main {
       max-width: 960px;
-      margin: 24px auto;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .store-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .store-card {
       background: #fff;
-      padding: 24px;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.1s ease;
+    }
+
+    .store-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .store-icon {
+      width: 64px;
+      height: 64px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: #ffe28a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin-bottom: 12px;
     }
 
-    h2 {
-      margin-top: 0;
+    .store-name {
+      font-size: 18px;
+      font-weight: 600;
     }
 
-    .btn {
-      display: inline-block;
-      margin-top: 12px;
+    .enter-btn {
+      margin-top: 14px;
       padding: 10px 16px;
-      border-radius: 999px;
-      border: none;
-      background: #007aff;
+      background: #000;
+      border-radius: 12px;
       color: #fff;
+      text-decoration: none;
       font-size: 14px;
-      cursor: pointer;
+      transition: 0.2s;
     }
 
-    .btn:hover {
-      opacity: 0.9;
+    .enter-btn:hover {
+      background: #444;
     }
 
     footer {
+      margin-top: 40px;
       text-align: center;
       font-size: 12px;
-      color: #888;
-      padding: 16px 0 24px;
+      color: #777;
     }
   </style>
 </head>
+
 <body>
-  <header>
-    <h1>嗨，我是喬喬喬 ?</h1>
-  </header>
+  <header>GoldBricks</header>
 
   <main>
-    <h2>我的第一個網頁</h2>
-    <p>這是我用 HTML + CSS 做出來的第一個小作品！</p>
-    <p>之後可以在這裡放作品集、自我介紹、照片、或是寫日記。</p>
+    <h1>選擇分店 Select Your Store</h1>
 
-    <button class="btn" onclick="sayHi()">點我試試看</button>
+    <div class="store-grid">
+
+      <!-- Store 1 -->
+      <div class="store-card">
+        <div class="store-icon">🍔</div>
+        <div class="store-name">GoldBricks — 台北店</div>
+        <a href="menu-taipei.html" class="enter-btn">進入菜單</a>
+      </div>
+
+      <!-- Store 2 -->
+      <div class="store-card">
+        <div class="store-icon">🍜</div>
+        <div class="store-name">GoldBricks — 中壢店</div>
+        <a href="menu-chungli.html" class="enter-btn">進入菜單</a>
+      </div>
+
+      <!-- Store 3 -->
+      <div class="store-card">
+        <div class="store-icon">🍕</div>
+        <div class="store-name">GoldBricks — 高雄店</div>
+        <a href="menu-kaohsiung.html" class="enter-btn">進入菜單</a>
+      </div>
+
+      <!-- 你可以隨時再加更多店 -->
+    </div>
+
+    <footer>© 2025 GoldBricks Menu System</footer>
   </main>
 
-  <footer>
-    c 2025 My Webpage
-  </footer>
-
-  <script>
-    function sayHi() {
-      alert("網頁其實沒有那麼難 ??");
-    }
-  </script>
 </body>
 </html>
