@@ -6,10 +6,6 @@
   <title>呷奔嘍</title>
 
   <style>
-    /* ===========================
-       🍑 柔和粉橘扁平風
-       =========================== */
-
     :root {
       --bg: #f5f4fb;
       --card: #ffffff;
@@ -467,7 +463,6 @@
           </div>
         </div>
 
-        <!-- 預設加購 -->
         <p class="text-small">可勾選此餐點支援哪些預設加購項目：</p>
         <div class="flex-row addon-row">
           <div class="flex-1">
@@ -619,10 +614,6 @@
 </div>
 
 <script>
-  /* ===========================
-     資料結構 & 初始
-  =========================== */
-
   const STORAGE_KEY = "goldbricks_order_v1";
 
   function defaultData() {
@@ -661,8 +652,6 @@
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   }
-
-  /* DOM 抓取 */
 
   const adminAuthArea = document.getElementById("adminAuthArea");
   const adminStatusText = document.getElementById("adminStatusText");
@@ -742,10 +731,8 @@
 
   let isAdmin = false;
   let modalCurrentFoodId = null;
-  let tempCustomAddons = []; // 為即將新增的餐點暫存自訂加料
+  let tempCustomAddons = [];
   let editingOrderId = null;
-
-  /* 初始化部門 */
 
   function initDepartments() {
     userDeptSelect.innerHTML = "";
@@ -1071,8 +1058,6 @@
     adminOrderList.innerHTML = html;
   }
 
-  /* Modal：加購 */
-
   function openAddonModal(foodId) {
     modalCurrentFoodId = foodId;
     const f = data.foods.find((ff) => ff.id === foodId);
@@ -1174,8 +1159,6 @@
     modalCurrentFoodId = null;
   }
 
-  /* 訂單編輯 Modal */
-
   function openEditOrderModal(orderId) {
     const o = data.orders.find((oo) => oo.id === orderId);
     if (!o) return;
@@ -1195,8 +1178,6 @@
     editOrderModal.style.display = "none";
     editingOrderId = null;
   }
-
-  /* 統計 */
 
   function getOrdersInRange() {
     let list = data.orders.filter((o) => !o.deleted);
@@ -1306,8 +1287,6 @@
     }
   }
 
-  /* 事件 */
-
   toggleAdminLoginBtn.addEventListener("click", () => {
     adminLoginPanel.classList.toggle("hidden");
   });
@@ -1331,8 +1310,6 @@
     adminStatusText.textContent = "管理員未登入";
     adminPwd.value = "";
   });
-
-  /* Enter 送出：人員 / 餐廳 / 餐點 */
 
   adminPersonName.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -1367,8 +1344,6 @@
     }
   });
 
-  /* 人員新增 */
-
   addPersonBtn.addEventListener("click", () => {
     const dept = adminDeptSelect.value;
     const name = adminPersonName.value.trim();
@@ -1390,8 +1365,6 @@
   userPersonSelect.addEventListener("change", () => {
     renderUserOrders();
   });
-
-  /* 餐廳新增 */
 
   addRestaurantBtn.addEventListener("click", () => {
     const name = adminRestaurantName.value.trim();
@@ -1471,8 +1444,6 @@
     }
   });
 
-  /* 自訂加料 */
-
   adminAddCustomAddonBtn.addEventListener("click", () => {
     const label = adminCustomAddonName.value.trim();
     const price = Number(adminCustomAddonPrice.value);
@@ -1489,8 +1460,6 @@
     adminCustomAddonPrice.value = "";
     renderTempCustomAddonList();
   });
-
-  /* 新增餐點 */
 
   addFoodBtn.addEventListener("click", () => {
     const restId = adminFoodRestaurantSelect.value;
@@ -1581,8 +1550,6 @@
       renderDeleteLogs();
     }
   });
-
-  /* 使用者端 */
 
   userRestaurantSelect.addEventListener("change", () => {
     renderUserRestaurantInfo();
@@ -1682,8 +1649,6 @@
     renderAdminOrders();
   });
 
-  /* Enter 送出：加購彈窗 */
-
   document.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       if (addonModal.style.display === "flex") {
@@ -1692,8 +1657,6 @@
       }
     }
   });
-
-  /* 使用者刪除自己的訂單 */
 
   userOrderList.addEventListener("click", (e) => {
     const oid = e.target.dataset.deleteOrder;
@@ -1718,8 +1681,6 @@
     }
   });
 
-  /* 收合按鈕 */
-
   document.querySelectorAll(".toggleBtn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const targetId = btn.dataset.target;
@@ -1735,11 +1696,7 @@
     });
   });
 
-  /* 統計 */
-
   statRefreshBtn.addEventListener("click", refreshStats);
-
-  /* 訂單管理（編輯） */
 
   adminOrderList.addEventListener("click", (e) => {
     const oid = e.target.dataset.editOrder;
@@ -1770,16 +1727,12 @@
     renderAdminOrders();
   });
 
-  /* Modal 點背景關閉（兩種） */
-
   addonModal.addEventListener("click", (e) => {
     if (e.target === addonModal) closeAddonModal();
   });
   editOrderModal.addEventListener("click", (e) => {
     if (e.target === editOrderModal) closeEditOrderModal();
   });
-
-  /* 初始化 */
 
   function init() {
     initDepartments();
