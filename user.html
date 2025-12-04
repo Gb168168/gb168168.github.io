@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldBricks — 使用者點餐</title>
+<style>
+  :root {
+    --bg: #020617;
+    --bg-soft: #0b1120;
+    --panel: #0f172a;
+    --border: #1e293b;
+    --accent: #3b82f6;
+    --text: #e5e7eb;
+    --text-soft: #9ca3af;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #020617;
+    color: var(--text);
+  }
+
+  .top-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    background:#0f172a;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .logo{
+    font-size:20px;
+    font-weight:700;
+    margin-right:6px;
+  }
+  .search-wrap{
+    flex:1;
+    display:flex;
+    gap:6px;
+  }
+  .search-wrap input{
+    flex:1;
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#020617;
+    color:#fff;
+  }
+  .search-btn{
+    padding:8px 12px;
+    border-radius:999px;
+    border:none;
+    background:var(--accent);
+    color:white;
+  }
+
+  main{
+    padding:16px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  .card{
+    background:#0f172a;
+    border:1px solid #1e293b;
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:16px;
+  }
+  .card-title{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+
+  .two-col{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:10px;
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    margin-bottom:4px;
+    color:var(--text-soft);
+  }
+  input, select{
+    width:100%;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:#020617;
+    color:#fff;
+  }
+
+  .btn{
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-size:14px;
+    margin-top:10px;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:white;
+  }
+
+  /* 餐廳 */
+  .rest-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:10px;
+    margin-top:10px;
+  }
+  @media(min-width:1200px){
+    .rest-grid{ grid-template-columns:repeat(5,1fr); }
+  }
+
+  .rest-card{
+    background:#0f172a;
+    border:1px solid var(--border);
+    border-radius:14px;
+    cursor:pointer;
+    overflow:hidden;
+    transition:0.2s;
+  }
+  .rest-card:hover{
+    transform:translateY(-3px);
+    border-color:var(--accent);
+  }
+  .rest-card.active{
+    border-color:var(--accent);
+  }
+  .rest-img{
+    width:100%;
+    height:110px;
+    background:#1e293b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:20px;
+  }
+  .rest-title{
+    padding:10px;
+    font-size:14px;
+    font-weight:600;
+  }
+
+  /* 菜單 */
+  .menu-layout{
+    margin-top:16px;
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:16px;
+  }
+  @media(max-width:900px){
+    .menu-layout{ grid-template-columns:1fr; }
+  }
+
+  .menu-item{
+    background:#0f172a;
+    border:1px solid var(--border);
+    padding:10px;
+    border-radius:12px;
+    margin-bottom:6px;
+  }
+  .menu-title{
+    font-size:15px;
+    font-weight:600;
+  }
+  .addon-list{
+    font-size:13px;
+    color:var(--text-soft);
+  }
+
+  /* 購物車 */
+  .cart{
+    background:#0f172a;
+    border:1px solid var(--border);
+    padding:14px;
+    border-radius:14px;
+  }
+  .cart-item{
+    padding:8px;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .cart-item:last-child{ border-bottom:none; }
+  .delete-btn{
+    background:none;
+    border:none;
+    color:var(--danger);
+    font-size:18px;
+    float:right;
+    cursor:pointer;
+  }
+  .total{
+    margin-top:10px;
+    font-size:16px;
+    font-weight:700;
+  }
+  .exceed{
+    color:var(--danger);
+    font-weight:700;
+  }
+</style>
+</head>
+<body>
+
+<!-- 上方列 -->
+<div class="top-bar">
+  <div class="logo">GoldBricks</div>
+  <div class="search-wrap">
+    <input id="searchInput" placeholder="搜尋餐廳名稱…">
+    <button class="search-btn" id="searchBtn">搜尋</button>
+  </div>
+</div>
+
+<main>
+
+<!-- 人員資訊 -->
+<div class="card">
+  <div class="card-title">使用者資訊</div>
+  <div class="two-col">
+    <div>
+      <label>部門</label>
+      <select id="deptSelect"></select>
+    </div>
+    <div>
+      <label>人員</label>
+      <select id="staffSelect"></select>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="startBtn">開始點餐</button>
+</div>
+
+<!-- 餐廳選擇 -->
+<div class="card" id="restSection" style="display:none;">
+  <div class="card-title">選擇餐廳</div>
+  <div class="rest-grid" id="restGrid"></div>
+</div>
+
+<!-- 菜單 + 購物車 -->
+<div class="menu-layout" id="menuLayout" style="display:none;">
+
+  <!-- 菜單 -->
+  <div id="menuList"></div>
+
+  <!-- 購物車 -->
+  <div class="cart">
+    <div class="card-title">已選餐點</div>
+    <div id="cartList"></div>
+    <div class="total">
+      總金額：<span id="totalPrice">0</span> 元  
+      <span id="exceedNote"></span>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+(function(){
+  const role = localStorage.getItem("gb_role");
+  if(role !== "user") window.location.href="index.html";
+})();
+
+const restaurants = [];
+const menuItems = [];
+const cart = [];
+let selectedRestaurant = null;
+
+const deptSelect = document.getElementById("deptSelect");
+const staffSelect = document.getElementById("staffSelect");
+
+// 從 localStorage 讀取管理者新增的資料（人員 & 餐廳 & 菜單）
+function loadData(){
+  const staff = JSON.parse(localStorage.getItem("gb_staff")||"[]");
+  const rest  = JSON.parse(localStorage.getItem("gb_rest")||"[]");
+  const menu  = JSON.parse(localStorage.getItem("gb_menu")||"[]");
+
+  staff.forEach(s=>{
+    let opt = document.createElement("option");
+    opt.textContent = s.dept;
+    deptSelect.appendChild(opt);
+
+    let opt2 = document.createElement("option");
+    opt2.textContent = s.staff;
+    staffSelect.appendChild(opt2);
+  });
+
+  restaurants.push(...rest);
+  menuItems.push(...menu);
+}
+loadData();
+
+// 開始點餐
+document.getElementById("startBtn").addEventListener("click",()=>{
+  document.getElementById("restSection").style.display="block";
+});
+
+// 顯示餐廳
+const restGrid = document.getElementById("restGrid");
+
+function renderRestaurants(){
+  restGrid.innerHTML="";
+  restaurants.forEach(r=>{
+    const card=document.createElement("div");
+    card.className="rest-card";
+    card.innerHTML=`
+      <div class="rest-img">🍽️</div>
+      <div class="rest-title">${r.name}</div>
+    `;
+    card.onclick=()=>{
+      selectedRestaurant=r.id;
+      document.getElementById("menuLayout").style.display="grid";
+      showMenu(r.id);
+    };
+    restGrid.appendChild(card);
+  });
+}
+renderRestaurants();
+
+// 顯示菜單
+function showMenu(restId){
+  const menuList=document.getElementById("menuList");
+  menuList.innerHTML="";
+
+  menuItems.filter(m=>m.restId===restId).forEach(item=>{
+    const div=document.createElement("div");
+    div.className="menu-item";
+    div.innerHTML=`
+      <div class="menu-title">${item.name} — $${item.price}</div>
+      <button class="btn btn-primary btn-sm">加入</button>
+    `;
+    div.querySelector("button").onclick=()=>addToCart(item);
+    menuList.appendChild(div);
+  });
+}
+
+// 加入購物車
+function addToCart(item){
+  cart.push({...item});
+  renderCart();
+}
+
+// 顯示購物車
+function renderCart(){
+  const box=document.getElementById("cartList");
+  const total = document.getElementById("totalPrice");
+  const exceed = document.getElementById("exceedNote");
+
+  box.innerHTML="";
+
+  let sum=0;
+  cart.forEach((c,i)=>{
+    sum+=c.price;
+    const row=document.createElement("div");
+    row.className="cart-item";
+    row.innerHTML=`
+      ${c.name} — $${c.price}
+      <button class="delete-btn">×</button>
+    `;
+    row.querySelector("button").onclick=()=>{
+      cart.splice(i,1);
+      renderCart();
+    };
+    box.appendChild(row);
+  });
+
+  total.textContent=sum;
+
+  if(sum>140){
+    exceed.textContent=`（超出 ${sum-140} 元）`;
+    exceed.className="exceed";
+  }else{
+    exceed.textContent="";
+    exceed.className="";
+  }
+}
+
+</script>
+
+</body>
+</html>
