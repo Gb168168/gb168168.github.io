@@ -1,119 +1,107 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoldBricks</title>
-  <style>
-    body {
-      margin: 0;
-      background: #F1F5F9;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #0F172A;
-    }
-    .top-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 20px;
-    }
-    .logo {
-      font-size: 22px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-    .search-box {
-      flex: 1;
-      display: flex;
-      gap: 6px;
-    }
-    .search-box input {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid #CBD5E1;
-      background: #fff;
-      font-size: 14px;
-    }
-    .login-box {
-      margin: 40px auto;
-      width: 90%;
-      max-width: 380px;
-      padding: 30px;
-      border-radius: 16px;
-      background: #fff;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      text-align: center;
-    }
-    .login-box h3 {
-      margin-top: 0;
-      margin-bottom: 16px;
-    }
-    .login-box input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 18px;
-      border-radius: 10px;
-      border: 1px solid #CBD5E1;
-      font-size: 16px;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(90deg, #3B82F6, #1D4ED8);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldBricks — 登入</title>
+
+<style>
+  body {
+    margin:0;
+    background:linear-gradient(135deg, #0f172a, #1e293b);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:#e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+    padding:20px;
+  }
+
+  .login-box {
+    width:100%;
+    max-width:360px;
+    background:rgba(15,23,42,0.85);
+    backdrop-filter:blur(10px);
+    padding:28px 24px 32px;
+    border-radius:18px;
+    border:1px solid rgba(148,163,184,0.2);
+    box-shadow:0 10px 35px rgba(0,0,0,0.4);
+    text-align:center;
+  }
+
+  h1 {
+    font-size:22px;
+    font-weight:700;
+    margin-bottom:20px;
+  }
+
+  input {
+    width:100%;
+    padding:10px 14px;
+    border-radius:12px;
+    border:1px solid #334155;
+    background:#020617;
+    color:#e5e7eb;
+    font-size:16px;
+    text-align:center;
+    outline:none;
+  }
+
+  input::placeholder {
+    color:#64748b;
+  }
+
+  button {
+    margin-top:16px;
+    width:100%;
+    padding:12px 0;
+    border:none;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:600;
+    background:#3b82f6;
+    color:white;
+    cursor:pointer;
+  }
+
+  .error {
+    margin-top:12px;
+    color:#f87171;
+    font-size:14px;
+    display:none;
+  }
+</style>
 </head>
+
 <body>
 
-  <!-- 上方：GoldBricks + 搜尋欄（先只有外觀，之後再做功能） -->
-  <div class="top-bar">
-    <div class="logo">GoldBricks</div>
-    <div class="search-box">
-      <input type="text" placeholder="輸入餐廳名稱查詢…">
-    </div>
-  </div>
+<div class="login-box">
+  <h1>GoldBricks<br>訂餐系統</h1>
 
-  <!-- 登入區 -->
-  <div class="login-box">
-    <h3>請輸入密碼</h3>
-    <input id="pwd" type="password" placeholder="8520（管理）／888（使用者）">
-    <button onclick="login()">登入</button>
-  </div>
+  <input id="pwd" type="password" placeholder="請輸入密碼">
+  <button onclick="login()">登入</button>
+  <div class="error" id="err">密碼錯誤，請重新輸入</div>
+</div>
 
-  <script>
-    // 一進首頁就檢查是否已登入過
-    (function checkRole() {
-      const role = localStorage.getItem('gb_role');
-      if (role === 'admin') {
-        // 已是管理者 → 直接進 admin.html
-        window.location.href = 'admin.html';
-      } else if (role === 'user') {
-        // 已是使用者 → 直接進 user.html（之後會做）
-        window.location.href = 'user.html';
-      }
-    })();
+<script>
+function login() {
+  const p = document.getElementById("pwd").value.trim();
+  const err = document.getElementById("err");
 
-    function login() {
-      const pwd = document.getElementById('pwd').value.trim();
-
-      if (pwd === '8520') {
-        // 管理者
-        localStorage.setItem('gb_role', 'admin');
-        window.location.href = 'admin.html';
-      } else if (pwd === '888') {
-        // 使用者
-        localStorage.setItem('gb_role', 'user');
-        window.location.href = 'user.html';
-      } else {
-        alert('密碼錯誤');
-      }
-    }
-  </script>
+  if (p === "8520") {
+    localStorage.setItem("gb_role", "admin");
+    window.location.href = "admin.html";
+  } 
+  else if (p === "888") {
+    localStorage.setItem("gb_role", "user");
+    window.location.href = "user.html";
+  }
+  else {
+    err.style.display = "block";
+  }
+}
+</script>
 
 </body>
 </html>
