@@ -37,17 +37,22 @@
   }
 
   input {
-    width:100%;
-    padding:10px 14px;
-    border-radius:12px;
-    border:1px solid #334155;
-    background:#020617;
-    color:#e5e7eb;
-    font-size:16px;
-    text-align:center;
-    outline:none;
-  }
+  width:100%;
+  padding:12px 16px;
+  border-radius:12px;
+  border:1px solid #334155;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:16px;
+  text-align:center;
 
+  /* ⭐ 修正 iPhone 輸入框變形的關鍵設定 */
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+
+  outline:none;
+}
   input::placeholder {
     color:#64748b;
   }
@@ -105,3 +110,4 @@ function login() {
 
 </body>
 </html>
+
