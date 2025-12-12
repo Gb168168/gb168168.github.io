@@ -144,6 +144,43 @@
       margin-bottom: 16px;
     }
     .topbar .info { font-size: 13px; color: #6b7280; }
+
+    /* 餐廳卡片 */
+    .restaurant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .restaurant-card {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 8px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+    .restaurant-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(15,23,42,0.12);
+    }
+    .restaurant-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #e5e7eb;
+    }
+    .restaurant-card-name {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .restaurant-card-sub {
+      font-size: 12px;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body>
@@ -154,9 +191,9 @@
       <div style="font-size:12px;color:#9ca3af;">GoldBricks 訂餐系統</div>
     </div>
     <ul class="menu" id="menu">
-      <li data-target="section-add-staff">新增人員</li>
-      <li data-target="section-add-restaurant" class="active">1-2 新增餐廳</li>
-      <li data-target="section-restaurants">1-3 餐廳管理</li>
+      <li data-target="section-add-staff">1-1 新增人員</li>
+      <li data-target="section-add-restaurant" class="active">1-2 餐廳管理</li>
+      <li data-target="section-restaurants">1-3 餐廳管理（總覽）</li>
       <li data-target="section-orders">1-4 訂餐紀錄</li>
       <li data-target="section-stats">1-5 訂單統計</li>
       <li id="switchToUser">1-6 切換使用者模式</li>
@@ -192,14 +229,9 @@
             <input id="rest-address" placeholder="台北市..." />
           </div>
           <div>
-            <label>網址</label>
-            <input id="rest-url" placeholder="https://..." />
-          </div>
-          <div>
             <label>Google Map 連結</label>
             <input id="rest-map" placeholder="Google Map URL" />
           </div>
-          <!-- ★ 這裡就是你要的「上傳圖片」欄位 -->
           <div>
             <label>店家圖片</label>
             <input type="file" id="rest-image" accept="image/*" />
@@ -225,7 +257,12 @@
           </div>
           <div>
             <label>餐點類別</label>
-              <input id="menu-name" placeholder="例：飯類/麵類/小菜/飲料" />
+            <select id="menu-category">
+              <option value="飯類">飯類</option>
+              <option value="麵類">麵類</option>
+              <option value="小菜">小菜</option>
+              <option value="飲料">飲料</option>
+            </select>
           </div>
           <div>
             <label>餐點名稱</label>
@@ -254,11 +291,38 @@
       </div>
     </section>
 
-    <!-- 1-3 餐廳管理（編輯） -->
+    <!-- 1-3 餐廳管理（總覽 & 編輯） -->
     <section id="section-restaurants" class="section">
       <div class="card">
-        <h3>1-3 餐廳管理（編輯模式）</h3>
-        <div class="list" id="restaurant-manage-list"></div>
+        <h3>1-3 餐廳管理（點圖片可編輯）</h3>
+        <div class="restaurant-grid" id="restaurant-cards"></div>
+      </div>
+
+      <div class="card" id="restaurant-edit-panel" style="display:none;">
+        <h3>編輯餐廳資訊</h3>
+        <div class="group mt-8">
+          <div>
+            <label>餐廳名稱</label>
+            <input id="edit-rest-name" />
+          </div>
+          <div>
+            <label>電話</label>
+            <input id="edit-rest-phone" />
+          </div>
+          <div>
+            <label>地址</label>
+            <input id="edit-rest-address" />
+          </div>
+          <div>
+            <label>Google Map 連結</label>
+            <input id="edit-rest-map" />
+          </div>
+        </div>
+        <div class="mt-8">
+          <label>備註</label>
+          <textarea id="edit-rest-note"></textarea>
+        </div>
+        <button class="btn mt-12" id="btn-save-rest">儲存修改</button>
       </div>
     </section>
 
@@ -306,8 +370,8 @@
     <!-- 1-1 新增人員 -->
     <section id="section-add-staff" class="section">
       <div class="card">
-        <h3> 新增人員</h3>
-        <div class="group mt-8" style="max-width:420px;">
+        <h3>1-1 新增人員</h3>
+        <div class="group mt-8" style="max-width:520px;">
           <div>
             <label>部門</label>
             <select id="staff-dept">
@@ -322,19 +386,22 @@
               <option value="維運">維運</option>
             </select>
           </div>
+
+          <!-- 按鈕放在人名右邊 -->
           <div>
             <label>人員名稱</label>
-            <input id="staff-name" placeholder="輸入人名" />
+            <div class="flex">
+              <input id="staff-name" placeholder="輸入人名" />
+              <button class="btn sm" id="btn-add-staff">新增</button>
+            </div>
           </div>
         </div>
-        <button class="btn mt-8" id="btn-add-staff">新增人員</button>
 
         <div class="list" id="staff-list"></div>
       </div>
     </section>
   </main>
 
-  <!-- 一定要放在 body 最下面，選單才會有作用 -->
   <script>
     // 左側選單切換
     const menu = document.getElementById("menu");
@@ -363,18 +430,25 @@
       if (titleMap[target]) topTitle.textContent = titleMap[target];
     });
 
-    // 切換使用者 / 登出
+    // 切換使用者 / 登出（帶確認）
     document.getElementById("switchToUser").addEventListener("click", () => {
-      localStorage.setItem("role", "user");
-      window.location.href = "user.html";
+      const confirmSwitch = window.confirm("要切換成使用者模式嗎？\n\n按「確定」：切換模式\n按「取消」：直接登出");
+      if (confirmSwitch) {
+        localStorage.setItem("role", "user");
+        window.location.href = "user.html";
+      } else {
+        localStorage.removeItem("role");
+        window.location.href = "index.html";
+      }
     });
+
     document.getElementById("logout").addEventListener("click", () => {
       localStorage.removeItem("role");
       window.location.href = "index.html";
     });
 
-    // 暫存資料（之後可以改成 Firebase）
-    const restaurants = [];
+    // 暫存資料（之後改成 Firebase）
+    const restaurants = [];   // {id,name,phone,address,map,note,image}
     const menus = [];
     const staffByDept = {};
 
@@ -382,57 +456,140 @@
     const restNameInput = document.getElementById("rest-name");
     const restPhoneInput = document.getElementById("rest-phone");
     const restAddressInput = document.getElementById("rest-address");
-    const restUrlInput = document.getElementById("rest-url");
     const restMapInput = document.getElementById("rest-map");
     const restNoteInput = document.getElementById("rest-note");
+    const restImageInput = document.getElementById("rest-image");
     const restListDiv = document.getElementById("restaurant-list");
-    const restManageListDiv = document.getElementById("restaurant-manage-list");
     const restSelect = document.getElementById("menu-rest-select");
 
-    function renderRestaurants() {
+    const restCardsDiv = document.getElementById("restaurant-cards");
+    const editPanel = document.getElementById("restaurant-edit-panel");
+    const editNameInput = document.getElementById("edit-rest-name");
+    const editPhoneInput = document.getElementById("edit-rest-phone");
+    const editAddressInput = document.getElementById("edit-rest-address");
+    const editMapInput = document.getElementById("edit-rest-map");
+    const editNoteInput = document.getElementById("edit-rest-note");
+    let editingRestaurantId = null;
+
+    function renderRestaurantsList() {
       restListDiv.innerHTML = "";
-      restManageListDiv.innerHTML = "";
       restSelect.innerHTML = '<option value="">請選擇餐廳</option>';
 
       restaurants.forEach((r, idx) => {
         const row = document.createElement("div");
-        row.textContent = `${idx + 1}. ${r.name} / ${r.phone} / ${r.address}`;
+        row.textContent = `${idx + 1}. ${r.name} / ${r.phone || ""} / ${r.address || ""}`;
         restListDiv.appendChild(row);
 
-        const row2 = document.createElement("div");
-        row2.innerHTML =
-          `<div class="mt-8">
-            <span class="badge">${r.name}</span>
-            電話：${r.phone || "-"}｜地址：${r.address || "-"}
-          </div>`;
-        restManageListDiv.appendChild(row2);
-
         const opt = document.createElement("option");
-        opt.value = r.name;
+        opt.value = r.id;
         opt.textContent = r.name;
         restSelect.appendChild(opt);
       });
     }
 
+    function renderRestaurantCards() {
+      restCardsDiv.innerHTML = "";
+      restaurants.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "restaurant-card";
+        card.dataset.id = r.id;
+
+        const img = document.createElement("img");
+        if (r.image) {
+          img.src = r.image;
+        } else {
+          // 沒有圖，用灰底
+          img.alt = "no image";
+        }
+        card.appendChild(img);
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "restaurant-card-name";
+        nameDiv.textContent = r.name || "未命名餐廳";
+        card.appendChild(nameDiv);
+
+        const subDiv = document.createElement("div");
+        subDiv.className = "restaurant-card-sub";
+        subDiv.textContent = r.address || "";
+        card.appendChild(subDiv);
+
+        card.addEventListener("click", () => {
+          openEditRestaurant(r.id);
+        });
+
+        restCardsDiv.appendChild(card);
+      });
+    }
+
+    function openEditRestaurant(id) {
+      const r = restaurants.find(x => x.id === id);
+      if (!r) return;
+      editingRestaurantId = id;
+      editNameInput.value = r.name || "";
+      editPhoneInput.value = r.phone || "";
+      editAddressInput.value = r.address || "";
+      editMapInput.value = r.map || "";
+      editNoteInput.value = r.note || "";
+      editPanel.style.display = "block";
+
+      // 自動切到 1-3 選單
+      menu.querySelectorAll("li").forEach(li => li.classList.remove("active"));
+      const li = Array.from(menu.querySelectorAll("li")).find(li => li.dataset.target === "section-restaurants");
+      if (li) li.classList.add("active");
+      sections.forEach(sec => {
+        sec.classList.toggle("active", sec.id === "section-restaurants");
+      });
+      document.querySelector(".topbar h3").textContent = "餐廳管理";
+    }
+
+    document.getElementById("btn-save-rest").addEventListener("click", () => {
+      if (!editingRestaurantId) return;
+      const r = restaurants.find(x => x.id === editingRestaurantId);
+      if (!r) return;
+      r.name = editNameInput.value.trim();
+      r.phone = editPhoneInput.value.trim();
+      r.address = editAddressInput.value.trim();
+      r.map = editMapInput.value.trim();
+      r.note = editNoteInput.value.trim();
+      renderRestaurantsList();
+      renderRestaurantCards();
+      alert("已儲存餐廳資訊");
+    });
+
     document.getElementById("btn-add-restaurant").addEventListener("click", () => {
       const name = restNameInput.value.trim();
       if (!name) { alert("請輸入餐廳名稱"); return; }
-      restaurants.push({
+
+      const restObj = {
         id: Date.now().toString(),
         name,
         phone: restPhoneInput.value.trim(),
         address: restAddressInput.value.trim(),
-        url: restUrlInput.value.trim(),
         map: restMapInput.value.trim(),
-        note: restNoteInput.value.trim()
-      });
+        note: restNoteInput.value.trim(),
+        image: null
+      };
+      restaurants.push(restObj);
+
+      const file = restImageInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          restObj.image = e.target.result;
+          renderRestaurantCards();
+        };
+        reader.readAsDataURL(file);
+      }
+
       restNameInput.value = "";
       restPhoneInput.value = "";
       restAddressInput.value = "";
-      restUrlInput.value = "";
       restMapInput.value = "";
       restNoteInput.value = "";
-      renderRestaurants();
+      restImageInput.value = "";
+
+      renderRestaurantsList();
+      renderRestaurantCards();
     });
 
     // 加購項目欄位
@@ -468,10 +625,10 @@
 
     // 新增餐點
     const menuListDiv = document.getElementById("menu-list");
-    function renderMenusForRestaurant(restName) {
+    function renderMenusForRestaurant(restId) {
       menuListDiv.innerHTML = "";
-      if (!restName) return;
-      const list = menus.filter(m => m.restaurantName === restName);
+      if (!restId) return;
+      const list = menus.filter(m => m.restaurantId === restId);
       list.forEach((m, idx) => {
         const div = document.createElement("div");
         const addonText = m.addons
@@ -485,12 +642,12 @@
     }
 
     document.getElementById("btn-add-menu").addEventListener("click", () => {
-      const rest = restSelect.value;
+      const restId = restSelect.value;
       const category = document.getElementById("menu-category").value;
       const name = document.getElementById("menu-name").value.trim();
       const price = Number(document.getElementById("menu-price").value || "0");
       const defaultQty = Number(document.getElementById("menu-default-qty").value || "1");
-      if (!rest) { alert("請先選擇餐廳"); return; }
+      if (!restId) { alert("請先選擇餐廳"); return; }
       if (!name) { alert("請輸入餐點名稱"); return; }
 
       const addonRows = addonsContainer.querySelectorAll(".group");
@@ -505,7 +662,7 @@
 
       menus.push({
         id: Date.now().toString(),
-        restaurantName: rest,
+        restaurantId: restId,
         category,
         name,
         price,
@@ -518,7 +675,7 @@
       document.getElementById("menu-default-qty").value = "1";
       addonsContainer.innerHTML = "";
       createAddonRow();
-      renderMenusForRestaurant(rest);
+      renderMenusForRestaurant(restId);
     });
 
     document.getElementById("menu-rest-select").addEventListener("change", (e) => {
@@ -563,7 +720,7 @@
       });
     }
 
-    document.getElementById("btn-add-staff").addEventListener("click", () => {
+    function addStaff() {
       const dept = staffDeptSelect.value;
       const name = staffNameInput.value.trim();
       if (!name) { alert("請輸入人員名稱"); return; }
@@ -571,7 +728,17 @@
       staffByDept[dept].push(name);
       staffNameInput.value = "";
       renderStaff();
+    }
+
+    document.getElementById("btn-add-staff").addEventListener("click", addStaff);
+    // 按 Enter 也能新增人員
+    staffNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addStaff();
+      }
     });
+
     renderStaff();
 
     // 簡單身分驗證
