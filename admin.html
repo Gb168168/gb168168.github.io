@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔啊~~ </title>
+  <title>GoldBricks Order｜管理者</title>
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -88,6 +88,7 @@
     .btnSmall{
       padding:7px 10px; border-radius:12px; border:1px solid var(--border);
       background:#fff; cursor:pointer; font-weight:800; font-size:12.5px;
+      white-space:nowrap;
     }
     .btnDanger{border-color: rgba(239,68,68,.35)}
     .btnDanger:hover{border-color: rgba(239,68,68,.60)}
@@ -118,8 +119,8 @@
       </div>
 
       <div class="nav">
-        <button class="navBtn" data-view="staff">人員管理</button>
-        <button class="navBtn" data-view="addRestaurant">新增餐廳</button>
+        <button class="navBtn" data-view="staff">新增人員</button>
+        <button class="navBtn" data-view="addRestaurant">新增餐廳（預設）</button>
         <button class="navBtn" data-view="restaurants">餐廳管理</button>
         <button class="navBtn" data-view="orders">訂餐紀錄</button>
         <div class="hr"></div>
@@ -129,7 +130,7 @@
 
       <p class="muted" style="margin:12px 8px 0;">
         ✅ Firestore（不使用 Storage）<br/>
-        ✅ 餐廳圖片：用「圖片網址」
+        ✅ 圖片：用「圖片網址」+ 直接開啟
       </p>
     </aside>
 
@@ -146,10 +147,9 @@
       <section class="view" id="view_addRestaurant">
         <div class="grid">
           <div class="card">
-            <h3>餐廳資料</h3>
+            <h3>餐廳資料（填完後直接新增上）</h3>
 
             <label>餐廳名稱</label>
-            <!-- ✅ 防止瀏覽器自動帶值 -->
             <input id="r_name" name="r_name_no_autofill" autocomplete="off" placeholder="例：金磚便當"/>
 
             <div class="row">
@@ -180,7 +180,7 @@
             <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
 
             <div class="actions">
-              <button class="primary" id="btnSubmitAll">新增</button>
+              <button class="primary" id="btnSubmitAll">直接新增上（餐廳 + 餐點清單）</button>
               <button class="ghost" id="btnClearAll">清空</button>
             </div>
 
@@ -188,11 +188,11 @@
           </div>
 
           <div class="card">
-            <h3>新增餐點</h3>
+            <h3>餐點（先加入清單，可多筆）</h3>
 
             <div class="row">
               <div>
-                <label>餐點類別</label>
+                <label>餐點類別（用輸入）</label>
                 <input id="m_cat" placeholder="例：飯類 / 麵類 / 小菜 / 飲料"/>
               </div>
               <div>
@@ -342,7 +342,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs,
-      query, where, orderBy, limit
+      query, where, orderBy, limit, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -519,35 +519,41 @@
       if(!name) return alert("請輸入餐廳名稱");
       statusPill.textContent = "新增餐廳中…";
 
-      const restaurantRef = await addDoc(colRestaurants, {
-        name,
-        phone: $("r_phone").value.trim(),
-        address: $("r_addr").value.trim(),
-        mapUrl: $("r_map").value.trim(),
-        note: $("r_note").value.trim(),
-        imageUrl: $("r_imgUrl").value.trim(),
-        createdAt: Date.now()
-      });
+      try{
+        const restaurantRef = await addDoc(colRestaurants, {
+          name,
+          phone: $("r_phone").value.trim(),
+          address: $("r_addr").value.trim(),
+          mapUrl: $("r_map").value.trim(),
+          note: $("r_note").value.trim(),
+          imageUrl: $("r_imgUrl").value.trim(),
+          createdAt: Date.now()
+        });
 
-      if(menuQueue.length>0){
-        statusPill.textContent = "新增餐點清單中…";
-        const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-        for(const m of menuQueue){
-          await addDoc(menuCol, {
-            category: m.category,
-            name: m.name,
-            price: Number(m.price||0),
-            defaultQty: Math.max(1, Number(m.defaultQty||1)),
-            addons: m.addons || [],
-            createdAt: Date.now()
-          });
+        if(menuQueue.length>0){
+          statusPill.textContent = "新增餐點清單中…";
+          const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+          for(const m of menuQueue){
+            await addDoc(menuCol, {
+              category: m.category,
+              name: m.name,
+              price: Number(m.price||0),
+              defaultQty: Math.max(1, Number(m.defaultQty||1)),
+              addons: m.addons || [],
+              createdAt: Date.now()
+            });
+          }
         }
-      }
 
-      statusPill.textContent = "新增完成 ✅";
-      alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
-      $("btnClearAll").click();
-      await refreshRestaurantSelects();
+        statusPill.textContent = "新增完成 ✅";
+        alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
+        $("btnClearAll").click();
+        await refreshRestaurantSelects();
+      }catch(err){
+        console.error(err);
+        alert("新增失敗（多半是 Firestore Rules）\n\n" + (err?.message || err));
+        statusPill.textContent = "新增失敗（看 console）";
+      }
     };
 
     // ====== 人員 ======
@@ -580,8 +586,13 @@
       wrap.querySelectorAll("button[data-delstaff]").forEach(b=>{
         b.onclick = async ()=>{
           if(!confirm("確定刪除該人員？")) return;
-          await deleteDoc(doc(db,"staff", b.dataset.delstaff));
-          await refreshStaffList();
+          try{
+            await deleteDoc(doc(db,"staff", b.dataset.delstaff));
+            await refreshStaffList();
+          }catch(err){
+            console.error(err);
+            alert("刪除人員失敗（Rules）\n\n" + (err?.message || err));
+          }
         };
       });
     }
@@ -592,16 +603,21 @@
       const name = $("s_name").value.trim();
       if(!dept) return alert("請輸入部門");
       if(!name) return alert("請輸入人員名稱");
-      await addDoc(colStaff, { dept, name, createdAt: Date.now() });
-      $("s_name").value="";
-      await refreshStaffList();
+      try{
+        await addDoc(colStaff, { dept, name, createdAt: Date.now() });
+        $("s_name").value="";
+        await refreshStaffList();
+      }catch(err){
+        console.error(err);
+        alert("新增人員失敗（Rules）\n\n" + (err?.message || err));
+      }
     };
     $("btnClearStaff").onclick = ()=>{ $("s_dept").value=""; $("s_name").value=""; };
     $("s_name").addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); $("btnAddStaff").click(); } });
 
     // ====== 餐廳下拉 ======
     async function refreshRestaurantSelects(){
-      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(600)));
+      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(800)));
       const list = [];
       snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
       $("rm_restaurant").innerHTML = list.length
@@ -622,78 +638,102 @@
       const wrap = $("menuManageWrap");
       if(!rid){ wrap.innerHTML = `<div class="muted">請先選擇餐廳</div>`; return; }
 
-      const menuCol = collection(db, "restaurants", rid, "menu");
-      const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
-      const list = [];
-      snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
+      try{
+        const menuCol = collection(db, "restaurants", rid, "menu");
+        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
+        const list = [];
+        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
-      if(list.length===0){ wrap.innerHTML = `<div class="muted">此餐廳尚無餐點</div>`; return; }
+        if(list.length===0){ wrap.innerHTML = `<div class="muted">此餐廳尚無餐點</div>`; return; }
 
-      wrap.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>加購項目</th><th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.map(m=>{
-              const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
-              return `
-                <tr>
-                  <td><input data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
-                  <td><input data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
-                  <td><input data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
-                  <td><input data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
-                  <td class="muted" style="max-width:280px">${esc(addons)}</td>
-                  <td style="white-space:nowrap">
-                    <button class="btnSmall btnOk" data-savem="${m.id}">儲存</button>
-                    <button class="btnSmall btnDanger" data-delm="${m.id}">刪除</button>
-                  </td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      `;
+        wrap.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>加購項目</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map(m=>{
+                const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
+                return `
+                  <tr>
+                    <td><input data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
+                    <td><input data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+                    <td><input data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
+                    <td><input data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+                    <td class="muted" style="max-width:280px">${esc(addons)}</td>
+                    <td style="white-space:nowrap">
+                      <button class="btnSmall btnOk" data-savem="${m.id}">儲存</button>
+                      <button class="btnSmall btnDanger" data-delm="${m.id}">刪除</button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
 
-      wrap.querySelectorAll("button[data-delm]").forEach(b=>{
-        b.onclick = async ()=>{
-          if(!confirm("確定刪除餐點？")) return;
-          await deleteDoc(doc(db, "restaurants", rid, "menu", b.dataset.delm));
-          await refreshMenuManage();
-          await refreshRestaurantsManage();
-        };
-      });
+        wrap.querySelectorAll("button[data-delm]").forEach(b=>{
+          b.onclick = async ()=>{
+            if(!confirm("確定刪除餐點？")) return;
+            try{
+              await deleteDoc(doc(db, "restaurants", rid, "menu", b.dataset.delm));
+              await refreshMenuManage();
+              await refreshRestaurantsManage();
+            }catch(err){
+              console.error(err);
+              alert("刪除餐點失敗（Rules）\n\n" + (err?.message || err));
+            }
+          };
+        });
 
-      wrap.querySelectorAll("button[data-savem]").forEach(b=>{
-        b.onclick = async ()=>{
-          const mid = b.dataset.savem;
-          const els = wrap.querySelectorAll(`[data-mid="${mid}"]`);
-          const patch = {};
-          els.forEach(el=>{
-            const k = el.dataset.k;
-            patch[k] = (k==="price" || k==="defaultQty") ? Number(el.value||0) : el.value.trim();
-          });
-          patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
-          patch.price = Math.max(0, Number(patch.price||0));
-          await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
-          statusPill.textContent = "餐點已儲存 ✅";
-          await refreshRestaurantsManage();
-        };
-      });
+        wrap.querySelectorAll("button[data-savem]").forEach(b=>{
+          b.onclick = async ()=>{
+            const mid = b.dataset.savem;
+            const els = wrap.querySelectorAll(`[data-mid="${mid}"]`);
+            const patch = {};
+            els.forEach(el=>{
+              const k = el.dataset.k;
+              patch[k] = (k==="price" || k==="defaultQty") ? Number(el.value||0) : el.value.trim();
+            });
+            patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
+            patch.price = Math.max(0, Number(patch.price||0));
+
+            try{
+              await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+              statusPill.textContent = "餐點已儲存 ✅";
+              await refreshRestaurantsManage();
+            }catch(err){
+              console.error(err);
+              alert("儲存餐點失敗（Rules）\n\n" + (err?.message || err));
+            }
+          };
+        });
+
+      }catch(err){
+        console.error("refreshMenuManage failed:", err);
+        wrap.innerHTML = `<div class="muted">無法讀取餐點（多半是 Firestore Rules 擋 /restaurants/{id}/menu）</div>`;
+        statusPill.textContent = "讀取餐點失敗（看 console）";
+      }
     }
 
-    // ====== 餐廳管理（收合 + 顯示餐點 + ✅ 直接新增餐點含加購） ======
+    // ====== 餐廳管理（收合 + 顯示餐點 + 直接新增餐點含加購） ======
     async function loadMenusOfRestaurant(rid){
-      const menuCol = collection(db, "restaurants", rid, "menu");
-      const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
-      const list = [];
-      snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
-      return list;
+      try{
+        const menuCol = collection(db, "restaurants", rid, "menu");
+        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
+        const list = [];
+        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
+        return list;
+      }catch(err){
+        console.error("loadMenusOfRestaurant failed:", err);
+        statusPill.textContent = "讀取餐點失敗（多半是 Rules）";
+        return null; // null 表示被擋
+      }
     }
 
-    // ✅ 每間餐廳的「新增餐點」加購暫存（不寫入餐廳 doc，按新增餐點才寫入 menu）
+    // ✅ 每間餐廳的「新增餐點」加購暫存
     const draftAddonsByRid = {}; // { [rid]: Array<{name,price,free}> }
 
     function renderDraftAddons(rid, wrapEl){
@@ -730,9 +770,16 @@
       const wrap = $("restaurantsWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
-      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(600)));
-      const restaurants = [];
-      snap.forEach(d=> restaurants.push({ id:d.id, ...d.data() }));
+      let restaurants = [];
+      try{
+        const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(800)));
+        snap.forEach(d=> restaurants.push({ id:d.id, ...d.data() }));
+      }catch(err){
+        console.error(err);
+        wrap.innerHTML = `<div class="muted">無法讀取餐廳（Rules）</div>`;
+        statusPill.textContent = "讀取餐廳失敗（看 console）";
+        return;
+      }
 
       if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
 
@@ -740,35 +787,37 @@
       for(const r of restaurants){
         const menus = await loadMenusOfRestaurant(r.id);
 
-        const menuRows = menus.length===0
-          ? `<div class="muted" style="margin-top:8px">（此餐廳尚無餐點）</div>`
-          : `
-            <table style="margin-top:10px">
-              <thead>
-                <tr>
-                  <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>加購</th><th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${menus.map(m=>{
-                  const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
-                  return `
-                    <tr>
-                      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
-                      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
-                      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
-                      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
-                      <td class="muted" style="max-width:260px">${esc(addons)}</td>
-                      <td style="white-space:nowrap">
-                        <button class="btnSmall btnOk" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
-                        <button class="btnSmall btnDanger" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
-                      </td>
-                    </tr>
-                  `;
-                }).join("")}
-              </tbody>
-            </table>
-          `;
+        const menuRows = (menus === null)
+          ? `<div class="muted" style="margin-top:8px">（無法讀取餐點：請確認 Firestore Rules 已放行 restaurants/*/menu/*）</div>`
+          : (menus.length===0)
+            ? `<div class="muted" style="margin-top:8px">（此餐廳尚無餐點）</div>`
+            : `
+              <table style="margin-top:10px">
+                <thead>
+                  <tr>
+                    <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>加購</th><th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${menus.map(m=>{
+                    const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
+                    return `
+                      <tr>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+                        <td class="muted" style="max-width:260px">${esc(addons)}</td>
+                        <td style="white-space:nowrap">
+                          <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
+                          <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            `;
 
         const addForm = `
           <div class="hr"></div>
@@ -821,20 +870,16 @@
 
           <div class="actions">
             <button class="btnSmall btnOk" type="button" data-addmenu="${r.id}">新增餐點</button>
-            <button class="btnSmall" type="button" data-clearadd="${r.id}">清空</button>
+            <button class="btnSmall" type="button" data-clearadd="${r.id}">清空餐點欄位</button>
             <button class="btnSmall btnDanger" type="button" data-clearaddons="${r.id}">清空加購</button>
           </div>
-
-          <p class="muted" style="margin:8px 0 0">
-            ※ 這裡新增的餐點會直接出現在上方表格，也會同步到「餐點管理（依餐廳）」。
-          </p>
         `;
 
         blocks.push(`
           <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:#fff; margin-top:12px;">
             <summary>
               <span style="font-size:14.5px">${esc(r.name||"未命名")}</span>
-              <span class="tag" style="margin-left:8px">${menus.length} 道餐點</span>
+              <span class="tag" style="margin-left:8px">${menus===null ? "?" : menus.length} 道餐點</span>
             </summary>
 
             <div class="kpi">
@@ -861,7 +906,10 @@
               </div>
               <div>
                 <label>圖片網址</label>
-                <input data-r="${r.id}" data-k="imageUrl" value="${esc(r.imageUrl||"")}"/>
+                <div class="inline" style="gap:8px">
+                  <input data-r="${r.id}" data-k="imageUrl" value="${esc(r.imageUrl||"")}"/>
+                  <button class="btnSmall" type="button" data-openimg="${r.id}">開啟</button>
+                </div>
               </div>
             </div>
 
@@ -893,6 +941,17 @@
         renderDraftAddons(rid, wrap);
       });
 
+      // 圖片網址：開啟新分頁
+      wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.openimg;
+          const input = wrap.querySelector(`[data-r="${rid}"][data-k="imageUrl"]`);
+          const url = (input?.value || "").trim();
+          if(!url) return alert("目前沒有圖片網址");
+          window.open(url, "_blank");
+        };
+      });
+
       // 儲存餐廳資料
       wrap.querySelectorAll("button[data-saver]").forEach(b=>{
         b.onclick = async ()=>{
@@ -900,22 +959,58 @@
           const inputs = wrap.querySelectorAll(`[data-r="${rid}"]`);
           const patch = {};
           inputs.forEach(i=> patch[i.dataset.k] = i.value.trim());
-          statusPill.textContent = "儲存餐廳中…";
-          await updateDoc(doc(db,"restaurants", rid), patch);
-          statusPill.textContent = "已儲存 ✅";
-          await refreshRestaurantSelects();
-          await refreshRestaurantsManage();
+          try{
+            statusPill.textContent = "儲存餐廳中…";
+            await updateDoc(doc(db,"restaurants", rid), patch);
+            statusPill.textContent = "已儲存 ✅";
+            await refreshRestaurantSelects();
+            await refreshRestaurantsManage();
+          }catch(err){
+            console.error(err);
+            alert("儲存失敗（Rules）\n\n" + (err?.message || err));
+            statusPill.textContent = "儲存失敗（看 console）";
+          }
         };
       });
 
-      // 刪除餐廳
+      // ✅ 刪除餐廳：先刪 menu 子集合，再刪 restaurants/{rid}
       wrap.querySelectorAll("button[data-delr]").forEach(b=>{
         b.onclick = async ()=>{
-          if(!confirm("刪除餐廳會讓該餐廳的餐點子集合也無法再用（子集合需你在 Firebase Console 手動清理）。確定刪除？")) return;
-          await deleteDoc(doc(db,"restaurants", b.dataset.delr));
-          delete draftAddonsByRid[b.dataset.delr];
-          await refreshRestaurantSelects();
-          await refreshRestaurantsManage();
+          const rid = b.dataset.delr;
+          if(!confirm("確定刪除餐廳？（會連同該餐廳的餐點一起刪除）")) return;
+
+          try{
+            statusPill.textContent = "刪除餐廳中…";
+
+            const menuCol = collection(db, "restaurants", rid, "menu");
+            const menuSnap = await getDocs(query(menuCol, limit(2000)));
+
+            // batch 一次最多 500，保守用 450 分批
+            let batch = writeBatch(db);
+            let count = 0;
+
+            for (const d of menuSnap.docs){
+              batch.delete(d.ref);
+              count++;
+              if(count % 450 === 0){
+                await batch.commit();
+                batch = writeBatch(db);
+              }
+            }
+            await batch.commit();
+
+            await deleteDoc(doc(db,"restaurants", rid));
+
+            delete draftAddonsByRid[rid];
+            statusPill.textContent = "已刪除 ✅";
+            await refreshRestaurantSelects();
+            await refreshRestaurantsManage();
+            await refreshMenuManage();
+          }catch(err){
+            console.error("delete restaurant failed:", err);
+            alert("刪除失敗（通常是 Firestore Rules 擋 delete 或 menu 讀不到）\n\n" + (err?.message || err));
+            statusPill.textContent = "刪除失敗（看 console）";
+          }
         };
       });
 
@@ -932,9 +1027,14 @@
           });
           patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
           patch.price = Math.max(0, Number(patch.price||0));
-          await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
-          statusPill.textContent = "餐點已儲存 ✅";
-          await refreshMenuManage();
+          try{
+            await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+            statusPill.textContent = "餐點已儲存 ✅";
+            await refreshMenuManage();
+          }catch(err){
+            console.error(err);
+            alert("儲存餐點失敗（Rules）\n\n" + (err?.message || err));
+          }
         };
       });
 
@@ -943,9 +1043,14 @@
           const rid = b.dataset.rid;
           const mid = b.dataset.mid;
           if(!confirm("確定刪除餐點？")) return;
-          await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
-          await refreshRestaurantsManage();
-          await refreshMenuManage();
+          try{
+            await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
+            await refreshRestaurantsManage();
+            await refreshMenuManage();
+          }catch(err){
+            console.error(err);
+            alert("刪除餐點失敗（Rules）\n\n" + (err?.message || err));
+          }
         };
       });
 
@@ -1006,27 +1111,31 @@
 
           const addons = (draftAddonsByRid[rid] || []).map(a=> ({ name:a.name, price:Number(a.price||0), free:!!a.free }));
 
-          const menuCol = collection(db, "restaurants", rid, "menu");
-          await addDoc(menuCol, { category, name, price, defaultQty, addons, createdAt: Date.now() });
+          try{
+            const menuCol = collection(db, "restaurants", rid, "menu");
+            await addDoc(menuCol, { category, name, price, defaultQty, addons, createdAt: Date.now() });
 
-          statusPill.textContent = "已新增餐點 ✅";
+            statusPill.textContent = "已新增餐點 ✅";
 
-          // 清空餐點欄位
-          const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
-          const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
-          const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
-          const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
-          if(c2) c2.value = "";
-          if(c3) c3.value = "";
-          if(c4) c4.value = "1";
+            // 清空餐點欄位
+            const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
+            const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
+            const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+            if(c2) c2.value = "";
+            if(c3) c3.value = "";
+            if(c4) c4.value = "1";
 
-          // 清空加購
-          draftAddonsByRid[rid] = [];
-          renderDraftAddons(rid, wrap);
+            // 清空加購
+            draftAddonsByRid[rid] = [];
+            renderDraftAddons(rid, wrap);
 
-          await refreshRestaurantsManage();
-          await refreshMenuManage();
-          await refreshRestaurantSelects();
+            await refreshRestaurantsManage();
+            await refreshMenuManage();
+            await refreshRestaurantSelects();
+          }catch(err){
+            console.error(err);
+            alert("新增餐點失敗（Rules）\n\n" + (err?.message || err));
+          }
         };
       });
 
@@ -1055,53 +1164,59 @@
       if(!date) return alert("請選日期");
       const mode = $("o_mode").value;
 
-      const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(3000)));
-      const orders = [];
-      snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
+      try{
+        const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(3000)));
+        const orders = [];
+        snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
 
-      if(orders.length===0){
-        $("ordersOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-        return;
-      }
-
-      if(mode==="raw"){
-        $("ordersOut").innerHTML = orders.map(o=>`
-          <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; margin-top:10px; background:#fff">
-            <div><b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b> — <span class="tag">${esc(o.restaurantName||"")}</span></div>
-            <div class="muted" style="margin-top:8px">
-              ${(o.items||[]).map(it=>{
-                const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
-                const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
-                return `• ${esc(it.name)} ${it.price} ${addonTxt} × ${it.qty} ${noteTxt}`;
-              }).join("<br/>")}
-            </div>
-          </div>
-        `).join("");
-        return;
-      }
-
-      const agg = new Map();
-      for(const o of orders){
-        for(const it of (o.items||[])){
-          const addonKey = (it.addons||[]).map(a=> `${a.name}:${a.price||0}:${a.free?1:0}`).sort().join("|");
-          const key = `${it.name}__${it.price}__${addonKey}`;
-          if(!agg.has(key)){
-            agg.set(key, { name: it.name, price: it.price, addons: it.addons||[], qty: 0 });
-          }
-          agg.get(key).qty += Number(it.qty||0);
+        if(orders.length===0){
+          $("ordersOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+          return;
         }
+
+        if(mode==="raw"){
+          $("ordersOut").innerHTML = orders.map(o=>`
+            <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; margin-top:10px; background:#fff">
+              <div><b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b> — <span class="tag">${esc(o.restaurantName||"")}</span></div>
+              <div class="muted" style="margin-top:8px">
+                ${(o.items||[]).map(it=>{
+                  const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
+                  const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
+                  return `• ${esc(it.name)} ${it.price} ${addonTxt} × ${it.qty} ${noteTxt}`;
+                }).join("<br/>")}
+              </div>
+            </div>
+          `).join("");
+          return;
+        }
+
+        const agg = new Map();
+        for(const o of orders){
+          for(const it of (o.items||[])){
+            const addonKey = (it.addons||[]).map(a=> `${a.name}:${a.price||0}:${a.free?1:0}`).sort().join("|");
+            const key = `${it.name}__${it.price}__${addonKey}`;
+            if(!agg.has(key)){
+              agg.set(key, { name: it.name, price: it.price, addons: it.addons||[], qty: 0 });
+            }
+            agg.get(key).qty += Number(it.qty||0);
+          }
+        }
+
+        const lines = Array.from(agg.values()).sort((a,b)=> b.qty-a.qty).map(x=>{
+          const addonTxt = (x.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
+          return `${x.name}${x.price}${addonTxt} 數量${x.qty}`;
+        });
+
+        $("ordersOut").innerHTML = `
+          <div style="padding:12px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff">
+            ${lines.join("；")}
+          </div>
+        `;
+      }catch(err){
+        console.error(err);
+        $("ordersOut").innerHTML = `<div class="muted">讀取訂單失敗（Rules）</div>`;
+        alert("讀取訂單失敗（Rules）\n\n" + (err?.message || err));
       }
-
-      const lines = Array.from(agg.values()).sort((a,b)=> b.qty-a.qty).map(x=>{
-        const addonTxt = (x.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
-        return `${x.name}${x.price}${addonTxt} 數量${x.qty}`;
-      });
-
-      $("ordersOut").innerHTML = `
-        <div style="padding:12px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff">
-          ${lines.join("；")}
-        </div>
-      `;
     };
   </script>
 </body>
