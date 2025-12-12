@@ -1,88 +1,159 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GoldBricks - 入口</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f4fb;color:#111827;min-height:100vh;display:grid;place-items:center}
-    .card{width:min(520px,92vw);background:#fff;border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(15,23,42,.08)}
-    h1{font-size:18px;margin-bottom:8px}
-    .muted{color:#6b7280;font-size:13px;margin-bottom:14px}
-    label{display:block;font-size:12px;color:#374151;margin:10px 0 4px}
-    input{width:100%;height:38px;border:1px solid #d1d5db;border-radius:12px;padding:8px 10px;font-size:13px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    button{height:38px;border:none;border-radius:999px;padding:0 14px;font-weight:900;cursor:pointer}
-    .btn{background:linear-gradient(90deg,#fb7185,#f97316);color:#fff}
-    .btn2{background:#111827;color:#fff}
-    .hint{font-size:12px;color:#6b7280;margin-top:10px;line-height:1.5}
-  </style>
+<meta charset="UTF-8">
+<title>GoldBricks 入口</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:#f5f4fb;
+  color:#111827;
+}
+
+.card{
+  width:min(520px,92vw);
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 25px rgba(15,23,42,.08);
+}
+
+h1{
+  font-size:18px;
+  margin-bottom:6px;
+}
+.muted{
+  font-size:13px;
+  color:#6b7280;
+  margin-bottom:14px;
+}
+
+label{
+  display:block;
+  font-size:12px;
+  color:#374151;
+  margin:10px 0 4px;
+}
+
+input{
+  width:100%;
+  height:36px;
+  border-radius:12px;
+  border:1px solid #d1d5db;
+  padding:6px 10px;
+  font-size:13px;
+}
+
+input:focus{
+  outline:none;
+  border-color:#fb7185;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+button{
+  height:36px;
+  border:none;
+  border-radius:999px;
+  padding:0 14px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn-user{
+  background:#111827;
+  color:#fff;
+}
+
+.btn-admin{
+  background:linear-gradient(90deg,#fb7185,#f97316);
+  color:#fff;
+}
+
+hr{
+  height:1px;
+  background:#e5e7eb;
+  border:none;
+  margin:18px 0;
+}
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>GoldBricks 入口</h1>
-    <div class="muted">使用者可直接進入點餐；管理者請使用 Email/Password 登入（已改為安全版 Rules）。</div>
+<div class="card">
 
-    <div class="row">
-      <button class="btn2" id="btnUser">進入使用者模式</button>
-    </div>
+  <!-- 使用者 -->
+  <h1>使用者進入</h1>
+  <div class="muted">請輸入基本資料後開始點餐</div>
 
-    <hr style="height:1px;background:#e5e7eb;border:none;margin:16px 0">
+  <label>部門</label>
+  <input id="dept" autocomplete="off" placeholder="例如：RD / FAE">
 
-    <h1 style="font-size:16px">管理者登入</h1>
-    <div class="muted">第一次請在 Firebase Authentication 建立帳號。此頁登入成功後，admin.html 會自動登入。</div>
+  <label>姓名</label>
+  <input id="name" autocomplete="off" placeholder="請輸入姓名">
 
-    <label>Email</label>
-    <input id="adminEmail" autocomplete="off" placeholder="admin@example.com">
-
-    <label>Password</label>
-    <input id="adminPass" type="password" autocomplete="off" placeholder="輸入密碼">
-
-    <div class="row">
-      <button class="btn" id="btnAdminLogin">登入管理者</button>
-    </div>
-
-    <div class="hint">
-      ✅ 若你之前有「8520」入口也可以保留，但安全版權限主要以 Firebase Auth UID 判斷。<br>
-      ✅ 使用者頁會自動匿名登入（不用你操作）。
-    </div>
+  <div class="row">
+    <button class="btn-user" id="btnUser">進入點餐</button>
   </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  <hr>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdgOddTGAFqqHLnhnaJRv2_y7gyweuQEo",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.firebasestorage.app",
-    messagingSenderId: "463709758954",
-    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
-  };
+  <!-- 管理者 -->
+  <h1>管理者進入</h1>
+  <div class="muted">請輸入管理者碼</div>
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  <label>管理者碼</label>
+  <input id="adminCode" type="password" autocomplete="off" placeholder="8520">
 
-  document.getElementById("btnUser").addEventListener("click", () => {
-    localStorage.setItem("role", "user");
-    location.href = "user.html";
-  });
+  <div class="row">
+    <button class="btn-admin" id="btnAdmin">進入管理後台</button>
+  </div>
 
-  document.getElementById("btnAdminLogin").addEventListener("click", async () => {
-    const email = document.getElementById("adminEmail").value.trim();
-    const pass = document.getElementById("adminPass").value;
-    if(!email || !pass) return alert("請輸入 Email / Password");
-    try{
-      await signInWithEmailAndPassword(auth, email, pass);
-      localStorage.setItem("role", "admin");
-      location.href = "admin.html";
-    }catch(e){
-      console.error(e);
-      alert("登入失敗：請確認 Email/Password 是否正確，並已啟用 Email/Password Provider");
-    }
-  });
+</div>
+
+<script>
+const ADMIN_CODE = "8520";
+
+/* 使用者 */
+document.getElementById("btnUser").onclick = () => {
+  const dept = document.getElementById("dept").value.trim();
+  const name = document.getElementById("name").value.trim();
+
+  if (!dept || !name) {
+    alert("請輸入部門與姓名");
+    return;
+  }
+
+  localStorage.setItem("role", "user");
+  localStorage.setItem("dept", dept);
+  localStorage.setItem("name", name);
+
+  location.href = "user.html";
+};
+
+/* 管理者 */
+document.getElementById("btnAdmin").onclick = () => {
+  const code = document.getElementById("adminCode").value.trim();
+
+  if (code !== ADMIN_CODE) {
+    alert("管理者碼錯誤");
+    return;
+  }
+
+  localStorage.setItem("role", "admin");
+  location.href = "admin.html";
+};
 </script>
 </body>
 </html>
