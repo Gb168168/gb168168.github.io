@@ -2,101 +2,43 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>點餐系統｜登入</title>
-  <style>
-    :root{
-      --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
-      --primary:#fb7185; --primary2:#f97316; --line:rgba(15,23,42,.10);
-      --shadow:0 14px 35px rgba(15,23,42,.10);
-      --r:18px;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC";background:linear-gradient(140deg,#fff1f2 0%,#f6f7fb 40%,#fff7ed 100%);color:var(--text)}
-    .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
-    .card{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
-    .top{padding:22px 22px 14px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(251,113,133,.14),rgba(249,115,22,.10))}
-    h1{margin:0;font-size:20px}
-    .sub{margin:6px 0 0;color:var(--muted);font-size:13px}
-    .body{padding:18px 22px 22px;display:grid;gap:14px}
-    .row{display:grid;gap:8px}
-    label{font-size:13px;color:var(--muted)}
-    input,select{
-      width:100%; padding:12px 12px;border-radius:14px;border:1px solid var(--line);
-      outline:none;background:#fff;font-size:15px;
-    }
-    input:focus,select:focus{border-color:rgba(251,113,133,.55);box-shadow:0 0 0 4px rgba(251,113,133,.16)}
-    .seg{display:flex;gap:8px}
-    .seg button{
-      flex:1;border:1px solid var(--line);background:#fff;padding:12px;border-radius:14px;
-      cursor:pointer;font-weight:700;color:var(--text)
-    }
-    .seg button.active{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.10)}
-    .btn{
-      width:100%; padding:12px 14px;border-radius:14px;border:0;cursor:pointer;
-      font-weight:800;color:#fff;background:linear-gradient(90deg,var(--primary),var(--primary2));
-      box-shadow:0 12px 26px rgba(251,113,133,.22);
-    }
-    .hint{font-size:12px;color:var(--muted);line-height:1.5}
-    .err{display:none;color:#b91c1c;background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.18);padding:10px 12px;border-radius:14px}
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="top">
-        <h1>點餐系統</h1>
-        <div class="sub">請選擇模式並輸入密碼登入</div>
-      </div>
-      <div class="body">
-        <div class="seg">
-          <button id="modeUser" class="active" type="button">使用者</button>
-          <button id="modeAdmin" type="button">管理者</button>
-        </div>
+  <h2>登入頁（測試）</h2>
 
-        <div class="row">
-          <label>密碼</label>
-          <input id="pw" type="password" placeholder="使用者：888｜管理者：8520" />
-        </div>
+  <button onclick="goUser()">使用者</button>
+  <button onclick="goAdmin()">管理者</button>
 
-        <div id="err" class="err"></div>
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-        <button class="btn" id="go" type="button">登入</button>
-        <div class="hint">登入後會記住你選擇的模式（下次開啟自動帶入）。</div>
-      </div>
-    </div>
-  </div>
+  <script>
+  /* ===== Firebase 初始化（GitHub Pages 專用） ===== */
+  const firebaseConfig = {
+    apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
+    authDomain: "goldbricks-order.firebaseapp.com",
+    projectId: "goldbricks-order",
+    storageBucket: "goldbricks-order.firebasestorage.app",
+    messagingSenderId: "463709758954",
+    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
+  };
 
-<script>
-  const modeUser = document.getElementById('modeUser');
-  const modeAdmin = document.getElementById('modeAdmin');
-  const pw = document.getElementById('pw');
-  const err = document.getElementById('err');
-
-  let mode = localStorage.getItem('mode') || 'user';
-
-  function setMode(m){
-    mode = m;
-    localStorage.setItem('mode', mode);
-    modeUser.classList.toggle('active', mode==='user');
-    modeAdmin.classList.toggle('active', mode==='admin');
-    err.style.display = 'none';
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
   }
-  setMode(mode);
+  window.db = firebase.firestore();
 
-  modeUser.onclick = ()=>setMode('user');
-  modeAdmin.onclick = ()=>setMode('admin');
+  console.log("✅ Firebase OK:", firebaseConfig.projectId);
 
-  function login(){
-    const v = (pw.value||'').trim();
-    if(mode==='user' && v==='888'){ location.href='user.html'; return; }
-    if(mode==='admin' && v==='8520'){ location.href='admin.html'; return; }
-    err.textContent = '密碼錯誤';
-    err.style.display = 'block';
+  function goUser() {
+    location.href = "user.html";
   }
-
-  document.getElementById('go').onclick = login;
-  pw.addEventListener('keydown', (e)=>{ if(e.key==='Enter') login(); });
-</script>
+  function goAdmin() {
+    location.href = "admin.html";
+  }
+  </script>
 </body>
 </html>
