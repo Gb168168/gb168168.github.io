@@ -36,483 +36,187 @@
     table{border-collapse:collapse;width:100%}
     th,td{border-bottom:1px solid #e5e7eb;text-align:left;padding:8px 6px;font-size:13px}
     th{font-size:12px;color:#6b7280;background:#f9fafb}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;color:#4b5563;font-size:12px}
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="top">
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h2>使用者點餐</h2>
+      <div class="muted">選擇人員 → 選店家 → 點餐送出</div>
+    </div>
+    <button class="btn secondary" id="btnSwitchAdmin">切換管理者</button>
+  </div>
+
+  <!-- 使用者資訊 -->
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:10px;">使用者資訊</h3>
+    <div class="grid">
       <div>
-        <h2>使用者點餐</h2>
-        <div class="muted">選擇人員 → 選店家 → 勾餐點加購 → 送出</div>
+        <label>部門</label>
+        <select id="deptSelect"></select>
       </div>
-      <button class="btn secondary" id="btnGoAdmin" style="display:none;">前往管理者</button>
-    </div>
-
-    <div class="card">
-      <h3 style="font-size:16px;margin-bottom:10px;">使用者資訊</h3>
-      <div class="grid">
-        <div>
-          <label>選擇部門</label>
-          <select id="deptSelect"></select>
-        </div>
-        <div>
-          <label>選擇人員</label>
-          <select id="personSelect"></select>
-        </div>
-        <div>
-          <label>訂購日期</label>
-          <input type="date" id="orderDate">
-        </div>
+      <div>
+        <label>人員</label>
+        <select id="personSelect"></select>
       </div>
-      <div class="row" style="margin-top:10px;">
-        <span class="muted">提示：人員名單來自 Firebase staff collection</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="font-size:16px;margin-bottom:10px;">開始點餐</h3>
-      <div class="grid">
-        <div>
-          <label>選擇店家</label>
-          <select id="restaurantSelect"></select>
-        </div>
-        <div>
-          <label>快速搜尋餐點</label>
-          <input id="searchInput" placeholder="輸入餐點名稱關鍵字">
-        </div>
-      </div>
-
-      <div id="restaurantInfo" class="muted" style="margin-top:10px;"></div>
-
-      <hr class="hr">
-
-      <div id="menuArea"></div>
-
-      <hr class="hr">
-
-      <div class="row" style="justify-content:space-between;">
-        <div class="total" id="totalText">總計：$0</div>
-        <button class="btn" id="btnSubmit">送出訂單</button>
-      </div>
-      <div class="muted" style="margin-top:8px;">送出後會寫入 orders collection</div>
-    </div>
-
-    <div class="card">
-      <h3 style="font-size:16px;margin-bottom:10px;">訂購紀錄查詢</h3>
-      <div class="grid">
-        <div>
-          <label>訂購日期</label>
-          <input type="date" id="qDate">
-        </div>
-        <div>
-          <label>店家</label>
-          <select id="qRestaurant"></select>
-        </div>
-        <div>
-          <label>輸入名稱</label>
-          <input id="qName" placeholder="可輸入人名（模糊查詢）">
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <button class="btn secondary" id="btnQuery">查詢</button>
-        <button class="btn secondary" id="btnClearQuery">清空</button>
-      </div>
-
-      <div style="overflow-x:auto;margin-top:12px;">
-        <table>
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>部門 / 人員</th>
-              <th>店家</th>
-              <th>內容彙整</th>
-              <th>金額</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody"></tbody>
-        </table>
+      <div>
+        <label>訂購日期</label>
+        <input type="date" id="orderDate">
       </div>
     </div>
   </div>
 
-  <!-- Firebase (v9 modular) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import {
-      getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  <!-- 點餐 -->
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:10px;">開始點餐</h3>
+    <div class="grid">
+      <div>
+        <label>店家</label>
+        <select id="restaurantSelect"></select>
+      </div>
+      <div>
+        <label>搜尋餐點</label>
+        <input id="searchInput" placeholder="輸入餐點名稱">
+      </div>
+    </div>
 
-    // ① 把這段換成你 Firebase 專案的設定
-    const firebaseConfig = {
-      apiKey: "PASTE_YOUR_API_KEY",
-      authDomain: "PASTE_YOUR_AUTH_DOMAIN",
-      projectId: "PASTE_YOUR_PROJECT_ID",
-      storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
-      messagingSenderId: "PASTE_YOUR_SENDER_ID",
-      appId: "PASTE_YOUR_APP_ID"
-    };
+    <div id="menuArea"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    <hr class="hr">
+    <div class="row" style="justify-content:space-between;">
+      <div class="total" id="totalText">總計：$0</div>
+      <button class="btn" id="btnSubmit">送出訂單</button>
+    </div>
+  </div>
+</div>
 
-    const deptSelect = document.getElementById("deptSelect");
-    const personSelect = document.getElementById("personSelect");
-    const orderDate = document.getElementById("orderDate");
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    const restaurantSelect = document.getElementById("restaurantSelect");
-    const qRestaurant = document.getElementById("qRestaurant");
-    const restaurantInfo = document.getElementById("restaurantInfo");
+/* 🔴 換成你自己的 Firebase 設定 */
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
 
-    const menuArea = document.getElementById("menuArea");
-    const searchInput = document.getElementById("searchInput");
-    const totalText = document.getElementById("totalText");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const btnSubmit = document.getElementById("btnSubmit");
-    const btnQuery = document.getElementById("btnQuery");
-    const btnClearQuery = document.getElementById("btnClearQuery");
-    const qDate = document.getElementById("qDate");
-    const qName = document.getElementById("qName");
-    const historyBody = document.getElementById("historyBody");
+/* 切換管理者 */
+document.getElementById("btnSwitchAdmin").onclick = () => {
+  const pwd = prompt("請輸入管理者密碼");
+  if (pwd === "8520") {
+    localStorage.setItem("role", "admin");
+    location.href = "admin.html";
+  } else if (pwd !== null) {
+    alert("密碼錯誤");
+  }
+};
 
-    // 使用者頁：不檢查 admin 密碼（直接放行）
-    // 若你仍想顯示「前往管理者」按鈕（只有 admin 角色才顯示）
-    const btnGoAdmin = document.getElementById("btnGoAdmin");
-    if (localStorage.getItem("role") === "admin") {
-      btnGoAdmin.style.display = "inline-flex";
-      btnGoAdmin.addEventListener("click", () => location.href = "admin.html");
-    }
+const deptSelect = document.getElementById("deptSelect");
+const personSelect = document.getElementById("personSelect");
+const orderDate = document.getElementById("orderDate");
+orderDate.valueAsDate = new Date();
 
-    // ====== 狀態 ======
-    let staffList = [];       // [{dept,name}]
-    let restaurants = [];     // [{id, ...}]
-    let menus = [];           // all menus for current restaurant
-    let cart = new Map();     // menuId => {menu, qty, addonSelectedIds:Set, note}
+const restaurantSelect = document.getElementById("restaurantSelect");
+const menuArea = document.getElementById("menuArea");
+const searchInput = document.getElementById("searchInput");
+const totalText = document.getElementById("totalText");
+const btnSubmit = document.getElementById("btnSubmit");
 
-    function fmtDateISO(d) {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const dd = String(d.getDate()).padStart(2,'0');
-      return `${yyyy}-${mm}-${dd}`;
-    }
+let menus = [];
+let cart = new Map();
 
-    orderDate.value = fmtDateISO(new Date());
+/* 載入人員 */
+async function loadStaff() {
+  const snap = await getDocs(collection(db,"staff"));
+  const list = snap.docs.map(d=>d.data());
+  const depts = [...new Set(list.map(s=>s.dept))];
+  deptSelect.innerHTML = depts.map(d=>`<option>${d}</option>`).join("");
+  deptSelect.onchange = () => {
+    const ppl = list.filter(s=>s.dept===deptSelect.value).map(s=>s.name);
+    personSelect.innerHTML = ppl.map(p=>`<option>${p}</option>`).join("");
+  };
+  deptSelect.dispatchEvent(new Event("change"));
+}
 
-    // ====== 載入資料 ======
-    async function loadStaff() {
-      const snap = await getDocs(collection(db, "staff"));
-      staffList = snap.docs.map(d => d.data());
+/* 載入餐廳 */
+async function loadRestaurants() {
+  const snap = await getDocs(collection(db,"restaurants"));
+  restaurantSelect.innerHTML = `<option value="">請選擇</option>` +
+    snap.docs.map(d=>`<option value="${d.id}">${d.data().name}</option>`).join("");
+}
 
-      // 部門清單
-      const depts = Array.from(new Set(staffList.map(s => s.dept))).sort();
-      deptSelect.innerHTML = depts.map(d => `<option value="${d}">${d}</option>`).join("");
-      deptSelect.value = depts[0] || "";
+/* 載入菜單 */
+async function loadMenus(restId) {
+  menuArea.innerHTML = "";
+  cart.clear();
+  totalText.textContent = "總計：$0";
+  const snap = await getDocs(collection(db,"menus"));
+  menus = snap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(m=>m.restaurantId===restId);
+  renderMenu();
+}
 
-      renderPeople();
-      deptSelect.addEventListener("change", renderPeople);
-    }
-
-    function renderPeople() {
-      const dept = deptSelect.value;
-      const people = staffList.filter(s => s.dept === dept).map(s => s.name).sort();
-      personSelect.innerHTML = people.map(n => `<option value="${n}">${n}</option>`).join("");
-    }
-
-    async function loadRestaurants() {
-      const snap = await getDocs(query(collection(db, "restaurants"), orderBy("name")));
-      restaurants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const opts = ['<option value="">請選擇</option>']
-        .concat(restaurants.map(r => `<option value="${r.id}">${r.name}</option>`));
-      restaurantSelect.innerHTML = opts.join("");
-
-      const qopts = ['<option value="">全部店家</option>']
-        .concat(restaurants.map(r => `<option value="${r.id}">${r.name}</option>`));
-      qRestaurant.innerHTML = qopts.join("");
-
-      restaurantSelect.addEventListener("change", async () => {
-        await loadMenusForRestaurant(restaurantSelect.value);
-      });
-    }
-
-    async function loadMenusForRestaurant(restId) {
-      cart = new Map();
-      totalText.textContent = "總計：$0";
-      menuArea.innerHTML = "";
-      restaurantInfo.textContent = "";
-
-      if (!restId) return;
-
-      const r = restaurants.find(x => x.id === restId);
-      if (r) {
-        restaurantInfo.innerHTML = `
-          <span class="pill">${r.phone || ""}</span>
-          <span class="pill">${r.address || ""}</span>
-          ${r.map ? `<span class="pill"><a href="${r.map}" target="_blank" rel="noreferrer">Google Map</a></span>` : ""}
-        `;
-      }
-
-      const snap = await getDocs(query(collection(db, "menus"), where("restaurantId", "==", restId), orderBy("category")));
-      menus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      renderMenu();
-    }
-
-    // ====== 菜單渲染 ======
-    function getFilteredMenus() {
-      const kw = searchInput.value.trim().toLowerCase();
-      if (!kw) return menus;
-      return menus.filter(m => (m.name || "").toLowerCase().includes(kw));
-    }
-
-    function renderMenu() {
-      const list = getFilteredMenus();
-      const byCat = {};
-      list.forEach(m => {
-        const cat = m.category || "未分類";
-        if (!byCat[cat]) byCat[cat] = [];
-        byCat[cat].push(m);
-      });
-
-      const cats = Object.keys(byCat).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
-
-      menuArea.innerHTML = cats.map(cat => {
-        const itemsHtml = byCat[cat].map(m => renderMenuItem(m)).join("");
-        return `<div class="menuGroup"><h4>${cat}</h4>${itemsHtml}</div>`;
-      }).join("");
-
-      // 綁定事件
-      list.forEach(m => {
-        const qtyEl = document.getElementById(`qty_${m.id}`);
-        const addBtns = document.querySelectorAll(`[data-addon-for="${m.id}"]`);
-        const noteEl = document.getElementById(`note_${m.id}`);
-        const addToCartBtn = document.getElementById(`add_${m.id}`);
-        const removeBtn = document.getElementById(`rm_${m.id}`);
-
-        addToCartBtn.addEventListener("click", () => {
-          const qty = Math.max(1, Number(qtyEl.value || "1"));
-          const addons = Array.from(addBtns)
-            .filter(x => x.checked)
-            .map(x => x.value);
-
-          cart.set(m.id, {
-            menu: m,
-            qty,
-            addonSelectedIds: new Set(addons),
-            note: noteEl.value.trim()
-          });
-          updateTotal();
-          highlightInCart(m.id, true);
-        });
-
-        removeBtn.addEventListener("click", () => {
-          cart.delete(m.id);
-          updateTotal();
-          highlightInCart(m.id, false);
-        });
-      });
-    }
-
-    function renderMenuItem(m) {
-      const addons = Array.isArray(m.addons) ? m.addons : [];
-      const addonHtml = addons.map((a, idx) => {
-        const id = `${m.id}_a${idx}`;
-        const label = a.free ? `${a.name}(免費)` : `${a.name}+$${Number(a.price||0)}`;
-        return `
-          <label class="chip">
-            <input type="checkbox" data-addon-for="${m.id}" value="${id}">
-            ${label}
-          </label>
-        `;
-      }).join("");
-
-      return `
-        <div class="item" id="item_${m.id}">
-          <div class="itemTop">
-            <div>
-              <div class="itemName">${m.name}</div>
-              <div class="price">$${Number(m.price||0)} / 預設數量 ${Number(m.defaultQty||1)}</div>
-            </div>
-            <div class="right">
-              <div>
-                <label>數量</label>
-                <input class="qty" id="qty_${m.id}" type="number" min="1" step="1" value="${Number(m.defaultQty||1)}">
-              </div>
-              <div style="min-width:180px;">
-                <label>備註</label>
-                <input id="note_${m.id}" placeholder="例如：不要香菜">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <button class="btn sm" id="add_${m.id}">加入</button>
-                <button class="btn secondary sm" id="rm_${m.id}">移除</button>
-              </div>
-            </div>
-          </div>
-
-          ${addons.length ? `<div class="addons">${addonHtml}</div>` : `<div class="muted" style="margin-top:8px;">無加購</div>`}
+function renderMenu() {
+  const kw = searchInput.value.toLowerCase();
+  menuArea.innerHTML = menus.filter(m=>m.name.toLowerCase().includes(kw)).map(m=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="itemName">${m.name}</div>
+          <div class="price">$${m.price}</div>
         </div>
-      `;
-    }
+        <div class="right">
+          <input class="qty" type="number" min="1" value="${m.defaultQty||1}" id="q_${m.id}">
+          <button class="btn sm" onclick="add('${m.id}')">加入</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
 
-    function highlightInCart(menuId, on) {
-      const el = document.getElementById(`item_${menuId}`);
-      if (!el) return;
-      el.style.outline = on ? "2px solid rgba(251,113,133,.55)" : "none";
-    }
+window.add = id => {
+  const m = menus.find(x=>x.id===id);
+  const qty = +document.getElementById("q_"+id).value;
+  cart.set(id,{...m,qty});
+  updateTotal();
+};
 
-    function calcItemTotal(entry) {
-      const m = entry.menu;
-      const base = Number(m.price || 0) * entry.qty;
+function updateTotal(){
+  let t=0;
+  cart.forEach(i=>t+=i.price*i.qty);
+  totalText.textContent = `總計：$${t}`;
+}
 
-      const addons = Array.isArray(m.addons) ? m.addons : [];
-      let addonTotal = 0;
+btnSubmit.onclick = async () => {
+  if(!cart.size) return alert("尚未選餐");
+  await addDoc(collection(db,"orders"),{
+    dept:deptSelect.value,
+    person:personSelect.value,
+    date:orderDate.value,
+    items:[...cart.values()],
+    total:[...cart.values()].reduce((s,i)=>s+i.price*i.qty,0),
+    createdAt:serverTimestamp()
+  });
+  alert("訂單已送出");
+  cart.clear();
+  updateTotal();
+};
 
-      entry.addonSelectedIds.forEach(selId => {
-        const idx = Number(selId.split("_a")[1]);
-        const a = addons[idx];
-        if (!a) return;
-        addonTotal += (Number(a.price || 0) * entry.qty);
-      });
+restaurantSelect.onchange = e => e.target.value && loadMenus(e.target.value);
+searchInput.oninput = renderMenu;
 
-      return base + addonTotal;
-    }
-
-    function updateTotal() {
-      let total = 0;
-      cart.forEach(v => total += calcItemTotal(v));
-      totalText.textContent = `總計：$${total}`;
-    }
-
-    searchInput.addEventListener("input", renderMenu);
-
-    // ====== 送出訂單 ======
-    function summarizeItems(items) {
-      // 例：排骨飯70+蛋10 數量2；排骨飯70 數量1
-      return items.map(it => {
-        const base = `${it.name}${it.price}`;
-        const addons = (it.addons || []).map(a => `${a.name}${a.price}`).join("+");
-        const addonStr = addons ? `+${addons}` : "";
-        return `${base}${addonStr} 數量${it.qty}`;
-      }).join("；");
-    }
-
-    btnSubmit.addEventListener("click", async () => {
-      const dept = deptSelect.value;
-      const person = personSelect.value;
-      const date = orderDate.value;
-      const restId = restaurantSelect.value;
-
-      if (!dept || !person) return alert("請先選擇部門與人員");
-      if (!date) return alert("請選擇訂購日期");
-      if (!restId) return alert("請先選擇店家");
-      if (cart.size === 0) return alert("請至少加入一個餐點");
-
-      const r = restaurants.find(x => x.id === restId);
-
-      const items = [];
-      cart.forEach(entry => {
-        const m = entry.menu;
-        const addonsAll = Array.isArray(m.addons) ? m.addons : [];
-        const selectedAddons = [];
-        entry.addonSelectedIds.forEach(selId => {
-          const idx = Number(selId.split("_a")[1]);
-          const a = addonsAll[idx];
-          if (!a) return;
-          selectedAddons.push({
-            name: a.name,
-            price: Number(a.price || 0),
-            free: !!a.free
-          });
-        });
-
-        items.push({
-          menuId: m.id,
-          category: m.category || "",
-          name: m.name,
-          price: Number(m.price || 0),
-          qty: Number(entry.qty || 1),
-          note: entry.note || "",
-          addons: selectedAddons
-        });
-      });
-
-      const total = items.reduce((sum, it) => {
-        const base = it.price * it.qty;
-        const add = (it.addons || []).reduce((s, a) => s + (Number(a.price||0) * it.qty), 0);
-        return sum + base + add;
-      }, 0);
-
-      try {
-        await addDoc(collection(db, "orders"), {
-          date,
-          dept,
-          person,
-          restaurantId: restId,
-          restaurantName: r?.name || "",
-          items,
-          summary: summarizeItems(items),
-          total,
-          createdAt: serverTimestamp()
-        });
-
-        alert("已送出訂單");
-        // 清空購物車
-        cart = new Map();
-        updateTotal();
-        menuArea.querySelectorAll(".item").forEach(el => el.style.outline = "none");
-      } catch (err) {
-        console.error(err);
-        alert("送出失敗，請檢查 Firebase 規則或網路");
-      }
-    });
-
-    // ====== 訂購紀錄查詢 ======
-    function rowHtml(o) {
-      return `
-        <tr>
-          <td>${o.date || ""}</td>
-          <td>${o.dept || ""} / ${o.person || ""}</td>
-          <td>${o.restaurantName || ""}</td>
-          <td>${o.summary || ""}</td>
-          <td>$${Number(o.total||0)}</td>
-        </tr>
-      `;
-    }
-
-    btnQuery.addEventListener("click", async () => {
-      historyBody.innerHTML = "";
-
-      // 任一條件即可查：日期 / 店家 / 名稱
-      const filters = [];
-      if (qDate.value) filters.push(where("date", "==", qDate.value));
-      if (qRestaurant.value) filters.push(where("restaurantId", "==", qRestaurant.value));
-      // Firestore 無法直接 contains 模糊查 person，這裡用「先拉最近資料再前端過濾」
-      const nameKw = qName.value.trim();
-
-      let qy = query(collection(db, "orders"), orderBy("date", "desc"));
-      if (filters.length) qy = query(collection(db, "orders"), ...filters, orderBy("date", "desc"));
-
-      const snap = await getDocs(qy);
-      let list = snap.docs.map(d => d.data());
-
-      if (nameKw) {
-        const kw = nameKw.toLowerCase();
-        list = list.filter(o => (o.person || "").toLowerCase().includes(kw));
-      }
-
-      historyBody.innerHTML = list.map(rowHtml).join("") || `<tr><td colspan="5" class="muted">查無資料</td></tr>`;
-    });
-
-    btnClearQuery.addEventListener("click", () => {
-      qDate.value = "";
-      qRestaurant.value = "";
-      qName.value = "";
-      historyBody.innerHTML = "";
-    });
-
-    // ====== 初始化 ======
-    await loadStaff();
-    await loadRestaurants();
-  </script>
+await loadStaff();
+await loadRestaurants();
+</script>
 </body>
 </html>
