@@ -56,7 +56,7 @@
     .addons{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
     .chip{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;font-size:12px}
 
-    /* 已選清單 */
+    /* 表格 */
     table{border-collapse:collapse;width:100%}
     th,td{border-bottom:1px solid #e5e7eb;text-align:left;padding:8px 6px;font-size:13px}
     th{font-size:12px;color:#6b7280;background:#f9fafb}
@@ -147,12 +147,58 @@
     </div>
     <div class="muted" style="margin-top:8px;">點錯餐可以刪除（會跳確認）。送出後寫入 orders。</div>
   </div>
+
+  <!-- 訂餐紀錄（放在點餐 card 的下面） -->
+  <div class="card" id="recordCard">
+    <h3 style="font-size:16px;margin-bottom:10px;">訂餐紀錄</h3>
+
+    <div class="grid">
+      <div>
+        <label>訂購日期</label>
+        <input type="date" id="qDate">
+      </div>
+      <div>
+        <label>店家</label>
+        <select id="qRestaurant"></select>
+      </div>
+      <div>
+        <label>人員名稱</label>
+        <input id="qName" placeholder="可輸入人名關鍵字">
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <button class="btn secondary" id="btnQuery">查詢</button>
+      <button class="btn secondary" id="btnClear">清空</button>
+    </div>
+
+    <div style="overflow-x:auto;margin-top:12px;">
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>人員</th>
+            <th>店家</th>
+            <th>內容</th>
+            <th>金額</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+    </div>
+
+    <div class="muted" style="margin-top:8px;">
+      條件「擇一即可查」：日期 / 店家 / 人名（人名為模糊查詢）。
+    </div>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import {
-    getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp
+    getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp,
+    deleteDoc, doc
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
   // ✅ 請換成你的 Firebase 設定
@@ -202,12 +248,20 @@
   const totalText = document.getElementById("totalText");
   const btnSubmit = document.getElementById("btnSubmit");
 
+  // 訂餐紀錄 DOM
+  const qDate = document.getElementById("qDate");
+  const qRestaurant = document.getElementById("qRestaurant");
+  const qName = document.getElementById("qName");
+  const btnQuery = document.getElementById("btnQuery");
+  const btnClear = document.getElementById("btnClear");
+  const recordBody = document.getElementById("recordBody");
+
   // ===== 狀態 =====
   let staffList = [];     // {dept,name}
   let restaurants = [];   // {id,...}
   let currentRestaurant = null;
   let menus = [];         // current restaurant menus
-  // cartKey: menuId + '|' + addonKey + '|' + noteKey  (允許同餐點不同加購/備註分開)
+  // cartKey: menuId + '|' + addonKey + '|' + noteKey
   let cart = new Map();
 
   function fmtDateISO(d) {
@@ -233,7 +287,10 @@
 
   function renderPeople() {
     const dept = deptSelect.value;
-    const people = staffList.filter(s => s.dept === dept).map(s => s.name).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+    const people = staffList
+      .filter(s => s.dept === dept)
+      .map(s => s.name)
+      .sort((a,b)=>a.localeCompare(b,'zh-Hant'));
     personSelect.innerHTML = people.map(n => `<option value="${n}">${n}</option>`).join("");
   }
 
@@ -242,6 +299,7 @@
     const snap = await getDocs(query(collection(db, "restaurants"), orderBy("name")));
     restaurants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderRestaurantGrid();
+    renderRecordRestaurantOptions();
   }
 
   function renderRestaurantGrid() {
@@ -273,14 +331,12 @@
     currentRestaurant = restaurants.find(r => r.id === restId);
     if (!currentRestaurant) return;
 
-    // UI 切換
     viewRestaurantList.style.display = "none";
     viewOrder.style.display = "block";
     btnBackToList.style.display = "inline-flex";
     topTitle.textContent = "點餐";
     topSub.textContent = "選擇餐點、數量、備註，送出訂單";
 
-    // 顯示店家資訊
     restName.textContent = currentRestaurant.name || "店家";
     restMeta.innerHTML = `
       ${currentRestaurant.phone ? `<span class="pill">${currentRestaurant.phone}</span>` : ""}
@@ -288,7 +344,6 @@
       ${currentRestaurant.map ? `<span class="pill"><a href="${currentRestaurant.map}" target="_blank" rel="noreferrer">Google Map</a></span>` : ""}
     `;
 
-    // 讀 menus
     const snap = await getDocs(query(
       collection(db, "menus"),
       where("restaurantId", "==", restId),
@@ -296,7 +351,6 @@
     ));
     menus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // 清空 cart
     cart = new Map();
     updateCartUI();
 
@@ -305,7 +359,6 @@
   }
 
   btnBackToList.addEventListener("click", () => {
-    // 回到店家列表
     currentRestaurant = null;
     menus = [];
     cart = new Map();
@@ -338,7 +391,6 @@
       return `<div class="menuGroup"><h4>${cat}</h4>${itemsHtml}</div>`;
     }).join("");
 
-    // 綁定每個餐點的加入事件
     list.forEach(m => {
       const btn = document.getElementById(`add_${m.id}`);
       const qtyEl = document.getElementById(`qty_${m.id}`);
@@ -346,14 +398,10 @@
 
       btn.addEventListener("click", () => {
         const qty = Math.max(1, Number(qtyEl.value || "1"));
-
-        // 加購（如果資料有 addons）
         const addonChecks = document.querySelectorAll(`input[data-addon-for="${m.id}"]`);
         const selected = Array.from(addonChecks).filter(x=>x.checked).map(x=>Number(x.value));
         selected.sort((a,b)=>a-b);
-
         const note = (noteEl.value || "").trim();
-
         addToCart(m, qty, selected, note);
       });
     });
@@ -415,7 +463,7 @@
     (selectedAddonsIdx || []).forEach(i => {
       const a = addons[i];
       if (!a) return;
-      add += Number(a.price || 0) * qty; // free=0 也 OK
+      add += Number(a.price || 0) * qty;
     });
     return base + add;
   }
@@ -423,7 +471,6 @@
   function addToCart(menu, qty, selectedAddonsIdx, note) {
     const k = keyOf(menu.id, selectedAddonsIdx, note);
     if (cart.has(k)) {
-      // 若同一組合再加入，直接累加數量
       const v = cart.get(k);
       v.qty += qty;
       cart.set(k, v);
@@ -445,7 +492,6 @@
   }
 
   function updateCartUI() {
-    // tbody
     const rows = Array.from(cart.entries()).map(([k, it]) => {
       const addonsText = it.selectedAddonsIdx.length
         ? it.selectedAddonsIdx.map(i => {
@@ -461,21 +507,16 @@
         <tr>
           <td>${it.name}</td>
           <td>${addonsText}</td>
-          <td>
-            <input type="number" min="1" step="1" value="${it.qty}" style="width:90px" data-qty="${k}">
-          </td>
+          <td><input type="number" min="1" step="1" value="${it.qty}" style="width:90px" data-qty="${k}"></td>
           <td>${it.note || ""}</td>
           <td>$${sub}</td>
-          <td>
-            <button class="btn secondary sm" data-del="${k}">刪除</button>
-          </td>
+          <td><button class="btn secondary sm" data-del="${k}">刪除</button></td>
         </tr>
       `;
     });
 
     cartBody.innerHTML = rows.join("") || `<tr><td colspan="6" class="muted">尚未選擇餐點</td></tr>`;
 
-    // 綁定數量改變
     cartBody.querySelectorAll("input[data-qty]").forEach(inp => {
       inp.addEventListener("change", () => {
         const k = inp.getAttribute("data-qty");
@@ -487,7 +528,6 @@
       });
     });
 
-    // 刪除（跳確認）
     cartBody.querySelectorAll("button[data-del]").forEach(btn => {
       btn.addEventListener("click", () => {
         const k = btn.getAttribute("data-del");
@@ -500,7 +540,6 @@
       });
     });
 
-    // total
     let total = 0;
     cart.forEach(it => {
       total += calcLineTotal({price: it.price, addons: it.addonsSnapshot}, it.qty, it.selectedAddonsIdx);
@@ -510,7 +549,6 @@
 
   // ===== 送出訂單 =====
   function summarizeItems(items) {
-    // 例：排骨飯70+蛋10 數量2；…
     return items.map(it => {
       const base = `${it.name}${it.price}`;
       const addons = (it.addons || []).map(a => a.free ? `${a.name}(免費)` : `${a.name}${a.price}`).join("+");
@@ -529,7 +567,6 @@
     if (!currentRestaurant) return alert("請先選擇店家");
     if (cart.size === 0) return alert("請先加入餐點");
 
-    // 組 items
     const items = [];
     cart.forEach(it => {
       const selectedAddons = it.selectedAddonsIdx.map(i => it.addonsSnapshot[i]).filter(Boolean);
@@ -566,10 +603,83 @@
       alert("已送出訂單");
       cart = new Map();
       updateCartUI();
+
+      // 送出後，如果使用者剛好在查紀錄，可以直接重新查一次
+      // 這邊不強制自動查，避免突然刷表格；想自動刷你跟我說我再加。
     } catch (err) {
       console.error(err);
       alert("送出失敗，請檢查 Firebase 規則或網路");
     }
+  });
+
+  // ===== 訂餐紀錄：店家選單 =====
+  function renderRecordRestaurantOptions() {
+    qRestaurant.innerHTML =
+      `<option value="">全部店家</option>` +
+      restaurants.map(r => `<option value="${r.id}">${r.name || "未命名"}</option>`).join("");
+  }
+
+  // ===== 訂餐紀錄：查詢 / 顯示 / 刪除 =====
+  function recordRowHtml(o) {
+    return `
+      <tr>
+        <td>${o.date || ""}</td>
+        <td>${o.dept || ""} / ${o.person || ""}</td>
+        <td>${o.restaurantName || ""}</td>
+        <td>${o.summary || ""}</td>
+        <td>$${Number(o.total||0)}</td>
+        <td><button class="btn danger sm" data-del-order="${o.id}">刪除</button></td>
+      </tr>
+    `;
+  }
+
+  function bindRecordDelete() {
+    recordBody.querySelectorAll("button[data-del-order]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del-order");
+        const ok = confirm("確定要刪除這筆訂單紀錄嗎？");
+        if (!ok) return;
+        await deleteDoc(doc(db, "orders", id));
+        btn.closest("tr")?.remove();
+      });
+    });
+  }
+
+  btnQuery.addEventListener("click", async () => {
+    recordBody.innerHTML = "";
+
+    // 擇一即可查（人名模糊查在前端過濾）
+    const filters = [];
+    if (qDate.value) filters.push(where("date", "==", qDate.value));
+    if (qRestaurant.value) filters.push(where("restaurantId", "==", qRestaurant.value));
+
+    // 注意：createdAt 若有些舊資料沒有，orderBy 可能報錯
+    // 這裡用 date 排序，穩定很多
+    let qy = query(collection(db, "orders"), orderBy("date", "desc"));
+    if (filters.length) qy = query(collection(db, "orders"), ...filters, orderBy("date", "desc"));
+
+    const snap = await getDocs(qy);
+    let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const kw = qName.value.trim().toLowerCase();
+    if (kw) {
+      list = list.filter(o => (o.person || "").toLowerCase().includes(kw));
+    }
+
+    if (!list.length) {
+      recordBody.innerHTML = `<tr><td colspan="6" class="muted">查無資料</td></tr>`;
+      return;
+    }
+
+    recordBody.innerHTML = list.map(recordRowHtml).join("");
+    bindRecordDelete();
+  });
+
+  btnClear.addEventListener("click", () => {
+    qDate.value = "";
+    qRestaurant.value = "";
+    qName.value = "";
+    recordBody.innerHTML = "";
   });
 
   // ===== init =====
