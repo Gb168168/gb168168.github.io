@@ -21,14 +21,8 @@
       flex-direction: column;
       gap: 16px;
     }
-    .sidebar h2 {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-    .menu {
-      list-style: none;
-      margin-top: 8px;
-    }
+    .sidebar h2 { font-size: 18px; margin-bottom: 4px; }
+    .menu { list-style: none; margin-top: 8px; }
     .menu li {
       padding: 8px 10px;
       border-radius: 8px;
@@ -40,25 +34,17 @@
       background: linear-gradient(90deg,#fb7185,#f97316);
       color: white;
     }
-    .menu li:hover:not(.active) {
-      background: #1f2937;
-    }
+    .menu li:hover:not(.active) { background: #1f2937; }
 
     .main {
       flex: 1;
       padding: 20px 24px;
       overflow-y: auto;
     }
-    .section {
-      display: none;
-    }
-    .section.active {
-      display: block;
-    }
-    h3 {
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    h3 { font-size: 18px; margin-bottom: 12px; }
     .card {
       background: #fff;
       border-radius: 16px;
@@ -85,10 +71,7 @@
       border: 1px solid #d1d5db;
       font-size: 13px;
     }
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
+    textarea { resize: vertical; min-height: 60px; }
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: #fb7185;
@@ -108,20 +91,10 @@
       cursor: pointer;
       margin-top: 4px;
     }
-    .btn.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    .btn.sm {
-      padding: 4px 10px;
-      font-size: 12px;
-    }
-    .flex {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .mt-8 { margin-top: 8px; }
+    .btn.secondary { background: #e5e7eb; color: #111827; }
+    .btn.sm { padding: 4px 10px; font-size: 12px; }
+    .flex { display: flex; gap: 8px; align-items: center; }
+    .mt-8  { margin-top: 8px; }
     .mt-12 { margin-top: 12px; }
     .mt-16 { margin-top: 16px; }
     .list {
@@ -147,11 +120,7 @@
       padding: 6px 10px;
       margin-bottom: 6px;
     }
-    summary {
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-    }
+    summary { cursor: pointer; font-size: 13px; font-weight: 600; }
     .staff-pill {
       display: inline-flex;
       align-items: center;
@@ -174,10 +143,7 @@
       align-items: center;
       margin-bottom: 16px;
     }
-    .topbar .info {
-      font-size: 13px;
-      color: #6b7280;
-    }
+    .topbar .info { font-size: 13px; color: #6b7280; }
   </style>
 </head>
 <body>
@@ -231,4 +197,395 @@
           </div>
           <div>
             <label>Google Map 連結</label>
-            <input id="rest-map" placeholder="Google M
+            <input id="rest-map" placeholder="Google Map URL" />
+          </div>
+          <!-- ★ 這裡就是你要的「上傳圖片」欄位 -->
+          <div>
+            <label>店家圖片</label>
+            <input type="file" id="rest-image" accept="image/*" />
+          </div>
+        </div>
+        <div class="mt-8">
+          <label>備註</label>
+          <textarea id="rest-note" placeholder="例如：只收現金、可先電話預訂等..."></textarea>
+        </div>
+        <button class="btn mt-12" id="btn-add-restaurant">新增餐廳</button>
+
+        <div class="list" id="restaurant-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>2-2 餐點管理</h3>
+        <div class="group mt-8">
+          <div>
+            <label>餐廳名稱</label>
+            <select id="menu-rest-select">
+              <option value="">請先新增餐廳</option>
+            </select>
+          </div>
+          <div>
+            <label>餐點類別</label>
+            <select id="menu-category">
+              <option value="飯類">飯類</option>
+              <option value="麵類">麵類</option>
+              <option value="小菜">小菜</option>
+              <option value="飲料">飲料</option>
+            </select>
+          </div>
+          <div>
+            <label>餐點名稱</label>
+            <input id="menu-name" placeholder="例：排骨飯" />
+          </div>
+          <div>
+            <label>價格（單份）</label>
+            <input id="menu-price" type="number" min="0" step="1" value="0" />
+          </div>
+          <div>
+            <label>預設數量</label>
+            <input id="menu-default-qty" type="number" min="1" step="1" value="1" />
+          </div>
+        </div>
+
+        <!-- 加購項目 -->
+        <div class="mt-12">
+          <label>加購項目</label>
+          <div id="addons-container"></div>
+          <button class="btn secondary sm mt-8" id="btn-add-addon">＋ 新增一個加購</button>
+        </div>
+
+        <button class="btn mt-12" id="btn-add-menu">新增餐點</button>
+
+        <div class="list" id="menu-list"></div>
+      </div>
+    </section>
+
+    <!-- 1-3 餐廳管理（編輯） -->
+    <section id="section-restaurants" class="section">
+      <div class="card">
+        <h3>1-3 餐廳管理（編輯模式）</h3>
+        <div class="list" id="restaurant-manage-list"></div>
+      </div>
+    </section>
+
+    <!-- 1-4 訂餐紀錄 -->
+    <section id="section-orders" class="section">
+      <div class="card">
+        <h3>1-4 訂餐紀錄</h3>
+        <div class="group mt-8" style="max-width:320px;">
+          <div>
+            <label>訂單日期</label>
+            <input type="date" id="order-date" />
+          </div>
+        </div>
+        <div class="mt-8" style="font-size:13px;color:#6b7280;">
+          之後會顯示彙整：排骨飯70+蛋10 數量2；排骨飯70 數量1；豬腳飯80+菜30 數量1 …  
+          目前先預留版位。
+        </div>
+      </div>
+    </section>
+
+    <!-- 1-5 訂單統計 -->
+    <section id="section-stats" class="section">
+      <div class="card">
+        <h3>1-5 訂單統計</h3>
+        <div class="group mt-8" style="max-width:420px;">
+          <div>
+            <label>訂單日期</label>
+            <input type="date" id="stats-date" />
+          </div>
+          <div>
+            <label>統計模式</label>
+            <select id="stats-mode">
+              <option value="byMeal">依餐點統計</option>
+              <option value="byPerson">依人員統計</option>
+              <option value="byDept">依部門統計</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-8" style="font-size:13px;color:#6b7280;">
+          之後可在這裡顯示各種統計圖表與報表。
+        </div>
+      </div>
+    </section>
+
+    <!-- 1-1 新增人員 -->
+    <section id="section-add-staff" class="section">
+      <div class="card">
+        <h3>1-1 新增人員</h3>
+        <div class="group mt-8" style="max-width:420px;">
+          <div>
+            <label>部門</label>
+            <select id="staff-dept">
+              <option value="管理部">管理部</option>
+              <option value="FAE">FAE</option>
+              <option value="TSE">TSE</option>
+              <option value="新場">新場</option>
+              <option value="倉管">倉管</option>
+              <option value="數據分析">數據分析</option>
+              <option value="RD">RD</option>
+              <option value="線上客服">線上客服</option>
+              <option value="維運">維運</option>
+            </select>
+          </div>
+          <div>
+            <label>人員名稱</label>
+            <input id="staff-name" placeholder="輸入人名" />
+          </div>
+        </div>
+        <button class="btn mt-8" id="btn-add-staff">新增人員</button>
+
+        <div class="list" id="staff-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 一定要放在 body 最下面，選單才會有作用 -->
+  <script>
+    // 左側選單切換
+    const menu = document.getElementById("menu");
+    const sections = document.querySelectorAll(".section");
+    menu.addEventListener("click", (e) => {
+      const li = e.target.closest("li");
+      if (!li) return;
+      const target = li.dataset.target;
+      if (!target) return;
+
+      menu.querySelectorAll("li").forEach(item => item.classList.remove("active"));
+      li.classList.add("active");
+
+      sections.forEach(sec => {
+        sec.classList.toggle("active", sec.id === target);
+      });
+
+      const titleMap = {
+        "section-add-staff": "新增人員",
+        "section-add-restaurant": "新增餐廳",
+        "section-restaurants": "餐廳管理",
+        "section-orders": "訂餐紀錄",
+        "section-stats": "訂單統計"
+      };
+      const topTitle = document.querySelector(".topbar h3");
+      if (titleMap[target]) topTitle.textContent = titleMap[target];
+    });
+
+    // 切換使用者 / 登出
+    document.getElementById("switchToUser").addEventListener("click", () => {
+      localStorage.setItem("role", "user");
+      window.location.href = "user.html";
+    });
+    document.getElementById("logout").addEventListener("click", () => {
+      localStorage.removeItem("role");
+      window.location.href = "index.html";
+    });
+
+    // 暫存資料（之後可以改成 Firebase）
+    const restaurants = [];
+    const menus = [];
+    const staffByDept = {};
+
+    // 新增餐廳
+    const restNameInput = document.getElementById("rest-name");
+    const restPhoneInput = document.getElementById("rest-phone");
+    const restAddressInput = document.getElementById("rest-address");
+    const restUrlInput = document.getElementById("rest-url");
+    const restMapInput = document.getElementById("rest-map");
+    const restNoteInput = document.getElementById("rest-note");
+    const restListDiv = document.getElementById("restaurant-list");
+    const restManageListDiv = document.getElementById("restaurant-manage-list");
+    const restSelect = document.getElementById("menu-rest-select");
+
+    function renderRestaurants() {
+      restListDiv.innerHTML = "";
+      restManageListDiv.innerHTML = "";
+      restSelect.innerHTML = '<option value="">請選擇餐廳</option>';
+
+      restaurants.forEach((r, idx) => {
+        const row = document.createElement("div");
+        row.textContent = `${idx + 1}. ${r.name} / ${r.phone} / ${r.address}`;
+        restListDiv.appendChild(row);
+
+        const row2 = document.createElement("div");
+        row2.innerHTML =
+          `<div class="mt-8">
+            <span class="badge">${r.name}</span>
+            電話：${r.phone || "-"}｜地址：${r.address || "-"}
+          </div>`;
+        restManageListDiv.appendChild(row2);
+
+        const opt = document.createElement("option");
+        opt.value = r.name;
+        opt.textContent = r.name;
+        restSelect.appendChild(opt);
+      });
+    }
+
+    document.getElementById("btn-add-restaurant").addEventListener("click", () => {
+      const name = restNameInput.value.trim();
+      if (!name) { alert("請輸入餐廳名稱"); return; }
+      restaurants.push({
+        id: Date.now().toString(),
+        name,
+        phone: restPhoneInput.value.trim(),
+        address: restAddressInput.value.trim(),
+        url: restUrlInput.value.trim(),
+        map: restMapInput.value.trim(),
+        note: restNoteInput.value.trim()
+      });
+      restNameInput.value = "";
+      restPhoneInput.value = "";
+      restAddressInput.value = "";
+      restUrlInput.value = "";
+      restMapInput.value = "";
+      restNoteInput.value = "";
+      renderRestaurants();
+    });
+
+    // 加購項目欄位
+    const addonsContainer = document.getElementById("addons-container");
+    const btnAddAddon = document.getElementById("btn-add-addon");
+
+    function createAddonRow() {
+      const wrap = document.createElement("div");
+      wrap.className = "group mt-8";
+      wrap.innerHTML = `
+        <div>
+          <label>加購名稱</label>
+          <input class="addon-name" placeholder="例：加蛋" />
+        </div>
+        <div>
+          <label>加購金額</label>
+          <input class="addon-price" type="number" min="0" step="1" value="0" />
+        </div>
+        <div class="flex">
+          <label>
+            <input type="checkbox" class="addon-free" />
+            免費（勾選後可不用輸入金額）
+          </label>
+          <button type="button" class="btn secondary sm btn-remove-addon">刪除</button>
+        </div>`;
+      addonsContainer.appendChild(wrap);
+      wrap.querySelector(".btn-remove-addon").addEventListener("click", () => {
+        addonsContainer.removeChild(wrap);
+      });
+    }
+    btnAddAddon.addEventListener("click", createAddonRow);
+    createAddonRow(); // 預設一列
+
+    // 新增餐點
+    const menuListDiv = document.getElementById("menu-list");
+    function renderMenusForRestaurant(restName) {
+      menuListDiv.innerHTML = "";
+      if (!restName) return;
+      const list = menus.filter(m => m.restaurantName === restName);
+      list.forEach((m, idx) => {
+        const div = document.createElement("div");
+        const addonText = m.addons
+          .map(a => `${a.name}${a.free ? "(免費)" : `+${a.price}`}`)
+          .join("、") || "無加購";
+        div.innerHTML = `
+          ${idx + 1}. [${m.category}] ${m.name} $${m.price}（預設數量：${m.defaultQty}）<br/>
+          <span style="font-size:12px;color:#6b7280;">加購：${addonText}</span>`;
+        menuListDiv.appendChild(div);
+      });
+    }
+
+    document.getElementById("btn-add-menu").addEventListener("click", () => {
+      const rest = restSelect.value;
+      const category = document.getElementById("menu-category").value;
+      const name = document.getElementById("menu-name").value.trim();
+      const price = Number(document.getElementById("menu-price").value || "0");
+      const defaultQty = Number(document.getElementById("menu-default-qty").value || "1");
+      if (!rest) { alert("請先選擇餐廳"); return; }
+      if (!name) { alert("請輸入餐點名稱"); return; }
+
+      const addonRows = addonsContainer.querySelectorAll(".group");
+      const addons = [];
+      addonRows.forEach(row => {
+        const n = row.querySelector(".addon-name").value.trim();
+        const free = row.querySelector(".addon-free").checked;
+        let p = Number(row.querySelector(".addon-price").value || "0");
+        if (free) p = 0;
+        if (n) addons.push({ name: n, price: p, free });
+      });
+
+      menus.push({
+        id: Date.now().toString(),
+        restaurantName: rest,
+        category,
+        name,
+        price,
+        defaultQty,
+        addons
+      });
+
+      document.getElementById("menu-name").value = "";
+      document.getElementById("menu-price").value = "0";
+      document.getElementById("menu-default-qty").value = "1";
+      addonsContainer.innerHTML = "";
+      createAddonRow();
+      renderMenusForRestaurant(rest);
+    });
+
+    document.getElementById("menu-rest-select").addEventListener("change", (e) => {
+      renderMenusForRestaurant(e.target.value);
+    });
+
+    // 新增人員
+    const staffDeptSelect = document.getElementById("staff-dept");
+    const staffNameInput = document.getElementById("staff-name");
+    const staffListDiv = document.getElementById("staff-list");
+
+    function renderStaff() {
+      staffListDiv.innerHTML = "";
+      const depts = ["管理部","FAE","TSE","新場","倉管","數據分析","RD","線上客服","維運"];
+      depts.forEach(dept => {
+        const people = staffByDept[dept] || [];
+        const detailsEl = document.createElement("details");
+        detailsEl.open = true;
+        const summary = document.createElement("summary");
+        summary.textContent = `${dept}（${people.length} 人）`;
+        detailsEl.appendChild(summary);
+        const inner = document.createElement("div");
+        people.forEach((name, idx) => {
+          const pill = document.createElement("div");
+          pill.className = "staff-pill";
+          pill.innerHTML = `
+            <span>${name}</span>
+            <button type="button" data-idx="${idx}" data-dept="${dept}">✕</button>`;
+          inner.appendChild(pill);
+        });
+        detailsEl.appendChild(inner);
+        staffListDiv.appendChild(detailsEl);
+      });
+
+      staffListDiv.querySelectorAll(".staff-pill button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const dept = btn.dataset.dept;
+          const idx = Number(btn.dataset.idx);
+          staffByDept[dept].splice(idx, 1);
+          renderStaff();
+        });
+      });
+    }
+
+    document.getElementById("btn-add-staff").addEventListener("click", () => {
+      const dept = staffDeptSelect.value;
+      const name = staffNameInput.value.trim();
+      if (!name) { alert("請輸入人員名稱"); return; }
+      if (!staffByDept[dept]) staffByDept[dept] = [];
+      staffByDept[dept].push(name);
+      staffNameInput.value = "";
+      renderStaff();
+    });
+    renderStaff();
+
+    // 簡單身分驗證
+    (function checkRole() {
+      const role = localStorage.getItem("role");
+      if (role !== "admin") {
+        window.location.href = "index.html";
+      }
+    })();
+  </script>
+</body>
+</html>
