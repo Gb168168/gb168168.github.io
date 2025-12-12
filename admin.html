@@ -1,957 +1,1217 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>管理者後台｜餐廳管理＋餐點管理＋人員</title>
+  <meta charset="UTF-8" />
+  <title>管理者後台 - GoldBricks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root{
-      --bg:#f5f4fb;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e8eaf3;
-      --primary:#fb7185;
-      --danger:#ef4444;
-      --ok:#22c55e;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --r:20px;
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f4fb;color:#111827}
+    a{color:inherit}
+    .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+    .side{
+      background:#111827;color:#fff;padding:16px 14px;position:sticky;top:0;height:100vh;
+      display:flex;flex-direction:column;gap:12px
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", Arial;
-      background:linear-gradient(135deg,#fff1f2 0%, #f5f4fb 40%, #eef2ff 100%);
-      color:var(--text);
+    .brand{font-weight:900;font-size:16px}
+    .sub{font-size:12px;color:rgba(255,255,255,.7)}
+    .nav{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+    .nav button{
+      width:100%;text-align:left;border:none;border-radius:12px;padding:10px 12px;
+      background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer
     }
-    header{
-      position:sticky; top:0; z-index:50;
-      backdrop-filter: blur(10px);
-      background:rgba(245,244,251,.7);
-      border-bottom:1px solid rgba(232,234,243,.8);
+    .nav button.active{background:linear-gradient(90deg,#fb7185,#f97316)}
+    .nav button:hover{background:rgba(255,255,255,.14)}
+    .side .footer{margin-top:auto;font-size:12px;color:rgba(255,255,255,.65)}
+    .main{padding:18px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    h2{font-size:18px}
+    .muted{font-size:13px;color:#6b7280}
+    .card{background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 8px 25px rgba(15,23,42,0.08);margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+    label{display:block;font-size:13px;color:#374151;margin-bottom:4px}
+    input,select,textarea{
+      width:100%;padding:8px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:13px;background:#fff
     }
-    .wrap{max-width:1150px;margin:0 auto;padding:16px}
-    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
-    .brand{display:flex; gap:10px; align-items:center;}
-    .logo{
-      width:42px;height:42px;border-radius:14px;
-      background:linear-gradient(135deg,var(--primary),#ffd5c2);
-      box-shadow: 0 10px 18px rgba(251,113,133,.25);
+    textarea{resize:vertical;min-height:70px}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#fb7185;box-shadow:0 0 0 2px rgba(251,113,133,0.2)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:8px 14px;border-radius:999px;border:none;cursor:pointer;
+      background:linear-gradient(90deg,#fb7185,#f97316);color:#fff;font-size:13px;font-weight:900
     }
-    h1{margin:0;font-size:18px;letter-spacing:.5px}
-    .sub{font-size:12px;color:var(--muted);margin-top:2px}
-    .pill{
-      font-size:12px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(232,234,243,.9);
-      background:rgba(255,255,255,.6);
-      display:flex; gap:8px; align-items:center;
-      white-space:nowrap;
-    }
-    .pill b{color:var(--primary)}
-    main{padding:16px 0 40px}
-    .grid{
+    .btn.secondary{background:#e5e7eb;color:#111827}
+    .btn.danger{background:#ef4444}
+    .btn.sm{padding:4px 10px;font-size:12px}
+    .hr{height:1px;background:#e5e7eb;margin:14px 0;border:none}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;color:#4b5563;font-size:12px}
+    .hint{font-size:12px;color:#6b7280;margin-top:6px}
+
+    /* restaurant cards */
+    .restaurant-grid{
       display:grid;
-      grid-template-columns: 420px 1fr;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
       gap:16px;
-      align-items:start;
     }
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    .restaurant-card{
+      background:#f9fafb;border-radius:14px;padding:10px;cursor:pointer;
+      transition:.12s ease;display:flex;flex-direction:column;gap:8px
+    }
+    .restaurant-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,23,42,0.12)}
+    .restaurant-card img{
+      width:100%;height:140px;object-fit:cover;border-radius:10px;background:#e5e7eb;
+    }
+    .restaurant-card .name{font-weight:900}
+    .restaurant-card .sub{color:#6b7280;font-size:12px}
 
-    .card{
-      background:rgba(255,255,255,.9);
-      border:1px solid rgba(232,234,243,.9);
-      box-shadow:var(--shadow);
-      border-radius:var(--r);
-      overflow:hidden;
-    }
-    .cardHead{
-      padding:14px 16px;
-      border-bottom:1px solid rgba(232,234,243,.9);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      background:linear-gradient(90deg, rgba(251,113,133,.09), rgba(99,102,241,.04));
-      flex-wrap:wrap;
-    }
-    .cardHead h2{margin:0;font-size:14px}
-    .cardBody{padding:14px 16px}
-    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
-    input, textarea, select{
-      width:100%;
-      border:1px solid rgba(232,234,243,.95);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
-      outline:none;
-      font-size:14px;
-    }
-    textarea{min-height:80px;resize:vertical}
-    input:focus, textarea:focus, select:focus{
-      border-color: rgba(251,113,133,.55);
-      box-shadow: 0 0 0 4px rgba(251,113,133,.12);
-    }
-    .row{display:flex; gap:10px}
-    .row > *{flex:1}
-    .btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
-    button{
-      border:none;
-      border-radius:14px;
-      padding:10px 12px;
-      cursor:pointer;
-      font-weight:800;
-      font-size:14px;
-    }
-    .btnPrimary{
-      background:linear-gradient(135deg,var(--primary),#ff9aa6);
-      color:#fff;
-      box-shadow: 0 10px 18px rgba(251,113,133,.22);
-    }
-    .btnGhost{
-      background:rgba(255,255,255,.8);
-      border:1px solid rgba(232,234,243,.95);
-      color:var(--text);
-    }
-    .btnDanger{
-      background:rgba(239,68,68,.1);
-      color:var(--danger);
-      border:1px solid rgba(239,68,68,.25);
-    }
-    .btnOk{
-      background:rgba(34,197,94,.12);
-      color:#15803d;
-      border:1px solid rgba(34,197,94,.25);
-    }
-    .hint{font-size:12px;color:var(--muted);line-height:1.5}
-    .badge{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 10px;
-      font-size:12px;
-      border-radius:999px;
-      border:1px solid rgba(232,234,243,.95);
-      background:rgba(255,255,255,.75);
-    }
+    /* menu item rows */
+    .item{background:#f9fafb;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+    .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .itemName{font-weight:900;font-size:14px}
+    .price{font-size:13px;color:#6b7280}
+    .addons{margin-top:8px;font-size:12px;color:#4b5563}
 
-    /* restaurant list */
-    .list{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap:12px;
-    }
-    @media (max-width: 520px){ .list{grid-template-columns:1fr} }
-    .rCard{
-      border:1px solid rgba(232,234,243,.95);
-      background:rgba(255,255,255,.85);
-      border-radius:18px;
-      overflow:hidden;
-      cursor:pointer;
-      transition:transform .12s ease, box-shadow .12s ease;
-    }
-    .rCard:hover{ transform: translateY(-1px); box-shadow: 0 16px 30px rgba(15,23,42,.10); }
-    .thumb{
-      height:120px; background:#f8fafc;
-      border-bottom:1px solid rgba(232,234,243,.95);
-      display:flex; align-items:center; justify-content:center;
-      color:var(--muted); font-size:12px;
-    }
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .rInfo{padding:10px 12px}
-    .rTitle{font-weight:900;font-size:14px;margin:0 0 4px}
-    .rMeta{margin:0;color:var(--muted);font-size:12px;line-height:1.4}
+    table{border-collapse:collapse;width:100%}
+    th,td{border-bottom:1px solid #e5e7eb;text-align:left;padding:8px 6px;font-size:13px}
+    th{font-size:12px;color:#6b7280;background:#f9fafb}
 
-    /* detail view */
-    .detailTop{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
-    .detailTitle{display:flex; flex-direction:column; gap:2px;}
-    .detailTitle b{font-size:16px}
-    .split{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-    @media (max-width: 980px){ .split{grid-template-columns:1fr} }
-
-    .menuList{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px;}
-    @media (max-width: 560px){ .menuList{grid-template-columns:1fr} }
-
-    .mCard{border:1px solid rgba(232,234,243,.95); background:rgba(255,255,255,.9); border-radius:18px; overflow:hidden;}
-    .mHead{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(232,234,243,.95);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      background:linear-gradient(90deg, rgba(99,102,241,.06), rgba(251,113,133,.06));
+    .collapseHead{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:10px 12px;border-radius:12px;background:#f9fafb;cursor:pointer;margin-top:10px
     }
-    .mName{font-weight:900;font-size:14px}
-    .mCat{font-size:12px;color:var(--muted)}
-    .mBody{padding:10px 12px}
-    .mLine{display:flex;justify-content:space-between;gap:10px;font-size:13px}
-    .mDesc{margin:8px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
-    .empty{
-      padding:14px 16px;
-      border:1px dashed rgba(148,163,184,.6);
-      border-radius:18px;
-      color:var(--muted);
-      background:rgba(255,255,255,.5);
-      font-size:13px;
-      line-height:1.6;
-    }
-    .toast{
-      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background:rgba(15,23,42,.92);
-      color:#fff;
-      padding:10px 12px;
-      border-radius:999px;
-      font-size:13px;
-      opacity:0; pointer-events:none;
-      transition:opacity .18s ease, transform .18s ease;
-    }
-    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
-
-    /* staff list */
-    .staffList{display:grid; gap:10px; margin-top:10px;}
-    .sItem{
-      border:1px solid rgba(232,234,243,.95);
-      border-radius:16px;
-      background:rgba(255,255,255,.85);
-      padding:10px 12px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
-    }
-    .sLeft b{display:block;font-size:14px}
-    .sLeft .meta{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
-    .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-    .mutedSmall{font-size:12px;color:var(--muted)}
+    .collapseHead b{font-size:14px}
+    .collapseBody{padding:8px 4px}
+    .hidden{display:none !important}
   </style>
 </head>
 
 <body>
-<header>
-  <div class="wrap">
+<div class="app">
+  <aside class="side">
+    <div>
+      <div class="brand">GoldBricks 管理者</div>
+      <div class="sub">Admin Console</div>
+    </div>
+
+    <div class="nav">
+      <button id="navStaff">新增人員</button>
+      <button id="navAddRestaurant" class="active">新增餐廳</button>
+      <button id="navRestaurantManage">餐廳管理</button>
+      <button id="navOrders">訂餐紀錄</button>
+      <button id="navSwitchMode">切換使用者模式</button>
+      <button id="navLogout">登出</button>
+    </div>
+
+    <div class="footer">管理者密碼：8520（入口頁驗證）</div>
+  </aside>
+
+  <main class="main">
     <div class="topbar">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <h1>管理者後台</h1>
-          <div class="sub">餐廳管理（點餐廳進入餐點管理）｜人員管理</div>
-        </div>
+      <div>
+        <h2 id="pageTitle">新增餐廳</h2>
+        <div class="muted" id="pageSub">先新增餐點，再新增店家（會寫入 Firebase）</div>
       </div>
-      <div class="inline">
-        <div class="pill">狀態：<b id="saveState">已載入</b> <span class="mutedSmall" id="counts">0 餐廳 / 0 餐點 / 0 人員</span></div>
-        <button class="btnGhost" id="btnGoUser">切回使用者</button>
+      <div class="row">
+        <span class="pill" id="connState">Firebase：未初始化</span>
       </div>
     </div>
-  </div>
-</header>
 
-<main class="wrap">
-  <div class="grid">
-    <!-- 左：新增餐廳 + 人員管理 -->
-    <section class="card">
-      <div class="cardHead">
-        <h2>新增餐廳（店家圖片改「上傳」）</h2>
-        <span class="badge">Admin</span>
+    <!-- ============ 新增人員 ============ -->
+    <section id="viewStaff" class="hidden">
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">新增人員</h3>
+        <div class="grid">
+          <div>
+            <label>部門</label>
+            <select id="deptSelect">
+              <option value="管理部">管理部</option>
+              <option value="FAE">FAE</option>
+              <option value="TSE">TSE</option>
+              <option value="新場">新場</option>
+              <option value="倉管">倉管</option>
+              <option value="數據分析">數據分析</option>
+              <option value="RD">RD</option>
+              <option value="線上客服">線上客服</option>
+              <option value="維運">維運</option>
+            </select>
+          </div>
+          <div>
+            <label>人員名稱</label>
+            <div class="row" style="gap:8px;align-items:flex-end;">
+              <input id="staffName" placeholder="輸入人名後按 Enter 或按新增" />
+              <button class="btn secondary" id="btnAddStaff" type="button">新增</button>
+            </div>
+            <div class="hint">按 Enter 可直接新增</div>
+          </div>
+        </div>
       </div>
-      <div class="cardBody">
-        <div class="hint">新增/修改都會記錄在 localStorage，重整不會消失。</div>
 
-        <label>餐廳名稱 *</label>
-        <input id="rName" placeholder="例：呷奔嘍便當店" />
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">人員列表（同部門可收合）</h3>
+        <div id="staffGroups"></div>
+      </div>
+    </section>
 
-        <div class="row">
+    <!-- ============ 新增餐廳（餐廳資訊 + 餐點草稿 + 新增店家） ============ -->
+    <section id="viewAddRestaurant">
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">店家資訊</h3>
+        <div class="grid">
+          <div>
+            <label>餐廳名稱</label>
+            <input id="rName" placeholder="例如：阿財排骨" />
+          </div>
           <div>
             <label>電話</label>
-            <input id="rPhone" placeholder="例：04-1234-5678" />
+            <input id="rPhone" placeholder="例如：02-1234-5678" />
+          </div>
+          <div>
+            <label>地址</label>
+            <input id="rAddress" placeholder="例如：台北市..." />
+          </div>
+          <div>
+            <label>Google map 連結</label>
+            <input id="rMap" placeholder="貼上 Google map 連結" />
           </div>
           <div>
             <label>店家圖片（上傳）</label>
-            <input id="rPhotoFile" type="file" accept="image/*" />
-            <div class="mutedSmall" id="rPhotoHint" style="margin-top:6px;">尚未選擇圖片</div>
+            <input id="rImage" type="file" accept="image/*" />
+            <div class="hint">會上傳到 Firebase Storage，並把 imageUrl 存到 restaurants</div>
           </div>
-        </div>
-
-        <label>地址</label>
-        <input id="rAddress" placeholder="例：台中市..." />
-
-        <label>Google map 連結</label>
-        <input id="rMap" placeholder="https://maps.google.com/..." />
-
-        <label>備註</label>
-        <textarea id="rNote" placeholder="例：週日公休 / 外送門檻..."></textarea>
-
-        <div class="btns">
-          <button class="btnPrimary" id="btnAddRestaurant">新增餐廳</button>
-          <button class="btnDanger" id="btnResetAll">清空全部資料</button>
-        </div>
-
-        <hr style="border:none;border-top:1px solid rgba(232,234,243,.95);margin:16px 0;">
-
-        <div class="card" style="box-shadow:none">
-          <div class="cardHead">
-            <h2>人員管理（可新增）</h2>
-            <span class="badge" id="staffCountBadge">0 人員</span>
-          </div>
-          <div class="cardBody">
-            <div class="row">
-              <div>
-                <label>人員姓名 *</label>
-                <input id="staffName" placeholder="例：小美" />
-              </div>
-              <div>
-                <label>部門</label>
-                <select id="staffDept">
-                  <option value="內場">內場</option>
-                  <option value="外場">外場</option>
-                  <option value="櫃台">櫃台</option>
-                  <option value="外送">外送</option>
-                  <option value="其他">其他</option>
-                </select>
-              </div>
-            </div>
-
+          <div>
             <label>備註</label>
-            <input id="staffNote" placeholder="例：週一～五早班" />
-
-            <div class="btns">
-              <button class="btnPrimary" id="btnAddStaff">新增人員</button>
-            </div>
-
-            <div class="staffList" id="staffList"></div>
+            <textarea id="rNote" placeholder="例如：滿300外送 / 需提前訂"></textarea>
           </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">餐點管理（先加入餐點清單，再新增店家）</h3>
+
+        <div class="grid">
+          <div>
+            <label>餐點類別（輸入）</label>
+            <input id="mCategory" placeholder="飯類/麵類/小菜/飲料..." />
+          </div>
+          <div>
+            <label>餐點名稱</label>
+            <input id="mName" placeholder="例如：排骨飯" />
+          </div>
+          <div>
+            <label>價格（單份）</label>
+            <input id="mPrice" type="number" min="0" step="1" />
+          </div>
+          <div>
+            <label>預設數量</label>
+            <input id="mQty" type="number" min="1" step="1" value="1" />
+          </div>
+        </div>
+
+        <hr class="hr">
+
+        <div class="grid">
+          <div>
+            <label>加購名稱</label>
+            <input id="aName" placeholder="例如：蛋" />
+          </div>
+          <div>
+            <label>加購金額</label>
+            <input id="aPrice" type="number" min="0" step="1" />
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;padding-top:22px;">
+            <input id="aFree" type="checkbox" style="width:auto;" />
+            <label style="margin:0;">免費</label>
+            <button class="btn secondary" id="btnAddAddonDraft" type="button">加入加購</button>
+          </div>
+        </div>
+
+        <div class="hint" id="addonDraftPreview">目前無加購</div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn secondary" id="btnAddMenuDraft" type="button">加入此餐點到清單</button>
+          <span class="muted">至少加入 1 個餐點後才可新增店家</span>
+        </div>
+
+        <hr class="hr">
+
+        <h4 style="margin-bottom:8px;">餐點清單（草稿）</h4>
+        <div id="menuDraftList"></div>
+
+        <div class="row" style="justify-content:space-between;margin-top:12px;">
+          <div class="muted" id="draftCount">目前 0 個餐點</div>
+          <button class="btn" id="btnCreateRestaurant" type="button" disabled>新增店家</button>
         </div>
       </div>
     </section>
 
-    <!-- 右：餐廳清單 / 餐點管理 -->
-    <section class="card">
-      <div class="cardHead">
-        <h2 id="rightTitle">餐廳管理（點任一餐廳進入餐點管理）</h2>
-        <div class="inline">
-          <button class="btnGhost" id="btnBack" style="display:none;">← 返回餐廳清單</button>
+    <!-- ============ 餐廳管理（列表） ============ -->
+    <section id="viewRestaurantManage" class="hidden">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h3 style="font-size:16px;">餐廳管理</h3>
+            <div class="muted">點擊圖片進入店家資訊（可編輯）＋餐點管理（新增/編輯/刪除）</div>
+          </div>
+          <input id="rmSearch" placeholder="搜尋店家名稱" style="max-width:260px;" />
         </div>
       </div>
 
-      <!-- 列表視圖 -->
-      <div class="cardBody" id="listView">
-        <div class="hint" style="margin-bottom:10px;">點餐廳卡片進入後，右側會出現餐點管理，可新增餐點（會記錄）。</div>
-        <div class="list" id="restaurantList"></div>
-        <div id="emptyRestaurants" class="empty" style="display:none;margin-top:12px;">
-          目前沒有餐廳。請先在左側新增餐廳（餐廳名稱必填）。
+      <div class="card">
+        <div class="restaurant-grid" id="restaurantManageGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 餐廳管理（詳細） ============ -->
+    <section id="viewRestaurantDetail" class="hidden">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;">
+          <div>
+            <h3 style="font-size:16px;margin-bottom:6px;" id="rdTitle">店家</h3>
+            <div class="muted">可編輯店家資訊、上傳圖片、刪除店家</div>
+          </div>
+          <div class="row">
+            <button class="btn secondary" id="btnBackToManage" type="button">返回餐廳管理</button>
+            <button class="btn danger" id="btnDeleteRestaurant" type="button">刪除店家</button>
+          </div>
+        </div>
+
+        <hr class="hr">
+
+        <div class="grid">
+          <div>
+            <label>餐廳名稱</label>
+            <input id="rdName" />
+          </div>
+          <div>
+            <label>電話</label>
+            <input id="rdPhone" />
+          </div>
+          <div>
+            <label>地址</label>
+            <input id="rdAddress" />
+          </div>
+          <div>
+            <label>Google map 連結</label>
+            <input id="rdMap" />
+          </div>
+          <div>
+            <label>更換店家圖片（上傳）</label>
+            <input id="rdImage" type="file" accept="image/*" />
+            <div class="hint" id="rdImageHint"></div>
+          </div>
+          <div>
+            <label>備註</label>
+            <textarea id="rdNote"></textarea>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="btnSaveRestaurant" type="button">儲存店家資訊</button>
         </div>
       </div>
 
-      <!-- 詳細視圖（餐點管理） -->
-      <div class="cardBody" id="detailView" style="display:none;">
-        <div class="detailTop">
-          <div class="detailTitle">
-            <b id="dName">—</b>
-            <span class="mutedSmall" id="dMeta">—</span>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">在此店家新增餐點</h3>
+
+        <div class="grid">
+          <div>
+            <label>餐點類別（輸入）</label>
+            <input id="rdmCategory" placeholder="飯類/麵類/..." />
           </div>
-          <div class="inline">
-            <span class="badge" id="dMenuCount">0 餐點</span>
-            <span class="badge" id="dCatCount">0 類別</span>
-            <button class="btnDanger" id="btnDeleteRestaurant">刪除此餐廳</button>
+          <div>
+            <label>餐點名稱</label>
+            <input id="rdmName" placeholder="例如：排骨飯" />
+          </div>
+          <div>
+            <label>價格</label>
+            <input id="rdmPrice" type="number" min="0" step="1" />
+          </div>
+          <div>
+            <label>預設數量</label>
+            <input id="rdmQty" type="number" min="1" step="1" value="1" />
           </div>
         </div>
 
-        <div style="height:12px"></div>
+        <hr class="hr">
 
-        <div class="split">
-          <!-- 新增類別/餐點 -->
-          <div class="card" style="box-shadow:none">
-            <div class="cardHead">
-              <h2>餐點管理（圖片移除→改預設數量）</h2>
-              <span class="badge">會自動記錄</span>
-            </div>
-            <div class="cardBody">
-              <label>新增餐點類別（輸入）</label>
-              <div class="row">
-                <input id="catInput" placeholder="例：便當 / 飲料 / 小菜..." />
-                <button class="btnPrimary" id="btnAddCat" style="flex:0 0 auto;min-width:110px;">新增類別</button>
-              </div>
-
-              <label style="margin-top:14px;">選擇餐點類別</label>
-              <select id="dishCategory"></select>
-
-              <label>餐點名稱 *</label>
-              <input id="dishName" placeholder="例：招牌雞腿便當" />
-
-              <div class="row">
-                <div>
-                  <label>價格</label>
-                  <input id="dishPrice" type="number" min="0" step="1" placeholder="例：100" />
-                </div>
-                <div>
-                  <label>預設數量（新增到訂單時的預設）</label>
-                  <input id="dishDefaultQty" type="number" min="1" step="1" value="1" />
-                </div>
-              </div>
-
-              <label>餐點描述 / 備註</label>
-              <textarea id="dishDesc" placeholder="例：可加辣 / 不要蔥..."></textarea>
-
-              <div class="inline" style="margin-top:10px;">
-                <input type="checkbox" id="dishEnabled" checked style="width:auto" />
-                <span style="font-size:13px;">此餐點可販售（顯示在使用者端）</span>
-              </div>
-
-              <div class="btns">
-                <button class="btnPrimary" id="btnAddDish">新增餐點</button>
-                <button class="btnGhost" id="btnClearDish">清空輸入</button>
-              </div>
-
-              <div class="hint" style="margin-top:10px;">
-                你之前的問題「點已有餐廳無法再新增餐點」：這版點卡片進來一定會綁定 selectedRestaurantId，新增餐點會直接 save()。
-              </div>
-            </div>
+        <div class="grid">
+          <div>
+            <label>加購名稱</label>
+            <input id="rdaName" placeholder="例如：蛋" />
           </div>
-
-          <!-- 餐點清單 -->
-          <div class="card" style="box-shadow:none">
-            <div class="cardHead">
-              <h2>此餐廳的餐點清單</h2>
-              <span class="badge">可下架/刪除</span>
-            </div>
-            <div class="cardBody">
-              <div id="emptyMenu" class="empty" style="display:none;">
-                這間餐廳目前沒有餐點。請在左側新增餐點。
-              </div>
-              <div class="menuList" id="menuList"></div>
-            </div>
+          <div>
+            <label>加購金額</label>
+            <input id="rdaPrice" type="number" min="0" step="1" />
           </div>
+          <div style="display:flex;gap:10px;align-items:center;padding-top:22px;">
+            <input id="rdaFree" type="checkbox" style="width:auto;" />
+            <label style="margin:0;">免費</label>
+            <button class="btn secondary" id="btnRdAddAddon" type="button">加入加購</button>
+          </div>
+        </div>
+        <div class="hint" id="rdAddonPreview">目前無加購</div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="btnAddMenuToRestaurant" type="button">新增餐點</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">餐點列表（可編輯 / 刪除單一餐點）</h3>
+        <div id="rdMenuList"></div>
+      </div>
+    </section>
+
+    <!-- ============ 訂餐紀錄（先做可用版：顯示 orders.summary） ============ -->
+    <section id="viewOrders" class="hidden">
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:10px;">訂餐紀錄</h3>
+        <div class="grid">
+          <div>
+            <label>訂單日期</label>
+            <input type="date" id="oDate" />
+          </div>
+          <div>
+            <label>查詢模式</label>
+            <select id="oMode">
+              <option value="list">清單</option>
+              <option value="byRestaurant">依店家彙整（簡易）</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn secondary" id="btnLoadOrders" type="button">查詢</button>
+          <button class="btn secondary" id="btnClearOrders" type="button">清空</button>
+        </div>
+        <div class="hint">顯示：排骨飯70+蛋10 數量2；…（summary 欄位）</div>
+      </div>
+
+      <div class="card">
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>人員</th>
+                <th>店家</th>
+                <th>彙整</th>
+                <th>金額</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
         </div>
       </div>
     </section>
-  </div>
-</main>
 
-<div class="toast" id="toast">已儲存</div>
+  </main>
+</div>
 
-<script>
-  /***********************
-   * 共用儲存 Key（user/admin 都用同一份）
-   ***********************/
-  const STORE_KEY = "jabenlo_data_v2";
-  const ADMIN_FLAG_KEY = "jabenlo_is_admin";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs, query, where, orderBy,
+    deleteDoc, doc, updateDoc, writeBatch
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import {
+    getStorage, ref, uploadBytes, getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-
-  function defaultData(){
-    return { restaurants: [], staff: [] };
-  }
-
-  function load(){
-    try{
-      const raw = localStorage.getItem(STORE_KEY);
-      const data = raw ? JSON.parse(raw) : defaultData();
-
-      data.restaurants = Array.isArray(data.restaurants) ? data.restaurants : [];
-      data.staff = Array.isArray(data.staff) ? data.staff : [];
-
-      data.restaurants.forEach(r=>{
-        r.id = r.id || uid();
-        r.name = r.name || "";
-        r.phone = r.phone || "";
-        r.address = r.address || "";
-        r.map = r.map || "";
-        r.photo = r.photo || "";   // base64 dataURL
-        r.note = r.note || "";
-        r.categories = Array.isArray(r.categories) ? r.categories : [];
-        r.menu = Array.isArray(r.menu) ? r.menu : [];
-        r.menu.forEach(d=>{
-          d.id = d.id || uid();
-          d.category = d.category || "未分類";
-          d.name = d.name || "";
-          d.price = Number(d.price || 0);
-          d.defaultQty = Number(d.defaultQty || 1);
-          d.desc = d.desc || "";
-          d.enabled = (d.enabled === false) ? false : true;
-        });
-      });
-
-      data.staff.forEach(s=>{
-        s.id = s.id || uid();
-        s.name = s.name || "";
-        s.dept = s.dept || "其他";
-        s.note = s.note || "";
-      });
-
-      return data;
-    }catch(e){
-      console.error(e);
-      return defaultData();
-    }
-  }
-
-  const state = {
-    data: load(),
-    selectedRestaurantId: null,
-    toastTimer: null,
-    newRestaurantPhotoDataUrl: ""
+  // ✅ 換成你的 Firebase 設定
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
   };
 
-  function save(){
-    localStorage.setItem(STORE_KEY, JSON.stringify(state.data));
-    setSaveState("已儲存");
-    toast("已儲存");
-    refreshCounts();
+  // ===== 角色檢查（admin 才能進）=====
+  (function checkRole(){
+    const role = localStorage.getItem("role");
+    if (role !== "admin") location.href = "index.html";
+  })();
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  document.getElementById("connState").textContent = "Firebase：已連線";
+
+  // ===== Sidebar nav =====
+  const pageTitle = document.getElementById("pageTitle");
+  const pageSub = document.getElementById("pageSub");
+
+  const navStaff = document.getElementById("navStaff");
+  const navAddRestaurant = document.getElementById("navAddRestaurant");
+  const navRestaurantManage = document.getElementById("navRestaurantManage");
+  const navOrders = document.getElementById("navOrders");
+  const navSwitchMode = document.getElementById("navSwitchMode");
+  const navLogout = document.getElementById("navLogout");
+
+  const viewStaff = document.getElementById("viewStaff");
+  const viewAddRestaurant = document.getElementById("viewAddRestaurant");
+  const viewRestaurantManage = document.getElementById("viewRestaurantManage");
+  const viewRestaurantDetail = document.getElementById("viewRestaurantDetail");
+  const viewOrders = document.getElementById("viewOrders");
+
+  const navButtons = [navStaff, navAddRestaurant, navRestaurantManage, navOrders];
+
+  function setActive(btn){
+    navButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+  function showOnly(section){
+    [viewStaff, viewAddRestaurant, viewRestaurantManage, viewRestaurantDetail, viewOrders]
+      .forEach(v => v.classList.add("hidden"));
+    section.classList.remove("hidden");
   }
 
-  function setSaveState(txt){ document.getElementById("saveState").textContent = txt; }
-
-  function toast(msg){
-    const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.classList.add("show");
-    clearTimeout(state.toastTimer);
-    state.toastTimer = setTimeout(()=> el.classList.remove("show"), 1200);
-  }
-
-  const $ = (id)=> document.getElementById(id);
-
-  function refreshCounts(){
-    const rCount = state.data.restaurants.length;
-    const mCount = state.data.restaurants.reduce((acc,r)=> acc + (r.menu?.length || 0), 0);
-    const sCount = state.data.staff.length;
-    $("counts").textContent = `${rCount} 餐廳 / ${mCount} 餐點 / ${sCount} 人員`;
-    $("staffCountBadge").textContent = `${sCount} 人員`;
-  }
-
-  /***********************
-   * 切回使用者
-   ***********************/
-  $("btnGoUser").addEventListener("click", ()=>{
-    localStorage.setItem(ADMIN_FLAG_KEY, "0");
+  // ===== confirm: switch mode / logout =====
+  navSwitchMode.addEventListener("click", () => {
+    const ok = confirm("確定要切換到使用者模式嗎？");
+    if (!ok) return;
+    // 不清 role，讓 user.html 右上角可顯示前往管理者；若你要清掉可改成 removeItem
     location.href = "user.html";
   });
 
-  /***********************
-   * 新增餐廳：圖片上傳→base64
-   ***********************/
-  $("rPhotoFile").addEventListener("change", (e)=>{
-    const file = e.target.files && e.target.files[0];
-    if(!file){
-      state.newRestaurantPhotoDataUrl = "";
-      $("rPhotoHint").textContent = "尚未選擇圖片";
-      return;
+  navLogout.addEventListener("click", () => {
+    const ok = confirm("確定要登出嗎？");
+    if (!ok) return;
+    localStorage.removeItem("role");
+    location.href = "index.html";
+  });
+
+  // =========================
+  // 1) 新增人員（staff）
+  // =========================
+  const deptSelect = document.getElementById("deptSelect");
+  const staffName = document.getElementById("staffName");
+  const btnAddStaff = document.getElementById("btnAddStaff");
+  const staffGroups = document.getElementById("staffGroups");
+
+  async function addStaff(){
+    const dept = deptSelect.value;
+    const name = staffName.value.trim();
+    if (!name) return;
+
+    await addDoc(collection(db, "staff"), { dept, name });
+    staffName.value = "";
+    await loadStaffGroups();
+  }
+
+  btnAddStaff.addEventListener("click", addStaff);
+  staffName.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addStaff();
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      state.newRestaurantPhotoDataUrl = String(reader.result || "");
-      $("rPhotoHint").textContent = `已選擇：${file.name}`;
-    };
-    reader.readAsDataURL(file);
   });
 
-  $("btnAddRestaurant").addEventListener("click", ()=>{
-    const name = $("rName").value.trim();
-    if(!name){ toast("請輸入餐廳名稱"); $("rName").focus(); return; }
+  async function loadStaffGroups(){
+    const snap = await getDocs(collection(db, "staff"));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    const r = {
-      id: uid(),
-      name,
-      phone: $("rPhone").value.trim(),
-      address: $("rAddress").value.trim(),
-      map: $("rMap").value.trim(),
-      photo: state.newRestaurantPhotoDataUrl || "",
-      note: $("rNote").value.trim(),
-      categories: [],
-      menu: []
-    };
-
-    state.data.restaurants.unshift(r);
-    save();
-    clearRestaurantForm();
-    renderRestaurants();
-  });
-
-  function clearRestaurantForm(){
-    $("rName").value = "";
-    $("rPhone").value = "";
-    $("rAddress").value = "";
-    $("rMap").value = "";
-    $("rNote").value = "";
-    $("rPhotoFile").value = "";
-    state.newRestaurantPhotoDataUrl = "";
-    $("rPhotoHint").textContent = "尚未選擇圖片";
-  }
-
-  /***********************
-   * 人員管理：新增/刪除（會記錄）
-   ***********************/
-  $("btnAddStaff").addEventListener("click", ()=>{
-    const name = $("staffName").value.trim();
-    if(!name){ toast("請輸入人員姓名"); $("staffName").focus(); return; }
-
-    state.data.staff.unshift({
-      id: uid(),
-      name,
-      dept: $("staffDept").value || "其他",
-      note: $("staffNote").value.trim()
-    });
-    save();
-    $("staffName").value = "";
-    $("staffNote").value = "";
-    renderStaff();
-  });
-
-  function renderStaff(){
-    const box = $("staffList");
-    box.innerHTML = "";
-    state.data.staff.forEach(s=>{
-      const item = document.createElement("div");
-      item.className = "sItem";
-
-      const left = document.createElement("div");
-      left.className = "sLeft";
-      const b = document.createElement("b");
-      b.textContent = s.name;
-      const meta = document.createElement("div");
-      meta.className = "meta";
-      meta.textContent = `部門：${s.dept}${s.note ? " · " + s.note : ""}`;
-      left.appendChild(b);
-      left.appendChild(meta);
-
-      const del = document.createElement("button");
-      del.className = "btnDanger";
-      del.style.padding = "8px 10px";
-      del.textContent = "刪除";
-      del.onclick = ()=>{
-        const ok = confirm(`確定刪除人員「${s.name}」？`);
-        if(!ok) return;
-        state.data.staff = state.data.staff.filter(x=> x.id !== s.id);
-        save();
-        renderStaff();
-      };
-
-      item.appendChild(left);
-      item.appendChild(del);
-      box.appendChild(item);
-    });
-    refreshCounts();
-  }
-
-  /***********************
-   * 餐廳列表
-   ***********************/
-  function renderRestaurants(){
-    const list = $("restaurantList");
-    list.innerHTML = "";
-
-    const restaurants = state.data.restaurants;
-    $("emptyRestaurants").style.display = restaurants.length ? "none" : "block";
-
-    restaurants.forEach(r=>{
-      const card = document.createElement("div");
-      card.className = "rCard";
-      card.onclick = () => openRestaurant(r.id);
-
-      const thumb = document.createElement("div");
-      thumb.className = "thumb";
-      if(r.photo){
-        const img = document.createElement("img");
-        img.src = r.photo;
-        img.alt = r.name;
-        img.onerror = () => { thumb.textContent = "圖片載入失敗"; };
-        thumb.appendChild(img);
-      }else{
-        thumb.textContent = "尚未設定店家圖片";
-      }
-
-      const info = document.createElement("div");
-      info.className = "rInfo";
-
-      const title = document.createElement("p");
-      title.className = "rTitle";
-      title.textContent = r.name || "(未命名)";
-
-      const meta = document.createElement("p");
-      meta.className = "rMeta";
-      const phone = r.phone ? `☎ ${r.phone}` : "";
-      const addr = r.address ? `📍 ${r.address}` : "";
-      const menuN = `🍱 ${r.menu?.length || 0} 餐點`;
-      meta.textContent = [phone, addr, menuN].filter(Boolean).join("  ·  ");
-
-      info.appendChild(title);
-      info.appendChild(meta);
-
-      card.appendChild(thumb);
-      card.appendChild(info);
-
-      list.appendChild(card);
+    const byDept = {};
+    list.forEach(x => {
+      if (!byDept[x.dept]) byDept[x.dept] = [];
+      byDept[x.dept].push(x);
     });
 
-    refreshCounts();
-  }
+    const depts = Object.keys(byDept).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+    staffGroups.innerHTML = "";
 
-  /***********************
-   * 進入餐點管理（點已有餐廳一定能新增餐點）
-   ***********************/
-  const listView = $("listView");
-  const detailView = $("detailView");
-  const btnBack = $("btnBack");
-  const rightTitle = $("rightTitle");
-
-  function openRestaurant(id){
-    state.selectedRestaurantId = id;
-    const r = getSelectedRestaurant();
-    if(!r) return;
-
-    listView.style.display = "none";
-    detailView.style.display = "block";
-    btnBack.style.display = "inline-flex";
-    rightTitle.textContent = "餐點管理（點返回回餐廳清單）";
-
-    $("dName").textContent = r.name;
-    $("dMeta").textContent = [
-      r.phone ? `☎ ${r.phone}` : "",
-      r.address ? `📍 ${r.address}` : "",
-      r.map ? `🗺 已有地圖連結` : ""
-    ].filter(Boolean).join("  ·  ") || "—";
-
-    ensureDefaultCategories(r);
-    renderCategorySelect();
-    renderMenuList();
-    refreshBadges();
-  }
-
-  function closeRestaurant(){
-    state.selectedRestaurantId = null;
-    listView.style.display = "block";
-    detailView.style.display = "none";
-    btnBack.style.display = "none";
-    rightTitle.textContent = "餐廳管理（點任一餐廳進入餐點管理）";
-    renderRestaurants();
-  }
-
-  btnBack.addEventListener("click", closeRestaurant);
-
-  function getSelectedRestaurant(){
-    return state.data.restaurants.find(x=> x.id === state.selectedRestaurantId);
-  }
-
-  function ensureDefaultCategories(r){
-    if(!Array.isArray(r.categories)) r.categories = [];
-    if(r.categories.length === 0){
-      r.categories.push("未分類");
-      save();
-    }
-  }
-
-  function refreshBadges(){
-    const r = getSelectedRestaurant();
-    if(!r) return;
-    $("dMenuCount").textContent = `${r.menu.length} 餐點`;
-    $("dCatCount").textContent = `${r.categories.length} 類別`;
-  }
-
-  /***********************
-   * 類別：新增
-   ***********************/
-  $("btnAddCat").addEventListener("click", ()=>{
-    const r = getSelectedRestaurant();
-    if(!r) return;
-
-    const cat = $("catInput").value.trim();
-    if(!cat){ toast("請輸入類別名稱"); $("catInput").focus(); return; }
-    if(r.categories.includes(cat)){ toast("此類別已存在"); return; }
-
-    r.categories.push(cat);
-    $("catInput").value = "";
-    save();
-    renderCategorySelect(cat);
-    refreshBadges();
-  });
-
-  function renderCategorySelect(selectValue){
-    const r = getSelectedRestaurant();
-    if(!r) return;
-
-    const sel = $("dishCategory");
-    sel.innerHTML = "";
-
-    r.categories.forEach(cat=>{
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat;
-      sel.appendChild(opt);
-    });
-
-    if(selectValue && r.categories.includes(selectValue)) sel.value = selectValue;
-  }
-
-  /***********************
-   * 餐點：新增（圖片移除→defaultQty）
-   ***********************/
-  $("btnAddDish").addEventListener("click", ()=>{
-    const r = getSelectedRestaurant();
-    if(!r) return;
-
-    const name = $("dishName").value.trim();
-    if(!name){ toast("請輸入餐點名稱"); $("dishName").focus(); return; }
-
-    const dish = {
-      id: uid(),
-      category: $("dishCategory").value || "未分類",
-      name,
-      price: Number($("dishPrice").value || 0),
-      defaultQty: Math.max(1, Number($("dishDefaultQty").value || 1)),
-      desc: $("dishDesc").value.trim(),
-      enabled: $("dishEnabled").checked
-    };
-
-    r.menu.unshift(dish);
-    save();
-
-    clearDishForm(false);
-    renderMenuList();
-    refreshBadges();
-  });
-
-  $("btnClearDish").addEventListener("click", ()=> clearDishForm(true));
-
-  function clearDishForm(clearCategory){
-    $("dishName").value = "";
-    $("dishPrice").value = "";
-    $("dishDefaultQty").value = "1";
-    $("dishDesc").value = "";
-    $("dishEnabled").checked = true;
-    if(clearCategory) $("dishCategory").selectedIndex = 0;
-  }
-
-  function renderMenuList(){
-    const r = getSelectedRestaurant();
-    if(!r) return;
-
-    const box = $("menuList");
-    box.innerHTML = "";
-
-    $("emptyMenu").style.display = r.menu.length ? "none" : "block";
-
-    r.menu.forEach(d=>{
-      const card = document.createElement("div");
-      card.className = "mCard";
+    depts.forEach(dept => {
+      const headId = `head_${dept}`;
+      const bodyId = `body_${dept}`;
 
       const head = document.createElement("div");
-      head.className = "mHead";
-
-      const left = document.createElement("div");
-      left.style.display = "flex";
-      left.style.flexDirection = "column";
-
-      const name = document.createElement("div");
-      name.className = "mName";
-      name.textContent = d.name;
-
-      const cat = document.createElement("div");
-      cat.className = "mCat";
-      cat.textContent = `${d.category || "未分類"} · ${d.enabled ? "上架中" : "已下架"}`;
-
-      left.appendChild(name);
-      left.appendChild(cat);
-
-      const actions = document.createElement("div");
-      actions.className = "inline";
-
-      const toggleBtn = document.createElement("button");
-      toggleBtn.className = d.enabled ? "btnGhost" : "btnOk";
-      toggleBtn.style.padding = "8px 10px";
-      toggleBtn.textContent = d.enabled ? "下架" : "上架";
-      toggleBtn.onclick = (ev)=>{
-        ev.stopPropagation();
-        d.enabled = !d.enabled;
-        save();
-        renderMenuList();
-        refreshBadges();
-      };
-
-      const delBtn = document.createElement("button");
-      delBtn.className = "btnDanger";
-      delBtn.style.padding = "8px 10px";
-      delBtn.textContent = "刪除";
-      delBtn.onclick = (ev)=>{
-        ev.stopPropagation();
-        const ok = confirm(`確定刪除餐點「${d.name}」？`);
-        if(!ok) return;
-        r.menu = r.menu.filter(x=> x.id !== d.id);
-        save();
-        renderMenuList();
-        refreshBadges();
-      };
-
-      actions.appendChild(toggleBtn);
-      actions.appendChild(delBtn);
-
-      head.appendChild(left);
-      head.appendChild(actions);
+      head.className = "collapseHead";
+      head.innerHTML = `<b>${dept}</b><span class="muted">${byDept[dept].length} 人</span>`;
+      head.id = headId;
 
       const body = document.createElement("div");
-      body.className = "mBody";
+      body.className = "collapseBody";
+      body.id = bodyId;
 
-      const line1 = document.createElement("div");
-      line1.className = "mLine";
-      const p1 = document.createElement("div");
-      p1.textContent = `價格：$${Number(d.price||0)}`;
-      const p2 = document.createElement("div");
-      p2.style.color = "var(--muted)";
-      p2.textContent = `預設數量：${Number(d.defaultQty||1)}`;
-      line1.appendChild(p1);
-      line1.appendChild(p2);
+      body.innerHTML = byDept[dept]
+        .sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant'))
+        .map(p => `
+          <div class="row" style="justify-content:space-between;padding:6px 8px;border-radius:10px;">
+            <div>${p.name}</div>
+            <button class="btn danger sm" data-del-staff="${p.id}">刪除</button>
+          </div>
+        `).join("");
 
-      const desc = document.createElement("div");
-      desc.className = "mDesc";
-      desc.textContent = d.desc || "（無描述）";
+      // collapse
+      let collapsed = false;
+      head.addEventListener("click", () => {
+        collapsed = !collapsed;
+        body.style.display = collapsed ? "none" : "block";
+      });
 
-      body.appendChild(line1);
-      body.appendChild(desc);
+      staffGroups.appendChild(head);
+      staffGroups.appendChild(body);
+    });
 
-      card.appendChild(head);
-      card.appendChild(body);
-
-      box.appendChild(card);
+    staffGroups.querySelectorAll("button[data-del-staff]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del-staff");
+        const ok = confirm("確定要刪除這位人員嗎？");
+        if (!ok) return;
+        await deleteDoc(doc(db, "staff", id));
+        await loadStaffGroups();
+      });
     });
   }
 
-  /***********************
-   * 刪除餐廳
-   ***********************/
-  $("btnDeleteRestaurant").addEventListener("click", ()=>{
-    const r = getSelectedRestaurant();
-    if(!r) return;
-    const ok = confirm(`確定刪除餐廳「${r.name}」？（餐點也會一起刪除）`);
-    if(!ok) return;
+  // =========================
+  // 2) 新增餐廳（restaurants + menus）
+  //    先做 menu 草稿 → 按新增店家一次寫入
+  // =========================
+  const rName = document.getElementById("rName");
+  const rPhone = document.getElementById("rPhone");
+  const rAddress = document.getElementById("rAddress");
+  const rMap = document.getElementById("rMap");
+  const rImage = document.getElementById("rImage");
+  const rNote = document.getElementById("rNote");
 
-    state.data.restaurants = state.data.restaurants.filter(x=> x.id !== r.id);
-    save();
-    closeRestaurant();
-  });
+  const mCategory = document.getElementById("mCategory");
+  const mName = document.getElementById("mName");
+  const mPrice = document.getElementById("mPrice");
+  const mQty = document.getElementById("mQty");
 
-  /***********************
-   * 清空全部
-   ***********************/
-  $("btnResetAll").addEventListener("click", ()=>{
-    const ok = confirm("確定清空全部資料？（不可復原）");
-    if(!ok) return;
-    state.data = defaultData();
-    localStorage.removeItem(STORE_KEY);
-    toast("已清空");
-    closeRestaurant();
-    renderStaff();
-    renderRestaurants();
-    refreshCounts();
-  });
+  const aName = document.getElementById("aName");
+  const aPrice = document.getElementById("aPrice");
+  const aFree = document.getElementById("aFree");
+  const btnAddAddonDraft = document.getElementById("btnAddAddonDraft");
+  const addonDraftPreview = document.getElementById("addonDraftPreview");
+  const btnAddMenuDraft = document.getElementById("btnAddMenuDraft");
+  const menuDraftList = document.getElementById("menuDraftList");
+  const btnCreateRestaurant = document.getElementById("btnCreateRestaurant");
+  const draftCount = document.getElementById("draftCount");
 
-  /***********************
-   * 初始化
-   ***********************/
-  // 若不是 admin 進來，直接導回 user
-  if(localStorage.getItem(ADMIN_FLAG_KEY) !== "1"){
-    location.href = "user.html";
+  let addonDraft = [];
+  let menuDraft = [];
+
+  function renderAddonDraft(){
+    if (!addonDraft.length) {
+      addonDraftPreview.textContent = "目前無加購";
+      return;
+    }
+    addonDraftPreview.textContent = addonDraft
+      .map(a => a.free ? `${a.name}(免費)` : `${a.name}+$${a.price}`)
+      .join("、");
   }
 
-  setSaveState("已載入");
-  renderStaff();
-  renderRestaurants();
-  refreshCounts();
+  btnAddAddonDraft.addEventListener("click", () => {
+    const name = aName.value.trim();
+    const free = aFree.checked;
+    const price = Number(aPrice.value || 0);
+
+    if (!name) return alert("請輸入加購名稱");
+    if (!free && price <= 0) return alert("加購金額需大於 0（或勾免費）");
+
+    addonDraft.push({ name, price: free ? 0 : price, free });
+    aName.value = "";
+    aPrice.value = "";
+    aFree.checked = false;
+    renderAddonDraft();
+  });
+
+  function refreshCreateButton(){
+    const ok = rName.value.trim() && menuDraft.length > 0;
+    btnCreateRestaurant.disabled = !ok;
+    draftCount.textContent = `目前 ${menuDraft.length} 個餐點`;
+  }
+
+  function renderMenuDraft(){
+    if (!menuDraft.length) {
+      menuDraftList.innerHTML = `<div class="muted">尚未加入餐點</div>`;
+      refreshCreateButton();
+      return;
+    }
+    menuDraftList.innerHTML = menuDraft.map((m, idx) => {
+      const addonText = m.addons.length
+        ? m.addons.map(a => a.free ? `${a.name}(免費)` : `${a.name}+$${a.price}`).join("、")
+        : "無";
+      return `
+        <div class="item">
+          <div class="itemTop">
+            <div>
+              <div class="itemName">${m.category}｜${m.name}</div>
+              <div class="price">$${m.price}　預設${m.defaultQty}　加購：${addonText}</div>
+            </div>
+            <div class="row">
+              <button class="btn secondary sm" data-edit-draft="${idx}">編輯</button>
+              <button class="btn danger sm" data-del-draft="${idx}">刪除</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    menuDraftList.querySelectorAll("button[data-del-draft]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-del-draft"));
+        const ok = confirm("確定要刪除這個草稿餐點嗎？");
+        if (!ok) return;
+        menuDraft.splice(idx, 1);
+        renderMenuDraft();
+      });
+    });
+
+    menuDraftList.querySelectorAll("button[data-edit-draft]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-edit-draft"));
+        const m = menuDraft[idx];
+        mCategory.value = m.category;
+        mName.value = m.name;
+        mPrice.value = m.price;
+        mQty.value = m.defaultQty;
+        addonDraft = JSON.parse(JSON.stringify(m.addons || []));
+        renderAddonDraft();
+
+        // 用「加入」覆蓋該筆
+        btnAddMenuDraft.textContent = "更新此草稿餐點";
+        btnAddMenuDraft.dataset.editing = String(idx);
+      });
+    });
+
+    refreshCreateButton();
+  }
+
+  btnAddMenuDraft.addEventListener("click", () => {
+    const category = mCategory.value.trim();
+    const name = mName.value.trim();
+    const price = Number(mPrice.value || 0);
+    const defaultQty = Math.max(1, Number(mQty.value || 1));
+
+    if (!category) return alert("請輸入餐點類別");
+    if (!name) return alert("請輸入餐點名稱");
+    if (price <= 0) return alert("價格需大於 0");
+
+    const payload = {
+      category, name, price, defaultQty,
+      addons: JSON.parse(JSON.stringify(addonDraft))
+    };
+
+    const editingIdx = btnAddMenuDraft.dataset.editing;
+    if (editingIdx !== undefined && editingIdx !== "") {
+      const idx = Number(editingIdx);
+      menuDraft[idx] = payload;
+      btnAddMenuDraft.textContent = "加入此餐點到清單";
+      btnAddMenuDraft.dataset.editing = "";
+    } else {
+      menuDraft.push(payload);
+    }
+
+    // reset
+    mCategory.value = "";
+    mName.value = "";
+    mPrice.value = "";
+    mQty.value = "1";
+    addonDraft = [];
+    renderAddonDraft();
+    renderMenuDraft();
+  });
+
+  async function uploadImageIfAny(file){
+    if (!file) return "";
+    const path = `restaurants/${Date.now()}_${file.name}`;
+    const r = ref(storage, path);
+    await uploadBytes(r, file);
+    return await getDownloadURL(r);
+  }
+
+  btnCreateRestaurant.addEventListener("click", async () => {
+    const name = rName.value.trim();
+    if (!name) return alert("請輸入餐廳名稱");
+    if (!menuDraft.length) return alert("請至少加入 1 個餐點後再新增店家");
+
+    btnCreateRestaurant.disabled = true;
+
+    try {
+      const imageUrl = await uploadImageIfAny(rImage.files?.[0] || null);
+
+      // 先建 restaurant
+      const restRef = await addDoc(collection(db, "restaurants"), {
+        name,
+        phone: rPhone.value.trim(),
+        address: rAddress.value.trim(),
+        map: rMap.value.trim(),
+        note: rNote.value.trim(),
+        imageUrl
+      });
+
+      // 批次寫入 menus
+      const batch = writeBatch(db);
+      menuDraft.forEach(m => {
+        const docRef = doc(collection(db, "menus"));
+        batch.set(docRef, {
+          restaurantId: restRef.id,
+          category: m.category,
+          name: m.name,
+          price: m.price,
+          defaultQty: m.defaultQty,
+          addons: m.addons || []
+        });
+      });
+      await batch.commit();
+
+      alert("已新增店家與餐點");
+
+      // reset all
+      rName.value = ""; rPhone.value=""; rAddress.value=""; rMap.value=""; rNote.value=""; rImage.value="";
+      menuDraft = []; addonDraft = [];
+      renderAddonDraft(); renderMenuDraft();
+      btnCreateRestaurant.disabled = true;
+
+      // 讓餐廳管理立刻看到
+      await loadRestaurantsForManage();
+
+    } catch (e) {
+      console.error(e);
+      alert("新增失敗，請檢查 Firebase 規則/Storage 設定");
+      btnCreateRestaurant.disabled = false;
+    }
+  });
+
+  rName.addEventListener("input", refreshCreateButton);
+
+  // =========================
+  // 3) 餐廳管理（列表 & 詳細）
+  // =========================
+  const rmSearch = document.getElementById("rmSearch");
+  const restaurantManageGrid = document.getElementById("restaurantManageGrid");
+
+  const btnBackToManage = document.getElementById("btnBackToManage");
+  const btnDeleteRestaurant = document.getElementById("btnDeleteRestaurant");
+  const btnSaveRestaurant = document.getElementById("btnSaveRestaurant");
+
+  const rdTitle = document.getElementById("rdTitle");
+  const rdName = document.getElementById("rdName");
+  const rdPhone = document.getElementById("rdPhone");
+  const rdAddress = document.getElementById("rdAddress");
+  const rdMap = document.getElementById("rdMap");
+  const rdNote = document.getElementById("rdNote");
+  const rdImage = document.getElementById("rdImage");
+  const rdImageHint = document.getElementById("rdImageHint");
+
+  const rdmCategory = document.getElementById("rdmCategory");
+  const rdmName = document.getElementById("rdmName");
+  const rdmPrice = document.getElementById("rdmPrice");
+  const rdmQty = document.getElementById("rdmQty");
+
+  const rdaName = document.getElementById("rdaName");
+  const rdaPrice = document.getElementById("rdaPrice");
+  const rdaFree = document.getElementById("rdaFree");
+  const btnRdAddAddon = document.getElementById("btnRdAddAddon");
+  const rdAddonPreview = document.getElementById("rdAddonPreview");
+  const btnAddMenuToRestaurant = document.getElementById("btnAddMenuToRestaurant");
+  const rdMenuList = document.getElementById("rdMenuList");
+
+  let restaurantsCache = [];
+  let currentRestaurantId = "";
+  let rdAddonDraft = [];
+
+  function renderRdAddonDraft(){
+    if (!rdAddonDraft.length) {
+      rdAddonPreview.textContent = "目前無加購";
+      return;
+    }
+    rdAddonPreview.textContent = rdAddonDraft
+      .map(a => a.free ? `${a.name}(免費)` : `${a.name}+$${a.price}`)
+      .join("、");
+  }
+
+  btnRdAddAddon.addEventListener("click", () => {
+    const name = rdaName.value.trim();
+    const free = rdaFree.checked;
+    const price = Number(rdaPrice.value || 0);
+    if (!name) return alert("請輸入加購名稱");
+    if (!free && price <= 0) return alert("加購金額需大於 0（或勾免費）");
+
+    rdAddonDraft.push({ name, price: free ? 0 : price, free });
+    rdaName.value=""; rdaPrice.value=""; rdaFree.checked=false;
+    renderRdAddonDraft();
+  });
+
+  async function loadRestaurantsForManage(){
+    const snap = await getDocs(query(collection(db, "restaurants"), orderBy("name")));
+    restaurantsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderRestaurantManage();
+  }
+
+  function renderRestaurantManage(){
+    const kw = rmSearch.value.trim().toLowerCase();
+    const list = kw
+      ? restaurantsCache.filter(r => (r.name||"").toLowerCase().includes(kw))
+      : restaurantsCache;
+
+    restaurantManageGrid.innerHTML = list.map(r => `
+      <div class="restaurant-card" data-id="${r.id}">
+        <img src="${r.imageUrl || ""}" alt="">
+        <div class="name">${r.name || "未命名餐廳"}</div>
+        <div class="sub">${r.address || ""}</div>
+      </div>
+    `).join("");
+
+    restaurantManageGrid.querySelectorAll(".restaurant-card").forEach(card => {
+      card.addEventListener("click", async () => {
+        const id = card.dataset.id;
+        await openRestaurantDetail(id);
+      });
+    });
+  }
+
+  rmSearch.addEventListener("input", renderRestaurantManage);
+
+  async function openRestaurantDetail(restaurantId){
+    const r = restaurantsCache.find(x => x.id === restaurantId);
+    if (!r) return;
+
+    currentRestaurantId = restaurantId;
+
+    rdTitle.textContent = r.name || "店家";
+    rdName.value = r.name || "";
+    rdPhone.value = r.phone || "";
+    rdAddress.value = r.address || "";
+    rdMap.value = r.map || "";
+    rdNote.value = r.note || "";
+    rdImage.value = "";
+    rdImageHint.textContent = r.imageUrl ? "目前已設定圖片" : "目前無圖片";
+
+    // reset add menu draft
+    rdmCategory.value=""; rdmName.value=""; rdmPrice.value=""; rdmQty.value="1";
+    rdAddonDraft = [];
+    renderRdAddonDraft();
+
+    // show detail
+    showOnly(viewRestaurantDetail);
+    setActive(navRestaurantManage);
+    pageTitle.textContent = "餐廳管理（詳細）";
+    pageSub.textContent = "編輯店家資訊、管理餐點（新增/編輯/刪除）";
+
+    await loadMenusInDetail(restaurantId);
+  }
+
+  btnBackToManage.addEventListener("click", () => {
+    showOnly(viewRestaurantManage);
+    setActive(navRestaurantManage);
+    pageTitle.textContent = "餐廳管理";
+    pageSub.textContent = "點擊圖片進入店家資訊並管理餐點";
+  });
+
+  btnSaveRestaurant.addEventListener("click", async () => {
+    if (!currentRestaurantId) return;
+    const ok = confirm("確定要儲存店家資訊嗎？");
+    if (!ok) return;
+
+    let imageUrl = restaurantsCache.find(x=>x.id===currentRestaurantId)?.imageUrl || "";
+    if (rdImage.files?.[0]) {
+      imageUrl = await uploadImageIfAny(rdImage.files[0]);
+    }
+
+    await updateDoc(doc(db, "restaurants", currentRestaurantId), {
+      name: rdName.value.trim(),
+      phone: rdPhone.value.trim(),
+      address: rdAddress.value.trim(),
+      map: rdMap.value.trim(),
+      note: rdNote.value.trim(),
+      imageUrl
+    });
+
+    alert("已儲存");
+    await loadRestaurantsForManage();
+    await openRestaurantDetail(currentRestaurantId);
+  });
+
+  btnDeleteRestaurant.addEventListener("click", async () => {
+    if (!currentRestaurantId) return;
+    const r = restaurantsCache.find(x=>x.id===currentRestaurantId);
+    const ok = confirm(`確定要刪除店家「${r?.name || ""}」嗎？\n（會同時刪除該店所有餐點）`);
+    if (!ok) return;
+
+    // 先刪 menus
+    const menuSnap = await getDocs(query(collection(db,"menus"), where("restaurantId","==",currentRestaurantId)));
+    const batch = writeBatch(db);
+    menuSnap.docs.forEach(d => batch.delete(doc(db,"menus",d.id)));
+    batch.delete(doc(db,"restaurants",currentRestaurantId));
+    await batch.commit();
+
+    alert("已刪除店家與餐點");
+    currentRestaurantId = "";
+    await loadRestaurantsForManage();
+    showOnly(viewRestaurantManage);
+    setActive(navRestaurantManage);
+    pageTitle.textContent = "餐廳管理";
+    pageSub.textContent = "點擊圖片進入店家資訊並管理餐點";
+  });
+
+  btnAddMenuToRestaurant.addEventListener("click", async () => {
+    if (!currentRestaurantId) return alert("請先選擇店家");
+
+    const category = rdmCategory.value.trim();
+    const name = rdmName.value.trim();
+    const price = Number(rdmPrice.value || 0);
+    const defaultQty = Math.max(1, Number(rdmQty.value || 1));
+
+    if (!category) return alert("請輸入餐點類別");
+    if (!name) return alert("請輸入餐點名稱");
+    if (price <= 0) return alert("價格需大於 0");
+
+    await addDoc(collection(db, "menus"), {
+      restaurantId: currentRestaurantId,
+      category, name, price, defaultQty,
+      addons: rdAddonDraft || []
+    });
+
+    // reset input
+    rdmCategory.value=""; rdmName.value=""; rdmPrice.value=""; rdmQty.value="1";
+    rdAddonDraft = [];
+    renderRdAddonDraft();
+
+    await loadMenusInDetail(currentRestaurantId);
+  });
+
+  async function loadMenusInDetail(restaurantId){
+    rdMenuList.innerHTML = "載入中...";
+
+    const snap = await getDocs(query(
+      collection(db,"menus"),
+      where("restaurantId","==",restaurantId),
+      orderBy("category")
+    ));
+
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (!list.length) {
+      rdMenuList.innerHTML = `<div class="muted">尚無餐點</div>`;
+      return;
+    }
+
+    rdMenuList.innerHTML = list.map(m => {
+      const addonText = (Array.isArray(m.addons) && m.addons.length)
+        ? m.addons.map(a => a.free ? `${a.name}(免費)` : `${a.name}+$${a.price}`).join("、")
+        : "無";
+
+      return `
+        <div class="item">
+          <div class="itemTop">
+            <div>
+              <div class="itemName">${m.category || "未分類"}｜${m.name || ""}</div>
+              <div class="price">$${Number(m.price||0)}　預設${Number(m.defaultQty||1)}　加購：${addonText}</div>
+            </div>
+            <div class="row">
+              <button class="btn secondary sm" data-edit-menu="${m.id}">編輯</button>
+              <button class="btn danger sm" data-del-menu="${m.id}">刪除</button>
+            </div>
+          </div>
+
+          <div class="grid" id="edit_${m.id}" style="margin-top:10px;display:none;">
+            <div>
+              <label>類別</label>
+              <input data-f="category" value="${m.category || ""}">
+            </div>
+            <div>
+              <label>名稱</label>
+              <input data-f="name" value="${m.name || ""}">
+            </div>
+            <div>
+              <label>價格</label>
+              <input data-f="price" type="number" min="0" step="1" value="${Number(m.price||0)}">
+            </div>
+            <div>
+              <label>預設數量</label>
+              <input data-f="defaultQty" type="number" min="1" step="1" value="${Number(m.defaultQty||1)}">
+            </div>
+            <div style="grid-column:1 / -1;">
+              <label>加購（JSON，進階可選）</label>
+              <textarea data-f="addons" placeholder='例如：[{"name":"蛋","price":10,"free":false}]'>${JSON.stringify(m.addons || [], null, 2)}</textarea>
+              <div class="hint">想先不用改加購就別動這格；若要改請保持 JSON 格式正確</div>
+            </div>
+
+            <div class="row" style="grid-column:1 / -1; justify-content:flex-end;">
+              <button class="btn secondary sm" data-cancel-edit="${m.id}">取消</button>
+              <button class="btn sm" data-save-menu="${m.id}">儲存</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // 刪除餐點（確認）
+    rdMenuList.querySelectorAll("button[data-del-menu]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del-menu");
+        const ok = confirm("確定要刪除這個餐點嗎？");
+        if (!ok) return;
+        await deleteDoc(doc(db,"menus",id));
+        await loadMenusInDetail(restaurantId);
+      });
+    });
+
+    // 展開編輯
+    rdMenuList.querySelectorAll("button[data-edit-menu]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-edit-menu");
+        const box = document.getElementById(`edit_${id}`);
+        box.style.display = box.style.display === "none" ? "grid" : "none";
+      });
+    });
+
+    // 取消編輯
+    rdMenuList.querySelectorAll("button[data-cancel-edit]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-cancel-edit");
+        document.getElementById(`edit_${id}`).style.display = "none";
+      });
+    });
+
+    // 儲存編輯
+    rdMenuList.querySelectorAll("button[data-save-menu]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-save-menu");
+        const box = document.getElementById(`edit_${id}`);
+        const inputs = box.querySelectorAll("[data-f]");
+
+        const data = {};
+        inputs.forEach(el => {
+          const f = el.getAttribute("data-f");
+          if (f === "price" || f === "defaultQty") data[f] = Number(el.value || 0);
+          else if (f === "addons") {
+            try {
+              data[f] = JSON.parse(el.value || "[]");
+            } catch (e) {
+              alert("加購 JSON 格式錯誤，請修正後再存");
+              throw e;
+            }
+          } else data[f] = el.value.trim();
+        });
+
+        const ok = confirm("確定要儲存此餐點修改嗎？");
+        if (!ok) return;
+
+        await updateDoc(doc(db,"menus",id), data);
+        await loadMenusInDetail(restaurantId);
+      });
+    });
+  }
+
+  // =========================
+  // 4) 訂餐紀錄（orders）
+  // =========================
+  const oDate = document.getElementById("oDate");
+  const oMode = document.getElementById("oMode");
+  const btnLoadOrders = document.getElementById("btnLoadOrders");
+  const btnClearOrders = document.getElementById("btnClearOrders");
+  const ordersBody = document.getElementById("ordersBody");
+
+  function todayISO(){
+    const d = new Date();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+  oDate.value = todayISO();
+
+  btnClearOrders.addEventListener("click", () => {
+    oDate.value = "";
+    ordersBody.innerHTML = "";
+  });
+
+  btnLoadOrders.addEventListener("click", async () => {
+    ordersBody.innerHTML = "";
+    const filters = [];
+    if (oDate.value) filters.push(where("date","==",oDate.value));
+
+    let qy = query(collection(db,"orders"), orderBy("date","desc"));
+    if (filters.length) qy = query(collection(db,"orders"), ...filters, orderBy("date","desc"));
+
+    const snap = await getDocs(qy);
+    const list = snap.docs.map(d => d.data());
+
+    if (!list.length) {
+      ordersBody.innerHTML = `<tr><td colspan="5" class="muted">查無資料</td></tr>`;
+      return;
+    }
+
+    if (oMode.value === "byRestaurant") {
+      const by = {};
+      list.forEach(o => {
+        const key = o.restaurantName || "未命名";
+        if (!by[key]) by[key] = [];
+        by[key].push(o);
+      });
+
+      const rows = Object.keys(by).sort((a,b)=>a.localeCompare(b,'zh-Hant')).map(rn => {
+        const summaries = by[rn].map(x => x.summary || "").filter(Boolean).join("；");
+        const total = by[rn].reduce((s,x)=>s+Number(x.total||0),0);
+        return `
+          <tr>
+            <td>${oDate.value || ""}</td>
+            <td>-</td>
+            <td>${rn}</td>
+            <td>${summaries}</td>
+            <td>$${total}</td>
+          </tr>
+        `;
+      }).join("");
+      ordersBody.innerHTML = rows;
+      return;
+    }
+
+    ordersBody.innerHTML = list.map(o => `
+      <tr>
+        <td>${o.date || ""}</td>
+        <td>${(o.dept||"")} / ${(o.person||"")}</td>
+        <td>${o.restaurantName || ""}</td>
+        <td>${o.summary || ""}</td>
+        <td>$${Number(o.total||0)}</td>
+      </tr>
+    `).join("");
+  });
+
+  // =========================
+  // Nav bindings
+  // =========================
+  navStaff.addEventListener("click", async () => {
+    setActive(navStaff);
+    showOnly(viewStaff);
+    pageTitle.textContent = "新增人員";
+    pageSub.textContent = "可新增/刪除，部門可收合，Enter 快速新增";
+    await loadStaffGroups();
+  });
+
+  navAddRestaurant.addEventListener("click", () => {
+    setActive(navAddRestaurant);
+    showOnly(viewAddRestaurant);
+    pageTitle.textContent = "新增餐廳";
+    pageSub.textContent = "先新增餐點草稿，至少 1 個後才能新增店家";
+  });
+
+  navRestaurantManage.addEventListener("click", async () => {
+    setActive(navRestaurantManage);
+    showOnly(viewRestaurantManage);
+    pageTitle.textContent = "餐廳管理";
+    pageSub.textContent = "點擊圖片進入詳細（可編輯店家/新增餐點/編輯餐點/刪除）";
+    await loadRestaurantsForManage();
+  });
+
+  navOrders.addEventListener("click", () => {
+    setActive(navOrders);
+    showOnly(viewOrders);
+    pageTitle.textContent = "訂餐紀錄";
+    pageSub.textContent = "先做可用版：讀取 orders.summary 顯示";
+  });
+
+  // ===== 初始畫面：新增餐廳 =====
+  renderAddonDraft();
+  renderMenuDraft();
+  refreshCreateButton();
+  // 先預載餐廳管理快取（可選）
+  await loadRestaurantsForManage();
 </script>
 </body>
 </html>
-
-    }
-  ]
-}
