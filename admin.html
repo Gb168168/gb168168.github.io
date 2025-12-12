@@ -4,96 +4,51 @@
   <meta charset="UTF-8" />
   <title>管理者後台 - GoldBricks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:#f5f4fb;color:#111827;
-      overflow-y:scroll;
-      overflow-x:hidden;
+      overflow-y:scroll; overflow-x:hidden;
     }
-    .app{
-      display:grid;
-      grid-template-columns:260px 1fr;
-      min-height:100vh;
-      width:100%;
-    }
+    .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
     .side{
-      background:#111827;color:#fff;
-      padding:16px 14px;
-      position:sticky;top:0;height:100vh;
-      display:flex;flex-direction:column;gap:12px;
-      z-index:50;
-      pointer-events:auto;
+      background:#111827;color:#fff;padding:16px 14px;position:sticky;top:0;height:100vh;
+      display:flex;flex-direction:column;gap:12px;z-index:50;pointer-events:auto
     }
     .brand{font-weight:900;font-size:16px}
     .sub{font-size:12px;color:rgba(255,255,255,.7)}
     .nav{display:flex;flex-direction:column;gap:8px;margin-top:6px}
     .nav button{
-      width:100%;
-      text-align:left;
-      border:none;border-radius:12px;
-      padding:10px 12px;
-      background:rgba(255,255,255,.08);
-      color:#fff;font-weight:800;cursor:pointer;
-      transition:.12s ease;
+      width:100%;text-align:left;border:none;border-radius:12px;padding:10px 12px;
+      background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer;transition:.12s
     }
     .nav button.active{background:linear-gradient(90deg,#fb7185,#f97316)}
     .nav button:hover{background:rgba(255,255,255,.14)}
     .side .footer{margin-top:auto;font-size:12px;color:rgba(255,255,255,.65)}
-
-    .main{
-      min-width:0;
-      position:relative;
-      z-index:1;
-      padding:18px;
-    }
+    .main{min-width:0;position:relative;z-index:1;padding:18px}
     .topbar{
-      display:flex;justify-content:space-between;align-items:center;
-      gap:10px;flex-wrap:wrap;
-      margin-bottom:14px;
-      min-height:56px;
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;min-height:56px
     }
     h2{font-size:18px}
     .muted{font-size:13px;color:#6b7280}
-    .pill{
-      display:inline-block;
-      padding:2px 8px;border-radius:999px;
-      background:#f3f4f6;color:#4b5563;font-size:12px
-    }
-    .card{
-      background:#fff;border-radius:16px;
-      padding:12px 14px;
-      box-shadow:0 8px 25px rgba(15,23,42,0.08);
-      margin-bottom:14px
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:10px 12px
-    }
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;color:#4b5563;font-size:12px}
+    .card{background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 8px 25px rgba(15,23,42,0.08);margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 12px}
     label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
     input,select,textarea{
-      width:100%;
-      padding:7px 10px;
-      border-radius:10px;border:1px solid #d1d5db;
-      font-size:13px;background:#fff;
-      line-height:1.2;
-      outline:none;
+      width:100%;padding:7px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:13px;background:#fff;
+      line-height:1.2;outline:none
     }
     textarea{resize:vertical;min-height:70px}
     input:focus,select:focus,textarea:focus{border-color:#9ca3af;box-shadow:none}
-
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      height:34px;
-      padding:0 14px;
-      border-radius:999px;border:none;cursor:pointer;
-      background:linear-gradient(90deg,#fb7185,#f97316);
-      color:#fff;font-size:13px;font-weight:900
+      display:inline-flex;align-items:center;justify-content:center;height:34px;
+      padding:0 14px;border-radius:999px;border:none;cursor:pointer;
+      background:linear-gradient(90deg,#fb7185,#f97316);color:#fff;font-size:13px;font-weight:900
     }
     .btn.secondary{background:#e5e7eb;color:#111827}
     .btn.danger{background:#ef4444}
@@ -102,58 +57,41 @@
     .hint{font-size:12px;color:#6b7280;margin-top:6px}
     .hidden{display:none !important}
 
-    /* 新增人員：單行 */
+    /* 新增人員：單行不盪 */
     .inlineForm{display:flex;gap:10px;align-items:flex-end;flex-wrap:nowrap}
     .inlineForm .f1{width:170px;flex:0 0 170px}
-    .inlineForm .f2{flex:1;min-width:260px}
+    .inlineForm .f2{flex:1;min-width:240px}
     .inlineForm .f3{flex:0 0 auto}
     .inlineForm input,.inlineForm select{height:34px}
 
     /* restaurant cards */
-    .restaurant-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:16px;
-    }
+    .restaurant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
     .restaurant-card{
-      background:#f9fafb;border-radius:14px;padding:10px;cursor:pointer;
-      transition:.12s ease;display:flex;flex-direction:column;gap:8px
+      background:#f9fafb;border-radius:14px;padding:10px;cursor:pointer;transition:.12s;
+      display:flex;flex-direction:column;gap:8px
     }
     .restaurant-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,23,42,0.12)}
     .restaurant-card img{
-      width:100%;height:140px;object-fit:cover;border-radius:10px;background:#e5e7eb;
-      display:block;
+      width:100%;height:140px;object-fit:cover;border-radius:10px;background:#e5e7eb;display:block
     }
     .restaurant-card .name{font-weight:900}
     .restaurant-card .sub{color:#6b7280;font-size:12px}
-
     .item{background:#f9fafb;border-radius:12px;padding:10px 12px;margin-bottom:10px}
     .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
     .itemName{font-weight:900;font-size:14px}
     .price{font-size:13px;color:#6b7280}
-
     table{border-collapse:collapse;width:100%}
     th,td{border-bottom:1px solid #e5e7eb;text-align:left;padding:8px 6px;font-size:13px}
     th{font-size:12px;color:#6b7280;background:#f9fafb}
-
     .collapseHead{
       display:flex;justify-content:space-between;align-items:center;
       padding:10px 12px;border-radius:12px;background:#f9fafb;cursor:pointer;margin-top:10px
     }
     .collapseHead b{font-size:14px}
     .collapseBody{padding:8px 4px}
-
     .imgPreview{
-      width:100%;
-      max-width:520px;
-      height:180px;
-      object-fit:cover;
-      border-radius:12px;
-      background:#e5e7eb;
-      display:block;
+      width:100%;max-width:520px;height:180px;object-fit:cover;border-radius:12px;background:#e5e7eb;display:block
     }
-
-    .main, .main *{pointer-events:auto}
   </style>
 </head>
 
@@ -191,8 +129,7 @@
     <!-- 新增人員 -->
     <section id="viewStaff" class="hidden">
       <div class="card">
-        <h3 style="font-size:16px;margin-bottom:10px;">新增人員</h3>
-
+        <h3 style="font-size:16px;margin-bottom:10px;">新增人員（部門＋姓名＋Enter）</h3>
         <form id="staffForm" class="inlineForm" autocomplete="off">
           <div class="f1">
             <label>部門</label>
@@ -238,31 +175,16 @@
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:10px;">店家資訊</h3>
         <div class="grid">
-          <div>
-            <label>餐廳名稱</label>
-            <input id="rName" name="nope-rName" autocomplete="off" placeholder="例如：阿財排骨" />
-          </div>
-          <div>
-            <label>電話</label>
-            <input id="rPhone" name="nope-rPhone" autocomplete="off" placeholder="例如：02-1234-5678" />
-          </div>
-          <div>
-            <label>地址</label>
-            <input id="rAddress" name="nope-rAddress" autocomplete="off" placeholder="例如：台北市..." />
-          </div>
-          <div>
-            <label>Google map 連結</label>
-            <input id="rMap" name="nope-rMap" autocomplete="off" placeholder="貼上 Google map 連結" />
-          </div>
+          <div><label>餐廳名稱</label><input id="rName" name="nope-rName" autocomplete="off" placeholder="例如：阿財排骨" /></div>
+          <div><label>電話</label><input id="rPhone" name="nope-rPhone" autocomplete="off" placeholder="例如：02-1234-5678" /></div>
+          <div><label>地址</label><input id="rAddress" name="nope-rAddress" autocomplete="off" placeholder="例如：台北市..." /></div>
+          <div><label>Google map 連結</label><input id="rMap" name="nope-rMap" autocomplete="off" placeholder="貼上 Google map 連結" /></div>
           <div>
             <label>店家圖片（上傳）</label>
             <input id="rImage" type="file" accept="image/*" />
             <div class="hint">會上傳到 Firebase Storage，並把 imageUrl 存到 restaurants</div>
           </div>
-          <div>
-            <label>備註</label>
-            <textarea id="rNote" name="nope-rNote" autocomplete="off" placeholder="例如：滿300外送 / 需提前訂"></textarea>
-          </div>
+          <div><label>備註</label><textarea id="rNote" name="nope-rNote" autocomplete="off" placeholder="例如：滿300外送 / 需提前訂"></textarea></div>
         </div>
       </div>
 
@@ -421,13 +343,7 @@
         <div style="overflow-x:auto;">
           <table>
             <thead>
-              <tr>
-                <th>日期</th>
-                <th>人員</th>
-                <th>店家</th>
-                <th>彙整</th>
-                <th>金額</th>
-              </tr>
+              <tr><th>日期</th><th>人員</th><th>店家</th><th>彙整</th><th>金額</th></tr>
             </thead>
             <tbody id="ordersBody"></tbody>
           </table>
@@ -448,18 +364,8 @@
 
   const PLACEHOLDER_IMG = "https://dummyimage.com/600x400/e5e7eb/6b7280&text=No+Image";
 
-  // ✅ 仍保留可選用：未來你要換專案就用這個
-  window.setFirebaseConfig = function(cfg){
-    localStorage.setItem("firebaseConfig", JSON.stringify(cfg));
-    alert("已儲存 firebaseConfig，重新整理即可生效");
-  };
-  window.clearFirebaseConfig = function(){
-    localStorage.removeItem("firebaseConfig");
-    alert("已清除 firebaseConfig");
-  };
-
-  // ✅ 你的專案預設 firebaseConfig（直接內建，不用 Console）
-  const DEFAULT_FIREBASE_CONFIG = {
+  // ✅ 你的專案 firebaseConfig（已內建）
+  const firebaseConfig = {
     apiKey: "AIzaSyBdgOddTGAFqqHLnhnaJRv2_y7gyweuQEo",
     authDomain: "goldbricks-order.firebaseapp.com",
     projectId: "goldbricks-order",
@@ -467,14 +373,6 @@
     messagingSenderId: "463709758954",
     appId: "1:463709758954:web:429dc920f2f812d51cbe93"
   };
-
-  function getFirebaseConfig(){
-    const raw = localStorage.getItem("firebaseConfig");
-    if (raw) {
-      try { return JSON.parse(raw); } catch(e){}
-    }
-    return DEFAULT_FIREBASE_CONFIG;
-  }
 
   // 角色檢查
   (function checkRole(){
@@ -484,14 +382,13 @@
 
   function toastError(prefix, e){
     console.error(prefix, e);
-    alert(`${prefix}\n\n${e?.message || e || "未知錯誤"}\n\n請開 F12 → Console 看錯誤細節`);
+    alert(`${prefix}\n\n${e?.message || e || "未知錯誤"}`);
   }
 
   // init Firebase
   let db, storage;
   try{
-    const cfg = getFirebaseConfig();
-    const app = initializeApp(cfg);
+    const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     storage = getStorage(app);
     document.getElementById("connState").textContent = "Firebase：已連線";
@@ -560,14 +457,11 @@
       await loadStaffGroups();
       staffName.focus();
     }catch(e){
-      toastError("新增人員失敗（多半是 Firestore rules 權限）", e);
+      toastError("新增人員失敗（請先發布 Firestore Rules）", e);
     }
   }
 
-  staffForm.addEventListener("submit", (e)=>{
-    e.preventDefault();
-    addStaff();
-  });
+  staffForm.addEventListener("submit", (e)=>{ e.preventDefault(); addStaff(); });
 
   async function loadStaffGroups(){
     try{
@@ -620,12 +514,12 @@
         });
       });
     }catch(e){
-      toastError("載入人員列表失敗", e);
+      toastError("載入人員列表失敗（請先發布 Firestore Rules）", e);
     }
   }
 
   // =========================
-  // 2) 新增餐廳（restaurants + menus）
+  // 2) 新增餐廳
   // =========================
   const rName = document.getElementById("rName");
   const rPhone = document.getElementById("rPhone");
@@ -694,8 +588,7 @@
               <div class="price">$${m.price}　預設${m.defaultQty}　加購：${addonText}</div>
             </div>
             <div class="row">
-              <button class="btn secondary sm" data-edit-draft="${idx}" type="button">編輯</button>
-              <button class="btn danger sm" data-del-draft="${idx}" type="button">刪除</button>
+              <button class="btn secondary sm" data-del-draft="${idx}" type="button">刪除</button>
             </div>
           </div>
         </div>
@@ -711,21 +604,6 @@
       });
     });
 
-    menuDraftList.querySelectorAll("button[data-edit-draft]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = Number(btn.getAttribute("data-edit-draft"));
-        const m = menuDraft[idx];
-        mCategory.value = m.category;
-        mName.value = m.name;
-        mPrice.value = m.price;
-        mQty.value = m.defaultQty;
-        addonDraft = JSON.parse(JSON.stringify(m.addons || []));
-        renderAddonDraft();
-        btnAddMenuDraft.textContent = "更新此草稿餐點";
-        btnAddMenuDraft.dataset.editing = String(idx);
-      });
-    });
-
     refreshCreateButton();
   }
 
@@ -738,16 +616,7 @@
     if (!name) return alert("請輸入餐點名稱");
     if (price <= 0) return alert("價格需大於 0");
 
-    const payload = { category, name, price, defaultQty, addons: JSON.parse(JSON.stringify(addonDraft)) };
-
-    const editingIdx = btnAddMenuDraft.dataset.editing;
-    if (editingIdx) {
-      menuDraft[Number(editingIdx)] = payload;
-      btnAddMenuDraft.textContent = "加入此餐點到清單";
-      btnAddMenuDraft.dataset.editing = "";
-    } else {
-      menuDraft.push(payload);
-    }
+    menuDraft.push({ category, name, price, defaultQty, addons: JSON.parse(JSON.stringify(addonDraft)) });
 
     mCategory.value=""; mName.value=""; mPrice.value=""; mQty.value="1";
     addonDraft=[]; renderAddonDraft(); renderMenuDraft();
@@ -797,7 +666,7 @@
       await loadRestaurantsForManage();
     }catch(e){
       btnCreateRestaurant.disabled = false;
-      toastError("新增失敗（多半是 Firestore/Storage rules 權限）", e);
+      toastError("新增失敗（請先發布 Firestore/Storage Rules）", e);
     }
   });
 
@@ -863,7 +732,7 @@
       restaurantsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderRestaurantManage();
     }catch(e){
-      toastError("載入餐廳列表失敗", e);
+      toastError("載入餐廳列表失敗（請先發布 Firestore Rules）", e);
     }
   }
 
@@ -895,7 +764,6 @@
     if (!r) return;
 
     currentRestaurantId = restaurantId;
-
     rdTitle.textContent = r.name || "店家";
     rdName.value = r.name || "";
     rdPhone.value = r.phone || "";
@@ -914,7 +782,7 @@
     showOnly(viewRestaurantDetail);
     setActive(navRestaurantManage);
     pageTitle.textContent = "餐廳管理（詳細）";
-    pageSub.textContent = "可編輯店家資訊、顯示/更換圖片、管理餐點";
+    pageSub.textContent = "顯示/更換圖片、管理餐點";
 
     await loadMenusInDetail(restaurantId);
   }
@@ -929,6 +797,7 @@
   btnSaveRestaurant.addEventListener("click", async () => {
     if (!currentRestaurantId) return;
     if(!confirm("確定要儲存店家資訊嗎？")) return;
+
     try{
       let imageUrl = restaurantsCache.find(x=>x.id===currentRestaurantId)?.imageUrl || "";
       if (rdImage.files?.[0]) imageUrl = await uploadImageIfAny(rdImage.files[0]);
@@ -946,7 +815,7 @@
       await loadRestaurantsForManage();
       await openRestaurantDetail(currentRestaurantId);
     }catch(e){
-      toastError("儲存店家資訊失敗", e);
+      toastError("儲存店家資訊失敗（請先發布 Storage Rules）", e);
     }
   });
 
@@ -1054,10 +923,7 @@
   }
   oDate.value = todayISO();
 
-  btnClearOrders.addEventListener("click", () => {
-    oDate.value = "";
-    ordersBody.innerHTML = "";
-  });
+  btnClearOrders.addEventListener("click", () => { oDate.value = ""; ordersBody.innerHTML = ""; });
 
   btnLoadOrders.addEventListener("click", async () => {
     ordersBody.innerHTML = "";
@@ -1081,15 +947,7 @@
         ordersBody.innerHTML = Object.keys(by).sort((a,b)=>a.localeCompare(b,'zh-Hant')).map(rn => {
           const summaries = by[rn].map(x => x.summary || "").filter(Boolean).join("；");
           const total = by[rn].reduce((s,x)=>s+Number(x.total||0),0);
-          return `
-            <tr>
-              <td>${oDate.value || ""}</td>
-              <td>-</td>
-              <td>${rn}</td>
-              <td>${summaries}</td>
-              <td>$${total}</td>
-            </tr>
-          `;
+          return `<tr><td>${oDate.value||""}</td><td>-</td><td>${rn}</td><td>${summaries}</td><td>$${total}</td></tr>`;
         }).join("");
         return;
       }
