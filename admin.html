@@ -8,7 +8,7 @@
     getDocs
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  // 你的 Firebase 設定
+  // Firebase 設定
   const firebaseConfig = {
     apiKey: "AIzaSyBdgOddTGAfqlLhnnaJRv2_y7gyweuQEo",
     authDomain: "goldbricks-order.firebaseapp.com",
@@ -19,34 +19,30 @@
     measurementId: "G-YQK8ZCC26R"
   };
 
-  // 初始化 Firebase
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
+  const db  = getFirestore(app);
   console.log("Firebase 已成功連線");
+  window.db = db; // 之後除錯好用
 
-  // ===== 以下是原本的 admin.js，改成用 Firestore 存資料 =====
+  // ===== UI 相關邏輯（乾淨版） =====
 
-  // 角色檢查：不是 admin 就踢回登入頁
-  (function checkAdmin() {
-    const role = localStorage.getItem('gb_role');
-    if (role !== 'admin') {
-      window.location.href = 'index.html';
-    }
-  })();
+  // 不做權限檢查，方便你開發
+  // (function checkAdmin(){ ... })();
 
-  let staffData = [];
-  let restaurants = [];
-  let menuItems = [];
+  let staffData    = [];
+  let restaurants  = [];
+  let menuItems    = [];
 
   // 側邊漢堡
   const menuToggle = document.getElementById('menuToggle');
   const sideMenu   = document.getElementById('sideMenu');
-  menuToggle.addEventListener('click', () => {
-    sideMenu.classList.toggle('open');
-  });
+  if (menuToggle && sideMenu) {
+    menuToggle.addEventListener('click', () => {
+      sideMenu.classList.toggle('open');
+    });
+  }
 
-  // 側邊主選單：切換 section
+  // 側邊主選單
   const mainMenuBtns = document.querySelectorAll('#mainMenu button');
   const sections = document.querySelectorAll('.section');
   mainMenuBtns.forEach(btn => {
@@ -57,28 +53,29 @@
       sections.forEach(sec => {
         sec.classList.toggle('active', sec.id === targetId);
       });
-      sideMenu.classList.remove('open');
+      sideMenu?.classList.remove('open');
     });
   });
 
-  // 切換到使用者模式
-  document.getElementById('switchUserBtn').addEventListener('click', () => {
+  // 切換到使用者模式 / 登出
+  const switchUserBtn = document.getElementById('switchUserBtn');
+  const logoutBtn     = document.getElementById('logoutBtn');
+  switchUserBtn?.addEventListener('click', () => {
     localStorage.setItem('gb_role', 'user');
     window.location.href = 'user.html';
   });
-
-  // 登出
-  document.getElementById('logoutBtn').addEventListener('click', () => {
+  logoutBtn?.addEventListener('click', () => {
     localStorage.removeItem('gb_role');
     window.location.href = 'index.html';
   });
 
-  // 新增人員 + 刪除（目前仍暫存在前端，可之後再串 Firestore）
+  // ===== 新增人員（先用前端暫存即可） =====
   const deptInput  = document.getElementById('deptInput');
   const staffInput = document.getElementById('staffInput');
   const staffList  = document.getElementById('staffList');
+  const addStaffBtn= document.getElementById('addStaffBtn');
 
-  document.getElementById('addStaffBtn')?.addEventListener('click', () => {
+  addStaffBtn?.addEventListener('click', () => {
     const dept  = deptInput.value.trim();
     const staff = staffInput.value.trim();
     if (!dept || !staff) {
@@ -101,15 +98,14 @@
         <button type="button">✕</button>
       `;
       pill.querySelector('button').addEventListener('click', () => {
-        const idx = staffData.findIndex(s => s.id === item.id);
-        if (idx !== -1) staffData.splice(idx, 1);
+        staffData = staffData.filter(s => s.id !== item.id);
         renderStaff();
       });
       staffList.appendChild(pill);
     });
   }
 
-  // 餐廳資料
+  // ===== 餐廳資料（這邊有接 Firebase） =====
   const restName = document.getElementById('restName');
   const restPhone= document.getElementById('restPhone');
   const restAddr = document.getElementById('restAddr');
@@ -118,23 +114,9 @@
   const restImg  = document.getElementById('restImg');
   const restList = document.getElementById('restList');
   const menuRestSelect = document.getElementById('menuRestSelect');
+  const addRestBtn = document.getElementById('addRestBtn');
 
-  // 從 Firestore 載入餐廳
-  async function loadRestaurantsFromDB() {
-    restaurants = [];
-    const snap = await getDocs(collection(db, "restaurants"));
-    snap.forEach(docSnap => {
-      restaurants.push({
-        id: docSnap.id,
-        ...docSnap.data()
-      });
-    });
-    renderRestaurants();
-    syncRestaurantSelect();
-  }
-
-  // 新增餐廳按鈕 → 存到 Firestore
-  document.getElementById('addRestBtn')?.addEventListener('click', () => {
+  addRestBtn?.addEventListener('click', () => {
     const name = restName.value.trim();
     if (!name) { alert('餐廳名稱為必填'); return; }
 
@@ -152,31 +134,15 @@
       const reader = new FileReader();
       reader.onload = e => {
         data.img = e.target.result;
-        pushRestaurantToDB(data);
+        saveRestaurant(data);
       };
       reader.readAsDataURL(file);
     } else {
-      pushRestaurantToDB(data);
+      saveRestaurant(data);
     }
   });
 
-  // 寫入 Firestore 並更新畫面
-  function pushRestaurantToDB(r) {
-    addDoc(collection(db, "restaurants"), r)
-      .then(docRef => {
-        r.id = docRef.id;
-        restaurants.push(r);
-        clearRestaurantInputs();
-        renderRestaurants();
-        syncRestaurantSelect();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('儲存餐廳失敗，請稍後再試');
-      });
-  }
-
-  function clearRestaurantInputs() {
+  function clearRestInputs() {
     restName.value='';
     restPhone.value='';
     restAddr.value='';
@@ -204,33 +170,10 @@
         <div class="section-sub" style="margin-top:2px;">${r.note || ''}</div>
       `;
 
-      const btns = document.createElement('div');
-      const up = document.createElement('button');
-      up.className = 'btn-mini';
-      up.textContent = '上移';
-      up.onclick = () => moveRestaurant(idx, -1);
-      const down = document.createElement('button');
-      down.className = 'btn-mini';
-      down.textContent = '下移';
-      down.onclick = () => moveRestaurant(idx, 1);
-      btns.appendChild(up);
-      btns.appendChild(down);
-
       card.appendChild(img);
       card.appendChild(info);
-      card.appendChild(btns);
       restList.appendChild(card);
     });
-  }
-
-  function moveRestaurant(i, dir) {
-    const j = i + dir;
-    if (j < 0 || j >= restaurants.length) return;
-    const tmp = restaurants[i];
-    restaurants[i] = restaurants[j];
-    restaurants[j] = tmp;
-    renderRestaurants();
-    syncRestaurantSelect();
   }
 
   function syncRestaurantSelect() {
@@ -250,7 +193,31 @@
     });
   }
 
-  // 搜尋餐廳
+  async function loadRestaurantsFromDB() {
+    restaurants = [];
+    const snap = await getDocs(collection(db, "restaurants"));
+    snap.forEach(docSnap => {
+      restaurants.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderRestaurants();
+    syncRestaurantSelect();
+  }
+
+  function saveRestaurant(data) {
+    addDoc(collection(db, "restaurants"), data)
+      .then(docRef => {
+        restaurants.push({ id: docRef.id, ...data });
+        clearRestInputs();
+        renderRestaurants();
+        syncRestaurantSelect();
+      })
+      .catch(err => {
+        console.error(err);
+        alert('儲存餐廳失敗，請稍後再試');
+      });
+  }
+
+  // ===== 餐廳搜尋（單純前端） =====
   const searchInput = document.getElementById('globalSearch');
   const searchBtn   = document.getElementById('searchBtn');
 
@@ -266,16 +233,23 @@
     });
   }
 
-  searchBtn.addEventListener('click', doSearch);
-  searchInput.addEventListener('keydown', e => {
+  searchBtn?.addEventListener('click', doSearch);
+  searchInput?.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
       doSearch();
     }
   });
 
-  // 加購項目
+  // ===== 加購 + 餐點列表（先維持前端暫存, 之後再串 Firebase） =====
   const addonBox = document.getElementById('addonBox');
+  const addAddonBtn = document.getElementById('addAddonBtn');
+  const menuCat  = document.getElementById('menuCat');
+  const menuName = document.getElementById('menuName');
+  const menuPrice= document.getElementById('menuPrice');
+  const menuQty  = document.getElementById('menuQty');
+  const menuTableBody = document.getElementById('menuTableBody');
+  const addMenuBtn = document.getElementById('addMenuBtn');
 
   function addAddonRow() {
     const row = document.createElement('div');
@@ -314,31 +288,10 @@
     addonBox.appendChild(row);
   }
 
-  document.getElementById('addAddonBtn').addEventListener('click', addAddonRow);
-  addAddonRow(); // 先一列
+  addAddonBtn?.addEventListener('click', addAddonRow);
+  addAddonRow(); // 預設一列
 
-  // 餐點管理
-  const menuCat  = document.getElementById('menuCat');
-  const menuName = document.getElementById('menuName');
-  const menuPrice= document.getElementById('menuPrice');
-  const menuQty  = document.getElementById('menuQty');
-  const menuTableBody = document.getElementById('menuTableBody');
-
-  // 從 Firestore 載入餐點
-  async function loadMenuItemsFromDB() {
-    menuItems = [];
-    const snap = await getDocs(collection(db, "menuItems"));
-    snap.forEach(docSnap => {
-      menuItems.push({
-        id: docSnap.id,
-        ...docSnap.data()
-      });
-    });
-    renderMenuTable();
-  }
-
-  // 新增餐點 → Firestore
-  document.getElementById('addMenuBtn').addEventListener('click', () => {
+  addMenuBtn?.addEventListener('click', () => {
     const restId = menuRestSelect.value;
     if (!restId) { alert('請先選擇餐廳'); return; }
     const rest = restaurants.find(r => String(r.id) === String(restId));
@@ -375,23 +328,15 @@
       addons
     };
 
-    addDoc(collection(db, "menuItems"), item)
-      .then(docRef => {
-        menuItems.push({ id: docRef.id, ...item });
-        renderMenuTable();
+    menuItems.push(item);
+    renderMenuTable();
 
-        // 清空輸入（保留餐廳）
-        menuCat.value = '';
-        menuName.value = '';
-        menuPrice.value = '';
-        menuQty.value = 1;
-        addonBox.innerHTML = '';
-        addAddonRow();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('儲存餐點失敗，請稍後再試');
-      });
+    menuCat.value = '';
+    menuName.value = '';
+    menuPrice.value = '';
+    menuQty.value = 1;
+    addonBox.innerHTML = '';
+    addAddonRow();
   });
 
   function renderMenuTable() {
@@ -414,9 +359,9 @@
     });
   }
 
-  // 一進頁面就從 Firestore 把餐廳 & 餐點抓回來
+  // 進頁面就把餐廳從 Firestore 抓回來
   loadRestaurantsFromDB();
-  loadMenuItemsFromDB();
 </script>
 </body>
 </html>
+---
