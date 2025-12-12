@@ -1,697 +1,268 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>使用者點餐 - GoldBricks</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>使用者點餐</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f4fb;min-height:100vh}
-    .wrap{max-width:1200px;margin:0 auto;padding:18px}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
-    h2{font-size:18px}
-    .muted{font-size:13px;color:#6b7280}
-    .card{background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 8px 25px rgba(15,23,42,0.08);margin-bottom:14px}
-    label{display:block;font-size:13px;color:#374151;margin-bottom:4px}
-    input,select,textarea{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:13px}
-    textarea{resize:vertical;min-height:60px}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:#fb7185;box-shadow:0 0 0 2px rgba(251,113,133,0.2)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 16px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:999px;border:none;background:linear-gradient(90deg,#fb7185,#f97316);color:#fff;font-size:13px;font-weight:800;cursor:pointer}
-    .btn.secondary{background:#e5e7eb;color:#111827}
-    .btn.danger{background:#ef4444}
-    .btn.sm{padding:4px 10px;font-size:12px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .hr{height:1px;background:#e5e7eb;margin:14px 0;border:none}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;color:#4b5563;font-size:12px}
-    .total{font-weight:900}
+    :root{
+      --bg:#f5f4fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e8eaf3;
+      --primary:#fb7185;
+      --danger:#ef4444;
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+      --r:20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", Arial;
+      background:linear-gradient(135deg,#eef2ff 0%, #f5f4fb 45%, #fff1f2 100%);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background:rgba(245,244,251,.7);
+      border-bottom:1px solid rgba(232,234,243,.8);
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+    .brand{display:flex; gap:10px; align-items:center;}
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      background:linear-gradient(135deg,var(--primary),#ffd5c2);
+      box-shadow: 0 10px 18px rgba(251,113,133,.25);
+    }
+    h1{margin:0;font-size:18px}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .pill{
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(232,234,243,.9);
+      background:rgba(255,255,255,.6);
+      display:flex; gap:8px; align-items:center;
+      white-space:nowrap;
+    }
+    main{padding:16px 0 40px}
+    .grid{display:grid;grid-template-columns: 1fr;gap:16px;}
 
-    /* 餐廳卡片 */
-    .restaurant-grid{
+    .card{
+      background:rgba(255,255,255,.9);
+      border:1px solid rgba(232,234,243,.9);
+      box-shadow:var(--shadow);
+      border-radius:var(--r);
+      overflow:hidden;
+    }
+    .cardHead{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(232,234,243,.9);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:linear-gradient(90deg, rgba(99,102,241,.05), rgba(251,113,133,.08));
+      flex-wrap:wrap;
+    }
+    .cardHead h2{margin:0;font-size:14px}
+    .cardBody{padding:14px 16px}
+    .hint{font-size:12px;color:var(--muted);line-height:1.5}
+
+    .restaurants{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:16px;
-      margin-top:8px;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:12px;
     }
-    .restaurant-card{
-      background:#f9fafb;border-radius:14px;padding:8px;cursor:pointer;
-      transition:0.1s ease;
-    }
-    .restaurant-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,23,42,0.12)}
-    .restaurant-card img{
-      width:100%;height:120px;object-fit:cover;border-radius:10px;background:#e5e7eb;
-    }
-    .restaurant-card-name{margin-top:6px;font-size:14px;font-weight:900;color:#111827}
-    .restaurant-card-sub{font-size:12px;color:#6b7280}
+    @media (max-width: 900px){ .restaurants{grid-template-columns: repeat(2, minmax(0,1fr));} }
+    @media (max-width: 560px){ .restaurants{grid-template-columns: 1fr;} }
 
-    /* 餐點 */
-    .menuGroup{margin-top:12px}
-    .menuGroup h4{font-size:14px;margin:10px 0 6px}
-    .item{background:#f9fafb;border-radius:12px;padding:10px 12px;margin-bottom:8px}
-    .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
-    .itemName{font-weight:900;font-size:14px;color:#111827}
-    .price{font-size:13px;color:#6b7280}
-    .right{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
-    .qty{width:90px}
-    .addons{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-    .chip{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;font-size:12px}
+    .rCard{
+      border:1px solid rgba(232,234,243,.95);
+      background:rgba(255,255,255,.85);
+      border-radius:18px;
+      overflow:hidden;
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .rCard:hover{ transform: translateY(-1px); box-shadow: 0 16px 30px rgba(15,23,42,.10); }
+    .thumb{height:120px;background:#f8fafc;border-bottom:1px solid rgba(232,234,243,.95);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .rInfo{padding:10px 12px}
+    .rTitle{font-weight:900;font-size:14px;margin:0 0 4px}
+    .rMeta{margin:0;color:var(--muted);font-size:12px;line-height:1.4}
 
-    /* 表格 */
-    table{border-collapse:collapse;width:100%}
-    th,td{border-bottom:1px solid #e5e7eb;text-align:left;padding:8px 6px;font-size:13px}
-    th{font-size:12px;color:#6b7280;background:#f9fafb}
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background:rgba(15,23,42,.92);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      opacity:0; pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+    }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
+
+    button{
+      border:none;
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:14px;
+    }
+    .btnGhost{
+      background:rgba(255,255,255,.8);
+      border:1px solid rgba(232,234,243,.95);
+      color:var(--text);
+    }
+    .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    input{
+      border:1px solid rgba(232,234,243,.95);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      outline:none;
+      font-size:14px;
+    }
   </style>
 </head>
 
 <body>
-<div class="wrap">
-  <div class="top">
-    <div>
-      <h2 id="topTitle">選擇店家</h2>
-      <div class="muted" id="topSub">點擊店家圖片進入點餐</div>
-    </div>
-    <div class="row">
-      <button class="btn secondary" id="btnSwitchAdmin">切換管理者</button>
-      <button class="btn secondary" id="btnBackToList" style="display:none;">返回店家列表</button>
-    </div>
-  </div>
-
-  <!-- 使用者資訊 -->
-  <div class="card">
-    <h3 style="font-size:16px;margin-bottom:10px;">使用者資訊</h3>
-    <div class="grid">
-      <div>
-        <label>部門</label>
-        <select id="deptSelect"></select>
-      </div>
-      <div>
-        <label>人員</label>
-        <select id="personSelect"></select>
-      </div>
-      <div>
-        <label>訂購日期</label>
-        <input type="date" id="orderDate">
-      </div>
-    </div>
-  </div>
-
-  <!-- 店家列表 -->
-  <div class="card" id="viewRestaurantList">
-    <h3 style="font-size:16px;margin-bottom:10px;">店家</h3>
-    <div class="row" style="justify-content:space-between;margin-bottom:8px;">
-      <div class="muted">點圖片進入該店家點餐</div>
-      <input id="restaurantSearch" placeholder="搜尋店家名稱" style="max-width:260px;">
-    </div>
-    <div class="restaurant-grid" id="restaurantGrid"></div>
-  </div>
-
-  <!-- 點餐頁 -->
-  <div class="card" id="viewOrder" style="display:none;">
-    <div class="row" style="justify-content:space-between;align-items:flex-start;">
-      <div>
-        <h3 style="font-size:16px;margin-bottom:6px;" id="restName">店家</h3>
-        <div class="row" id="restMeta" style="gap:6px;flex-wrap:wrap;"></div>
-      </div>
-      <div style="min-width:260px;">
-        <label>搜尋餐點</label>
-        <input id="menuSearch" placeholder="輸入餐點名稱關鍵字">
-      </div>
-    </div>
-
-    <hr class="hr">
-
-    <div id="menuArea"></div>
-
-    <hr class="hr">
-
-    <h3 style="font-size:16px;margin-bottom:10px;">已選餐點</h3>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>餐點</th>
-            <th>加購</th>
-            <th>數量</th>
-            <th>備註</th>
-            <th>小計</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="cartBody"></tbody>
-      </table>
-    </div>
-
-    <div class="row" style="justify-content:space-between;margin-top:12px;">
-      <div class="total" id="totalText">總計：$0</div>
-      <button class="btn" id="btnSubmit">送出訂單</button>
-    </div>
-    <div class="muted" style="margin-top:8px;">點錯餐可以刪除（會跳確認）。送出後寫入 orders。</div>
-  </div>
-
-  <!-- 訂餐紀錄 -->
-  <div class="card" id="recordCard">
-    <h3 style="font-size:16px;margin-bottom:10px;">訂餐紀錄</h3>
-
-    <div class="grid">
-      <div>
-        <label>訂購日期</label>
-        <input type="date" id="qDate">
-      </div>
-      <div>
-        <label>店家</label>
-        <select id="qRestaurant"></select>
-      </div>
-      <div>
-        <label>人員名稱</label>
-        <input id="qName" placeholder="可輸入人名關鍵字">
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:10px;">
-      <button class="btn secondary" id="btnQuery">查詢</button>
-      <button class="btn secondary" id="btnClear">清空</button>
-    </div>
-
-    <div style="overflow-x:auto;margin-top:12px;">
-      <table>
-        <thead>
-          <tr>
-            <th>日期</th>
-            <th>人員</th>
-            <th>店家</th>
-            <th>內容</th>
-            <th>金額</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="recordBody"></tbody>
-      </table>
-    </div>
-
-    <div class="muted" style="margin-top:8px;">
-      條件「擇一即可查」：日期 / 店家 / 人名（人名為模糊查詢）。
-    </div>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import {
-    getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp,
-    deleteDoc, doc
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-  // ✅ 請換成你的 Firebase 設定
-  const firebaseConfig = {
-    apiKey: "PASTE_YOUR_API_KEY",
-    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
-    projectId: "PASTE_YOUR_PROJECT_ID",
-    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
-    messagingSenderId: "PASTE_YOUR_SENDER_ID",
-    appId: "PASTE_YOUR_APP_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // ===== 切換管理者（在 user.html 輸入 8520）=====
-  document.getElementById("btnSwitchAdmin").addEventListener("click", () => {
-    const pwd = prompt("請輸入管理者密碼");
-    if (pwd === "8520") {
-      localStorage.setItem("role", "admin");
-      window.location.href = "admin.html";
-    } else if (pwd !== null) {
-      alert("密碼錯誤");
-    }
-  });
-
-  // ===== DOM =====
-  const topTitle = document.getElementById("topTitle");
-  const topSub = document.getElementById("topSub");
-  const btnBackToList = document.getElementById("btnBackToList");
-
-  const deptSelect = document.getElementById("deptSelect");
-  const personSelect = document.getElementById("personSelect");
-  const orderDate = document.getElementById("orderDate");
-
-  const viewRestaurantList = document.getElementById("viewRestaurantList");
-  const restaurantGrid = document.getElementById("restaurantGrid");
-  const restaurantSearch = document.getElementById("restaurantSearch");
-
-  const viewOrder = document.getElementById("viewOrder");
-  const restName = document.getElementById("restName");
-  const restMeta = document.getElementById("restMeta");
-  const menuSearch = document.getElementById("menuSearch");
-  const menuArea = document.getElementById("menuArea");
-
-  const cartBody = document.getElementById("cartBody");
-  const totalText = document.getElementById("totalText");
-  const btnSubmit = document.getElementById("btnSubmit");
-
-  // 訂餐紀錄 DOM
-  const recordCard = document.getElementById("recordCard");
-  const qDate = document.getElementById("qDate");
-  const qRestaurant = document.getElementById("qRestaurant");
-  const qName = document.getElementById("qName");
-  const btnQuery = document.getElementById("btnQuery");
-  const btnClear = document.getElementById("btnClear");
-  const recordBody = document.getElementById("recordBody");
-
-  // ===== 狀態 =====
-  let staffList = [];     // {dept,name}
-  let restaurants = [];   // {id,...}
-  let currentRestaurant = null;
-  let menus = [];         // current restaurant menus
-  // cartKey: menuId + '|' + addonKey + '|' + noteKey
-  let cart = new Map();
-
-  function fmtDateISO(d) {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-  orderDate.value = fmtDateISO(new Date());
-
-  // ===== 載入 staff =====
-  async function loadStaff() {
-    const snap = await getDocs(collection(db, "staff"));
-    staffList = snap.docs.map(d => d.data());
-
-    const depts = Array.from(new Set(staffList.map(s => s.dept))).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
-    deptSelect.innerHTML = depts.map(d => `<option value="${d}">${d}</option>`).join("");
-    deptSelect.value = depts[0] || "";
-    renderPeople();
-
-    deptSelect.addEventListener("change", renderPeople);
-  }
-
-  function renderPeople() {
-    const dept = deptSelect.value;
-    const people = staffList
-      .filter(s => s.dept === dept)
-      .map(s => s.name)
-      .sort((a,b)=>a.localeCompare(b,'zh-Hant'));
-    personSelect.innerHTML = people.map(n => `<option value="${n}">${n}</option>`).join("");
-  }
-
-  // ===== 載入 restaurants =====
-  async function loadRestaurants() {
-    const snap = await getDocs(query(collection(db, "restaurants"), orderBy("name")));
-    restaurants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderRestaurantGrid();
-    renderRecordRestaurantOptions();
-  }
-
-  function renderRestaurantGrid() {
-    const kw = restaurantSearch.value.trim().toLowerCase();
-    const list = kw
-      ? restaurants.filter(r => (r.name || "").toLowerCase().includes(kw))
-      : restaurants;
-
-    restaurantGrid.innerHTML = list.map(r => `
-      <div class="restaurant-card" data-id="${r.id}">
-        <img src="${r.imageUrl || r.image || ""}" alt="">
-        <div class="restaurant-card-name">${r.name || "未命名餐廳"}</div>
-        <div class="restaurant-card-sub">${r.address || ""}</div>
-      </div>
-    `).join("");
-
-    restaurantGrid.querySelectorAll(".restaurant-card").forEach(card => {
-      card.addEventListener("click", async () => {
-        const id = card.dataset.id;
-        await enterRestaurant(id);
-      });
-    });
-  }
-
-  restaurantSearch.addEventListener("input", renderRestaurantGrid);
-
-  // ===== 進入店家點餐 =====
-  async function enterRestaurant(restId) {
-    currentRestaurant = restaurants.find(r => r.id === restId);
-    if (!currentRestaurant) return;
-
-    viewRestaurantList.style.display = "none";
-    viewOrder.style.display = "block";
-    btnBackToList.style.display = "inline-flex";
-    topTitle.textContent = "點餐";
-    topSub.textContent = "選擇餐點、數量、備註，送出訂單";
-
-    restName.textContent = currentRestaurant.name || "店家";
-    restMeta.innerHTML = `
-      ${currentRestaurant.phone ? `<span class="pill">${currentRestaurant.phone}</span>` : ""}
-      ${currentRestaurant.address ? `<span class="pill">${currentRestaurant.address}</span>` : ""}
-      ${currentRestaurant.map ? `<span class="pill"><a href="${currentRestaurant.map}" target="_blank" rel="noreferrer">Google Map</a></span>` : ""}
-    `;
-
-    const snap = await getDocs(query(
-      collection(db, "menus"),
-      where("restaurantId", "==", restId),
-      orderBy("category")
-    ));
-    menus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    cart = new Map();
-    updateCartUI();
-
-    menuSearch.value = "";
-    renderMenu();
-  }
-
-  btnBackToList.addEventListener("click", () => {
-    currentRestaurant = null;
-    menus = [];
-    cart = new Map();
-    viewOrder.style.display = "none";
-    viewRestaurantList.style.display = "block";
-    btnBackToList.style.display = "none";
-    topTitle.textContent = "選擇店家";
-    topSub.textContent = "點擊店家圖片進入點餐";
-  });
-
-  // ===== 菜單渲染 =====
-  function getFilteredMenus() {
-    const kw = menuSearch.value.trim().toLowerCase();
-    if (!kw) return menus;
-    return menus.filter(m => (m.name || "").toLowerCase().includes(kw));
-  }
-
-  function renderMenu() {
-    const list = getFilteredMenus();
-    const byCat = {};
-    list.forEach(m => {
-      const cat = (m.category || "未分類").trim() || "未分類";
-      if (!byCat[cat]) byCat[cat] = [];
-      byCat[cat].push(m);
-    });
-
-    const cats = Object.keys(byCat).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
-    menuArea.innerHTML = cats.map(cat => {
-      const itemsHtml = byCat[cat].map(m => renderMenuItem(m)).join("");
-      return `<div class="menuGroup"><h4>${cat}</h4>${itemsHtml}</div>`;
-    }).join("");
-
-    list.forEach(m => {
-      const btn = document.getElementById(`add_${m.id}`);
-      const qtyEl = document.getElementById(`qty_${m.id}`);
-      const noteEl = document.getElementById(`note_${m.id}`);
-
-      btn.addEventListener("click", () => {
-        const qty = Math.max(1, Number(qtyEl.value || "1"));
-        const addonChecks = document.querySelectorAll(`input[data-addon-for="${m.id}"]`);
-        const selected = Array.from(addonChecks).filter(x=>x.checked).map(x=>Number(x.value));
-        selected.sort((a,b)=>a-b);
-        const note = (noteEl.value || "").trim();
-        addToCart(m, qty, selected, note);
-      });
-    });
-  }
-
-  function renderMenuItem(m) {
-    const addons = Array.isArray(m.addons) ? m.addons : [];
-    const addonsHtml = addons.length ? `
-      <div class="addons">
-        ${addons.map((a, idx) => {
-          const label = a.free ? `${a.name}(免費)` : `${a.name}+$${Number(a.price||0)}`;
-          return `
-            <label class="chip">
-              <input type="checkbox" data-addon-for="${m.id}" value="${idx}">
-              ${label}
-            </label>
-          `;
-        }).join("")}
-      </div>
-    ` : `<div class="muted" style="margin-top:8px;">無加購</div>`;
-
-    return `
-      <div class="item" id="item_${m.id}">
-        <div class="itemTop">
-          <div>
-            <div class="itemName">${m.name}</div>
-            <div class="price">$${Number(m.price||0)}</div>
-          </div>
-          <div class="right">
-            <div>
-              <label>數量</label>
-              <input class="qty" id="qty_${m.id}" type="number" min="1" step="1" value="${Number(m.defaultQty||1)}">
-            </div>
-            <div style="min-width:220px;">
-              <label>備註</label>
-              <input id="note_${m.id}" placeholder="例如：不要辣/不要香菜">
-            </div>
-            <button class="btn sm" id="add_${m.id}">加入</button>
-          </div>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>使用者點餐</h1>
+          <div class="sub">點餐廳看菜單（只顯示上架餐點）</div>
         </div>
-        ${addonsHtml}
       </div>
-    `;
+
+      <div class="inline">
+        <div class="pill">想切管理者？輸入 8520 →</div>
+        <input id="adminCode" placeholder="8520" style="width:120px" />
+        <button class="btnGhost" id="btnToAdmin">切換</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <div class="cardHead">
+      <h2>餐廳列表</h2>
+      <span class="hint" id="counts">0 餐廳</span>
+    </div>
+    <div class="cardBody">
+      <div class="hint" style="margin-bottom:10px;">（這頁先做切換＋顯示餐廳；你後續要的點餐流程我也能接著補上）</div>
+      <div class="restaurants" id="restaurantList"></div>
+      <div id="empty" class="hint" style="display:none;">
+        目前沒有餐廳資料。請切到管理者新增餐廳與餐點。
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast">提示</div>
+
+<script>
+  const STORE_KEY = "jabenlo_data_v2";
+  const ADMIN_FLAG_KEY = "jabenlo_is_admin";
+  const ADMIN_CODE = "8520";
+
+  const $ = (id)=> document.getElementById(id);
+
+  function toast(msg){
+    const el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(window.__t);
+    window.__t = setTimeout(()=> el.classList.remove("show"), 1200);
   }
 
-  menuSearch.addEventListener("input", renderMenu);
-
-  // ===== Cart =====
-  function keyOf(menuId, selectedAddonsIdx, note) {
-    const addonKey = (selectedAddonsIdx || []).join(",");
-    const noteKey = (note || "").replaceAll("|"," ").trim();
-    return `${menuId}|${addonKey}|${noteKey}`;
-  }
-
-  function calcLineTotal(menu, qty, selectedAddonsIdx) {
-    const base = Number(menu.price || 0) * qty;
-    const addons = Array.isArray(menu.addons) ? menu.addons : [];
-    let add = 0;
-    (selectedAddonsIdx || []).forEach(i => {
-      const a = addons[i];
-      if (!a) return;
-      add += Number(a.price || 0) * qty;
-    });
-    return base + add;
-  }
-
-  function addToCart(menu, qty, selectedAddonsIdx, note) {
-    const k = keyOf(menu.id, selectedAddonsIdx, note);
-    if (cart.has(k)) {
-      const v = cart.get(k);
-      v.qty += qty;
-      cart.set(k, v);
-    } else {
-      cart.set(k, {
-        menuId: menu.id,
-        name: menu.name,
-        price: Number(menu.price || 0),
-        category: menu.category || "",
-        qty,
-        note: note || "",
-        selectedAddonsIdx: selectedAddonsIdx || [],
-        addonsSnapshot: (Array.isArray(menu.addons) ? menu.addons : []).map(a => ({
-          name: a.name, price: Number(a.price||0), free: !!a.free
-        }))
-      });
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      const data = raw ? JSON.parse(raw) : { restaurants: [], staff: [] };
+      data.restaurants = Array.isArray(data.restaurants) ? data.restaurants : [];
+      return data;
+    }catch(e){
+      return { restaurants: [], staff: [] };
     }
-    updateCartUI();
   }
 
-  function updateCartUI() {
-    const rows = Array.from(cart.entries()).map(([k, it]) => {
-      const addonsText = it.selectedAddonsIdx.length
-        ? it.selectedAddonsIdx.map(i => {
-            const a = it.addonsSnapshot[i];
-            if (!a) return "";
-            return a.free ? `${a.name}(免費)` : `${a.name}+$${a.price}`;
-          }).filter(Boolean).join("、")
-        : "無";
+  function render(){
+    const data = load();
+    $("counts").textContent = `${data.restaurants.length} 餐廳`;
 
-      const sub = calcLineTotal({price: it.price, addons: it.addonsSnapshot}, it.qty, it.selectedAddonsIdx);
+    const box = $("restaurantList");
+    box.innerHTML = "";
 
-      return `
-        <tr>
-          <td>${it.name}</td>
-          <td>${addonsText}</td>
-          <td><input type="number" min="1" step="1" value="${it.qty}" style="width:90px" data-qty="${k}"></td>
-          <td>${it.note || ""}</td>
-          <td>$${sub}</td>
-          <td><button class="btn secondary sm" data-del="${k}">刪除</button></td>
-        </tr>
-      `;
-    });
+    $("empty").style.display = data.restaurants.length ? "none" : "block";
 
-    cartBody.innerHTML = rows.join("") || `<tr><td colspan="6" class="muted">尚未選擇餐點</td></tr>`;
+    data.restaurants.forEach(r=>{
+      const card = document.createElement("div");
+      card.className = "rCard";
+      card.onclick = ()=> toast("下一步我可以幫你做：進餐廳→選餐→送出→訂餐紀錄");
 
-    cartBody.querySelectorAll("input[data-qty]").forEach(inp => {
-      inp.addEventListener("change", () => {
-        const k = inp.getAttribute("data-qty");
-        const v = cart.get(k);
-        if (!v) return;
-        v.qty = Math.max(1, Number(inp.value || "1"));
-        cart.set(k, v);
-        updateCartUI();
-      });
-    });
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      if(r.photo){
+        const img = document.createElement("img");
+        img.src = r.photo;
+        img.alt = r.name;
+        img.onerror = ()=> thumb.textContent = "圖片載入失敗";
+        thumb.appendChild(img);
+      }else{
+        thumb.textContent = "尚未設定店家圖片";
+      }
 
-    cartBody.querySelectorAll("button[data-del]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const k = btn.getAttribute("data-del");
-        const it = cart.get(k);
-        if (!it) return;
-        const ok = window.confirm(`確定要刪除「${it.name}」嗎？`);
-        if (!ok) return;
-        cart.delete(k);
-        updateCartUI();
-      });
-    });
+      const info = document.createElement("div");
+      info.className = "rInfo";
 
-    let total = 0;
-    cart.forEach(it => {
-      total += calcLineTotal({price: it.price, addons: it.addonsSnapshot}, it.qty, it.selectedAddonsIdx);
-    });
-    totalText.textContent = `總計：$${total}`;
-  }
+      const title = document.createElement("p");
+      title.className = "rTitle";
+      title.textContent = r.name || "(未命名)";
 
-  // ===== 訂餐紀錄：店家選單 =====
-  function renderRecordRestaurantOptions() {
-    qRestaurant.innerHTML =
-      `<option value="">全部店家</option>` +
-      restaurants.map(r => `<option value="${r.id}">${r.name || "未命名"}</option>`).join("");
-  }
+      const meta = document.createElement("p");
+      meta.className = "rMeta";
+      const addr = r.address ? `📍 ${r.address}` : "";
+      const openItems = Array.isArray(r.menu) ? r.menu.filter(x=> x.enabled !== false).length : 0;
+      meta.textContent = [addr, `🍱 上架 ${openItems} 道`].filter(Boolean).join("  ·  ");
 
-  // ===== 訂餐紀錄：查詢 / 顯示 / 刪除 =====
-  function recordRowHtml(o) {
-    return `
-      <tr>
-        <td>${o.date || ""}</td>
-        <td>${o.dept || ""} / ${o.person || ""}</td>
-        <td>${o.restaurantName || ""}</td>
-        <td>${o.summary || ""}</td>
-        <td>$${Number(o.total||0)}</td>
-        <td><button class="btn danger sm" data-del-order="${o.id}">刪除</button></td>
-      </tr>
-    `;
-  }
+      info.appendChild(title);
+      info.appendChild(meta);
 
-  function bindRecordDelete() {
-    recordBody.querySelectorAll("button[data-del-order]").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-del-order");
-        const ok = confirm("確定要刪除這筆訂單紀錄嗎？");
-        if (!ok) return;
-        await deleteDoc(doc(db, "orders", id));
-        btn.closest("tr")?.remove();
-      });
+      card.appendChild(thumb);
+      card.appendChild(info);
+      box.appendChild(card);
     });
   }
 
-  async function runRecordQuery() {
-    recordBody.innerHTML = "";
-
-    const filters = [];
-    if (qDate.value) filters.push(where("date", "==", qDate.value));
-    if (qRestaurant.value) filters.push(where("restaurantId", "==", qRestaurant.value));
-
-    let qy = query(collection(db, "orders"), orderBy("date", "desc"));
-    if (filters.length) qy = query(collection(db, "orders"), ...filters, orderBy("date", "desc"));
-
-    const snap = await getDocs(qy);
-    let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const kw = qName.value.trim().toLowerCase();
-    if (kw) {
-      list = list.filter(o => (o.person || "").toLowerCase().includes(kw));
-    }
-
-    if (!list.length) {
-      recordBody.innerHTML = `<tr><td colspan="6" class="muted">查無資料</td></tr>`;
+  $("btnToAdmin").addEventListener("click", ()=>{
+    const code = ($("adminCode").value || "").trim();
+    if(code !== ADMIN_CODE){
+      toast("密碼錯誤");
       return;
     }
-
-    recordBody.innerHTML = list.map(recordRowHtml).join("");
-    bindRecordDelete();
-  }
-
-  btnQuery.addEventListener("click", runRecordQuery);
-
-  btnClear.addEventListener("click", () => {
-    qDate.value = "";
-    qRestaurant.value = "";
-    qName.value = "";
-    recordBody.innerHTML = "";
+    localStorage.setItem(ADMIN_FLAG_KEY, "1");
+    location.href = "admin.html";
   });
 
-  // ===== 送出訂單 =====
-  function summarizeItems(items) {
-    return items.map(it => {
-      const base = `${it.name}${it.price}`;
-      const addons = (it.addons || []).map(a => a.free ? `${a.name}(免費)` : `${a.name}${a.price}`).join("+");
-      const addonStr = addons ? `+${addons}` : "";
-      return `${base}${addonStr} 數量${it.qty}${it.note ? `（${it.note}）` : ""}`;
-    }).join("；");
-  }
-
-  const btnSubmit = document.getElementById("btnSubmit");
-  btnSubmit.addEventListener("click", async () => {
-    const dept = deptSelect.value;
-    const person = personSelect.value;
-    const date = orderDate.value;
-
-    if (!dept || !person) return alert("請先選擇部門與人員");
-    if (!date) return alert("請選擇訂購日期");
-    if (!currentRestaurant) return alert("請先選擇店家");
-    if (cart.size === 0) return alert("請先加入餐點");
-
-    const items = [];
-    cart.forEach(it => {
-      const selectedAddons = it.selectedAddonsIdx.map(i => it.addonsSnapshot[i]).filter(Boolean);
-      items.push({
-        menuId: it.menuId,
-        category: it.category,
-        name: it.name,
-        price: it.price,
-        qty: it.qty,
-        note: it.note || "",
-        addons: selectedAddons
-      });
-    });
-
-    const total = items.reduce((sum, it) => {
-      const base = it.price * it.qty;
-      const add = (it.addons || []).reduce((s, a) => s + (Number(a.price||0) * it.qty), 0);
-      return sum + base + add;
-    }, 0);
-
-    try {
-      await addDoc(collection(db, "orders"), {
-        date,
-        dept,
-        person,
-        restaurantId: currentRestaurant.id,
-        restaurantName: currentRestaurant.name || "",
-        items,
-        summary: summarizeItems(items),
-        total,
-        createdAt: serverTimestamp()
-      });
-
-      alert("已送出訂單");
-      cart = new Map();
-      updateCartUI();
-
-      // ✅ 送出後自動顯示我的紀錄
-      qDate.value = date;
-      qName.value = person;
-      qRestaurant.value = currentRestaurant.id;
-
-      recordCard.scrollIntoView({ behavior: "smooth" });
-      await runRecordQuery();
-
-    } catch (err) {
-      console.error(err);
-      alert("送出失敗，請檢查 Firebase 規則或網路");
-    }
+  // Enter 也可切
+  $("adminCode").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter") $("btnToAdmin").click();
   });
 
-  // ===== init =====
-  await loadStaff();
-  await loadRestaurants();
+  // 初始化：如果目前已是 admin，直接導到 admin
+  if(localStorage.getItem(ADMIN_FLAG_KEY) === "1"){
+    location.href = "admin.html";
+  }else{
+    render();
+  }
 </script>
 </body>
 </html>
