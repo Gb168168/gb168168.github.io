@@ -2,126 +2,87 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>GoldBricks 訂餐系統 - 登入</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GoldBricks - 入口</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #f9fafb, #e5e7eb);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .card {
-      background: #fff;
-      width: 100%;
-      max-width: 400px;
-      padding: 32px 28px;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(15,23,42,0.1);
-    }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 6px;
-      text-align: center;
-    }
-    p {
-      font-size: 14px;
-      text-align: center;
-      color: #6b7280;
-      margin-bottom: 24px;
-    }
-    label {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 6px;
-      color: #374151;
-    }
-    input[type="password"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      font-size: 14px;
-    }
-    input[type="password"]:focus {
-      outline: none;
-      border-color: #fb7185;
-      box-shadow: 0 0 0 2px rgba(251,113,133,0.25);
-    }
-    .btn {
-      margin-top: 16px;
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(90deg, #fb7185, #f97316);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn:hover {
-      opacity: 0.9;
-    }
-    .hint {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #9ca3af;
-      line-height: 1.4;
-    }
-    .error {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #dc2626;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f4fb;color:#111827;min-height:100vh;display:grid;place-items:center}
+    .card{width:min(520px,92vw);background:#fff;border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(15,23,42,.08)}
+    h1{font-size:18px;margin-bottom:8px}
+    .muted{color:#6b7280;font-size:13px;margin-bottom:14px}
+    label{display:block;font-size:12px;color:#374151;margin:10px 0 4px}
+    input{width:100%;height:38px;border:1px solid #d1d5db;border-radius:12px;padding:8px 10px;font-size:13px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{height:38px;border:none;border-radius:999px;padding:0 14px;font-weight:900;cursor:pointer}
+    .btn{background:linear-gradient(90deg,#fb7185,#f97316);color:#fff}
+    .btn2{background:#111827;color:#fff}
+    .hint{font-size:12px;color:#6b7280;margin-top:10px;line-height:1.5}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>GoldBricks 訂餐系統</h1>
-    <p>請輸入密碼登入</p>
-    <div>
-      <label for="password">密碼</label>
-      <input type="password" id="password" placeholder="管理者 / 使用者" />
-      <button class="btn" id="loginBtn">登入</button>
-      <div id="error" class="error" style="display:none;"></div>
-      <div class="hint">
-        <br />
-      </div>
+    <h1>GoldBricks 入口</h1>
+    <div class="muted">使用者可直接進入點餐；管理者請使用 Email/Password 登入（已改為安全版 Rules）。</div>
+
+    <div class="row">
+      <button class="btn2" id="btnUser">進入使用者模式</button>
+    </div>
+
+    <hr style="height:1px;background:#e5e7eb;border:none;margin:16px 0">
+
+    <h1 style="font-size:16px">管理者登入</h1>
+    <div class="muted">第一次請在 Firebase Authentication 建立帳號。此頁登入成功後，admin.html 會自動登入。</div>
+
+    <label>Email</label>
+    <input id="adminEmail" autocomplete="off" placeholder="admin@example.com">
+
+    <label>Password</label>
+    <input id="adminPass" type="password" autocomplete="off" placeholder="輸入密碼">
+
+    <div class="row">
+      <button class="btn" id="btnAdminLogin">登入管理者</button>
+    </div>
+
+    <div class="hint">
+      ✅ 若你之前有「8520」入口也可以保留，但安全版權限主要以 Firebase Auth UID 判斷。<br>
+      ✅ 使用者頁會自動匿名登入（不用你操作）。
     </div>
   </div>
 
-  <script>
-    const ADMIN_PWD = "8520";
-    const USER_PWD  = "888";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const pwd = document.getElementById("password").value.trim();
-      const err = document.getElementById("error");
-      err.style.display = "none";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBdgOddTGAFqqHLnhnaJRv2_y7gyweuQEo",
+    authDomain: "goldbricks-order.firebaseapp.com",
+    projectId: "goldbricks-order",
+    storageBucket: "goldbricks-order.firebasestorage.app",
+    messagingSenderId: "463709758954",
+    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
+  };
 
-      if (pwd === ADMIN_PWD) {
-        localStorage.setItem("role", "admin");
-        window.location.href = "admin.html";
-      } else if (pwd === USER_PWD) {
-        localStorage.setItem("role", "user");
-        window.location.href = "user.html";
-      } else {
-        err.textContent = "密碼錯誤，請再試一次。";
-        err.style.display = "block";
-      }
-    });
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    // 允許按 Enter 直接登入
-    document.getElementById("password").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        document.getElementById("loginBtn").click();
-      }
-    });
-  </script>
+  document.getElementById("btnUser").addEventListener("click", () => {
+    localStorage.setItem("role", "user");
+    location.href = "user.html";
+  });
+
+  document.getElementById("btnAdminLogin").addEventListener("click", async () => {
+    const email = document.getElementById("adminEmail").value.trim();
+    const pass = document.getElementById("adminPass").value;
+    if(!email || !pass) return alert("請輸入 Email / Password");
+    try{
+      await signInWithEmailAndPassword(auth, email, pass);
+      localStorage.setItem("role", "admin");
+      location.href = "admin.html";
+    }catch(e){
+      console.error(e);
+      alert("登入失敗：請確認 Email/Password 是否正確，並已啟用 Email/Password Provider");
+    }
+  });
+</script>
 </body>
 </html>
-
