@@ -396,4 +396,171 @@ async function loadRestaurants(){
           </div>
         </div>
       `;
-      const
+      const [btnManage, btnDel] = div.querySelectorAll('button');
+      btnManage.onclick=()=>openMenuPanel(r);
+      btnDel.onclick=async ()=>{
+        if(!confirm(`刪除餐廳「${r.name}」？（不會自動刪除其餐點）`)) return;
+        await db.collection('restaurants').doc(r.id).delete();
+        loadRestaurants();
+      };
+      div.onclick=(e)=>{
+        // 避免點到刪除按鈕也觸發
+        if(e.target.tagName==='BUTTON') return;
+        openMenuPanel(r);
+      };
+      list.appendChild(div);
+    });
+  }catch(e){
+    console.error(e);
+    list.innerHTML = `<div class="item danger">讀取失敗（檢查 Rules）</div>`;
+  }
+}
+
+function openMenuPanel(r){
+  state.activeRestaurant = r;
+  $('menuPanel').hidden = false;
+  $('menuTitle').textContent = `餐點管理｜${r.name}`;
+  $('menuName').value='';
+  $('menuDefaultQty').value=1;
+  $('menuPrice').value='';
+  loadMenus(r.id);
+}
+
+$('closeMenuBtn').onclick=()=>{
+  $('menuPanel').hidden = true;
+  state.activeRestaurant = null;
+};
+
+$('addMenuBtn').onclick = async ()=>{
+  const r = state.activeRestaurant;
+  if(!r) return;
+  const name = ($('menuName').value||'').trim();
+  const defaultQty = Number($('menuDefaultQty').value||1);
+  const priceRaw = ($('menuPrice').value||'').trim();
+  const price = priceRaw==='' ? null : Number(priceRaw);
+
+  if(!name){ alert('請輸入餐點名稱'); return; }
+
+  $('addMenuBtn').disabled = true;
+  try{
+    await db.collection('menus').add({
+      restaurantId: r.id,
+      name,
+      defaultQty: isFinite(defaultQty) && defaultQty>0 ? defaultQty : 1,
+      price: (price==null || !isFinite(price)) ? null : price,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    $('menuName').value='';
+    $('menuDefaultQty').value=1;
+    $('menuPrice').value='';
+    await loadMenus(r.id);
+  }catch(e){
+    console.error(e);
+    alert('新增餐點失敗（檢查 Rules）');
+  }finally{
+    $('addMenuBtn').disabled = false;
+  }
+};
+
+async function loadMenus(restaurantId){
+  const list = $('menuList');
+  list.innerHTML='載入中…';
+  try{
+    const snap = await db.collection('menus')
+      .where('restaurantId','==',restaurantId)
+      .orderBy('createdAt','desc')
+      .get();
+
+    list.innerHTML='';
+    if(snap.empty){
+      list.innerHTML = `<div class="item">尚無餐點</div>`;
+      return;
+    }
+
+    snap.forEach(d=>{
+      const m=d.data();
+      const div=document.createElement('div');
+      div.className='item';
+      div.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <b>${escapeHtml(m.name||'')}</b>
+            <div class="tag">預設數量：${escapeHtml(m.defaultQty??'-')} ${m.price!=null?`・價格：$${m.price}`:''}</div>
+          </div>
+          <button class="btn2 danger">刪除</button>
+        </div>
+      `;
+      div.querySelector('button').onclick=async ()=>{
+        if(!confirm(`刪除餐點「${m.name}」？`)) return;
+        await db.collection('menus').doc(d.id).delete();
+        loadMenus(restaurantId);
+      };
+      list.appendChild(div);
+    });
+  }catch(e){
+    console.error(e);
+    list.innerHTML = `<div class="item danger">讀取餐點失敗</div>`;
+  }
+}
+
+/** ===== orders / history ===== */
+async function loadOrders(){
+  const list = $('orderList');
+  list.innerHTML='載入中…';
+  try{
+    const snap = await db.collection('orders').orderBy('createdAt','desc').limit(50).get();
+    list.innerHTML='';
+    if(snap.empty){
+      list.innerHTML = `<div class="item">尚無訂單</div>`;
+      return;
+    }
+    snap.forEach(d=>{
+      const o=d.data();
+      const div=document.createElement('div');
+      div.className='item';
+      const items=(o.items||[]).map(i=>`<div class="chip">${escapeHtml(i.menuName)} × ${Number(i.qty||1)}${i.note?`（${escapeHtml(i.note)}）`:''}</div>`).join('');
+      div.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <b>${escapeHtml(o.restaurantName||'')}</b>
+            <div class="tag">${formatTs(o.createdAt)} ・ ${escapeHtml(o.dept||'')}｜${escapeHtml(o.name||'')}</div>
+          </div>
+          <button class="btn2 danger">刪除</button>
+        </div>
+        <div class="mini">${items}</div>
+      `;
+      div.querySelector('button').onclick=async ()=>{
+        if(!confirm('確定刪除此訂單？')) return;
+        await db.collection('orders').doc(d.id).delete();
+        loadOrders();
+      };
+      list.appendChild(div);
+    });
+  }catch(e){
+    console.error(e);
+    list.innerHTML = `<div class="item danger">讀取失敗（檢查 Rules）</div>`;
+  }
+}
+
+/** utils */
+function formatTs(ts){
+  try{
+    if(!ts) return '-';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0');
+    const hh=String(d.getHours()).padStart(2,'0'), mm=String(d.getMinutes()).padStart(2,'0');
+    return `${y}-${m}-${da} ${hh}:${mm}`;
+  }catch{return '-'}
+}
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+function safeFileName(name){
+  return String(name||'file').replace(/[^a-zA-Z0-9._-]/g,'_');
+}
+
+/** init */
+setTab('staff');
+</script>
+</body>
+</html>
