@@ -107,7 +107,7 @@
       <h1>使用者點餐</h1>
       <div class="right">
         <span class="pill" id="status">連線中…</span>
-        <button class="ghost" id="askAdmin">輸入 8520 切管理者</button>
+        <button class="ghost" id="askAdmin">切換管理者</button>
         <button class="ghost" id="logout">登出</button>
       </div>
     </div>
@@ -245,7 +245,7 @@
       location.href="./index.html";
     };
     $("askAdmin").onclick = ()=>{
-      const v = prompt("輸入管理者密碼 8520");
+      const v = prompt("輸入管理者密碼 ");
       if((v||"").trim() === ADMIN_PWD){
         localStorage.setItem(roleKey,"admin");
         location.href="./admin.html";
