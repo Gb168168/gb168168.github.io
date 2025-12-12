@@ -1,228 +1,180 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<title>管理者後台 - GoldBricks</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<meta charset="UTF-8">
+<title>管理者後台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* ===== 基本 ===== */
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:#f5f4fb;color:#111827
-}
-.hidden{display:none!important}
-
-/* ===== Layout ===== */
-.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-.side{
-  background:#111827;color:#fff;padding:16px;
-  display:flex;flex-direction:column;gap:12px
-}
-.main{padding:18px}
-
-/* ===== Sidebar ===== */
-.brand{font-weight:900}
-.sub{font-size:12px;color:#9ca3af}
-.nav{display:flex;flex-direction:column;gap:6px}
-.nav button{
-  border:none;border-radius:10px;padding:10px 12px;
-  background:rgba(255,255,255,.08);
-  color:#fff;font-weight:700;text-align:left;cursor:pointer
-}
-.nav button.active{background:linear-gradient(90deg,#fb7185,#f97316)}
-.nav button:hover{background:rgba(255,255,255,.15)}
-.footer{margin-top:auto;font-size:12px;color:#9ca3af}
-
-/* ===== Topbar ===== */
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-h2{font-size:18px}
-.muted{font-size:13px;color:#6b7280}
-.pill{font-size:12px;background:#e5e7eb;border-radius:999px;padding:2px 8px}
-
-/* ===== Card ===== */
-.card{
-  background:#fff;border-radius:14px;
-  padding:12px 14px;   /* ✅ 變瘦 */
-  box-shadow:0 6px 20px rgba(15,23,42,.08);
-  margin-bottom:14px
-}
-
-/* ===== Form ===== */
-label{font-size:12px;color:#374151;margin-bottom:4px;display:block}
-input,select,textarea{
-  width:100%;
-  padding:8px 10px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
-  font-size:13px
-}
-textarea{resize:vertical}
-
-/* ✅ 無紅框、不盪 */
-input:focus,select:focus,textarea:focus{
-  outline:none;
-  border-color:#9ca3af;
-  box-shadow:none;
-}
-
-/* ===== Buttons ===== */
-.btn{
-  border:none;border-radius:999px;
-  padding:6px 14px;
-  font-size:13px;font-weight:700;
-  cursor:pointer;
-  background:linear-gradient(90deg,#fb7185,#f97316);
-  color:#fff
-}
-.btn.secondary{background:#e5e7eb;color:#111827}
+/* ===== 基本樣式（精簡版） ===== */
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui;background:#f5f4fb}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:#111827;color:#fff;padding:16px}
+.side button{width:100%;margin-bottom:6px;padding:10px;border:none;border-radius:10px;background:#1f2937;color:#fff;cursor:pointer}
+.side button.active{background:#fb7185}
+.main{padding:16px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 8px 25px rgba(0,0,0,.08)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+input,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid #d1d5db}
+.btn{padding:8px 14px;border:none;border-radius:999px;background:#fb7185;color:#fff;cursor:pointer}
+.btn.secondary{background:#e5e7eb;color:#111}
 .btn.danger{background:#ef4444}
-.btn.sm{padding:4px 10px;font-size:12px}
-
-/* ===== Layout Helpers ===== */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:10px 12px
-}
-.row{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:nowrap; /* ✅ 不換行、不盪 */
-}
-.hr{height:1px;background:#e5e7eb;margin:12px 0}
-
-/* ===== 新增人員專用修正 ===== */
-#viewStaff .grid{
-  grid-template-columns:180px 1fr; /* 左窄右寬 */
-}
-#staffName{min-width:240px}
-
-/* ===== Restaurant ===== */
-.restaurant-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:14px
-}
-.restaurant-card{
-  background:#f9fafb;
-  border-radius:12px;
-  padding:10px;
-  cursor:pointer;
-  transition:.15s
-}
-.restaurant-card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 6px 16px rgba(15,23,42,.12)
-}
-.restaurant-card img{
-  width:100%;height:140px;
-  object-fit:cover;border-radius:10px;
-  background:#e5e7eb
-}
-.restaurant-card .name{font-weight:800}
-.restaurant-card .sub{font-size:12px;color:#6b7280}
-
-/* ===== Items ===== */
-.item{background:#f9fafb;border-radius:10px;padding:10px;margin-bottom:8px}
-.itemTop{display:flex;justify-content:space-between;gap:10px}
-.itemName{font-weight:800}
-.price{font-size:12px;color:#6b7280}
-
-/* ===== Image preview ===== */
-.imgPreview{
-  width:100%;
-  max-width:520px;
-  height:180px;
-  object-fit:cover;
-  border-radius:12px;
-  background:#e5e7eb
-}
+.item{background:#f9fafb;border-radius:12px;padding:10px;margin-bottom:8px}
+.muted{font-size:12px;color:#6b7280}
+.restaurant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.restaurant-card{background:#f9fafb;border-radius:12px;padding:10px;cursor:pointer}
+.restaurant-card img{width:100%;height:120px;object-fit:cover;border-radius:10px}
 </style>
 </head>
 
 <body>
 <div class="app">
-
-<!-- ===== Sidebar ===== -->
-<aside class="side">
-  <div>
-    <div class="brand">GoldBricks 管理者</div>
-    <div class="sub">Admin Console</div>
-  </div>
-
-  <div class="nav">
-    <button id="navStaff">新增人員</button>
-    <button id="navAddRestaurant" class="active">新增餐廳</button>
-    <button id="navRestaurantManage">餐廳管理</button>
-    <button id="navOrders">訂餐紀錄</button>
-    <button id="navSwitchMode">切換使用者模式</button>
+  <aside class="side">
+    <button id="navAdd" class="active">新增餐廳</button>
+    <button id="navManage">餐廳管理</button>
     <button id="navLogout">登出</button>
-  </div>
+  </aside>
 
-  <div class="footer">管理者密碼：8520</div>
-</aside>
+  <main class="main">
 
-<!-- ===== Main ===== -->
-<main class="main">
-  <div class="topbar">
-    <div>
-      <h2 id="pageTitle">新增餐廳</h2>
-      <div class="muted" id="pageSub">先新增餐點，再新增店家</div>
-    </div>
-    <span class="pill" id="connState">Firebase：未初始化</span>
-  </div>
-
-<!-- ===== 新增人員 ===== -->
-<section id="viewStaff" class="hidden">
-  <div class="card">
-    <h3>新增人員</h3>
-    <div class="grid">
-      <div>
-        <label>部門</label>
-        <select id="deptSelect">
-          <option>管理部</option>
-          <option>FAE</option>
-          <option>TSE</option>
-          <option>RD</option>
-        </select>
-      </div>
-
-      <div>
-        <label>人員名稱</label>
-        <div class="row">
-          <input id="staffName" placeholder="輸入人名後按 Enter" />
-          <button class="btn secondary" id="btnAddStaff">新增</button>
+    <!-- 新增餐廳 -->
+    <section id="viewAdd">
+      <div class="card">
+        <h3>店家資訊</h3>
+        <div class="grid">
+          <input id="rName" placeholder="餐廳名稱">
+          <input id="rPhone" placeholder="電話">
+          <input id="rAddress" placeholder="地址">
+          <input id="rMap" placeholder="Google map 連結">
+          <input id="rImage" type="file" accept="image/*">
+          <textarea id="rNote" placeholder="備註"></textarea>
         </div>
-        <div class="muted">Enter 可直接新增</div>
       </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <h3>人員列表</h3>
-    <div id="staffGroups"></div>
-  </div>
-</section>
+      <div class="card">
+        <h3>新增餐點（草稿）</h3>
+        <div class="grid">
+          <input id="mCategory" placeholder="餐點類別">
+          <input id="mName" placeholder="餐點名稱">
+          <input id="mPrice" type="number" placeholder="價格">
+          <input id="mQty" type="number" value="1">
+        </div>
+        <button class="btn secondary" id="btnAddMenuDraft">加入此餐點到清單</button>
+        <div id="menuDraftList" class="muted"></div>
+        <button class="btn" id="btnCreateRestaurant">新增店家</button>
+      </div>
+    </section>
 
-<!-- 其餘區塊（新增餐廳 / 餐廳管理 / 詳細 / 訂單） -->
-<!-- 👉 功能完全沒改，僅 UI 精簡，Firebase JS 同你上一版 -->
-</main>
+    <!-- 餐廳管理 -->
+    <section id="viewManage" style="display:none">
+      <div class="card">
+        <h3>餐廳管理（點圖片）</h3>
+        <div class="restaurant-grid" id="restaurantGrid"></div>
+      </div>
+    </section>
+
+  </main>
 </div>
 
 <script type="module">
-/* 🔴 Firebase JS 請沿用你上一版（這裡不重貼） */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, writeBatch } 
+from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } 
+from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-/* 只補「切換使用者」修正 */
-document.getElementById("navSwitchMode").onclick=()=>{
-  if(confirm("切換到使用者模式？")){
-    localStorage.setItem("role","user");
-    location.href="user.html";
+/* ===== Firebase 設定（換成你的） ===== */
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_ID",
+  storageBucket: "YOUR_BUCKET",
+  appId: "YOUR_APPID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+/* ===== 切頁 ===== */
+const viewAdd = document.getElementById("viewAdd");
+const viewManage = document.getElementById("viewManage");
+navAdd.onclick = ()=>{viewAdd.style.display="block";viewManage.style.display="none";}
+navManage.onclick = async ()=>{viewAdd.style.display="none";viewManage.style.display="block";await loadRestaurants();}
+navLogout.onclick = ()=>{localStorage.removeItem("role");location.href="index.html";}
+
+/* ===== 新增餐廳 ===== */
+let menuDraft = [];
+btnAddMenuDraft.onclick = ()=>{
+  if(!mName.value||!mCategory.value||!mPrice.value){
+    alert("請填完整餐點");
+    return;
   }
+  menuDraft.push({
+    category:mCategory.value,
+    name:mName.value,
+    price:Number(mPrice.value),
+    defaultQty:Number(mQty.value||1),
+    addons:[]
+  });
+  mCategory.value=mName.value=mPrice.value="";
+  renderDraft();
+};
+
+function renderDraft(){
+  menuDraftList.innerHTML = menuDraft.map(m=>`${m.category}｜${m.name} $${m.price}`).join("<br>");
+}
+
+async function uploadImage(file){
+  if(!file) return "";
+  const r = ref(storage,"restaurants/"+Date.now()+"_"+file.name);
+  await uploadBytes(r,file);
+  return await getDownloadURL(r);
+}
+
+/* ===== C 方案：永遠可按，按下才檢查 ===== */
+btnCreateRestaurant.onclick = async ()=>{
+  const missing=[];
+  if(!rName.value.trim()) missing.push("餐廳名稱");
+  if(menuDraft.length===0) missing.push("至少一個餐點（請按加入）");
+  if(missing.length){
+    alert("無法新增店家，缺少：\n- "+missing.join("\n- "));
+    return;
+  }
+
+  const imageUrl = await uploadImage(rImage.files[0]||null);
+
+  const restRef = await addDoc(collection(db,"restaurants"),{
+    name:rName.value,
+    phone:rPhone.value,
+    address:rAddress.value,
+    map:rMap.value,
+    note:rNote.value,
+    imageUrl
+  });
+
+  const batch = writeBatch(db);
+  menuDraft.forEach(m=>{
+    const d = doc(collection(db,"menus"));
+    batch.set(d,{...m,restaurantId:restRef.id});
+  });
+  await batch.commit();
+
+  alert("新增完成");
+  location.reload();
+};
+
+/* ===== 餐廳管理 ===== */
+async function loadRestaurants(){
+  const snap = await getDocs(collection(db,"restaurants"));
+  restaurantGrid.innerHTML = snap.docs.map(d=>{
+    const r=d.data();
+    return `<div class="restaurant-card">
+      <img src="${r.imageUrl||""}">
+      <b>${r.name}</b>
+    </div>`;
+  }).join("");
 }
 </script>
 </body>
 </html>
-
