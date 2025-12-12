@@ -2,43 +2,167 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <title>點餐系統｜登入</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoldBricks Order｜登入</title>
+  <style>
+    :root{
+      --bg:#f5f4fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
+      --shadow:0 10px 30px rgba(15,23,42,.10);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.25), transparent 60%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      padding:24px;
+    }
+    .wrap{width:min(980px,100%); display:grid; grid-template-columns: 1.1fr .9fr; gap:18px;}
+    @media (max-width:860px){.wrap{grid-template-columns:1fr}}
+    .hero,.card{
+      background:rgba(255,255,255,.75);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .hero{padding:26px}
+    .hero h1{margin:0 0 8px; font-size:26px}
+    .hero p{margin:0; color:var(--muted); line-height:1.6}
+    .card{padding:22px}
+    .seg{display:flex; gap:10px; margin:14px 0 12px;}
+    .seg button{
+      flex:1; padding:12px 12px; border-radius:14px;
+      border:1px solid var(--border); background:#fff; cursor:pointer;
+      font-weight:700;
+    }
+    .seg button.active{
+      border-color: rgba(251,113,133,.55);
+      box-shadow: 0 10px 22px rgba(251,113,133,.18);
+      background: linear-gradient(90deg, rgba(251,113,133,.18), rgba(255,154,158,.12));
+    }
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
+    input{
+      width:100%; padding:12px 12px; border-radius:14px;
+      border:1px solid var(--border); outline:none; background:#fff;
+      font-size:14px;
+    }
+    input:focus{border-color: rgba(251,113,133,.7)}
+    .btn{
+      width:100%; margin-top:14px; padding:12px 14px; border-radius:14px;
+      border:none; cursor:pointer; font-weight:800;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      color:white;
+      box-shadow: 0 14px 28px rgba(251,113,133,.25);
+    }
+    .hint{margin-top:10px; color:var(--muted); font-size:12.5px; line-height:1.6}
+    .err{margin-top:10px; color:#b91c1c; font-weight:700}
+    .ok{margin-top:10px; color:#047857; font-weight:700}
+    .row{display:flex; align-items:center; justify-content:space-between; margin-top:14px;}
+    .link{color:var(--muted); font-size:12.5px; text-decoration:underline; cursor:pointer}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center; padding:8px 12px;
+      border-radius:999px; border:1px solid var(--border); background:#fff;
+      font-size:12.5px; color:var(--muted);
+    }
+  </style>
 </head>
 <body>
-  <h2>登入頁（測試）</h2>
+  <div class="wrap">
+    <section class="hero">
+      <h1>GoldBricks Order</h1>
+      <p>GitHub Pages + Firebase（Firestore / Storage）版本。<br/>登入後依角色進入 <b>管理者</b> 或 <b>使用者</b>。</p>
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <span class="pill">管理者密碼：8520</span>
+        <span class="pill">使用者密碼：888</span>
+      </div>
+      <p class="hint" style="margin-top:16px;">
+        ⚠️ 注意：這是「密碼模式」不是 Firebase Auth。若你要上線給很多人用，之後要改成 Auth + 安全規則。
+      </p>
+    </section>
 
-  <button onclick="goUser()">使用者</button>
-  <button onclick="goAdmin()">管理者</button>
+    <section class="card">
+      <div class="seg">
+        <button id="tabUser" class="active" type="button">使用者</button>
+        <button id="tabAdmin" type="button">管理者</button>
+      </div>
 
-  <!-- Firebase compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+      <label>輸入密碼</label>
+      <input id="pwd" type="password" placeholder="請輸入 888 或 8520" autocomplete="current-password" />
+
+      <button id="loginBtn" class="btn">登入</button>
+
+      <div class="row">
+        <span class="link" id="clearBtn">清除登入狀態</span>
+        <span class="link" id="gotoUser">前往使用者頁</span>
+      </div>
+
+      <div id="msg"></div>
+    </section>
+  </div>
 
   <script>
-  /* ===== Firebase 初始化（GitHub Pages 專用） ===== */
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.firebasestorage.app",
-    messagingSenderId: "463709758954",
-    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
-  };
+    const ADMIN_PWD = "8520";
+    const USER_PWD  = "888";
+    const roleKey = "gb_role";
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  window.db = firebase.firestore();
+    const tabUser = document.getElementById("tabUser");
+    const tabAdmin = document.getElementById("tabAdmin");
+    const pwd = document.getElementById("pwd");
+    const loginBtn = document.getElementById("loginBtn");
+    const msg = document.getElementById("msg");
+    const clearBtn = document.getElementById("clearBtn");
+    const gotoUser = document.getElementById("gotoUser");
 
-  console.log("✅ Firebase OK:", firebaseConfig.projectId);
+    let targetRole = "user";
 
-  function goUser() {
-    location.href = "user.html";
-  }
-  function goAdmin() {
-    location.href = "admin.html";
-  }
+    function setRole(role){
+      targetRole = role;
+      tabUser.classList.toggle("active", role==="user");
+      tabAdmin.classList.toggle("active", role==="admin");
+      msg.innerHTML = "";
+      pwd.value = "";
+      pwd.focus();
+    }
+
+    tabUser.onclick = ()=> setRole("user");
+    tabAdmin.onclick = ()=> setRole("admin");
+
+    gotoUser.onclick = ()=> location.href = "./user.html";
+
+    clearBtn.onclick = ()=>{
+      localStorage.removeItem(roleKey);
+      msg.innerHTML = '<div class="ok">已清除。</div>';
+    };
+
+    loginBtn.onclick = ()=>{
+      const v = (pwd.value||"").trim();
+      if(targetRole==="admin"){
+        if(v===ADMIN_PWD){
+          localStorage.setItem(roleKey, "admin");
+          location.href = "./admin.html";
+        }else{
+          msg.innerHTML = '<div class="err">管理者密碼錯誤</div>';
+        }
+      }else{
+        if(v===USER_PWD){
+          localStorage.setItem(roleKey, "user");
+          location.href = "./user.html";
+        }else{
+          msg.innerHTML = '<div class="err">使用者密碼錯誤</div>';
+        }
+      }
+    };
+
+    // 已登入就直達
+    const r = localStorage.getItem(roleKey);
+    if(r==="admin") location.href="./admin.html";
+    if(r==="user") location.href="./user.html";
   </script>
 </body>
 </html>
