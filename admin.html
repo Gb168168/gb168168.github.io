@@ -4,79 +4,130 @@
   <meta charset="UTF-8" />
   <title>管理者後台 - GoldBricks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:#f5f4fb;color:#111827;
-      overflow-y:scroll; /* ✅ 防左右抖 */
+      overflow-y:scroll;      /* 防止捲軸出現造成左右抖 */
+      overflow-x:hidden;      /* ✅ 防止任何橫向溢出蓋住 sidebar */
     }
-    .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+    /* ✅ 穩定骨架：Grid sidebar + main
+       關鍵：main 必須 min-width:0，避免內容撐爆蓋住 sidebar */
+    .app{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      min-height:100vh;
+      width:100%;
+    }
+
+    /* ✅ sidebar 永遠在最上層可點 */
     .side{
-      background:#111827;color:#fff;padding:16px 14px;position:sticky;top:0;height:100vh;
-      display:flex;flex-direction:column;gap:12px
+      background:#111827;color:#fff;
+      padding:16px 14px;
+      position:sticky;top:0;height:100vh;
+      display:flex;flex-direction:column;gap:12px;
+      z-index:50;
+      pointer-events:auto;
     }
+
     .brand{font-weight:900;font-size:16px}
     .sub{font-size:12px;color:rgba(255,255,255,.7)}
-    .nav{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+
+    .nav{display:flex;flex-direction:column;gap:8px;margin-top:6px}
     .nav button{
-      width:100%;text-align:left;border:none;border-radius:12px;padding:10px 12px;
-      background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer
+      width:100%;
+      text-align:left;
+      border:none;border-radius:12px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.08);
+      color:#fff;font-weight:800;cursor:pointer;
+      transition:.12s ease;
     }
     .nav button.active{background:linear-gradient(90deg,#fb7185,#f97316)}
     .nav button:hover{background:rgba(255,255,255,.14)}
     .side .footer{margin-top:auto;font-size:12px;color:rgba(255,255,255,.65)}
 
-    .main{padding:18px}
+    /* ✅ main 區域：一定不覆蓋 sidebar */
+    .main{
+      min-width:0;          /* ✅ 致命關鍵：避免 grid item 撐爆 */
+      position:relative;
+      z-index:1;
+      padding:18px;
+    }
+
     .topbar{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-      margin-bottom:14px;min-height:56px; /* ✅ 防上下抖 */
+      display:flex;justify-content:space-between;align-items:center;
+      gap:10px;flex-wrap:wrap;
+      margin-bottom:14px;
+      min-height:56px; /* 防上下抖 */
     }
     h2{font-size:18px}
     .muted{font-size:13px;color:#6b7280}
-    .card{
-      background:#fff;border-radius:16px;padding:12px 14px;
-      box-shadow:0 8px 25px rgba(15,23,42,0.08);margin-bottom:14px
+    .pill{
+      display:inline-block;
+      padding:2px 8px;border-radius:999px;
+      background:#f3f4f6;color:#4b5563;font-size:12px
     }
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 12px}
+    .card{
+      background:#fff;border-radius:16px;
+      padding:12px 14px;
+      box-shadow:0 8px 25px rgba(15,23,42,0.08);
+      margin-bottom:14px
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:10px 12px
+    }
+
     label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
+
     input,select,textarea{
       width:100%;
-      padding:7px 10px;           /* ✅ 整體變矮 */
+      padding:7px 10px;
       border-radius:10px;border:1px solid #d1d5db;
       font-size:13px;background:#fff;
       line-height:1.2;
+      outline:none;
     }
     textarea{resize:vertical;min-height:70px}
+
     /* ✅ 不要紅框 */
-    input:focus,select:focus,textarea:focus{outline:none;border-color:#9ca3af;box-shadow:none}
+    input:focus,select:focus,textarea:focus{border-color:#9ca3af;box-shadow:none}
 
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
-      padding:7px 12px;           /* ✅ 按鈕變矮 */
+      height:34px;
+      padding:0 14px;
       border-radius:999px;border:none;cursor:pointer;
-      background:linear-gradient(90deg,#fb7185,#f97316);color:#fff;font-size:13px;font-weight:900
+      background:linear-gradient(90deg,#fb7185,#f97316);
+      color:#fff;font-size:13px;font-weight:900
     }
     .btn.secondary{background:#e5e7eb;color:#111827}
     .btn.danger{background:#ef4444}
-    .btn.sm{padding:4px 10px;font-size:12px}
+    .btn.sm{height:28px;padding:0 10px;font-size:12px}
     .hr{height:1px;background:#e5e7eb;margin:12px 0;border:none}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;color:#4b5563;font-size:12px}
     .hint{font-size:12px;color:#6b7280;margin-top:6px}
     .hidden{display:none !important}
 
-    /* ✅ 新增人員：單行更緊湊 */
+    /* ✅ 新增人員：單行更緊 */
     .inlineForm{
-      display:flex;gap:10px;align-items:flex-end;flex-wrap:nowrap;
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+      flex-wrap:nowrap;
     }
     .inlineForm .f1{width:170px;flex:0 0 170px;}
     .inlineForm .f2{flex:1;min-width:260px;}
-    .inlineForm .f3{flex:0 0 auto;white-space:nowrap;}
-    .inlineForm label{margin-bottom:3px;}
-    .inlineForm input,.inlineForm select{height:34px;}  /* ✅ 高度鎖死 */
-    .inlineForm .btn{height:34px;padding:0 14px;}       /* ✅ 同高 */
+    .inlineForm .f3{flex:0 0 auto;}
+    .inlineForm input,.inlineForm select{height:34px}
 
     /* restaurant cards */
     .restaurant-grid{
@@ -91,6 +142,7 @@
     .restaurant-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,23,42,0.12)}
     .restaurant-card img{
       width:100%;height:140px;object-fit:cover;border-radius:10px;background:#e5e7eb;
+      display:block;
     }
     .restaurant-card .name{font-weight:900}
     .restaurant-card .sub{color:#6b7280;font-size:12px}
@@ -121,6 +173,9 @@
       background:#e5e7eb;
       display:block;
     }
+
+    /* ✅ 保險：防止任何透明層蓋住 sidebar */
+    .main, .main *{pointer-events:auto}
   </style>
 </head>
 
@@ -148,14 +203,14 @@
     <div class="topbar">
       <div>
         <h2 id="pageTitle">新增餐廳</h2>
-        <div class="muted" id="pageSub">先新增餐點，再新增店家（會寫入 Firebase）</div>
+        <div class="muted" id="pageSub">先新增餐點草稿，至少 1 個後才能新增店家</div>
       </div>
       <div class="row">
         <span class="pill" id="connState">Firebase：未初始化</span>
       </div>
     </div>
 
-    <!-- ============ 新增人員（單行更小） ============ -->
+    <!-- ============ 新增人員 ============ -->
     <section id="viewStaff" class="hidden">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:10px;">新增人員</h3>
@@ -163,7 +218,7 @@
         <form id="staffForm" class="inlineForm" autocomplete="off">
           <div class="f1">
             <label>部門</label>
-            <select id="deptSelect" name="nope-deptSelect" autocomplete="off">
+            <select id="deptSelect" name="nope-dept" autocomplete="off">
               <option value="管理部">管理部</option>
               <option value="FAE">FAE</option>
               <option value="TSE">TSE</option>
@@ -177,20 +232,19 @@
           </div>
 
           <div class="f2">
-            <label>人員名稱</label>
-            <input
-              id="staffName"
-              name="nope-staffName"
+            <label>人員姓名</label>
+            <input id="staffName"
+              name="nope-staff"
               autocomplete="off"
               autocapitalize="off"
               autocorrect="off"
               spellcheck="false"
-              placeholder="輸入人名後按 Enter 新增（支援中文輸入法）"
+              placeholder="輸入人名後按 Enter 新增"
             />
           </div>
 
           <div class="f3">
-            <button class="btn secondary" id="btnAddStaff" type="submit">新增</button>
+            <button class="btn secondary" type="submit">新增</button>
           </div>
         </form>
       </div>
@@ -238,7 +292,7 @@
         <h3 style="font-size:16px;margin-bottom:10px;">餐點管理（先加入餐點清單，再新增店家）</h3>
 
         <div class="grid">
-          <div><label>餐點類別（輸入）</label><input id="mCategory" name="nope-mCategory" autocomplete="off" placeholder="飯類/麵類/小菜/飲料..." /></div>
+          <div><label>餐點類別</label><input id="mCategory" name="nope-mCategory" autocomplete="off" placeholder="飯類/麵類/小菜/飲料..." /></div>
           <div><label>餐點名稱</label><input id="mName" name="nope-mName" autocomplete="off" placeholder="例如：排骨飯" /></div>
           <div><label>價格（單份）</label><input id="mPrice" type="number" min="0" step="1" /></div>
           <div><label>預設數量</label><input id="mQty" type="number" min="1" step="1" value="1" /></div>
@@ -281,7 +335,7 @@
         <div class="row" style="justify-content:space-between;">
           <div>
             <h3 style="font-size:16px;">餐廳管理</h3>
-            <div class="muted">點擊圖片進入店家資訊（可編輯）＋餐點管理（新增/編輯/刪除）</div>
+            <div class="muted">點擊圖片進入詳細（可編輯店家資訊、顯示/更換圖片、管理餐點）</div>
           </div>
           <input id="rmSearch" name="nope-rmSearch" autocomplete="off" placeholder="搜尋店家名稱" style="max-width:260px;" />
         </div>
@@ -298,7 +352,7 @@
         <div class="row" style="justify-content:space-between;align-items:flex-start;">
           <div>
             <h3 style="font-size:16px;margin-bottom:6px;" id="rdTitle">店家</h3>
-            <div class="muted">可編輯店家資訊、上傳圖片、刪除店家</div>
+            <div class="muted">可編輯店家資訊、顯示/更換圖片、刪除店家</div>
           </div>
           <div class="row">
             <button class="btn secondary" id="btnBackToManage" type="button">返回餐廳管理</button>
@@ -334,7 +388,7 @@
         <h3 style="font-size:16px;margin-bottom:10px;">在此店家新增餐點</h3>
 
         <div class="grid">
-          <div><label>餐點類別（輸入）</label><input id="rdmCategory" name="nope-rdmCategory" autocomplete="off" placeholder="飯類/麵類/..." /></div>
+          <div><label>餐點類別</label><input id="rdmCategory" name="nope-rdmCategory" autocomplete="off" placeholder="飯類/麵類/..." /></div>
           <div><label>餐點名稱</label><input id="rdmName" name="nope-rdmName" autocomplete="off" placeholder="例如：排骨飯" /></div>
           <div><label>價格</label><input id="rdmPrice" type="number" min="0" step="1" /></div>
           <div><label>預設數量</label><input id="rdmQty" type="number" min="1" step="1" value="1" /></div>
@@ -359,7 +413,7 @@
       </div>
 
       <div class="card">
-        <h3 style="font-size:16px;margin-bottom:10px;">餐點列表（可編輯 / 刪除單一餐點）</h3>
+        <h3 style="font-size:16px;margin-bottom:10px;">餐點列表（可刪除）</h3>
         <div id="rdMenuList"></div>
       </div>
     </section>
@@ -382,7 +436,7 @@
           <button class="btn secondary" id="btnLoadOrders" type="button">查詢</button>
           <button class="btn secondary" id="btnClearOrders" type="button">清空</button>
         </div>
-        <div class="hint">顯示：排骨飯70+蛋10 數量2；…（summary 欄位）</div>
+        <div class="hint">顯示：orders.summary</div>
       </div>
 
       <div class="card">
@@ -415,7 +469,7 @@
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
   // =========================================================
-  // ✅ firebaseConfig 自動帶入（存 localStorage 一次就好）
+  // ✅ firebaseConfig 自動帶入（localStorage）
   // =========================================================
   window.setFirebaseConfig = function(cfg){
     localStorage.setItem("firebaseConfig", JSON.stringify(cfg));
@@ -453,10 +507,10 @@
   }
 
   // init Firebase
-  let app, db, storage;
+  let db, storage;
   try{
-    const firebaseConfig = getFirebaseConfig();
-    app = initializeApp(firebaseConfig);
+    const cfg = getFirebaseConfig();
+    const app = initializeApp(cfg);
     db = getFirestore(app);
     storage = getStorage(app);
     document.getElementById("connState").textContent = "Firebase：已連線";
@@ -465,12 +519,12 @@
     console.error(e);
   }
 
-  // placeholder image
   const PLACEHOLDER_IMG = "https://dummyimage.com/600x400/e5e7eb/6b7280&text=No+Image";
 
-  // nav
+  // ===== Sidebar nav =====
   const pageTitle = document.getElementById("pageTitle");
   const pageSub = document.getElementById("pageSub");
+
   const navStaff = document.getElementById("navStaff");
   const navAddRestaurant = document.getElementById("navAddRestaurant");
   const navRestaurantManage = document.getElementById("navRestaurantManage");
@@ -502,6 +556,7 @@
     localStorage.setItem("role","user");
     location.href = "user.html";
   });
+
   navLogout.addEventListener("click", () => {
     if(!confirm("確定要登出嗎？")) return;
     localStorage.removeItem("role");
@@ -509,7 +564,7 @@
   });
 
   // =========================
-  // 1) staff（單行 + Enter）
+  // 1) 新增人員（Enter）
   // =========================
   const deptSelect = document.getElementById("deptSelect");
   const staffName = document.getElementById("staffName");
@@ -524,6 +579,7 @@
       await addDoc(collection(db, "staff"), { dept, name });
       staffName.value = "";
       await loadStaffGroups();
+      staffName.focus();
     }catch(e){
       toastError("新增人員失敗", e);
     }
@@ -890,7 +946,7 @@
     rdImageHint.textContent = r.imageUrl ? "目前已設定圖片" : "目前無圖片";
 
     rdPreview.src = r.imageUrl || PLACEHOLDER_IMG;
-    rdPreview.onerror = () => rdPreview.src = PLACEHOLDER_IMG;
+    rdPreview.onerror = () => (rdPreview.src = PLACEHOLDER_IMG);
 
     rdmCategory.value=""; rdmName.value=""; rdmPrice.value=""; rdmQty.value="1";
     rdAddonDraft = [];
@@ -899,7 +955,8 @@
     showOnly(viewRestaurantDetail);
     setActive(navRestaurantManage);
     pageTitle.textContent = "餐廳管理（詳細）";
-    pageSub.textContent = "編輯店家資訊、管理餐點（新增/編輯/刪除）";
+    pageSub.textContent = "可編輯店家資訊、顯示/更換圖片、管理餐點";
+
     await loadMenusInDetail(restaurantId);
   }
 
@@ -907,7 +964,7 @@
     showOnly(viewRestaurantManage);
     setActive(navRestaurantManage);
     pageTitle.textContent = "餐廳管理";
-    pageSub.textContent = "點擊圖片進入詳細（可編輯店家/新增餐點/編輯餐點/刪除）";
+    pageSub.textContent = "點擊圖片進入詳細（可編輯店家資訊、顯示圖片、管理餐點）";
   });
 
   btnSaveRestaurant.addEventListener("click", async () => {
@@ -953,7 +1010,7 @@
       showOnly(viewRestaurantManage);
       setActive(navRestaurantManage);
       pageTitle.textContent = "餐廳管理";
-      pageSub.textContent = "點擊圖片進入詳細（可編輯店家/新增餐點/編輯餐點/刪除）";
+      pageSub.textContent = "點擊圖片進入詳細（可編輯店家資訊、顯示圖片、管理餐點）";
     }catch(e){
       toastError("刪除店家失敗", e);
     }
@@ -1034,7 +1091,7 @@
   }
 
   // =========================
-  // 4) 訂餐紀錄（orders）
+  // 4) 訂餐紀錄
   // =========================
   const oDate = document.getElementById("oDate");
   const oMode = document.getElementById("oMode");
@@ -1105,7 +1162,9 @@
     }
   });
 
+  // =========================
   // Nav bindings
+  // =========================
   navStaff.addEventListener("click", async () => {
     setActive(navStaff);
     showOnly(viewStaff);
@@ -1126,7 +1185,7 @@
     setActive(navRestaurantManage);
     showOnly(viewRestaurantManage);
     pageTitle.textContent = "餐廳管理";
-    pageSub.textContent = "點擊圖片進入詳細（可編輯店家/新增餐點/刪除）";
+    pageSub.textContent = "點擊圖片進入詳細（顯示/更換圖片、管理餐點）";
     await loadRestaurantsForManage();
   });
 
@@ -1137,10 +1196,7 @@
     pageSub.textContent = "讀取 orders.summary 顯示";
   });
 
-  // init
-  function renderAddonDraft(){ addonDraftPreview.textContent = "目前無加購"; }
-  function renderMenuDraft(){ menuDraftList.innerHTML = `<div class="muted">尚未加入餐點</div>`; refreshCreateButton(); }
-
+  // init view
   renderAddonDraft();
   renderMenuDraft();
   refreshCreateButton();
