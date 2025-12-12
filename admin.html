@@ -11,20 +11,15 @@
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:#f5f4fb;color:#111827;
-      overflow-y:scroll;      /* 防止捲軸出現造成左右抖 */
-      overflow-x:hidden;      /* ✅ 防止任何橫向溢出蓋住 sidebar */
+      overflow-y:scroll;
+      overflow-x:hidden;
     }
-
-    /* ✅ 穩定骨架：Grid sidebar + main
-       關鍵：main 必須 min-width:0，避免內容撐爆蓋住 sidebar */
     .app{
       display:grid;
       grid-template-columns:260px 1fr;
       min-height:100vh;
       width:100%;
     }
-
-    /* ✅ sidebar 永遠在最上層可點 */
     .side{
       background:#111827;color:#fff;
       padding:16px 14px;
@@ -33,10 +28,8 @@
       z-index:50;
       pointer-events:auto;
     }
-
     .brand{font-weight:900;font-size:16px}
     .sub{font-size:12px;color:rgba(255,255,255,.7)}
-
     .nav{display:flex;flex-direction:column;gap:8px;margin-top:6px}
     .nav button{
       width:100%;
@@ -51,19 +44,17 @@
     .nav button:hover{background:rgba(255,255,255,.14)}
     .side .footer{margin-top:auto;font-size:12px;color:rgba(255,255,255,.65)}
 
-    /* ✅ main 區域：一定不覆蓋 sidebar */
     .main{
-      min-width:0;          /* ✅ 致命關鍵：避免 grid item 撐爆 */
+      min-width:0;
       position:relative;
       z-index:1;
       padding:18px;
     }
-
     .topbar{
       display:flex;justify-content:space-between;align-items:center;
       gap:10px;flex-wrap:wrap;
       margin-bottom:14px;
-      min-height:56px; /* 防上下抖 */
+      min-height:56px;
     }
     h2{font-size:18px}
     .muted{font-size:13px;color:#6b7280}
@@ -72,22 +63,18 @@
       padding:2px 8px;border-radius:999px;
       background:#f3f4f6;color:#4b5563;font-size:12px
     }
-
     .card{
       background:#fff;border-radius:16px;
       padding:12px 14px;
       box-shadow:0 8px 25px rgba(15,23,42,0.08);
       margin-bottom:14px
     }
-
     .grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
       gap:10px 12px
     }
-
     label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
-
     input,select,textarea{
       width:100%;
       padding:7px 10px;
@@ -97,8 +84,6 @@
       outline:none;
     }
     textarea{resize:vertical;min-height:70px}
-
-    /* ✅ 不要紅框 */
     input:focus,select:focus,textarea:focus{border-color:#9ca3af;box-shadow:none}
 
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -117,16 +102,11 @@
     .hint{font-size:12px;color:#6b7280;margin-top:6px}
     .hidden{display:none !important}
 
-    /* ✅ 新增人員：單行更緊 */
-    .inlineForm{
-      display:flex;
-      gap:10px;
-      align-items:flex-end;
-      flex-wrap:nowrap;
-    }
-    .inlineForm .f1{width:170px;flex:0 0 170px;}
-    .inlineForm .f2{flex:1;min-width:260px;}
-    .inlineForm .f3{flex:0 0 auto;}
+    /* 新增人員：單行 */
+    .inlineForm{display:flex;gap:10px;align-items:flex-end;flex-wrap:nowrap}
+    .inlineForm .f1{width:170px;flex:0 0 170px}
+    .inlineForm .f2{flex:1;min-width:260px}
+    .inlineForm .f3{flex:0 0 auto}
     .inlineForm input,.inlineForm select{height:34px}
 
     /* restaurant cards */
@@ -147,7 +127,6 @@
     .restaurant-card .name{font-weight:900}
     .restaurant-card .sub{color:#6b7280;font-size:12px}
 
-    /* menu item rows */
     .item{background:#f9fafb;border-radius:12px;padding:10px 12px;margin-bottom:10px}
     .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
     .itemName{font-weight:900;font-size:14px}
@@ -174,7 +153,6 @@
       display:block;
     }
 
-    /* ✅ 保險：防止任何透明層蓋住 sidebar */
     .main, .main *{pointer-events:auto}
   </style>
 </head>
@@ -210,7 +188,7 @@
       </div>
     </div>
 
-    <!-- ============ 新增人員 ============ -->
+    <!-- 新增人員 -->
     <section id="viewStaff" class="hidden">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:10px;">新增人員</h3>
@@ -255,7 +233,7 @@
       </div>
     </section>
 
-    <!-- ============ 新增餐廳 ============ -->
+    <!-- 新增餐廳 -->
     <section id="viewAddRestaurant">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:10px;">店家資訊</h3>
@@ -329,13 +307,13 @@
       </div>
     </section>
 
-    <!-- ============ 餐廳管理（列表） ============ -->
+    <!-- 餐廳管理列表 -->
     <section id="viewRestaurantManage" class="hidden">
       <div class="card">
         <div class="row" style="justify-content:space-between;">
           <div>
             <h3 style="font-size:16px;">餐廳管理</h3>
-            <div class="muted">點擊圖片進入詳細（可編輯店家資訊、顯示/更換圖片、管理餐點）</div>
+            <div class="muted">點擊圖片進入詳細（顯示/更換圖片、管理餐點）</div>
           </div>
           <input id="rmSearch" name="nope-rmSearch" autocomplete="off" placeholder="搜尋店家名稱" style="max-width:260px;" />
         </div>
@@ -346,7 +324,7 @@
       </div>
     </section>
 
-    <!-- ============ 餐廳管理（詳細） ============ -->
+    <!-- 餐廳管理詳細 -->
     <section id="viewRestaurantDetail" class="hidden">
       <div class="card">
         <div class="row" style="justify-content:space-between;align-items:flex-start;">
@@ -418,7 +396,7 @@
       </div>
     </section>
 
-    <!-- ============ 訂餐紀錄 ============ -->
+    <!-- 訂餐紀錄 -->
     <section id="viewOrders" class="hidden">
       <div class="card">
         <h3 style="font-size:16px;margin-bottom:10px;">訂餐紀錄</h3>
@@ -468,9 +446,9 @@
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-  // =========================================================
-  // ✅ firebaseConfig 自動帶入（localStorage）
-  // =========================================================
+  const PLACEHOLDER_IMG = "https://dummyimage.com/600x400/e5e7eb/6b7280&text=No+Image";
+
+  // ✅ 仍保留可選用：未來你要換專案就用這個
   window.setFirebaseConfig = function(cfg){
     localStorage.setItem("firebaseConfig", JSON.stringify(cfg));
     alert("已儲存 firebaseConfig，重新整理即可生效");
@@ -480,22 +458,25 @@
     alert("已清除 firebaseConfig");
   };
 
+  // ✅ 你的專案預設 firebaseConfig（直接內建，不用 Console）
+  const DEFAULT_FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBdgOddTGAFqqHLnhnaJRv2_y7gyweuQEo",
+    authDomain: "goldbricks-order.firebaseapp.com",
+    projectId: "goldbricks-order",
+    storageBucket: "goldbricks-order.firebasestorage.app",
+    messagingSenderId: "463709758954",
+    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
+  };
+
   function getFirebaseConfig(){
     const raw = localStorage.getItem("firebaseConfig");
-    if (!raw) {
-      alert(
-        "尚未設定 firebaseConfig。\n\n" +
-        "請到 F12 → Console 貼上：\n" +
-        "setFirebaseConfig({ apiKey:'...', authDomain:'...', projectId:'...', storageBucket:'...', messagingSenderId:'...', appId:'...' })"
-      );
-      throw new Error("firebaseConfig missing");
+    if (raw) {
+      try { return JSON.parse(raw); } catch(e){}
     }
-    return JSON.parse(raw);
+    return DEFAULT_FIREBASE_CONFIG;
   }
 
-  // =========================================================
-  // ✅ 角色檢查（admin 才能進）
-  // =========================================================
+  // 角色檢查
   (function checkRole(){
     const role = localStorage.getItem("role");
     if (role !== "admin") location.href = "index.html";
@@ -518,8 +499,6 @@
     document.getElementById("connState").textContent = "Firebase：初始化失敗";
     console.error(e);
   }
-
-  const PLACEHOLDER_IMG = "https://dummyimage.com/600x400/e5e7eb/6b7280&text=No+Image";
 
   // ===== Sidebar nav =====
   const pageTitle = document.getElementById("pageTitle");
@@ -581,7 +560,7 @@
       await loadStaffGroups();
       staffName.focus();
     }catch(e){
-      toastError("新增人員失敗", e);
+      toastError("新增人員失敗（多半是 Firestore rules 權限）", e);
     }
   }
 
@@ -685,11 +664,8 @@
     const price = Number(aPrice.value || 0);
     if (!name) return alert("請輸入加購名稱");
     if (!free && price <= 0) return alert("加購金額需大於 0（或勾免費）");
-
     addonDraft.push({ name, price: free ? 0 : price, free });
-    aName.value = "";
-    aPrice.value = "";
-    aFree.checked = false;
+    aName.value = ""; aPrice.value = ""; aFree.checked = false;
     renderAddonDraft();
   });
 
@@ -745,7 +721,6 @@
         mQty.value = m.defaultQty;
         addonDraft = JSON.parse(JSON.stringify(m.addons || []));
         renderAddonDraft();
-
         btnAddMenuDraft.textContent = "更新此草稿餐點";
         btnAddMenuDraft.dataset.editing = String(idx);
       });
@@ -759,7 +734,6 @@
     const name = mName.value.trim();
     const price = Number(mPrice.value || 0);
     const defaultQty = Math.max(1, Number(mQty.value || 1));
-
     if (!category) return alert("請輸入餐點類別");
     if (!name) return alert("請輸入餐點名稱");
     if (price <= 0) return alert("價格需大於 0");
@@ -775,13 +749,8 @@
       menuDraft.push(payload);
     }
 
-    mCategory.value = "";
-    mName.value = "";
-    mPrice.value = "";
-    mQty.value = "1";
-    addonDraft = [];
-    renderAddonDraft();
-    renderMenuDraft();
+    mCategory.value=""; mName.value=""; mPrice.value=""; mQty.value="1";
+    addonDraft=[]; renderAddonDraft(); renderMenuDraft();
   });
 
   async function uploadImageIfAny(file){
@@ -799,8 +768,7 @@
     if (!menuDraft.length) return alert("請至少加入 1 個餐點後再新增店家");
 
     btnCreateRestaurant.disabled = true;
-
-    try {
+    try{
       const imageUrl = await uploadImageIfAny(rImage.files?.[0] || null);
 
       const restRef = await addDoc(collection(db, "restaurants"), {
@@ -815,14 +783,7 @@
       const batch = writeBatch(db);
       menuDraft.forEach(m => {
         const docRef = doc(collection(db, "menus"));
-        batch.set(docRef, {
-          restaurantId: restRef.id,
-          category: m.category,
-          name: m.name,
-          price: m.price,
-          defaultQty: m.defaultQty,
-          addons: m.addons || []
-        });
+        batch.set(docRef, { restaurantId: restRef.id, ...m });
       });
       await batch.commit();
 
@@ -834,16 +795,16 @@
       btnCreateRestaurant.disabled = true;
 
       await loadRestaurantsForManage();
-    } catch (e) {
+    }catch(e){
       btnCreateRestaurant.disabled = false;
-      toastError("新增失敗（請檢查 Firestore/Storage 規則或 config）", e);
+      toastError("新增失敗（多半是 Firestore/Storage rules 權限）", e);
     }
   });
 
   rName.addEventListener("input", refreshCreateButton);
 
   // =========================
-  // 3) 餐廳管理（列表 & 詳細）
+  // 3) 餐廳管理
   // =========================
   const rmSearch = document.getElementById("rmSearch");
   const restaurantManageGrid = document.getElementById("restaurantManageGrid");
@@ -891,7 +852,6 @@
     const price = Number(rdaPrice.value || 0);
     if (!name) return alert("請輸入加購名稱");
     if (!free && price <= 0) return alert("加購金額需大於 0（或勾免費）");
-
     rdAddonDraft.push({ name, price: free ? 0 : price, free });
     rdaName.value=""; rdaPrice.value=""; rdaFree.checked=false;
     renderRdAddonDraft();
@@ -949,8 +909,7 @@
     rdPreview.onerror = () => (rdPreview.src = PLACEHOLDER_IMG);
 
     rdmCategory.value=""; rdmName.value=""; rdmPrice.value=""; rdmQty.value="1";
-    rdAddonDraft = [];
-    renderRdAddonDraft();
+    rdAddonDraft=[]; renderRdAddonDraft();
 
     showOnly(viewRestaurantDetail);
     setActive(navRestaurantManage);
@@ -964,13 +923,12 @@
     showOnly(viewRestaurantManage);
     setActive(navRestaurantManage);
     pageTitle.textContent = "餐廳管理";
-    pageSub.textContent = "點擊圖片進入詳細（可編輯店家資訊、顯示圖片、管理餐點）";
+    pageSub.textContent = "點擊圖片進入詳細（顯示/更換圖片、管理餐點）";
   });
 
   btnSaveRestaurant.addEventListener("click", async () => {
     if (!currentRestaurantId) return;
-    if (!confirm("確定要儲存店家資訊嗎？")) return;
-
+    if(!confirm("確定要儲存店家資訊嗎？")) return;
     try{
       let imageUrl = restaurantsCache.find(x=>x.id===currentRestaurantId)?.imageUrl || "";
       if (rdImage.files?.[0]) imageUrl = await uploadImageIfAny(rdImage.files[0]);
@@ -995,7 +953,7 @@
   btnDeleteRestaurant.addEventListener("click", async () => {
     if (!currentRestaurantId) return;
     const r = restaurantsCache.find(x=>x.id===currentRestaurantId);
-    if (!confirm(`確定要刪除店家「${r?.name||""}」嗎？\n（會同時刪除該店所有餐點）`)) return;
+    if(!confirm(`確定要刪除店家「${r?.name||""}」嗎？\n（會同時刪除該店所有餐點）`)) return;
 
     try{
       const menuSnap = await getDocs(query(collection(db,"menus"), where("restaurantId","==",currentRestaurantId)));
@@ -1010,7 +968,7 @@
       showOnly(viewRestaurantManage);
       setActive(navRestaurantManage);
       pageTitle.textContent = "餐廳管理";
-      pageSub.textContent = "點擊圖片進入詳細（可編輯店家資訊、顯示圖片、管理餐點）";
+      pageSub.textContent = "點擊圖片進入詳細（顯示/更換圖片、管理餐點）";
     }catch(e){
       toastError("刪除店家失敗", e);
     }
@@ -1018,7 +976,6 @@
 
   btnAddMenuToRestaurant.addEventListener("click", async () => {
     if (!currentRestaurantId) return alert("請先選擇店家");
-
     const category = rdmCategory.value.trim();
     const name = rdmName.value.trim();
     const price = Number(rdmPrice.value || 0);
@@ -1035,9 +992,7 @@
       });
 
       rdmCategory.value=""; rdmName.value=""; rdmPrice.value=""; rdmQty.value="1";
-      rdAddonDraft = [];
-      renderRdAddonDraft();
-
+      rdAddonDraft=[]; renderRdAddonDraft();
       await loadMenusInDetail(currentRestaurantId);
     }catch(e){
       toastError("新增餐點失敗", e);
@@ -1057,30 +1012,22 @@
         rdMenuList.innerHTML = `<div class="muted">尚無餐點</div>`;
         return;
       }
-
-      rdMenuList.innerHTML = list.map(m => {
-        const addonText = (Array.isArray(m.addons) && m.addons.length)
-          ? m.addons.map(a => a.free ? `${a.name}(免費)` : `${a.name}+$${a.price}`).join("、")
-          : "無";
-        return `
-          <div class="item">
-            <div class="itemTop">
-              <div>
-                <div class="itemName">${m.category || "未分類"}｜${m.name || ""}</div>
-                <div class="price">$${Number(m.price||0)}　預設${Number(m.defaultQty||1)}　加購：${addonText}</div>
-              </div>
-              <div class="row">
-                <button class="btn danger sm" data-del-menu="${m.id}" type="button">刪除</button>
-              </div>
+      rdMenuList.innerHTML = list.map(m => `
+        <div class="item">
+          <div class="itemTop">
+            <div>
+              <div class="itemName">${m.category || "未分類"}｜${m.name || ""}</div>
+              <div class="price">$${Number(m.price||0)}　預設${Number(m.defaultQty||1)}</div>
             </div>
+            <button class="btn danger sm" data-del-menu="${m.id}" type="button">刪除</button>
           </div>
-        `;
-      }).join("");
+        </div>
+      `).join("");
 
       rdMenuList.querySelectorAll("button[data-del-menu]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-del-menu");
-          if (!confirm("確定要刪除這個餐點嗎？")) return;
+          if(!confirm("確定要刪除這個餐點嗎？")) return;
           await deleteDoc(doc(db,"menus",id));
           await loadMenusInDetail(restaurantId);
         });
@@ -1117,7 +1064,6 @@
     try{
       const filters = [];
       if (oDate.value) filters.push(where("date","==",oDate.value));
-
       let qy = query(collection(db,"orders"), orderBy("date","desc"));
       if (filters.length) qy = query(collection(db,"orders"), ...filters, orderBy("date","desc"));
 
