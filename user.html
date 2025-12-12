@@ -1,96 +1,526 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>使用者點餐 - GoldBricks</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>點餐系統｜使用者</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f4fb;color:#111827;padding:16px}
-    .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 25px rgba(15,23,42,.08);margin-bottom:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    input,select{height:36px;border:1px solid #d1d5db;border-radius:12px;padding:8px 10px;font-size:13px}
-    button{height:36px;border:none;border-radius:999px;padding:0 14px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#fb7185,#f97316);color:#fff}
-    .muted{color:#6b7280;font-size:13px}
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --primary:#fb7185; --primary2:#f97316; --line:rgba(15,23,42,.10);
+      --shadow:0 14px 35px rgba(15,23,42,.10);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC";background:var(--bg);color:var(--text)}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .side{
+      background:linear-gradient(180deg,rgba(251,113,133,.16),rgba(249,115,22,.08));
+      border-right:1px solid var(--line); padding:18px; position:sticky; top:0; height:100vh
+    }
+    .brand{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+    .dot{width:10px;height:10px;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--primary2))}
+    .brand h1{font-size:16px;margin:0}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px;color:var(--muted)}
+    .nav{margin-top:12px;display:grid;gap:8px}
+    .nav button{
+      width:100%;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff;
+      cursor:pointer;font-weight:800
+    }
+    .nav button.active{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.10)}
+    .main{padding:18px;display:grid;gap:14px}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .title{display:grid;gap:4px}
+    .title h2{margin:0;font-size:18px}
+    .title .sub{color:var(--muted);font-size:12px}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
+      overflow:hidden
+    }
+    .cardHead{padding:14px 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(251,113,133,.10),rgba(249,115,22,.06))}
+    .cardHead b{font-size:14px}
+    .cardBody{padding:14px 16px;display:grid;gap:12px}
+    label{font-size:12px;color:var(--muted)}
+    select,input,textarea{
+      width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);outline:none;background:#fff;font-size:14px
+    }
+    select:focus,input:focus,textarea:focus{border-color:rgba(251,113,133,.55);box-shadow:0 0 0 4px rgba(251,113,133,.14)}
+    textarea{min-height:92px;resize:vertical}
+    .btn{
+      padding:10px 12px;border-radius:14px;border:0;cursor:pointer;font-weight:900;color:#fff;
+      background:linear-gradient(90deg,var(--primary),var(--primary2));
+      box-shadow:0 12px 26px rgba(251,113,133,.22);
+    }
+    .btn2{padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:900}
+    .row2{display:grid;grid-template-columns:1fr 110px;gap:10px}
+    .muted{color:var(--muted);font-size:12px;line-height:1.5}
+    .list{display:grid;gap:10px}
+    .item{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px}
+    .itemTop{display:flex;justify-content:space-between;gap:10px}
+    .itemTop b{font-size:14px}
+    .tag{font-size:12px;color:var(--muted)}
+    .mini{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(15,23,42,.02)}
+    .danger{border:1px solid rgba(185,28,28,.22);background:rgba(185,28,28,.06);color:#b91c1c}
+    .ok{border:1px solid rgba(22,163,74,.22);background:rgba(22,163,74,.06);color:#166534}
+    @media (max-width: 980px){
+      .app{grid-template-columns:1fr}
+      .side{position:relative;height:auto}
+      .grid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">
+        <span class="dot"></span>
+        <h1>點餐系統（使用者）</h1>
+      </div>
+      <div class="pill" id="whoPill">尚未選擇使用者</div>
 
-<div class="card">
-  <div class="row" style="justify-content:space-between">
-    <div>
-      <div style="font-weight:900">GoldBricks 使用者</div>
-      <div class="muted">此頁會自動匿名登入，允許寫入 orders</div>
-    </div>
-    <button id="btnGoAdmin" style="background:#111827">前往管理者</button>
+      <div class="nav">
+        <button class="active" id="tabOrder" type="button">點餐</button>
+        <button id="tabMine" type="button">我的訂餐紀錄</button>
+        <button id="tabSwitch" type="button">切換管理者（輸入 8520）</button>
+        <button id="tabLogout" type="button">回登入</button>
+      </div>
+
+      <div style="margin-top:12px" class="muted">
+        提醒：必須先選擇「部門 + 姓名」才能送出訂單。
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="title">
+          <h2 id="pageTitle">點餐</h2>
+          <div class="sub" id="pageSub">選餐廳 → 選餐點 → 數量/備註 → 加入 → 送出</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn2" id="refreshBtn" type="button">重新整理</button>
+        </div>
+      </div>
+
+      <section class="grid">
+        <!-- 左：點餐 -->
+        <div class="card" id="orderCard">
+          <div class="cardHead"><b>點餐</b></div>
+          <div class="cardBody">
+            <div class="row2">
+              <div class="row">
+                <label>部門</label>
+                <select id="deptSelect"><option value="">載入中…</option></select>
+              </div>
+              <div class="row">
+                <label>姓名</label>
+                <select id="nameSelect" disabled><option value="">請先選部門</option></select>
+              </div>
+            </div>
+
+            <div class="row">
+              <label>餐廳</label>
+              <select id="restSelect" disabled><option value="">請先選擇部門+姓名</option></select>
+            </div>
+
+            <div class="row">
+              <label>餐點</label>
+              <select id="menuSelect" disabled><option value="">請先選餐廳</option></select>
+            </div>
+
+            <div class="row2">
+              <div class="row">
+                <label>數量</label>
+                <input id="qtyInput" type="number" min="1" value="1" disabled />
+              </div>
+              <div class="row">
+                <label>預設數量</label>
+                <input id="defaultQty" type="text" value="-" disabled />
+              </div>
+            </div>
+
+            <div class="row">
+              <label>備註</label>
+              <textarea id="noteInput" placeholder="例：去冰/少糖/不要香菜…" disabled></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px">
+              <button class="btn2" id="addToCartBtn" type="button" disabled>加入購物車</button>
+              <button class="btn" id="submitBtn" type="button" disabled>送出訂單</button>
+            </div>
+
+            <div class="muted" id="statusText"></div>
+          </div>
+        </div>
+
+        <!-- 右：購物車 -->
+        <div class="card">
+          <div class="cardHead"><b>購物車</b></div>
+          <div class="cardBody">
+            <div id="cartList" class="list"></div>
+            <div class="muted" id="cartHint">尚未加入任何餐點。</div>
+            <button class="btn2 danger" id="clearCartBtn" type="button" style="display:none">清空購物車</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 我的訂餐紀錄 -->
+      <section class="card" id="mineCard" style="display:none">
+        <div class="cardHead"><b>我的訂餐紀錄</b></div>
+        <div class="cardBody">
+          <div class="muted">送出後會自動出現在這裡（只顯示你的部門+姓名）。</div>
+          <div id="mineList" class="list"></div>
+        </div>
+      </section>
+    </main>
   </div>
-  <div class="row" style="margin-top:10px;">
-    <span class="muted" id="authState">Auth：初始化中</span>
-  </div>
-</div>
 
-<div class="card">
-  <div style="font-weight:900;margin-bottom:10px;">測試下單（寫入 orders）</div>
-  <div class="row">
-    <input id="dept" autocomplete="off" placeholder="部門">
-    <input id="person" autocomplete="off" placeholder="姓名">
-    <input id="restaurantName" autocomplete="off" placeholder="店家">
-    <input id="summary" autocomplete="off" placeholder="彙整，如：排骨飯*1">
-    <input id="total" type="number" placeholder="金額">
-    <button id="btnSend">送出</button>
-  </div>
-  <div class="muted" style="margin-top:8px">※ 真正點餐 UI 你原本那套之後再接上即可</div>
-</div>
+  <!-- Firebase (Compat for simple drop-in) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+<script>
+/** =========================
+ *  ✅ 只要改這裡：firebaseConfig
+ *  ========================= */
+const firebaseConfig = {
+  // TODO: 貼上你自己的 firebaseConfig
+};
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdgOddTGAFqqHLnhnaJRv2_y7gyweuQEo",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.firebasestorage.app",
-    messagingSenderId: "463709758954",
-    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/** Collections（你可以保持不改）
+ *  staff: { dept, name, createdAt }
+ *  restaurants: { name, imageUrl?, createdAt }
+ *  menus: { restaurantId, name, price?, defaultQty?, createdAt }
+ *  orders: { dept, name, restaurantId, restaurantName, items:[...], createdAt }
+ */
+const $ = (id)=>document.getElementById(id);
+
+const state = {
+  dept:'', name:'',
+  restaurants:[], menusByRest:new Map(),
+  cart:[],
+  activeTab:'order'
+};
+
+function setTab(tab){
+  state.activeTab = tab;
+  $('tabOrder').classList.toggle('active', tab==='order');
+  $('tabMine').classList.toggle('active', tab==='mine');
+  $('orderCard').style.display = (tab==='order') ? 'block' : 'none';
+  $('mineCard').style.display = (tab==='mine') ? 'block' : 'none';
+  $('pageTitle').textContent = (tab==='order') ? '點餐' : '我的訂餐紀錄';
+  $('pageSub').textContent = (tab==='order') ? '選餐廳 → 選餐點 → 數量/備註 → 加入 → 送出' : '只顯示你的紀錄';
+}
+$('tabOrder').onclick=()=>setTab('order');
+$('tabMine').onclick=()=>{ setTab('mine'); loadMine(); };
+
+$('tabLogout').onclick=()=>location.href='index.html';
+$('refreshBtn').onclick=()=>location.reload();
+
+/** 切換管理者：user 也能輸入 8520 */
+$('tabSwitch').onclick=()=>{
+  const v = prompt('輸入管理者密碼 8520：');
+  if((v||'').trim()==='8520') location.href='admin.html';
+  else alert('密碼錯誤');
+};
+
+function whoLabel(){
+  if(!state.dept || !state.name) return '尚未選擇使用者';
+  return `${state.dept}｜${state.name}`;
+}
+function updateWho(){
+  $('whoPill').textContent = whoLabel();
+}
+
+/** ===== staff dropdown ===== */
+async function loadStaff(){
+  const snap = await db.collection('staff').orderBy('dept').orderBy('name').get();
+  const groups = {};
+  snap.forEach(d=>{
+    const s = d.data();
+    if(!s.dept || !s.name) return;
+    groups[s.dept] = groups[s.dept] || [];
+    groups[s.dept].push(s.name);
+  });
+
+  const depts = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+  $('deptSelect').innerHTML = `<option value="">請選部門</option>` + depts.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+
+  $('deptSelect').onchange=()=>{
+    state.dept = $('deptSelect').value;
+    state.name = '';
+    updateWho();
+    if(!state.dept){
+      $('nameSelect').innerHTML = `<option value="">請先選部門</option>`;
+      $('nameSelect').disabled = true;
+      lockOrder(true);
+      return;
+    }
+    const names = (groups[state.dept]||[]).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+    $('nameSelect').innerHTML = `<option value="">請選姓名</option>` + names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    $('nameSelect').disabled = false;
+    lockOrder(true);
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  $('nameSelect').onchange=()=>{
+    state.name = $('nameSelect').value;
+    updateWho();
+    const ready = !!(state.dept && state.name);
+    lockOrder(!ready);
+    if(ready) loadRestaurants();
+  };
+}
 
-  // 自動匿名登入（讓 orders.create 通過）
-  await signInAnonymously(auth);
+function lockOrder(lock){
+  $('restSelect').disabled = lock;
+  $('menuSelect').disabled = true;
+  $('qtyInput').disabled = true;
+  $('noteInput').disabled = true;
+  $('addToCartBtn').disabled = true;
+  $('submitBtn').disabled = true;
+  $('statusText').textContent = lock ? '請先選擇部門 + 姓名' : '';
+  $('restSelect').innerHTML = lock ? `<option value="">請先選擇部門+姓名</option>` : `<option value="">載入中…</option>`;
+  $('menuSelect').innerHTML = `<option value="">請先選餐廳</option>`;
+  $('defaultQty').value='-';
+  $('qtyInput').value=1;
+  $('noteInput').value='';
+}
 
-  onAuthStateChanged(auth, (user) => {
-    document.getElementById("authState").textContent =
-      user ? `Auth：已登入（匿名） ${user.uid.slice(0,6)}...` : "Auth：未登入";
+/** ===== restaurants & menus ===== */
+async function loadRestaurants(){
+  const snap = await db.collection('restaurants').orderBy('createdAt','desc').get();
+  state.restaurants = [];
+  snap.forEach(d=>{
+    const r = d.data();
+    state.restaurants.push({ id:d.id, name:r.name||'(未命名)', imageUrl:r.imageUrl||'' });
   });
 
-  document.getElementById("btnGoAdmin").addEventListener("click", () => {
-    localStorage.setItem("role","admin");
-    location.href = "index.html"; // 回入口登入
-  });
+  $('restSelect').innerHTML = `<option value="">請選餐廳</option>` + state.restaurants.map(r=>`<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('');
+  $('menuSelect').innerHTML = `<option value="">請先選餐廳</option>`;
+  $('menuSelect').disabled = true;
 
-  document.getElementById("btnSend").addEventListener("click", async () => {
-    const payload = {
-      date: new Date().toISOString().slice(0,10),
-      dept: document.getElementById("dept").value.trim(),
-      person: document.getElementById("person").value.trim(),
-      restaurantName: document.getElementById("restaurantName").value.trim(),
-      summary: document.getElementById("summary").value.trim(),
-      total: Number(document.getElementById("total").value || 0),
-      createdAt: Date.now()
-    };
-    try{
-      await addDoc(collection(db,"orders"), payload);
-      alert("已送出（寫入 orders）");
-    }catch(e){
-      console.error(e);
-      alert("送出失敗：請確認 Firestore Rules 的 orders.create 已允許 signed-in（匿名算）");
+  $('restSelect').onchange=async ()=>{
+    const rid = $('restSelect').value;
+    $('menuSelect').disabled = !rid;
+    $('qtyInput').disabled = true;
+    $('noteInput').disabled = true;
+    $('addToCartBtn').disabled = true;
+    $('submitBtn').disabled = state.cart.length===0;
+
+    if(!rid){
+      $('menuSelect').innerHTML = `<option value="">請先選餐廳</option>`;
+      return;
     }
+    await loadMenus(rid);
+  };
+}
+
+async function loadMenus(restaurantId){
+  $('menuSelect').innerHTML = `<option value="">載入中…</option>`;
+  const snap = await db.collection('menus').where('restaurantId','==',restaurantId).orderBy('createdAt','desc').get();
+  const menus = [];
+  snap.forEach(d=>{
+    const m = d.data();
+    menus.push({ id:d.id, name:m.name||'(未命名)', price:m.price ?? null, defaultQty:m.defaultQty ?? null });
   });
+  state.menusByRest.set(restaurantId, menus);
+
+  $('menuSelect').innerHTML = `<option value="">請選餐點</option>` + menus.map(m=>{
+    const p = (m.price!=null) ? `（$${m.price}）` : '';
+    return `<option value="${m.id}">${escapeHtml(m.name)}${p}</option>`;
+  }).join('');
+
+  $('menuSelect').onchange=()=>{
+    const mid = $('menuSelect').value;
+    if(!mid){
+      $('qtyInput').disabled = true;
+      $('noteInput').disabled = true;
+      $('addToCartBtn').disabled = true;
+      $('defaultQty').value='-';
+      return;
+    }
+    const m = menus.find(x=>x.id===mid);
+    $('qtyInput').disabled = false;
+    $('noteInput').disabled = false;
+    $('addToCartBtn').disabled = false;
+    $('submitBtn').disabled = state.cart.length===0;
+    $('defaultQty').value = (m && m.defaultQty!=null && m.defaultQty!=='') ? String(m.defaultQty) : '-';
+    $('qtyInput').value = (m && m.defaultQty!=null && Number(m.defaultQty)>0) ? Number(m.defaultQty) : 1;
+  };
+}
+
+/** ===== cart ===== */
+function renderCart(){
+  const list = $('cartList');
+  list.innerHTML = '';
+  $('cartHint').style.display = state.cart.length ? 'none' : 'block';
+  $('clearCartBtn').style.display = state.cart.length ? 'block' : 'none';
+  $('submitBtn').disabled = state.cart.length===0 || !(state.dept && state.name);
+
+  state.cart.forEach((it, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="itemTop">
+        <div>
+          <b>${escapeHtml(it.menuName)}</b>
+          <div class="tag">${escapeHtml(it.restaurantName)} ・ 數量 ${it.qty}</div>
+        </div>
+        <button class="btn2 danger" data-i="${idx}">刪除</button>
+      </div>
+      ${it.note ? `<div class="mini"><span class="chip">備註：${escapeHtml(it.note)}</span></div>` : ``}
+    `;
+    div.querySelector('button').onclick=()=>{
+      if(confirm('確定刪除這個餐點？')){
+        state.cart.splice(idx,1);
+        renderCart();
+      }
+    };
+    list.appendChild(div);
+  });
+}
+
+$('clearCartBtn').onclick=()=>{
+  if(confirm('確定清空購物車？')){
+    state.cart = [];
+    renderCart();
+  }
+};
+
+$('addToCartBtn').onclick=()=>{
+  const rid = $('restSelect').value;
+  const mid = $('menuSelect').value;
+  if(!rid || !mid) return;
+
+  const r = state.restaurants.find(x=>x.id===rid);
+  const menus = state.menusByRest.get(rid) || [];
+  const m = menus.find(x=>x.id===mid);
+  const qty = Math.max(1, Number($('qtyInput').value||1));
+  const note = ($('noteInput').value||'').trim();
+
+  state.cart.push({
+    restaurantId: rid,
+    restaurantName: r?.name || '',
+    menuId: mid,
+    menuName: m?.name || '',
+    qty,
+    note
+  });
+  $('noteInput').value='';
+  renderCart();
+};
+
+/** ===== submit order ===== */
+$('submitBtn').onclick=async ()=>{
+  if(!(state.dept && state.name)){
+    alert('請先選擇部門 + 姓名');
+    return;
+  }
+  if(!state.cart.length){ alert('購物車是空的'); return; }
+
+  const rid = state.cart[0].restaurantId;
+  const rname = state.cart[0].restaurantName;
+
+  // 同一張訂單限制同餐廳（避免混餐廳）
+  const mixed = state.cart.some(x=>x.restaurantId!==rid);
+  if(mixed){
+    alert('目前一次送出只支援同一間餐廳（請先清空再換餐廳）');
+    return;
+  }
+
+  try{
+    $('submitBtn').disabled = true;
+    $('statusText').textContent = '送出中…';
+
+    await db.collection('orders').add({
+      dept: state.dept,
+      name: state.name,
+      restaurantId: rid,
+      restaurantName: rname,
+      items: state.cart.map(x=>({ menuId:x.menuId, menuName:x.menuName, qty:x.qty, note:x.note })),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    state.cart = [];
+    renderCart();
+    $('statusText').textContent = '✅ 已送出！已更新「我的訂餐紀錄」。';
+    setTab('mine');
+    await loadMine();
+  }catch(e){
+    console.error(e);
+    alert('送出失敗，請檢查 Firebase 規則 / 網路');
+    $('statusText').textContent = '❌ 送出失敗';
+  }finally{
+    $('submitBtn').disabled = state.cart.length===0 || !(state.dept && state.name);
+  }
+};
+
+/** ===== mine orders ===== */
+async function loadMine(){
+  if(!(state.dept && state.name)){
+    $('mineList').innerHTML = `<div class="item danger">請先選擇部門 + 姓名</div>`;
+    return;
+  }
+  const snap = await db.collection('orders')
+    .where('dept','==',state.dept)
+    .where('name','==',state.name)
+    .orderBy('createdAt','desc')
+    .limit(30)
+    .get();
+
+  const list = $('mineList');
+  list.innerHTML = '';
+  if(snap.empty){
+    list.innerHTML = `<div class="item">尚無訂餐紀錄</div>`;
+    return;
+  }
+
+  snap.forEach(d=>{
+    const o = d.data();
+    const div = document.createElement('div');
+    div.className = 'item';
+    const items = (o.items||[]).map(i=>`<div class="chip">${escapeHtml(i.menuName)} × ${Number(i.qty||1)}${i.note?`（${escapeHtml(i.note)}）`:''}</div>`).join('');
+    div.innerHTML = `
+      <div class="itemTop">
+        <div>
+          <b>${escapeHtml(o.restaurantName||'')}</b>
+          <div class="tag">${formatTs(o.createdAt)} ・ ${escapeHtml(o.dept||'')}｜${escapeHtml(o.name||'')}</div>
+        </div>
+        <span class="chip ok">已送出</span>
+      </div>
+      <div class="mini">${items}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/** utils */
+function formatTs(ts){
+  try{
+    if(!ts) return '-';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0');
+    const hh=String(d.getHours()).padStart(2,'0'), mm=String(d.getMinutes()).padStart(2,'0');
+    return `${y}-${m}-${da} ${hh}:${mm}`;
+  }catch{return '-'}
+}
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+/** init */
+setTab('order');
+lockOrder(true);
+updateWho();
+loadStaff().catch(e=>{
+  console.error(e);
+  $('deptSelect').innerHTML = `<option value="">讀取 staff 失敗</option>`;
+});
+renderCart();
 </script>
 </body>
 </html>
