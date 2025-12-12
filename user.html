@@ -1,268 +1,96 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>使用者點餐</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>使用者點餐 - GoldBricks</title>
   <style>
-    :root{
-      --bg:#f5f4fb;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e8eaf3;
-      --primary:#fb7185;
-      --danger:#ef4444;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --r:20px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", Arial;
-      background:linear-gradient(135deg,#eef2ff 0%, #f5f4fb 45%, #fff1f2 100%);
-      color:var(--text);
-    }
-    header{
-      position:sticky; top:0; z-index:50;
-      backdrop-filter: blur(10px);
-      background:rgba(245,244,251,.7);
-      border-bottom:1px solid rgba(232,234,243,.8);
-    }
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
-    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
-    .brand{display:flex; gap:10px; align-items:center;}
-    .logo{
-      width:42px;height:42px;border-radius:14px;
-      background:linear-gradient(135deg,var(--primary),#ffd5c2);
-      box-shadow: 0 10px 18px rgba(251,113,133,.25);
-    }
-    h1{margin:0;font-size:18px}
-    .sub{font-size:12px;color:var(--muted);margin-top:2px}
-    .pill{
-      font-size:12px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(232,234,243,.9);
-      background:rgba(255,255,255,.6);
-      display:flex; gap:8px; align-items:center;
-      white-space:nowrap;
-    }
-    main{padding:16px 0 40px}
-    .grid{display:grid;grid-template-columns: 1fr;gap:16px;}
-
-    .card{
-      background:rgba(255,255,255,.9);
-      border:1px solid rgba(232,234,243,.9);
-      box-shadow:var(--shadow);
-      border-radius:var(--r);
-      overflow:hidden;
-    }
-    .cardHead{
-      padding:14px 16px;
-      border-bottom:1px solid rgba(232,234,243,.9);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      background:linear-gradient(90deg, rgba(99,102,241,.05), rgba(251,113,133,.08));
-      flex-wrap:wrap;
-    }
-    .cardHead h2{margin:0;font-size:14px}
-    .cardBody{padding:14px 16px}
-    .hint{font-size:12px;color:var(--muted);line-height:1.5}
-
-    .restaurants{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:12px;
-    }
-    @media (max-width: 900px){ .restaurants{grid-template-columns: repeat(2, minmax(0,1fr));} }
-    @media (max-width: 560px){ .restaurants{grid-template-columns: 1fr;} }
-
-    .rCard{
-      border:1px solid rgba(232,234,243,.95);
-      background:rgba(255,255,255,.85);
-      border-radius:18px;
-      overflow:hidden;
-      cursor:pointer;
-      transition:transform .12s ease, box-shadow .12s ease;
-    }
-    .rCard:hover{ transform: translateY(-1px); box-shadow: 0 16px 30px rgba(15,23,42,.10); }
-    .thumb{height:120px;background:#f8fafc;border-bottom:1px solid rgba(232,234,243,.95);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;}
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .rInfo{padding:10px 12px}
-    .rTitle{font-weight:900;font-size:14px;margin:0 0 4px}
-    .rMeta{margin:0;color:var(--muted);font-size:12px;line-height:1.4}
-
-    .toast{
-      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background:rgba(15,23,42,.92);
-      color:#fff;
-      padding:10px 12px;
-      border-radius:999px;
-      font-size:13px;
-      opacity:0; pointer-events:none;
-      transition:opacity .18s ease, transform .18s ease;
-    }
-    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
-
-    button{
-      border:none;
-      border-radius:14px;
-      padding:10px 12px;
-      cursor:pointer;
-      font-weight:800;
-      font-size:14px;
-    }
-    .btnGhost{
-      background:rgba(255,255,255,.8);
-      border:1px solid rgba(232,234,243,.95);
-      color:var(--text);
-    }
-    .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-    input{
-      border:1px solid rgba(232,234,243,.95);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
-      outline:none;
-      font-size:14px;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f4fb;color:#111827;padding:16px}
+    .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 8px 25px rgba(15,23,42,.08);margin-bottom:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input,select{height:36px;border:1px solid #d1d5db;border-radius:12px;padding:8px 10px;font-size:13px}
+    button{height:36px;border:none;border-radius:999px;padding:0 14px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#fb7185,#f97316);color:#fff}
+    .muted{color:#6b7280;font-size:13px}
   </style>
 </head>
-
 <body>
-<header>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <h1>使用者點餐</h1>
-          <div class="sub">點餐廳看菜單（只顯示上架餐點）</div>
-        </div>
-      </div>
 
-      <div class="inline">
-        <div class="pill">想切管理者？輸入 8520 →</div>
-        <input id="adminCode" placeholder="8520" style="width:120px" />
-        <button class="btnGhost" id="btnToAdmin">切換</button>
-      </div>
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <div>
+      <div style="font-weight:900">GoldBricks 使用者</div>
+      <div class="muted">此頁會自動匿名登入，允許寫入 orders</div>
     </div>
+    <button id="btnGoAdmin" style="background:#111827">前往管理者</button>
   </div>
-</header>
+  <div class="row" style="margin-top:10px;">
+    <span class="muted" id="authState">Auth：初始化中</span>
+  </div>
+</div>
 
-<main class="wrap">
-  <section class="card">
-    <div class="cardHead">
-      <h2>餐廳列表</h2>
-      <span class="hint" id="counts">0 餐廳</span>
-    </div>
-    <div class="cardBody">
-      <div class="hint" style="margin-bottom:10px;">（這頁先做切換＋顯示餐廳；你後續要的點餐流程我也能接著補上）</div>
-      <div class="restaurants" id="restaurantList"></div>
-      <div id="empty" class="hint" style="display:none;">
-        目前沒有餐廳資料。請切到管理者新增餐廳與餐點。
-      </div>
-    </div>
-  </section>
-</main>
+<div class="card">
+  <div style="font-weight:900;margin-bottom:10px;">測試下單（寫入 orders）</div>
+  <div class="row">
+    <input id="dept" autocomplete="off" placeholder="部門">
+    <input id="person" autocomplete="off" placeholder="姓名">
+    <input id="restaurantName" autocomplete="off" placeholder="店家">
+    <input id="summary" autocomplete="off" placeholder="彙整，如：排骨飯*1">
+    <input id="total" type="number" placeholder="金額">
+    <button id="btnSend">送出</button>
+  </div>
+  <div class="muted" style="margin-top:8px">※ 真正點餐 UI 你原本那套之後再接上即可</div>
+</div>
 
-<div class="toast" id="toast">提示</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-<script>
-  const STORE_KEY = "jabenlo_data_v2";
-  const ADMIN_FLAG_KEY = "jabenlo_is_admin";
-  const ADMIN_CODE = "8520";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBdgOddTGAFqqHLnhnaJRv2_y7gyweuQEo",
+    authDomain: "goldbricks-order.firebaseapp.com",
+    projectId: "goldbricks-order",
+    storageBucket: "goldbricks-order.firebasestorage.app",
+    messagingSenderId: "463709758954",
+    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
+  };
 
-  const $ = (id)=> document.getElementById(id);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  function toast(msg){
-    const el = $("toast");
-    el.textContent = msg;
-    el.classList.add("show");
-    clearTimeout(window.__t);
-    window.__t = setTimeout(()=> el.classList.remove("show"), 1200);
-  }
+  // 自動匿名登入（讓 orders.create 通過）
+  await signInAnonymously(auth);
 
-  function load(){
+  onAuthStateChanged(auth, (user) => {
+    document.getElementById("authState").textContent =
+      user ? `Auth：已登入（匿名） ${user.uid.slice(0,6)}...` : "Auth：未登入";
+  });
+
+  document.getElementById("btnGoAdmin").addEventListener("click", () => {
+    localStorage.setItem("role","admin");
+    location.href = "index.html"; // 回入口登入
+  });
+
+  document.getElementById("btnSend").addEventListener("click", async () => {
+    const payload = {
+      date: new Date().toISOString().slice(0,10),
+      dept: document.getElementById("dept").value.trim(),
+      person: document.getElementById("person").value.trim(),
+      restaurantName: document.getElementById("restaurantName").value.trim(),
+      summary: document.getElementById("summary").value.trim(),
+      total: Number(document.getElementById("total").value || 0),
+      createdAt: Date.now()
+    };
     try{
-      const raw = localStorage.getItem(STORE_KEY);
-      const data = raw ? JSON.parse(raw) : { restaurants: [], staff: [] };
-      data.restaurants = Array.isArray(data.restaurants) ? data.restaurants : [];
-      return data;
+      await addDoc(collection(db,"orders"), payload);
+      alert("已送出（寫入 orders）");
     }catch(e){
-      return { restaurants: [], staff: [] };
+      console.error(e);
+      alert("送出失敗：請確認 Firestore Rules 的 orders.create 已允許 signed-in（匿名算）");
     }
-  }
-
-  function render(){
-    const data = load();
-    $("counts").textContent = `${data.restaurants.length} 餐廳`;
-
-    const box = $("restaurantList");
-    box.innerHTML = "";
-
-    $("empty").style.display = data.restaurants.length ? "none" : "block";
-
-    data.restaurants.forEach(r=>{
-      const card = document.createElement("div");
-      card.className = "rCard";
-      card.onclick = ()=> toast("下一步我可以幫你做：進餐廳→選餐→送出→訂餐紀錄");
-
-      const thumb = document.createElement("div");
-      thumb.className = "thumb";
-      if(r.photo){
-        const img = document.createElement("img");
-        img.src = r.photo;
-        img.alt = r.name;
-        img.onerror = ()=> thumb.textContent = "圖片載入失敗";
-        thumb.appendChild(img);
-      }else{
-        thumb.textContent = "尚未設定店家圖片";
-      }
-
-      const info = document.createElement("div");
-      info.className = "rInfo";
-
-      const title = document.createElement("p");
-      title.className = "rTitle";
-      title.textContent = r.name || "(未命名)";
-
-      const meta = document.createElement("p");
-      meta.className = "rMeta";
-      const addr = r.address ? `📍 ${r.address}` : "";
-      const openItems = Array.isArray(r.menu) ? r.menu.filter(x=> x.enabled !== false).length : 0;
-      meta.textContent = [addr, `🍱 上架 ${openItems} 道`].filter(Boolean).join("  ·  ");
-
-      info.appendChild(title);
-      info.appendChild(meta);
-
-      card.appendChild(thumb);
-      card.appendChild(info);
-      box.appendChild(card);
-    });
-  }
-
-  $("btnToAdmin").addEventListener("click", ()=>{
-    const code = ($("adminCode").value || "").trim();
-    if(code !== ADMIN_CODE){
-      toast("密碼錯誤");
-      return;
-    }
-    localStorage.setItem(ADMIN_FLAG_KEY, "1");
-    location.href = "admin.html";
   });
-
-  // Enter 也可切
-  $("adminCode").addEventListener("keydown", (e)=>{
-    if(e.key === "Enter") $("btnToAdmin").click();
-  });
-
-  // 初始化：如果目前已是 admin，直接導到 admin
-  if(localStorage.getItem(ADMIN_FLAG_KEY) === "1"){
-    location.href = "admin.html";
-  }else{
-    render();
-  }
 </script>
 </body>
 </html>
