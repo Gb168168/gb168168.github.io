@@ -148,7 +148,7 @@
     <div class="muted" style="margin-top:8px;">點錯餐可以刪除（會跳確認）。送出後寫入 orders。</div>
   </div>
 
-  <!-- 訂餐紀錄（放在點餐 card 的下面） -->
+  <!-- 訂餐紀錄 -->
   <div class="card" id="recordCard">
     <h3 style="font-size:16px;margin-bottom:10px;">訂餐紀錄</h3>
 
@@ -249,6 +249,7 @@
   const btnSubmit = document.getElementById("btnSubmit");
 
   // 訂餐紀錄 DOM
+  const recordCard = document.getElementById("recordCard");
   const qDate = document.getElementById("qDate");
   const qRestaurant = document.getElementById("qRestaurant");
   const qName = document.getElementById("qName");
@@ -547,6 +548,75 @@
     totalText.textContent = `總計：$${total}`;
   }
 
+  // ===== 訂餐紀錄：店家選單 =====
+  function renderRecordRestaurantOptions() {
+    qRestaurant.innerHTML =
+      `<option value="">全部店家</option>` +
+      restaurants.map(r => `<option value="${r.id}">${r.name || "未命名"}</option>`).join("");
+  }
+
+  // ===== 訂餐紀錄：查詢 / 顯示 / 刪除 =====
+  function recordRowHtml(o) {
+    return `
+      <tr>
+        <td>${o.date || ""}</td>
+        <td>${o.dept || ""} / ${o.person || ""}</td>
+        <td>${o.restaurantName || ""}</td>
+        <td>${o.summary || ""}</td>
+        <td>$${Number(o.total||0)}</td>
+        <td><button class="btn danger sm" data-del-order="${o.id}">刪除</button></td>
+      </tr>
+    `;
+  }
+
+  function bindRecordDelete() {
+    recordBody.querySelectorAll("button[data-del-order]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del-order");
+        const ok = confirm("確定要刪除這筆訂單紀錄嗎？");
+        if (!ok) return;
+        await deleteDoc(doc(db, "orders", id));
+        btn.closest("tr")?.remove();
+      });
+    });
+  }
+
+  async function runRecordQuery() {
+    recordBody.innerHTML = "";
+
+    const filters = [];
+    if (qDate.value) filters.push(where("date", "==", qDate.value));
+    if (qRestaurant.value) filters.push(where("restaurantId", "==", qRestaurant.value));
+
+    let qy = query(collection(db, "orders"), orderBy("date", "desc"));
+    if (filters.length) qy = query(collection(db, "orders"), ...filters, orderBy("date", "desc"));
+
+    const snap = await getDocs(qy);
+    let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const kw = qName.value.trim().toLowerCase();
+    if (kw) {
+      list = list.filter(o => (o.person || "").toLowerCase().includes(kw));
+    }
+
+    if (!list.length) {
+      recordBody.innerHTML = `<tr><td colspan="6" class="muted">查無資料</td></tr>`;
+      return;
+    }
+
+    recordBody.innerHTML = list.map(recordRowHtml).join("");
+    bindRecordDelete();
+  }
+
+  btnQuery.addEventListener("click", runRecordQuery);
+
+  btnClear.addEventListener("click", () => {
+    qDate.value = "";
+    qRestaurant.value = "";
+    qName.value = "";
+    recordBody.innerHTML = "";
+  });
+
   // ===== 送出訂單 =====
   function summarizeItems(items) {
     return items.map(it => {
@@ -557,6 +627,7 @@
     }).join("；");
   }
 
+  const btnSubmit = document.getElementById("btnSubmit");
   btnSubmit.addEventListener("click", async () => {
     const dept = deptSelect.value;
     const person = personSelect.value;
@@ -604,82 +675,18 @@
       cart = new Map();
       updateCartUI();
 
-      // 送出後，如果使用者剛好在查紀錄，可以直接重新查一次
-      // 這邊不強制自動查，避免突然刷表格；想自動刷你跟我說我再加。
+      // ✅ 送出後自動顯示我的紀錄
+      qDate.value = date;
+      qName.value = person;
+      qRestaurant.value = currentRestaurant.id;
+
+      recordCard.scrollIntoView({ behavior: "smooth" });
+      await runRecordQuery();
+
     } catch (err) {
       console.error(err);
       alert("送出失敗，請檢查 Firebase 規則或網路");
     }
-  });
-
-  // ===== 訂餐紀錄：店家選單 =====
-  function renderRecordRestaurantOptions() {
-    qRestaurant.innerHTML =
-      `<option value="">全部店家</option>` +
-      restaurants.map(r => `<option value="${r.id}">${r.name || "未命名"}</option>`).join("");
-  }
-
-  // ===== 訂餐紀錄：查詢 / 顯示 / 刪除 =====
-  function recordRowHtml(o) {
-    return `
-      <tr>
-        <td>${o.date || ""}</td>
-        <td>${o.dept || ""} / ${o.person || ""}</td>
-        <td>${o.restaurantName || ""}</td>
-        <td>${o.summary || ""}</td>
-        <td>$${Number(o.total||0)}</td>
-        <td><button class="btn danger sm" data-del-order="${o.id}">刪除</button></td>
-      </tr>
-    `;
-  }
-
-  function bindRecordDelete() {
-    recordBody.querySelectorAll("button[data-del-order]").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-del-order");
-        const ok = confirm("確定要刪除這筆訂單紀錄嗎？");
-        if (!ok) return;
-        await deleteDoc(doc(db, "orders", id));
-        btn.closest("tr")?.remove();
-      });
-    });
-  }
-
-  btnQuery.addEventListener("click", async () => {
-    recordBody.innerHTML = "";
-
-    // 擇一即可查（人名模糊查在前端過濾）
-    const filters = [];
-    if (qDate.value) filters.push(where("date", "==", qDate.value));
-    if (qRestaurant.value) filters.push(where("restaurantId", "==", qRestaurant.value));
-
-    // 注意：createdAt 若有些舊資料沒有，orderBy 可能報錯
-    // 這裡用 date 排序，穩定很多
-    let qy = query(collection(db, "orders"), orderBy("date", "desc"));
-    if (filters.length) qy = query(collection(db, "orders"), ...filters, orderBy("date", "desc"));
-
-    const snap = await getDocs(qy);
-    let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const kw = qName.value.trim().toLowerCase();
-    if (kw) {
-      list = list.filter(o => (o.person || "").toLowerCase().includes(kw));
-    }
-
-    if (!list.length) {
-      recordBody.innerHTML = `<tr><td colspan="6" class="muted">查無資料</td></tr>`;
-      return;
-    }
-
-    recordBody.innerHTML = list.map(recordRowHtml).join("");
-    bindRecordDelete();
-  });
-
-  btnClear.addEventListener("click", () => {
-    qDate.value = "";
-    qRestaurant.value = "";
-    qName.value = "";
-    recordBody.innerHTML = "";
   });
 
   // ===== init =====
