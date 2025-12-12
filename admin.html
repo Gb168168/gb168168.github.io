@@ -227,7 +227,7 @@
     <div class="topbar">
       <div>
         <h3>新增餐廳</h3>
-        <div class="info">一進頁面先顯示「新增餐廳」區塊</div>
+        <div class="info">填完上方餐廳資料與下方餐點後，按「新增餐點」會一併建立餐廳。</div>
       </div>
       <div class="info">目前身分：管理者</div>
     </div>
@@ -262,7 +262,12 @@
           <label>備註</label>
           <textarea id="rest-note" placeholder="例如：只收現金、可先電話預訂等..."></textarea>
         </div>
-        <button class="btn mt-12" id="btn-add-restaurant">新增餐廳</button>
+
+        <div class="mt-8" style="font-size:12px;color:#6b7280;">
+          提示：<br>
+          ・新增「全新餐廳」時，請先填寫上方餐廳資料，再到下方新增第一筆餐點，即會一併建立餐廳。<br>
+          ・要新增「既有餐廳」的餐點，可直接在下方選擇餐廳後新增餐點。
+        </div>
 
         <div class="list" id="restaurant-list"></div>
       </div>
@@ -273,12 +278,11 @@
           <div>
             <label>餐廳名稱</label>
             <select id="menu-rest-select">
-              <option value="">請先新增餐廳</option>
+              <option value="">（若為新餐廳可留白）</option>
             </select>
           </div>
           <div>
             <label>餐點類別</label>
-            <!-- 類別輸入 + 歷史選項 -->
             <input id="menu-category" list="category-list" placeholder="輸入餐點類別，如：飯類 / 湯品 / 飲料" />
             <datalist id="category-list"></datalist>
           </div>
@@ -303,7 +307,7 @@
           <button class="btn secondary sm mt-8" id="btn-add-addon">＋ 新增一個加購</button>
         </div>
 
-        <button class="btn mt-12" id="btn-add-menu">新增餐點</button>
+        <button class="btn mt-12" id="btn-add-menu">新增餐點（若為新餐廳會一併建立）</button>
 
         <div class="list" id="menu-list"></div>
       </div>
@@ -340,11 +344,11 @@
           <label>備註</label>
           <textarea id="edit-rest-note"></textarea>
         </div>
-        <button class="btn mt-12" id="btn-save-rest">儲存修改</button>
+        <button class="btn mt-12" id="btn-save-rest">儲存餐廳修改</button>
 
-        <!-- 餐點列表（表格 + 刪除） -->
+        <!-- 餐點列表（表格 + 編輯 + 刪除） -->
         <div class="mt-16">
-          <h4 style="font-size:15px;margin-bottom:6px;">餐點列表</h4>
+          <h4 style="font-size:15px;margin-bottom:6px;">餐點列表（可編輯 / 刪除）</h4>
           <div style="overflow-x:auto;">
             <table>
               <thead>
@@ -427,8 +431,6 @@
               <option value="維運">維運</option>
             </select>
           </div>
-
-          <!-- 按鈕放在人名右邊 -->
           <div>
             <label>人員名稱</label>
             <div class="flex">
@@ -437,7 +439,6 @@
             </div>
           </div>
         </div>
-
         <div class="list" id="staff-list"></div>
       </div>
     </section>
@@ -494,7 +495,7 @@
     const staffByDept = {};   // dept -> [name,...]
     const categoryHistory = []; // 餐點類別歷史
 
-    // 1-2 新增餐廳
+    // 共同 DOM
     const restNameInput = document.getElementById("rest-name");
     const restPhoneInput = document.getElementById("rest-phone");
     const restAddressInput = document.getElementById("rest-address");
@@ -503,8 +504,8 @@
     const restImageInput = document.getElementById("rest-image");
     const restListDiv = document.getElementById("restaurant-list");
     const restSelect = document.getElementById("menu-rest-select");
-
     const restCardsDiv = document.getElementById("restaurant-cards");
+
     const editPanel = document.getElementById("restaurant-edit-panel");
     const editNameInput = document.getElementById("edit-rest-name");
     const editPhoneInput = document.getElementById("edit-rest-phone");
@@ -513,11 +514,13 @@
     const editNoteInput = document.getElementById("edit-rest-note");
     const editMenuTableBody = document.getElementById("edit-menu-table-body");
     const btnDeleteRest = document.getElementById("btn-delete-rest");
+
     let editingRestaurantId = null;
 
+    // ===== 餐廳列表 & 卡片 =====
     function renderRestaurantsList() {
       restListDiv.innerHTML = "";
-      restSelect.innerHTML = '<option value="">請選擇餐廳</option>';
+      restSelect.innerHTML = '<option value="">（若為新餐廳可留白）</option>';
 
       restaurants.forEach((r, idx) => {
         const row = document.createElement("div");
@@ -539,11 +542,7 @@
         card.dataset.id = r.id;
 
         const img = document.createElement("img");
-        if (r.image) {
-          img.src = r.image;
-        } else {
-          img.alt = "no image";
-        }
+        if (r.image) img.src = r.image;
         card.appendChild(img);
 
         const nameDiv = document.createElement("div");
@@ -556,14 +555,12 @@
         subDiv.textContent = r.address || "";
         card.appendChild(subDiv);
 
-        card.addEventListener("click", () => {
-          openEditRestaurant(r.id);
-        });
-
+        card.addEventListener("click", () => openEditRestaurant(r.id));
         restCardsDiv.appendChild(card);
       });
     }
 
+    // ===== 1-3 編輯餐廳 & 餐點 =====
     function openEditRestaurant(id) {
       const r = restaurants.find(x => x.id === id);
       if (!r) return;
@@ -574,10 +571,9 @@
       editMapInput.value = r.map || "";
       editNoteInput.value = r.note || "";
       editPanel.style.display = "block";
-
       renderEditMenusTable();
 
-      // 自動切到 1-3 選單
+      // 左側選單切到 1-3
       menu.querySelectorAll("li").forEach(li => li.classList.remove("active"));
       const li = Array.from(menu.querySelectorAll("li")).find(li => li.dataset.target === "section-restaurants");
       if (li) li.classList.add("active");
@@ -591,6 +587,7 @@
       editMenuTableBody.innerHTML = "";
       if (!editingRestaurantId) return;
       const list = menus.filter(m => m.restaurantId === editingRestaurantId);
+
       list.forEach((m, idx) => {
         const tr = document.createElement("tr");
         const addonText = m.addons
@@ -599,26 +596,45 @@
 
         tr.innerHTML = `
           <td>${idx + 1}</td>
-          <td>${m.category || ""}</td>
-          <td>${m.name}</td>
-          <td>${m.price}</td>
-          <td>${m.defaultQty}</td>
+          <td><input data-field="category" data-id="${m.id}" value="${m.category || ""}" style="width:100%;"></td>
+          <td><input data-field="name" data-id="${m.id}" value="${m.name}" style="width:100%;"></td>
+          <td><input data-field="price" data-id="${m.id}" type="number" min="0" step="1" value="${m.price}"></td>
+          <td><input data-field="defaultQty" data-id="${m.id}" type="number" min="1" step="1" value="${m.defaultQty}"></td>
           <td style="font-size:12px;color:#6b7280;">${addonText}</td>
-          <td><button class="btn secondary sm" data-id="${m.id}">刪除</button></td>
+          <td>
+            <button class="btn secondary sm" data-action="save" data-id="${m.id}">儲存</button>
+            <button class="btn secondary sm" data-action="delete" data-id="${m.id}">刪除</button>
+          </td>
         `;
         editMenuTableBody.appendChild(tr);
       });
 
-      // 綁定刪除餐點按鈕
-      editMenuTableBody.querySelectorAll("button[data-id]").forEach(btn => {
+      // 綁定操作按鈕
+      editMenuTableBody.querySelectorAll("button[data-action]").forEach(btn => {
         btn.addEventListener("click", () => {
           const id = btn.getAttribute("data-id");
-          const idx = menus.findIndex(m => m.id === id);
-          if (idx !== -1) {
-            menus.splice(idx, 1);
-            renderMenusForRestaurant(editingRestaurantId);
-            renderEditMenusTable();
+          const action = btn.getAttribute("data-action");
+          const index = menus.findIndex(x => x.id === id);
+          if (index === -1) return;
+
+          if (action === "delete") {
+            menus.splice(index, 1);
+          } else if (action === "save") {
+            // 抓同一列的 input
+            const rowInputs = editMenuTableBody.querySelectorAll(`input[data-id="${id}"]`);
+            rowInputs.forEach(inp => {
+              const field = inp.getAttribute("data-field");
+              let val = inp.value;
+              if (field === "price" || field === "defaultQty") {
+                val = Number(val || "0");
+              }
+              menus[index][field] = val;
+            });
+            alert("已儲存餐點修改");
           }
+
+          renderMenusForRestaurant(editingRestaurantId);
+          renderEditMenusTable();
         });
       });
     }
@@ -644,15 +660,11 @@
       const ok = window.confirm(`確定要刪除店家「${r.name}」以及所有餐點嗎？`);
       if (!ok) return;
 
-      // 刪除店家
       const idx = restaurants.findIndex(x => x.id === editingRestaurantId);
       if (idx !== -1) restaurants.splice(idx, 1);
 
-      // 刪除該店所有餐點
       for (let i = menus.length - 1; i >= 0; i--) {
-        if (menus[i].restaurantId === editingRestaurantId) {
-          menus.splice(i, 1);
-        }
+        if (menus[i].restaurantId === editingRestaurantId) menus.splice(i, 1);
       }
 
       editingRestaurantId = null;
@@ -662,43 +674,7 @@
       document.getElementById("menu-list").innerHTML = "";
     });
 
-    document.getElementById("btn-add-restaurant").addEventListener("click", () => {
-      const name = restNameInput.value.trim();
-      if (!name) { alert("請輸入餐廳名稱"); return; }
-
-      const restObj = {
-        id: Date.now().toString(),
-        name,
-        phone: restPhoneInput.value.trim(),
-        address: restAddressInput.value.trim(),
-        map: restMapInput.value.trim(),
-        note: restNoteInput.value.trim(),
-        image: null
-      };
-      restaurants.push(restObj);
-
-      const file = restImageInput.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          restObj.image = e.target.result;
-          renderRestaurantCards();
-        };
-        reader.readAsDataURL(file);
-      }
-
-      restNameInput.value = "";
-      restPhoneInput.value = "";
-      restAddressInput.value = "";
-      restMapInput.value = "";
-      restNoteInput.value = "";
-      restImageInput.value = "";
-
-      renderRestaurantsList();
-      renderRestaurantCards();
-    });
-
-    // 2-2 加購項目欄位
+    // ===== 2-2 加購 =====
     const addonsContainer = document.getElementById("addons-container");
     const btnAddAddon = document.getElementById("btn-add-addon");
 
@@ -727,9 +703,9 @@
       });
     }
     btnAddAddon.addEventListener("click", createAddonRow);
-    createAddonRow(); // 預設一列
+    createAddonRow();
 
-    // 類別歷史 datalist 更新
+    // 類別歷史 datalist
     const categoryInput = document.getElementById("menu-category");
     const categoryList = document.getElementById("category-list");
 
@@ -751,17 +727,18 @@
       }
     }
 
-    // 新增餐點
+    // 2-2 新增餐點（會自動建立新餐廳）
     const menuListDiv = document.getElementById("menu-list");
+
     function renderMenusForRestaurant(restId) {
       menuListDiv.innerHTML = "";
       if (!restId) return;
       const list = menus.filter(m => m.restaurantId === restId);
       list.forEach((m, idx) => {
-        const div = document.createElement("div");
         const addonText = m.addons
           .map(a => `${a.name}${a.free ? "(免費)" : `+${a.price}`}`)
           .join("、") || "無加購";
+        const div = document.createElement("div");
         div.innerHTML = `
           ${idx + 1}. [${m.category || ""}] ${m.name} $${m.price}（預設數量：${m.defaultQty}）<br/>
           <span style="font-size:12px;color:#6b7280;">加購：${addonText}</span>`;
@@ -770,15 +747,53 @@
     }
 
     document.getElementById("btn-add-menu").addEventListener("click", () => {
-      const restId = restSelect.value;
+      let restId = restSelect.value.trim();
       const category = categoryInput.value.trim();
       const name = document.getElementById("menu-name").value.trim();
       const price = Number(document.getElementById("menu-price").value || "0");
       const defaultQty = Number(document.getElementById("menu-default-qty").value || "1");
 
-      if (!restId) { alert("請先選擇餐廳"); return; }
-      if (!name) { alert("請輸入餐點名稱"); return; }
+      // 若沒有選餐廳，視為「建立新餐廳」
+      if (!restId) {
+        const rName = restNameInput.value.trim();
+        if (!rName) {
+          alert("請先選擇餐廳，或在上方輸入新餐廳名稱。");
+          return;
+        }
+        const newRest = {
+          id: Date.now().toString(),
+          name: rName,
+          phone: restPhoneInput.value.trim(),
+          address: restAddressInput.value.trim(),
+          map: restMapInput.value.trim(),
+          note: restNoteInput.value.trim(),
+          image: null
+        };
+        restaurants.push(newRest);
 
+        // 處理圖片（若有）
+        const file = restImageInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            newRest.image = e.target.result;
+            renderRestaurantCards();
+          };
+          reader.readAsDataURL(file);
+        }
+
+        restId = newRest.id;
+        renderRestaurantsList();
+        renderRestaurantCards();
+        restSelect.value = restId;
+      }
+
+      if (!name) {
+        alert("請輸入餐點名稱");
+        return;
+      }
+
+      // 收集加購
       const addonRows = addonsContainer.querySelectorAll(".group");
       const addons = [];
       addonRows.forEach(row => {
@@ -789,8 +804,9 @@
         if (n) addons.push({ name: n, price: p, free });
       });
 
+      const menuId = Date.now().toString();
       menus.push({
-        id: Date.now().toString(),
+        id: menuId,
         restaurantId: restId,
         category,
         name,
@@ -799,9 +815,9 @@
         addons
       });
 
-      // 類別加入歷史
       addCategoryToHistory(category);
 
+      // 清空餐點輸入欄位
       document.getElementById("menu-name").value = "";
       document.getElementById("menu-price").value = "0";
       document.getElementById("menu-default-qty").value = "1";
@@ -820,7 +836,7 @@
       renderMenusForRestaurant(e.target.value);
     });
 
-    // 新增人員
+    // ===== 1-1 新增人員 =====
     const staffDeptSelect = document.getElementById("staff-dept");
     const staffNameInput = document.getElementById("staff-name");
     const staffListDiv = document.getElementById("staff-list");
@@ -861,7 +877,10 @@
     function addStaff() {
       const dept = staffDeptSelect.value;
       const name = staffNameInput.value.trim();
-      if (!name) { alert("請輸入人員名稱"); return; }
+      if (!name) {
+        alert("請輸入人員名稱");
+        return;
+      }
       if (!staffByDept[dept]) staffByDept[dept] = [];
       staffByDept[dept].push(name);
       staffNameInput.value = "";
@@ -869,7 +888,6 @@
     }
 
     document.getElementById("btn-add-staff").addEventListener("click", addStaff);
-    // 按 Enter 也能新增人員
     staffNameInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
