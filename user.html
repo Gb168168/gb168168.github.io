@@ -1,48 +1,604 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <title>點餐系統｜使用者</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GoldBricks Order｜使用者</title>
+  <style>
+    :root{
+      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
+      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
+      --shadow:0 10px 30px rgba(15,23,42,.10);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.20), transparent 60%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:16px;
+    }
+    .wrap{width:min(1180px,100%); margin:0 auto}
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: rgba(255,255,255,.78);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding:12px 14px;
+    }
+    .topbar h1{margin:0; font-size:18px}
+    .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
+    .ghost{
+      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:900;
+    }
+    .primary{
+      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
+    }
+    .grid{display:grid; grid-template-columns: 1fr 420px; gap:14px; margin-top:14px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow: 0 8px 25px rgba(15,23,42,.07);
+      padding:14px;
+    }
+    .card h2{margin:0 0 10px; font-size:15px}
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
+    input,select,textarea{
+      width:100%; padding:11px 12px; border-radius:14px;
+      border:1px solid var(--border); outline:none; background:#fff;
+      font-size:14px;
+    }
+    textarea{min-height:88px; resize:vertical}
+    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
+    .hr{height:1px; background: var(--border); margin:12px 0}
+    .restaurant{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:16px;
+      padding:12px;
+      background: rgba(15,23,42,.02);
+      margin-top:10px;
+    }
+    .restaurantHeader{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
+    .menuGrid{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px}
+    @media (max-width:900px){.menuGrid{grid-template-columns:1fr}}
+    .item{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:16px;
+      padding:10px 12px;
+      background:#fff;
+    }
+    .itemTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+    .item b{font-size:14.5px}
+    .qtyRow{display:flex; gap:8px; align-items:center; margin-top:10px}
+    .qtyRow input{width:86px}
+    .btnSmall{
+      padding:7px 10px; border-radius:12px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:900; font-size:12.5px;
+    }
+    .btnDanger{border-color: rgba(239,68,68,.35)}
+    .btnDanger:hover{border-color: rgba(239,68,68,.60)}
+    .cartLine{
+      padding:10px 12px;
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:16px;
+      background:#fff;
+      margin-top:10px;
+    }
+    .cartLineHead{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .warn{color:#b91c1c; font-weight:900}
+  </style>
 </head>
 <body>
-  <aside>
-    <button onclick="switchTab('order')">點餐</button>
-    <button onclick="switchTab('history')">我的紀錄</button>
-    <button onclick="goAdmin()">切管理者</button>
-  </aside>
+  <div class="wrap">
 
-  <main id="content">請選擇功能</main>
+    <div class="topbar">
+      <h1>使用者點餐</h1>
+      <div class="right">
+        <span class="pill" id="status">連線中…</span>
+        <button class="ghost" id="askAdmin">輸入 8520 切管理者</button>
+        <button class="ghost" id="logout">登出</button>
+      </div>
+    </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <div class="grid">
+      <!-- 左：選餐 -->
+      <div>
+        <div class="card">
+          <h2>1) 使用者資訊（需先選擇才能點餐）</h2>
+          <div class="row">
+            <div>
+              <label>選擇部門</label>
+              <select id="deptSel">
+                <option value="">請選擇</option>
+              </select>
+            </div>
+            <div>
+              <label>選擇人員</label>
+              <select id="nameSel" disabled>
+                <option value="">請先選部門</option>
+              </select>
+            </div>
+          </div>
+          <p class="muted">選好部門與人員後，下面才會出現餐廳與餐點。</p>
+        </div>
 
-  <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.firebasestorage.app",
-    messagingSenderId: "463709758954",
-    appId: "1:463709758954:web:429dc920f2f812d51cbe93"
-  };
+        <div class="card" style="margin-top:14px">
+          <h2>2) 選擇餐點</h2>
+          <div id="restaurantsWrap" class="muted">請先選擇部門與人員。</div>
+        </div>
+      </div>
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  window.db = firebase.firestore();
+      <!-- 右：購物車 + 送出 + 我的紀錄查詢 -->
+      <div>
+        <div class="card">
+          <h2>購物車</h2>
+          <div id="cartWrap" class="muted">尚未加入餐點。</div>
+          <div class="hr"></div>
 
-  console.log("✅ user Firebase OK");
+          <label>訂單日期</label>
+          <input id="orderDate" type="date"/>
 
-  function switchTab(tab) {
-    document.getElementById("content").innerText =
-      tab === "order" ? "點餐畫面" : "我的訂單紀錄";
-  }
+          <label>送出前備註（整筆訂單）</label>
+          <textarea id="orderNote" placeholder="例：都不要辣、少飯…"></textarea>
 
-  function goAdmin() {
-    location.href = "admin.html";
-  }
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+            <button class="primary" id="submitOrder">送出</button>
+            <button class="ghost" id="clearCart">清空</button>
+          </div>
+
+          <p class="muted">送出後會自動顯示在下方「訂購紀錄」。</p>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <h2>3) 訂購紀錄（查詢：日期 / 店家 / 輸入名稱）</h2>
+
+          <div class="row">
+            <div>
+              <label>訂購日期</label>
+              <input id="q_date" type="date"/>
+            </div>
+            <div>
+              <label>店家</label>
+              <select id="q_rest">
+                <option value="">全部</option>
+              </select>
+            </div>
+          </div>
+
+          <label>輸入名稱（人員）</label>
+          <input id="q_name" placeholder="例：小明"/>
+
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+            <button class="primary" id="btnQuery">查詢</button>
+            <button class="ghost" id="btnMine">查我的</button>
+            <button class="ghost" id="btnToday">今天</button>
+          </div>
+
+          <div class="hr"></div>
+          <div id="recordsWrap" class="muted">尚無資料。</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // ====== 角色檢查 ======
+    const roleKey = "gb_role";
+    const USER_PWD  = "888";
+    const ADMIN_PWD = "8520";
+    const role = localStorage.getItem(roleKey);
+    if(role !== "user" && role !== "admin") location.href="./index.html";
+
+    // ====== Firebase ======
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, doc, getDoc,
+      query, where, orderBy, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
+      authDomain: "goldbricks-order.firebaseapp.com",
+      projectId: "goldbricks-order",
+      storageBucket: "goldbricks-order.firebasestorage.app",
+      messagingSenderId: "463709758954",
+      appId: "1:463709758954:web:429dc920f2f812d51cbe93",
+      measurementId: "G-YQK8ZCC26R"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const $ = (id)=> document.getElementById(id);
+    const esc = (s)=> (s??"").toString()
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+
+    const status = $("status");
+    status.textContent = "已連線 Firestore";
+
+    const todayISO = ()=>{
+      const d = new Date();
+      const pad = (n)=> String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+
+    $("orderDate").value = todayISO();
+    $("q_date").value = "";
+
+    // ====== 登出 / 切 admin ======
+    $("logout").onclick = ()=>{
+      localStorage.removeItem(roleKey);
+      location.href="./index.html";
+    };
+    $("askAdmin").onclick = ()=>{
+      const v = prompt("輸入管理者密碼 8520");
+      if((v||"").trim() === ADMIN_PWD){
+        localStorage.setItem(roleKey,"admin");
+        location.href="./admin.html";
+      }else{
+        alert("密碼錯誤");
+      }
+    };
+
+    // ====== collections ======
+    const colRestaurants = collection(db, "restaurants");
+    const colStaff = collection(db, "staff");
+    const colOrders = collection(db, "orders");
+
+    // ====== 載入人員（部門/人員） ======
+    let staffList = [];
+    async function loadStaff(){
+      const snap = await getDocs(query(colStaff, orderBy("dept","asc"), orderBy("name","asc"), limit(800)));
+      staffList = [];
+      snap.forEach(d=> staffList.push({ id:d.id, ...d.data() }));
+
+      const depts = Array.from(new Set(staffList.map(s=> (s.dept||"").trim()).filter(Boolean)));
+      $("deptSel").innerHTML = `<option value="">請選擇</option>` + depts.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("");
+    }
+
+    $("deptSel").onchange = ()=>{
+      const dept = $("deptSel").value;
+      if(!dept){
+        $("nameSel").innerHTML = `<option value="">請先選部門</option>`;
+        $("nameSel").disabled = true;
+        renderRestaurants();
+        return;
+      }
+      const names = staffList.filter(s=> (s.dept||"").trim()===dept).map(s=> (s.name||"").trim()).filter(Boolean);
+      $("nameSel").innerHTML = `<option value="">請選擇</option>` + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+      $("nameSel").disabled = false;
+      renderRestaurants();
+    };
+    $("nameSel").onchange = ()=> renderRestaurants();
+
+    await loadStaff();
+
+    // ====== 載入餐廳 + 查詢下拉 ======
+    let restaurants = [];
+    async function loadRestaurants(){
+      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(300)));
+      restaurants = [];
+      snap.forEach(d=> restaurants.push({ id:d.id, ...d.data() }));
+
+      $("q_rest").innerHTML = `<option value="">全部</option>` + restaurants.map(r=>`<option value="${r.id}">${esc(r.name||"未命名")}</option>`).join("");
+    }
+    await loadRestaurants();
+
+    // ====== 購物車 ======
+    let cart = []; // {restaurantId, restaurantName, name, price, qty, note, addons[]}
+    function cartTotal(){
+      let sum = 0;
+      for(const it of cart){
+        const addonSum = (it.addons||[]).reduce((a,x)=> a + Number(x.price||0), 0);
+        sum += (Number(it.price||0) + addonSum) * Number(it.qty||0);
+      }
+      return sum;
+    }
+
+    function renderCart(){
+      const wrap = $("cartWrap");
+      if(cart.length===0){
+        wrap.innerHTML = `<div class="muted">尚未加入餐點。</div>`;
+        return;
+      }
+
+      wrap.innerHTML = cart.map((it, idx)=>{
+        const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}`).join("");
+        return `
+          <div class="cartLine">
+            <div class="cartLineHead">
+              <div>
+                <div><span class="tag">${esc(it.restaurantName||"")}</span></div>
+                <div style="margin-top:6px"><b>${esc(it.name)}</b> <span class="tag">${it.price}</span> ${addonTxt ? `<span class="tag" style="margin-left:6px">${esc(addonTxt)}</span>`:""}</div>
+                ${it.note ? `<div class="muted" style="margin-top:6px">備註：${esc(it.note)}</div>`:""}
+              </div>
+              <button class="btnSmall btnDanger" data-del="${idx}">刪除</button>
+            </div>
+
+            <div class="qtyRow">
+              <span class="muted">數量</span>
+              <input type="number" min="1" value="${Number(it.qty||1)}" data-qty="${idx}"/>
+              <span class="muted">小計：${(Number(it.qty||0) * (Number(it.price||0) + (it.addons||[]).reduce((a,x)=>a+Number(x.price||0),0)))}</span>
+            </div>
+          </div>
+        `;
+      }).join("") + `
+        <div class="hr"></div>
+        <div class="muted"><b>總計：</b> ${cartTotal()}</div>
+      `;
+
+      wrap.querySelectorAll("button[data-del]").forEach(b=>{
+        b.onclick = ()=>{
+          if(!confirm("點錯餐？確定刪除這項？")) return;
+          cart.splice(Number(b.dataset.del),1);
+          renderCart();
+        };
+      });
+
+      wrap.querySelectorAll("input[data-qty]").forEach(inp=>{
+        inp.onchange = ()=>{
+          const i = Number(inp.dataset.qty);
+          cart[i].qty = Math.max(1, Number(inp.value||1));
+          renderCart();
+        };
+      });
+    }
+    renderCart();
+
+    $("clearCart").onclick = ()=>{
+      if(!confirm("確定清空購物車？")) return;
+      cart = [];
+      renderCart();
+    };
+
+    // ====== 渲染餐廳 + 餐點 ======
+    async function renderRestaurants(){
+      const dept = $("deptSel").value;
+      const userName = $("nameSel").value;
+
+      const wrap = $("restaurantsWrap");
+      if(!dept || !userName){
+        wrap.innerHTML = `<div class="muted">請先選擇部門與人員。</div>`;
+        return;
+      }
+      if(restaurants.length===0){
+        wrap.innerHTML = `<div class="muted">尚未新增餐廳（請管理者先新增餐廳）</div>`;
+        return;
+      }
+
+      wrap.innerHTML = `<div class="muted">載入餐點中…</div>`;
+
+      // 每間餐廳拉 menu 子集合
+      const out = [];
+      for(const r of restaurants){
+        const menuCol = collection(db, "restaurants", r.id, "menu");
+        const snap = await getDocs(query(menuCol, orderBy("category","asc"), orderBy("createdAt","desc"), limit(500)));
+        const items = [];
+        snap.forEach(d=> items.push({ id:d.id, ...d.data() }));
+
+        const grouped = items.reduce((m,it)=>{
+          const c = it.category || "其他";
+          if(!m[c]) m[c]=[];
+          m[c].push(it);
+          return m;
+        }, {});
+
+        out.push(`
+          <div class="restaurant">
+            <div class="restaurantHeader">
+              <div>
+                <b style="font-size:15px">${esc(r.name||"未命名")}</b>
+                ${r.phone ? `<span class="tag" style="margin-left:8px">${esc(r.phone)}</span>`:""}
+                ${r.address ? `<span class="tag" style="margin-left:6px">${esc(r.address)}</span>`:""}
+              </div>
+              <span class="tag">${r.mapUrl ? `<a href="${esc(r.mapUrl)}" target="_blank" style="color:inherit; text-decoration:none">Google Map</a>` : "—"}</span>
+            </div>
+
+            ${Object.keys(grouped).length===0 ? `<div class="muted" style="margin-top:10px">此餐廳尚無餐點</div>` : Object.entries(grouped).map(([cat, arr])=>`
+              <div style="margin-top:12px">
+                <div class="inline" style="justify-content:space-between">
+                  <b>${esc(cat)}</b>
+                  <span class="tag">${arr.length} 項</span>
+                </div>
+                <div class="menuGrid">
+                  ${arr.map(it=>{
+                    const addons = it.addons || [];
+                    const addonUI = addons.length===0 ? `<div class="muted">無加購</div>` : `
+                      <div style="margin-top:10px">
+                        <div class="muted" style="margin-bottom:6px">加購（可複選）</div>
+                        ${addons.map((a,idx)=>`
+                          <label style="display:flex; gap:8px; align-items:center; margin:0 0 6px; color:var(--text)">
+                            <input type="checkbox"
+                              data-add
+                              data-rid="${r.id}"
+                              data-rname="${esc(r.name||"")}"
+                              data-item="${esc(it.name||"")}"
+                              data-price="${Number(it.price||0)}"
+                              data-qty="${Number(it.defaultQty||1)}"
+                              data-aname="${esc(a.name||"")}"
+                              data-aprice="${Number(a.price||0)}"
+                              style="width:18px; height:18px"/>
+                            ${esc(a.name||"")} <span class="tag" style="margin-left:auto">+${Number(a.price||0)}</span>
+                          </label>
+                        `).join("")}
+                      </div>
+                    `;
+
+                    return `
+                      <div class="item">
+                        <div class="itemTop">
+                          <div>
+                            <b>${esc(it.name||"")}</b>
+                            <div class="muted" style="margin-top:6px">價格：${Number(it.price||0)}｜預設數量：${Number(it.defaultQty||1)}</div>
+                          </div>
+                          <span class="tag">${Number(it.price||0)}</span>
+                        </div>
+
+                        ${addonUI}
+
+                        <div class="qtyRow">
+                          <span class="muted">數量</span>
+                          <input type="number" min="1" value="${Number(it.defaultQty||1)}" data-qtyinp data-key="${r.id}__${esc(it.name||"")}"/>
+                        </div>
+
+                        <label>備註</label>
+                        <input placeholder="例：不要香菜" data-note data-key="${r.id}__${esc(it.name||"")}"/>
+
+                        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
+                          <button class="btnSmall" data-addcart data-rid="${r.id}" data-rname="${esc(r.name||"")}" data-name="${esc(it.name||"")}" data-price="${Number(it.price||0)}">加入購物車</button>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `);
+      }
+
+      wrap.innerHTML = out.join("");
+
+      // 加入購物車：抓 qty / note / addons
+      wrap.querySelectorAll("button[data-addcart]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.rid;
+          const rname = btn.dataset.rname;
+          const name = btn.dataset.name;
+          const price = Number(btn.dataset.price||0);
+
+          const key = `${rid}__${name}`;
+          const qty = Math.max(1, Number(wrap.querySelector(`input[data-qtyinp][data-key="${CSS.escape(key)}"]`)?.value || 1));
+          const note = (wrap.querySelector(`input[data-note][data-key="${CSS.escape(key)}"]`)?.value || "").trim();
+
+          const checked = Array.from(wrap.querySelectorAll(`input[type="checkbox"][data-add][data-rid="${CSS.escape(rid)}"][data-item="${CSS.escape(name)}"]:checked`));
+          const addons = checked.map(c=>({ name: c.dataset.aname, price: Number(c.dataset.aprice||0) }));
+
+          cart.push({ restaurantId: rid, restaurantName: rname, name, price, qty, note, addons });
+          renderCart();
+          alert("已加入購物車");
+        };
+      });
+    }
+
+    // ====== 送出訂單 ======
+    $("submitOrder").onclick = async ()=>{
+      const dept = $("deptSel").value;
+      const userName = $("nameSel").value;
+      if(!dept || !userName) return alert("請先選擇部門與人員");
+      if(cart.length===0) return alert("購物車是空的");
+
+      const orderDate = $("orderDate").value || todayISO();
+      const orderNote = ($("orderNote").value||"").trim();
+
+      // 一筆訂單支援多餐廳：但管理者彙整會依 items 彙總即可
+      // restaurantName 先存「多餐廳」或若只有一間就存該名
+      const restNames = Array.from(new Set(cart.map(x=> x.restaurantName)));
+      const restaurantName = restNames.length===1 ? restNames[0] : "多餐廳";
+      const restaurantId = restNames.length===1 ? cart[0].restaurantId : "";
+
+      // 整理 items
+      const items = cart.map(it=>({
+        restaurantId: it.restaurantId,
+        restaurantName: it.restaurantName,
+        name: it.name,
+        price: Number(it.price||0),
+        qty: Number(it.qty||0),
+        note: it.note||"",
+        addons: it.addons||[]
+      }));
+
+      await addDoc(colOrders, {
+        orderDate,
+        userDept: dept,
+        userName,
+        restaurantId,
+        restaurantName,
+        orderNote,
+        items,
+        createdAt: Date.now()
+      });
+
+      cart = [];
+      renderCart();
+      $("orderNote").value = "";
+      alert("送出成功 ✅");
+      // 自動查我的
+      $("q_date").value = orderDate;
+      $("q_name").value = userName;
+      $("q_rest").value = "";
+      await queryRecords();
+    };
+
+    // ====== 訂購紀錄查詢 ======
+    async function queryRecords(){
+      const date = $("q_date").value;
+      const rest = $("q_rest").value;
+      const name = ($("q_name").value||"").trim();
+
+      // 先抓近期 300 筆，再前端過濾（簡化，避免複雜索引）
+      const snap = await getDocs(query(colOrders, orderBy("createdAt","desc"), limit(300)));
+      let list = [];
+      snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
+
+      if(date) list = list.filter(o=> o.orderDate===date);
+      if(rest) list = list.filter(o=> o.restaurantId===rest || (o.items||[]).some(it=> it.restaurantId===rest));
+      if(name) list = list.filter(o=> (o.userName||"").includes(name));
+
+      const wrap = $("recordsWrap");
+      if(list.length===0){
+        wrap.innerHTML = `<div class="muted">查無資料</div>`;
+        return;
+      }
+
+      wrap.innerHTML = list.map(o=>{
+        const lines = (o.items||[]).map(it=>{
+          const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}`).join("");
+          const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
+          return `• <b>${esc(it.restaurantName||"")}</b>｜${esc(it.name)} ${it.price}${addonTxt} × ${it.qty} ${noteTxt}`;
+        }).join("<br/>");
+
+        return `
+          <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff; margin-top:10px">
+            <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap">
+              <div>
+                <b>${esc(o.orderDate||"")}</b>
+                <span class="tag" style="margin-left:8px">${esc(o.userDept||"")}</span>
+                <span class="tag" style="margin-left:6px">${esc(o.userName||"")}</span>
+              </div>
+              <span class="tag">${esc(o.restaurantName||"")}</span>
+            </div>
+            <div class="muted" style="margin-top:8px">${lines}</div>
+            ${o.orderNote ? `<div class="muted" style="margin-top:8px">整筆備註：${esc(o.orderNote)}</div>`:""}
+          </div>
+        `;
+      }).join("");
+    }
+
+    $("btnQuery").onclick = queryRecords;
+    $("btnToday").onclick = ()=> $("q_date").value = todayISO();
+    $("btnMine").onclick = ()=>{
+      $("q_name").value = $("nameSel").value || "";
+      if(!$("q_date").value) $("q_date").value = todayISO();
+      queryRecords();
+    };
+
+    // 初始顯示
+    $("recordsWrap").innerHTML = `<div class="muted">你可以用日期 / 店家 / 名稱查詢。</div>`;
   </script>
 </body>
 </html>
