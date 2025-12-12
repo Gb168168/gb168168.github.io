@@ -1,274 +1,399 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>GoldBricks 管理者後台</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-  background:#f5f4fb;
-  color:#111827;
-  overflow-x:hidden;
-}
-
-/* ===== layout ===== */
-.app{
-  display:grid;
-  grid-template-columns:260px 1fr;
-  min-height:100vh;
-}
-
-aside{
-  background:#111827;
-  color:#fff;
-  padding:16px 14px;
-  position:sticky;
-  top:0;
-  height:100vh;
-  z-index:10;
-}
-
-main{
-  padding:18px;
-  min-width:0;
-}
-
-/* ===== sidebar ===== */
-.brand{font-weight:900;font-size:16px}
-.sub{font-size:12px;color:rgba(255,255,255,.7)}
-.nav{margin-top:12px;display:flex;flex-direction:column;gap:8px}
-.nav button{
-  border:none;
-  border-radius:12px;
-  padding:10px 12px;
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  font-weight:800;
-  text-align:left;
-  cursor:pointer;
-}
-.nav button.active{
-  background:linear-gradient(90deg,#fb7185,#f97316);
-}
-.nav button:hover{background:rgba(255,255,255,.16)}
-
-.footer{
-  margin-top:auto;
-  font-size:12px;
-  color:rgba(255,255,255,.65);
-}
-
-/* ===== ui ===== */
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:14px;
-}
-
-h2{font-size:18px}
-.card{
-  background:#fff;
-  border-radius:16px;
-  padding:14px;
-  box-shadow:0 8px 25px rgba(15,23,42,.08);
-  margin-bottom:14px;
-}
-
-label{
-  font-size:12px;
-  color:#374151;
-  display:block;
-  margin-bottom:4px;
-}
-
-input,select{
-  width:100%;
-  height:34px;
-  border-radius:10px;
-  border:1px solid #d1d5db;
-  padding:6px 10px;
-  font-size:13px;
-}
-
-input:focus,select:focus{
-  outline:none;
-  border-color:#fb7185;
-}
-
-.row{display:flex;gap:10px;align-items:center}
-.btn{
-  height:34px;
-  padding:0 14px;
-  border:none;
-  border-radius:999px;
-  background:linear-gradient(90deg,#fb7185,#f97316);
-  color:#fff;
-  font-weight:900;
-  cursor:pointer;
-}
-.btn.secondary{
-  background:#e5e7eb;
-  color:#111827;
-}
-
-.hidden{display:none!important}
-
-/* ===== staff ===== */
-.inline{
-  display:flex;
-  gap:10px;
-  align-items:flex-end;
-}
-.inline .dept{width:160px}
-.inline .name{flex:1}
-
-/* prevent browser auto-fill */
-input{autocomplete:off}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>點餐系統｜管理者</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --primary:#fb7185; --primary2:#f97316; --line:rgba(15,23,42,.10);
+      --shadow:0 14px 35px rgba(15,23,42,.10);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC";background:var(--bg);color:var(--text)}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .side{
+      background:linear-gradient(180deg,rgba(15,23,42,.05),rgba(251,113,133,.10));
+      border-right:1px solid var(--line); padding:18px; position:sticky; top:0; height:100vh
+    }
+    .brand{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+    .dot{width:10px;height:10px;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--primary2))}
+    .brand h1{font-size:16px;margin:0}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px;color:var(--muted)}
+    .nav{margin-top:12px;display:grid;gap:8px}
+    .nav button{
+      width:100%;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff;
+      cursor:pointer;font-weight:900
+    }
+    .nav button.active{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.10)}
+    .main{padding:18px;display:grid;gap:14px}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .title{display:grid;gap:4px}
+    .title h2{margin:0;font-size:18px}
+    .title .sub{color:var(--muted);font-size:12px}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
+      overflow:hidden
+    }
+    .cardHead{padding:14px 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(251,113,133,.10),rgba(249,115,22,.06))}
+    .cardHead b{font-size:14px}
+    .cardBody{padding:14px 16px;display:grid;gap:12px}
+    label{font-size:12px;color:var(--muted)}
+    input,select,textarea{
+      width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);outline:none;background:#fff;font-size:14px
+    }
+    input:focus,select:focus,textarea:focus{border-color:rgba(251,113,133,.55);box-shadow:0 0 0 4px rgba(251,113,133,.14)}
+    .btn{
+      padding:10px 12px;border-radius:14px;border:0;cursor:pointer;font-weight:900;color:#fff;
+      background:linear-gradient(90deg,var(--primary),var(--primary2));
+      box-shadow:0 12px 26px rgba(251,113,133,.22);
+    }
+    .btn2{padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:900}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .muted{color:var(--muted);font-size:12px;line-height:1.5}
+    .list{display:grid;gap:10px}
+    .item{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px}
+    .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .itemTop b{font-size:14px}
+    .tag{font-size:12px;color:var(--muted)}
+    .mini{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(15,23,42,.02)}
+    .danger{border:1px solid rgba(185,28,28,.22);background:rgba(185,28,28,.06);color:#b91c1c}
+    .ok{border:1px solid rgba(22,163,74,.22);background:rgba(22,163,74,.06);color:#166534}
+    details{border:1px solid var(--line);border-radius:18px;background:#fff;padding:10px 12px}
+    summary{cursor:pointer;font-weight:900}
+    @media (max-width: 980px){
+      .app{grid-template-columns:1fr}
+      .side{position:relative;height:auto}
+    }
+  </style>
 </head>
-
 <body>
-<div class="app">
-
-<aside>
-  <div>
-    <div class="brand">GoldBricks 管理者</div>
-    <div class="sub">Anonymous Admin</div>
-  </div>
-
-  <div class="nav">
-    <button id="navStaff" class="active">新增人員</button>
-    <button id="navDummy">餐廳管理（骨架）</button>
-    <button id="navLogout">離開</button>
-  </div>
-
-  <div class="footer">
-    管理者碼：8520<br>
-    無信箱版
-  </div>
-</aside>
-
-<main>
-  <div class="topbar">
-    <h2 id="title">新增人員</h2>
-    <div id="status" style="font-size:12px;color:#6b7280">驗證中…</div>
-  </div>
-
-  <!-- 管理者碼 -->
-  <div class="card" id="lockCard">
-    <label>輸入管理者碼</label>
-    <div class="row">
-      <input id="adminCode" type="password" placeholder="8520">
-      <button class="btn" id="btnUnlock">進入</button>
-    </div>
-  </div>
-
-  <!-- 新增人員 -->
-  <section id="viewStaff" class="hidden">
-    <div class="card">
-      <div class="inline">
-        <div class="dept">
-          <label>部門</label>
-          <select id="dept">
-            <option>管理部</option>
-            <option>FAE</option>
-            <option>TSE</option>
-            <option>RD</option>
-          </select>
-        </div>
-        <div class="name">
-          <label>姓名（Enter 新增）</label>
-          <input id="name" placeholder="輸入姓名">
-        </div>
-        <button class="btn secondary" id="add">新增</button>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">
+        <span class="dot"></span>
+        <h1>點餐系統（管理者）</h1>
       </div>
-    </div>
+      <div class="pill">管理者模式</div>
 
-    <div class="card">
-      <div id="list" style="font-size:13px;color:#374151">尚無資料</div>
-    </div>
-  </section>
+      <div class="nav">
+        <button class="active" id="tabStaff" type="button">人員管理</button>
+        <button id="tabRest" type="button">點餐管理（餐廳/餐點）</button>
+        <button id="tabHist" type="button">歷史紀錄</button>
+        <button id="goUser" type="button">切到使用者</button>
+        <button id="goIndex" type="button">回登入</button>
+      </div>
 
-</main>
-</div>
+      <div style="margin-top:12px" class="muted">
+        人員管理：部門+姓名一行輸入，Enter 直接新增。<br/>
+        餐廳管理：新增餐廳可上傳圖片（Storage）。
+      </div>
+    </aside>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    <main class="main">
+      <div class="topbar">
+        <div class="title">
+          <h2 id="pageTitle">人員管理</h2>
+          <div class="sub" id="pageSub">新增/瀏覽人員，依部門收合</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn2" id="refreshBtn" type="button">重新整理</button>
+        </div>
+      </div>
 
-/* 🔧 firebaseConfig */
+      <!-- 人員管理 -->
+      <section class="card" id="staffCard">
+        <div class="cardHead"><b>新增人員（單行）</b></div>
+        <div class="cardBody">
+          <div class="row2">
+            <div>
+              <label>部門</label>
+              <input id="staffDept" placeholder="例：行銷部" />
+            </div>
+            <div>
+              <label>姓名</label>
+              <input id="staffName" placeholder="例：小美（按 Enter 新增）" />
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn" id="addStaffBtn" type="button">新增</button>
+            <div class="muted" id="staffMsg"></div>
+          </div>
+
+          <div class="card" style="box-shadow:none">
+            <div class="cardHead"><b>人員列表（依部門收合）</b></div>
+            <div class="cardBody" id="staffList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 點餐管理（餐廳/餐點） -->
+      <section class="card" id="restCard" style="display:none">
+        <div class="cardHead"><b>餐廳管理</b></div>
+        <div class="cardBody">
+          <div class="row2">
+            <div>
+              <label>餐廳名稱</label>
+              <input id="restName" placeholder="例：阿婆麵店" autocomplete="off"/>
+            </div>
+            <div>
+              <label>餐廳圖片（上傳）</label>
+              <input id="restImg" type="file" accept="image/*" />
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn" id="addRestBtn" type="button">新增餐廳</button>
+            <div class="muted" id="restMsg"></div>
+          </div>
+
+          <div class="card" style="box-shadow:none">
+            <div class="cardHead"><b>餐廳列表（點擊進入餐點管理）</b></div>
+            <div class="cardBody">
+              <div id="restList" class="list"></div>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none" id="menuPanel" hidden>
+            <div class="cardHead"><b id="menuTitle">餐點管理</b></div>
+            <div class="cardBody">
+              <div class="row2">
+                <div>
+                  <label>餐點名稱</label>
+                  <input id="menuName" placeholder="例：牛肉麵" />
+                </div>
+                <div>
+                  <label>預設數量（取代圖片功能）</label>
+                  <input id="menuDefaultQty" type="number" min="1" value="1" />
+                </div>
+              </div>
+              <div class="row2">
+                <div>
+                  <label>價格（可空）</label>
+                  <input id="menuPrice" type="number" min="0" placeholder="例：120" />
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-end">
+                  <button class="btn" id="addMenuBtn" type="button">新增餐點</button>
+                  <button class="btn2" id="closeMenuBtn" type="button">關閉</button>
+                </div>
+              </div>
+
+              <div class="card" style="box-shadow:none">
+                <div class="cardHead"><b>餐點列表</b></div>
+                <div class="cardBody">
+                  <div id="menuList" class="list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 歷史紀錄 -->
+      <section class="card" id="histCard" style="display:none">
+        <div class="cardHead"><b>歷史紀錄（全部訂單）</b></div>
+        <div class="cardBody">
+          <div class="muted">這裡顯示所有人送出的訂單（最新在上）。</div>
+          <div id="orderList" class="list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
+/** =========================
+ *  ✅ 只要改這裡：firebaseConfig
+ *  ========================= */
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_KEY",
-  authDomain: "PASTE.firebaseapp.com",
-  projectId: "PASTE",
+  // TODO: 貼上你自己的 firebaseConfig
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-/* ===== auth ===== */
-await signInAnonymously(auth);
-document.getElementById("status").textContent =
-  "UID：" + auth.currentUser.uid.slice(0,8);
+const $ = (id)=>document.getElementById(id);
+const state = { tab:'staff', activeRestaurant:null, restaurants:[] };
 
-/* ===== admin code ===== */
-const ADMIN_CODE = "8520";
-const lockCard = document.getElementById("lockCard");
-const viewStaff = document.getElementById("viewStaff");
+/** tabs */
+function setTab(t){
+  state.tab=t;
+  $('tabStaff').classList.toggle('active', t==='staff');
+  $('tabRest').classList.toggle('active', t==='rest');
+  $('tabHist').classList.toggle('active', t==='hist');
+  $('staffCard').style.display = (t==='staff')?'block':'none';
+  $('restCard').style.display  = (t==='rest')?'block':'none';
+  $('histCard').style.display  = (t==='hist')?'block':'none';
+  $('pageTitle').textContent = t==='staff'?'人員管理':(t==='rest'?'點餐管理（餐廳/餐點）':'歷史紀錄');
+  $('pageSub').textContent = t==='staff'?'新增/瀏覽人員，依部門收合':(t==='rest'?'新增餐廳、管理餐點（預設數量取代圖片）':'查看所有訂單');
+  if(t==='staff') loadStaff();
+  if(t==='rest') loadRestaurants();
+  if(t==='hist') loadOrders();
+}
+$('tabStaff').onclick=()=>setTab('staff');
+$('tabRest').onclick=()=>setTab('rest');
+$('tabHist').onclick=()=>setTab('hist');
+$('refreshBtn').onclick=()=>location.reload();
+$('goIndex').onclick=()=>location.href='index.html';
+$('goUser').onclick=()=>location.href='user.html';
 
-document.getElementById("btnUnlock").onclick = () => {
-  if (adminCode.value === ADMIN_CODE) {
-    localStorage.setItem("role","admin");
-    lockCard.classList.add("hidden");
-    viewStaff.classList.remove("hidden");
-    loadStaff();
-  } else {
-    alert("管理者碼錯誤");
+/** ===== staff management ===== */
+async function addStaff(){
+  const dept = ($('staffDept').value||'').trim();
+  const name = ($('staffName').value||'').trim();
+  if(!dept || !name){ $('staffMsg').textContent='請輸入部門與姓名'; return; }
+
+  $('addStaffBtn').disabled = true;
+  $('staffMsg').textContent = '新增中…';
+  try{
+    await db.collection('staff').add({
+      dept, name,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    $('staffName').value='';
+    $('staffMsg').textContent = '✅ 已新增';
+    await loadStaff();
+  }catch(e){
+    console.error(e);
+    $('staffMsg').textContent = '❌ 新增失敗（檢查 Rules）';
+  }finally{
+    $('addStaffBtn').disabled = false;
   }
-};
-
-/* ===== staff ===== */
-const list = document.getElementById("list");
+}
+$('addStaffBtn').onclick=addStaff;
+$('staffName').addEventListener('keydown',(e)=>{ if(e.key==='Enter') addStaff(); });
 
 async function loadStaff(){
-  const snap = await getDocs(collection(db,"staff"));
-  if (snap.empty) {
-    list.textContent = "尚無資料";
-    return;
+  const wrap = $('staffList');
+  wrap.innerHTML = '載入中…';
+  try{
+    const snap = await db.collection('staff').orderBy('dept').orderBy('name').get();
+    const groups = {};
+    snap.forEach(d=>{
+      const s=d.data();
+      if(!s.dept || !s.name) return;
+      groups[s.dept]=groups[s.dept]||[];
+      groups[s.dept].push({ id:d.id, name:s.name });
+    });
+
+    const depts = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+    wrap.innerHTML='';
+    if(!depts.length){
+      wrap.innerHTML = `<div class="item">尚無人員</div>`;
+      return;
+    }
+
+    depts.forEach(dept=>{
+      const det = document.createElement('details');
+      det.open = true;
+      const list = groups[dept].sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant'));
+      det.innerHTML = `
+        <summary>${escapeHtml(dept)} <span class="chip">${list.length} 人</span></summary>
+        <div style="margin-top:10px" class="list"></div>
+      `;
+      const box = det.querySelector('.list');
+      list.forEach(p=>{
+        const div = document.createElement('div');
+        div.className='item';
+        div.innerHTML = `
+          <div class="itemTop">
+            <div><b>${escapeHtml(p.name)}</b><div class="tag">${escapeHtml(dept)}</div></div>
+            <button class="btn2 danger">刪除</button>
+          </div>
+        `;
+        div.querySelector('button').onclick=async ()=>{
+          if(!confirm(`刪除 ${dept} - ${p.name}？`)) return;
+          await db.collection('staff').doc(p.id).delete();
+          loadStaff();
+        };
+        box.appendChild(div);
+      });
+      wrap.appendChild(det);
+    });
+  }catch(e){
+    console.error(e);
+    wrap.innerHTML = `<div class="item danger">讀取失敗（檢查 Rules / 網路）</div>`;
   }
-  list.innerHTML = snap.docs.map(d =>
-    `• ${d.data().dept}｜${d.data().name}`
-  ).join("<br>");
 }
 
-async function addStaff(){
-  if (!localStorage.getItem("role")) return;
-  const name = document.getElementById("name").value.trim();
-  if (!name) return;
-  await addDoc(collection(db,"staff"),{
-    dept: dept.value,
-    name
-  });
-  document.getElementById("name").value = "";
-  loadStaff();
-}
+/** ===== restaurant & menu management ===== */
+$('addRestBtn').onclick = async ()=>{
+  const name = ($('restName').value||'').trim();
+  const file = $('restImg').files?.[0] || null;
+  if(!name){ $('restMsg').textContent='請輸入餐廳名稱'; return; }
 
-document.getElementById("add").onclick = addStaff;
-document.getElementById("name").addEventListener("keydown",e=>{
-  if(e.key==="Enter"){e.preventDefault();addStaff();}
-});
+  $('addRestBtn').disabled = true;
+  $('restMsg').textContent = '新增中…';
 
-document.getElementById("navLogout").onclick = ()=>{
-  localStorage.clear();
-  location.reload();
+  try{
+    let imageUrl = '';
+    if(file){
+      const path = `restaurants/${Date.now()}_${safeFileName(file.name)}`;
+      const ref = storage.ref().child(path);
+      await ref.put(file);
+      imageUrl = await ref.getDownloadURL();
+    }
+
+    await db.collection('restaurants').add({
+      name,
+      imageUrl,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    $('restName').value='';
+    $('restImg').value='';
+    $('restMsg').textContent='✅ 已新增';
+    await loadRestaurants();
+  }catch(e){
+    console.error(e);
+    $('restMsg').textContent='❌ 新增失敗（Storage/Rules）';
+  }finally{
+    $('addRestBtn').disabled = false;
+  }
 };
-</script>
-</body>
-</html>
+
+async function loadRestaurants(){
+  const list = $('restList');
+  list.innerHTML='載入中…';
+  $('menuPanel').hidden = true;
+  state.activeRestaurant = null;
+
+  try{
+    const snap = await db.collection('restaurants').orderBy('createdAt','desc').get();
+    state.restaurants = [];
+    snap.forEach(d=>{
+      const r=d.data();
+      state.restaurants.push({ id:d.id, name:r.name||'(未命名)', imageUrl:r.imageUrl||'' });
+    });
+
+    list.innerHTML='';
+    if(!state.restaurants.length){
+      list.innerHTML = `<div class="item">尚無餐廳</div>`;
+      return;
+    }
+
+    state.restaurants.forEach(r=>{
+      const div=document.createElement('div');
+      div.className='item';
+      div.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <b>${escapeHtml(r.name)}</b>
+            <div class="tag">${r.imageUrl ? '有圖片' : '無圖片'} ・ 點擊進入餐點管理</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn2">管理餐點</button>
+            <button class="btn2 danger">刪除</button>
+          </div>
+        </div>
+      `;
+      const
