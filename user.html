@@ -221,8 +221,8 @@
         <span class="pill" id="statusPill">連線中…</span>
 
         <div class="inline">
-          <input id="adminPin" placeholder="輸入 8520 切到管理者" style="width:220px"/>
-          <button class="btn" id="btnGoAdmin">切換管理者</button>
+          <input id="adminPin" placeholder="輸入密碼" style="width:220px"/>
+          <button class="btn" id="btnGoAdmin">管理者</button>
         </div>
 
         <button class="btn" id="btnLogout">登出</button>
@@ -248,11 +248,11 @@
           </select>
 
           <div class="hr"></div>
-          <div class="muted">提示：必須先選「部門 + 姓名」才能點餐。</div>
+          <div class="muted">必須先選「部門 + 姓名」才能點餐。</div>
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>2）店家列表（無圖片 / 收合）</h2>
+          <h2>2）店家列表</h2>
 
           <!-- ✅ 預設收合 -->
           <details class="box">
@@ -276,7 +276,7 @@
           <h2>3）購物車（送出前可刪）</h2>
           <div id="cartWrap" class="muted">尚未加入餐點。</div>
 
-          <label style="margin-top:12px">整筆備註（Enter 直接送出）</label>
+          <label style="margin-top:12px">備註</label>
           <input id="orderNote" placeholder="例：請一起裝袋 / 不要餐具"/>
 
           <div class="inline" style="margin-top:12px">
@@ -284,7 +284,7 @@
             <button class="btn danger" id="btnClearCart" disabled>清空購物車</button>
             <span class="tag priceTag" id="cartTotal">總額：0</span>
           </div>
-          <div class="muted" style="margin-top:8px">※ 送出後，會出現在右側「我的訂餐紀錄」。</div>
+          <div class="muted" style="margin-top:8px">※ 點這樣吃的飽嗎~~。</div>
         </div>
 
       </div>
@@ -293,12 +293,12 @@
       <div>
 
         <div class="card">
-          <h2>4）餐點清單（類別收合）</h2>
+          <h2>4）餐點清單</h2>
           <div id="menuWrap" class="muted">請先選擇店家。</div>
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>5）我的訂餐紀錄（可刪：未結單才可）</h2>
+          <h2>5）我的訂餐紀錄（若管理結單就不能刪除呦）</h2>
           <div class="inline">
             <button class="btn" id="btnReloadMy">重新載入</button>
             <button class="btn" id="btnToday">🍲</button>
