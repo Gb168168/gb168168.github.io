@@ -279,7 +279,7 @@
         <button class="navBtn" data-tab="tabStaff"><span>人員管理</span><span class="tag">⛑️</span></button>
         <button class="navBtn" data-tab="tabOrders"><span>歷史紀錄 / 匯出</span><span class="tag">📃</span></button>
         <div class="hr"></div>
-        <div class="muted">提示：讀取失敗多半是 Rules / 網路 / Firebase 設定。</div>
+        <div class="muted">☃️</div>
 
         <div class="hr"></div>
 
@@ -287,7 +287,7 @@
         <details class="panel" id="restaurantSortPanel">
           <summary class="inline" style="justify-content:space-between">
             <div class="inline">
-              <b>店家列表（可拖曳排序）</b>
+              <b>店家列表</b>
               <span class="tag" id="restCountTag">0 間</span>
             </div>
             <span class="tag">收合</span>
@@ -302,7 +302,7 @@
         <!-- TAB: RESTAURANTS / MENU -->
         <div class="section active" id="tabRestaurants">
           <div class="card">
-            <h2>1）餐廳清單（選擇後管理餐點/類別/狀態）</h2>
+            <h2>1）餐廳清單</h2>
 
             <div class="row">
               <div>
@@ -310,7 +310,7 @@
                 <select id="restaurantSelect">
                   <option value="">載入中…</option>
                 </select>
-                <div class="muted" style="margin-top:6px">提示：餐廳選單排序跟左側「店家拖曳排序」一致。</div>
+                <div class="muted" style="margin-top:6px">排序跟左側一致</div>
               </div>
               <div class="inline" style="align-self:end; justify-content:flex-end">
                 <button class="btn" id="btnReloadRestaurants">重新載入</button>
@@ -322,14 +322,14 @@
 
             <div class="row">
               <div>
-                <label>顯示給使用者（isVisible）</label>
+                <label>顯示給使用者</label>
                 <select id="rVisible">
                   <option value="true">顯示</option>
                   <option value="false">隱藏</option>
                 </select>
               </div>
               <div>
-                <label>結單（isClosed）</label>
+                <label>結單</label>
                 <select id="rClosed">
                   <option value="false">開單中</option>
                   <option value="true">已結單</option>
@@ -345,7 +345,7 @@
 
           <!-- ✅ 餐廳資訊：可編輯（Enter/blur 自動存） -->
           <div class="card" style="margin-top:14px">
-            <h2>1-2）餐廳資訊（可編輯）</h2>
+            <h2>1-2）餐廳資訊</h2>
             <div id="restaurantEditWrap" class="muted">請先選擇餐廳。</div>
           </div>
 
@@ -393,10 +393,9 @@
             <div id="menuAddWrap" class="muted">請先選擇餐廳。</div>
 
             <div class="hr"></div>
-            <h2 style="margin-top:0">5）餐點清單（類別內可拖曳排序＋自動儲存）</h2>
+            <h2 style="margin-top:0">5）餐點清單</h2>
             <div class="muted" style="margin-top:-6px">
-              ✅ 已套用：餐點「加購 addonGroups」改成直覺輸入（不是 JSON 參數）。
-              <br/>❌ 已移除：選項 optionGroups（下拉 / 可加價）功能（新增/編輯/計算/匯出都不再使用）。
+              <br/> ✔️可拖曳排序
             </div>
             <div id="menuList" class="muted">尚未選擇餐廳。</div>
           </div>
@@ -413,7 +412,7 @@
                 <input id="staffDept" placeholder="例：工程部"/>
               </div>
               <div>
-                <label>人員姓名（Enter 直接新增）</label>
+                <label>人員姓名</label>
                 <input id="staffName" placeholder="例：小明"/>
               </div>
             </div>
@@ -425,8 +424,8 @@
 
             <div class="hr"></div>
             <div class="hintBar">
-              <div class="muted">部門預設收合；展開後可拖曳排序（自動儲存）。</div>
-              <span class="tag">不顯示順序號碼</span>
+              <div class="muted">展開可拖曳排序</div>
+              <span class="tag">🎠</span>
             </div>
             <div id="staffWrap" class="muted" style="margin-top:10px">載入中…</div>
           </div>
@@ -437,7 +436,6 @@
           <div class="card">
             <h2>歷史紀錄（查詢 / Excel 匯出）</h2>
             <div class="muted" style="margin-top:-6px">
-              ✅ 已修：若跳出「Excel 匯出元件未載入（XLSX）」，會自動補載入，載入完成才可匯出。
             </div>
 
             <div class="row" style="margin-top:10px">
