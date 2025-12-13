@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks Order｜使用者點餐</title>
+  <title>GoldBricks 呷奔啊~~ ｜使用者</title>
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -114,6 +114,18 @@
     table{width:100%; border-collapse:collapse; font-size:13.5px}
     th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
     th{color:var(--muted); font-weight:900}
+
+    /* ✅ 結單提示 */
+    .banner{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(239,68,68,.35);
+      background: rgba(239,68,68,.06);
+      color:#7f1d1d;
+      font-weight:900;
+      display:none;
+    }
   </style>
 </head>
 
@@ -154,7 +166,7 @@
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>2）選擇餐廳</h2>
+          <h2>2）選擇餐廳（只顯示「管理者開放」的店家）</h2>
           <div id="restaurantList" class="restaurantGrid">
             <div class="muted">載入中…</div>
           </div>
@@ -162,6 +174,7 @@
 
         <div class="card" style="margin-top:14px">
           <h2>3）選擇餐點</h2>
+          <div id="closedBanner" class="banner">此店家已結單，暫停接單。</div>
           <div id="menuWrap" class="muted">請先選擇部門、人員與餐廳。</div>
         </div>
       </div>
@@ -244,11 +257,10 @@
     // ====== Firebase ======
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, doc, getDocs,
+      getFirestore, collection, addDoc, doc, getDocs, getDoc,
       query, where, limit, deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ✅ 你目前專案的 config（沿用你給的）
     const firebaseConfig = {
       apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
       authDomain: "goldbricks-order.firebaseapp.com",
@@ -280,12 +292,13 @@
     const colOrders = collection(db, "orders");
 
     // ====== State ======
-    let staffDeptMap = {};         // {dept: [name]}
-    let restaurants = [];          // [{id, ...data}]
+    let staffDeptMap = {};
+    let restaurants = [];              // ✅ 只放「可顯示」的餐廳
     let selectedRestaurantId = "";
     let selectedRestaurantName = "";
-    let menuCache = {};            // rid -> menu array
-    let cart = [];                 // [{rid, restaurantName, menuId, name, price, qty, note, addons:[]}]
+    let selectedRestaurantClosed = false; // ✅ 結單狀態
+    let menuCache = {};
+    let cart = [];
     let currentUserDept = "";
     let currentUserName = "";
 
@@ -299,11 +312,15 @@
     function canOrder(){
       return !!(currentUserDept && currentUserName && selectedRestaurantId);
     }
+    function refreshClosedUI(){
+      $("closedBanner").style.display = selectedRestaurantId && selectedRestaurantClosed ? "block" : "none";
+    }
     function refreshSubmitState(){
-      $("btnSubmit").disabled = !(canOrder() && cart.length>0);
+      // ✅ 結單時，直接禁止送出
+      $("btnSubmit").disabled = !(canOrder() && cart.length>0 && !selectedRestaurantClosed);
     }
 
-    // ====== Load Staff (不使用 orderBy / 不需要 index) ======
+    // ====== Load Staff ======
     async function loadStaff(){
       try{
         const snap = await getDocs(colStaff);
@@ -317,7 +334,6 @@
           map[dept].push(name);
         });
 
-        // client-side sort
         Object.keys(map).forEach(k=> map[k].sort((a,b)=> a.localeCompare(b,"zh-Hant")));
         staffDeptMap = map;
 
@@ -347,7 +363,6 @@
           setWhoLine();
           renderMenu();
           refreshSubmitState();
-          // 查我的，方便
           if(currentUserName) $("qName").value = currentUserName;
         };
 
@@ -359,21 +374,34 @@
       }
     }
 
-    // ====== Load Restaurants (不使用 orderBy / 不需要 index) ======
+    // ====== Load Restaurants（✅ 只顯示 isVisible==true）=====
     async function loadRestaurants(){
       try{
         const snap = await getDocs(colRestaurants);
         const list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
-        // client-side sort by createdAt desc (if exists), else by name
-        list.sort((a,b)=>{
+        // ✅ 只顯示可見餐廳（預設 true）
+        const visible = list.filter(r => r.isVisible !== false);
+
+        // sort
+        visible.sort((a,b)=>{
           const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
           if(bb !== aa) return bb - aa;
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
 
-        restaurants = list;
+        restaurants = visible;
+
+        // 若原本選到被隱藏的店，清掉
+        if(selectedRestaurantId && !restaurants.find(r=> r.id===selectedRestaurantId)){
+          selectedRestaurantId = "";
+          selectedRestaurantName = "";
+          selectedRestaurantClosed = false;
+          cart = [];
+          renderCart();
+        }
+
         renderRestaurants();
         fillRestaurantQuerySelect();
       }catch(err){
@@ -386,7 +414,7 @@
     function renderRestaurants(){
       const wrap = $("restaurantList");
       if(restaurants.length===0){
-        wrap.innerHTML = `<div class="muted">尚無餐廳</div>`;
+        wrap.innerHTML = `<div class="muted">目前沒有「開放顯示」的餐廳</div>`;
         return;
       }
 
@@ -394,6 +422,10 @@
         const img = (r.imageUrl || "").trim();
         const hasImg = !!img;
         const sub = [r.address, r.phone].filter(Boolean).join(" · ");
+
+        const closed = !!r.isClosed;
+        const closedTag = closed ? `<span class="tag" style="border-color:rgba(239,68,68,.35); color:#7f1d1d; background:rgba(239,68,68,.06)">已結單</span>` : `<span class="tag" style="border-color:rgba(16,185,129,.35); color:#065f46; background:rgba(16,185,129,.08)">開單中</span>`;
+
         return `
           <div class="rCard ${r.id===selectedRestaurantId ? "active":""}" data-rid="${esc(r.id)}">
             ${hasImg
@@ -401,7 +433,10 @@
               : `<div class="rImg"></div>`
             }
             <div class="rBody">
-              <h3>${esc(r.name||"未命名")}</h3>
+              <div class="inline" style="justify-content:space-between">
+                <h3>${esc(r.name||"未命名")}</h3>
+                ${closedTag}
+              </div>
               <div class="muted">${esc(sub || "")}</div>
               <div class="inline" style="margin-top:8px">
                 ${r.mapUrl ? `<span class="tag"><a href="${esc(r.mapUrl)}" target="_blank" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
@@ -418,13 +453,17 @@
           const r = restaurants.find(x=> x.id===rid);
           selectedRestaurantId = rid;
           selectedRestaurantName = r?.name || "";
+          selectedRestaurantClosed = !!r?.isClosed;
+
           // 切餐廳時，清空購物車（避免跨店）
           cart = [];
           renderCart();
-          refreshSubmitState();
+
           renderRestaurants();
           await loadMenu(rid);
+          refreshClosedUI();
           renderMenu();
+          refreshSubmitState();
         };
       });
     }
@@ -434,7 +473,7 @@
       sel.innerHTML = `<option value="">全部</option>` + restaurants.map(r=>`<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`).join("");
     }
 
-    // ====== Load Menu (restaurants/{rid}/menu) ======
+    // ====== Load Menu ======
     async function loadMenu(rid){
       if(menuCache[rid]) return menuCache[rid];
       try{
@@ -443,7 +482,6 @@
         const list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
-        // client-side sort by createdAt desc, then category/name
         list.sort((a,b)=>{
           const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
           if(bb !== aa) return bb - aa;
@@ -462,13 +500,22 @@
       }
     }
 
-    // ====== Render Menu (含加購新增段) ======
+    // ====== Render Menu ======
     function renderMenu(){
       const wrap = $("menuWrap");
+      refreshClosedUI();
+
       if(!canOrder()){
         wrap.innerHTML = `<div class="muted">請先選擇部門、人員與餐廳。</div>`;
         return;
       }
+
+      // ✅ 結單時：不顯示可加入操作
+      if(selectedRestaurantClosed){
+        wrap.innerHTML = `<div class="muted">此店家已結單，暫停接單。</div>`;
+        return;
+      }
+
       const rid = selectedRestaurantId;
       const menu = menuCache[rid] || [];
       if(menu.length===0){
@@ -476,7 +523,6 @@
         return;
       }
 
-      // group by category
       const catMap = new Map();
       for(const m of menu){
         const cat = (m.category || "未分類").trim();
@@ -509,7 +555,6 @@
                       <span class="tag">可加購</span>
                     </div>
 
-                    <!-- ✅ 加購新增那整段：checkbox + 金額/免費 -->
                     <div class="addonBox">
                       <div class="muted">加購項目</div>
                       ${addons.length===0
@@ -550,9 +595,13 @@
         `).join("")}
       `;
 
-      // bind add-to-cart
       wrap.querySelectorAll("button[data-add-to-cart]").forEach(btn=>{
         btn.onclick = ()=>{
+          if(selectedRestaurantClosed){
+            alert("此店家已結單，暫停接單。");
+            return;
+          }
+
           const mid = btn.dataset.addToCart;
           const m = (menuCache[selectedRestaurantId] || []).find(x=> x.id===mid);
           if(!m) return;
@@ -562,7 +611,6 @@
           const qty = Math.max(1, Number(qtyEl?.value || 1));
           const note = (noteEl?.value || "").trim();
 
-          // collect addons checked
           const addonsAll = Array.isArray(m.addons) ? m.addons : [];
           const checkedEls = wrap.querySelectorAll(`[data-addon-mid="${mid}"]`);
           const picked = [];
@@ -585,7 +633,6 @@
             addons: picked
           });
 
-          // reset
           if(noteEl) noteEl.value = "";
           checkedEls.forEach(ch=> ch.checked = false);
 
@@ -595,10 +642,12 @@
       });
     }
 
-    // ====== Cart ======
+    // ====== Cart（✅ 免費加購不計入金額）=====
+    function addonSum(it){
+      return (it.addons||[]).reduce((s,a)=> s + (a && a.free ? 0 : Number(a.price||0)), 0);
+    }
     function calcLineTotal(it){
-      const addonSum = (it.addons||[]).reduce((s,a)=> s + Number(a.price||0), 0);
-      return (Number(it.price||0) + addonSum) * Number(it.qty||0);
+      return (Number(it.price||0) + addonSum(it)) * Number(it.qty||0);
     }
     function calcTotal(){
       return cart.reduce((s,it)=> s + calcLineTotal(it), 0);
@@ -613,7 +662,11 @@
       }
 
       wrap.innerHTML = cart.map((it, idx)=>{
-        const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
+        const addonTxt = (it.addons||[]).map(a=>{
+          const p = (a && a.free) ? 0 : Number(a.price||0);
+          return `+${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
+        }).join("");
+
         const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
         const lineTotal = calcLineTotal(it);
 
@@ -647,10 +700,40 @@
       $("totalPrice").value = String(calcTotal());
     }
 
-    // ====== Submit Order ======
+    // ====== Submit Order（✅ 送出前再檢查一次結單）=====
     async function submitOrder(){
       if(!canOrder()) return alert("請先選擇部門、人員與餐廳");
       if(cart.length===0) return alert("購物車是空的");
+
+      // ✅ 再讀一次餐廳狀態（避免管理者剛結單）
+      try{
+        const rSnap = await getDoc(doc(db, "restaurants", selectedRestaurantId));
+        const rData = rSnap.exists() ? rSnap.data() : null;
+        const visible = rData ? (rData.isVisible !== false) : false;
+        const closed = rData ? !!rData.isClosed : true;
+
+        if(!visible){
+          alert("此店家已被管理者隱藏，無法送單。");
+          selectedRestaurantClosed = true;
+          refreshClosedUI();
+          renderMenu();
+          refreshSubmitState();
+          return;
+        }
+        if(closed){
+          alert("此店家已結單，暫停接單。");
+          selectedRestaurantClosed = true;
+          refreshClosedUI();
+          renderMenu();
+          refreshSubmitState();
+          return;
+        }
+      }catch(err){
+        console.error("check closed failed:", err);
+        // 若讀不到狀態，保守擋住
+        alert("無法確認店家狀態（Rules/網路），暫停送單。");
+        return;
+      }
 
       const orderDate = $("orderDate").value || todayISO();
       const remark = ($("orderRemark").value || "").trim();
@@ -662,7 +745,9 @@
         userName: currentUserName,
         restaurantId: selectedRestaurantId,
         restaurantName: selectedRestaurantName,
-        remark,
+        // ✅ admin 端匯出用：兩個欄位都留（相容舊版）
+        orderNote: remark,
+        remark: remark,
         total: calcTotal(),
         items: cart.map(it=>({
           menuId: it.menuId,
@@ -685,7 +770,6 @@
         renderCart();
         refreshSubmitState();
 
-        // 送出後自動查今天
         $("qDate").value = orderDate;
         await queryRecords();
       }catch(err){
@@ -695,7 +779,7 @@
       }
     }
 
-    // ====== Records (不依賴 index：用 where(orderDate) 可用，其他 client filter) ======
+    // ====== Records ======
     function getCurrentName(){
       return (currentUserName || "").trim();
     }
@@ -708,7 +792,6 @@
       try{
         statusPill.textContent = "查詢中…";
 
-        // 若有日期，用 where(orderDate==date) 減少資料量；否則全抓（適合小量內部系統）
         let snap;
         if(qDate){
           snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
@@ -719,7 +802,6 @@
         const rows = [];
         snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
 
-        // client-side filter
         const filtered = rows.filter(o=>{
           if(qRid && o.restaurantId !== qRid) return false;
           if(qName && !(String(o.userName||"").includes(qName))) return false;
@@ -746,12 +828,15 @@
       wrap.innerHTML = list.map(o=>{
         const items = Array.isArray(o.items) ? o.items : [];
         const itemLines = items.map(it=>{
-          const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
+          const addonTxt = (it.addons||[]).map(a=>{
+            const p = (a && a.free) ? 0 : Number(a.price||0);
+            return `+${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
+          }).join("");
           const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
           return `• ${esc(it.name)} ${Number(it.price||0)} ${esc(addonTxt)} × ${Number(it.qty||0)} ${noteTxt}`;
         }).join("<br/>");
 
-        const canDelete = (getCurrentName() && (o.userName === getCurrentName())); // 只允許刪自己的（你可改成全可刪）
+        const canDelete = (getCurrentName() && (o.userName === getCurrentName()));
         return `
           <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; margin-top:10px; background:#fff">
             <div class="inline" style="justify-content:space-between">
@@ -763,7 +848,7 @@
               ${canDelete ? `<button class="btn danger" type="button" data-del-order="${esc(o.id)}">刪除</button>` : ``}
             </div>
             <div class="muted" style="margin-top:8px">${itemLines}</div>
-            <div class="muted" style="margin-top:8px">總金額：${Number(o.total||0)} ${o.remark?`｜整筆備註：${esc(o.remark)}`:""}</div>
+            <div class="muted" style="margin-top:8px">總金額：${Number(o.total||0)} ${(o.orderNote||o.remark)?`｜整筆備註：${esc(o.orderNote||o.remark)}`:""}</div>
           </div>
         `;
       }).join("");
@@ -809,10 +894,7 @@
       localStorage.setItem(roleKey, "admin");
       location.href = "./admin.html";
     };
-    $("btnSwitchAdmin").onclick = ()=> {
-      // 快捷：點一下就聚焦 pin
-      $("adminPin").focus();
-    };
+    $("btnSwitchAdmin").onclick = ()=> $("adminPin").focus();
 
     $("btnLogout").onclick = ()=>{
       localStorage.removeItem(roleKey);
@@ -828,7 +910,17 @@
 
     await loadStaff();
     await loadRestaurants();
-    await queryRecords(); // 預設查今天（會被 qDate 帶入）
+    await queryRecords();
+
+    // （可選）每次回到頁面時同步餐廳最新狀態
+    document.addEventListener("visibilitychange", async ()=>{
+      if(document.visibilityState === "visible"){
+        await loadRestaurants();
+        refreshClosedUI();
+        renderMenu();
+        refreshSubmitState();
+      }
+    });
   </script>
 </body>
 </html>
