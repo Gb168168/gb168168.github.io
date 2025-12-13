@@ -2251,6 +2251,163 @@
         await ensureXLSX();
       }
     });
+   
+
+/* ←↓↓ 就貼在這裡 ↓↓→
+   Excel 匯出完整覆蓋版
+*/
+
+    // 👉【整段 Excel 覆蓋程式碼貼在這】👈
+/* =========================================================
+   ✅ Excel 匯出（完整參數 / module-safe / 覆蓋舊版）
+   ========================================================= */
+
+async function ensureXLSX(){
+  const hint = document.getElementById("xlsxHint");
+  const btn  = document.getElementById("btnExportExcel");
+
+  const ok = ()=>{
+    if(hint) hint.textContent = "Excel 元件已就緒 ✅";
+    if(btn) btn.disabled = false;
+  };
+  const bad = (msg)=>{
+    if(hint) hint.textContent = msg || "Excel 元件載入失敗";
+    if(btn) btn.disabled = true;
+  };
+
+  if (window.XLSX && typeof window.XLSX.writeFile === "function"){
+    ok();
+    return true;
+  }
+
+  if(hint) hint.textContent = "載入 Excel 元件中…";
+  if(btn) btn.disabled = true;
+
+  const load = (src)=> new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = ()=> resolve(true);
+    s.onerror = ()=> reject(new Error("load failed: " + src));
+    document.head.appendChild(s);
+  });
+
+  try{
+    await load("https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js");
+    if (window.XLSX && typeof window.XLSX.writeFile === "function"){ ok(); return true; }
+  }catch(e){}
+
+  try{
+    await load("https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js");
+    if (window.XLSX && typeof window.XLSX.writeFile === "function"){ ok(); return true; }
+  }catch(e){}
+
+  bad("Excel 匯出元件未載入（XLSX）— CDN / CSP 可能被擋");
+  return false;
+}
+
+
+async function exportOrdersExcel(){
+  const ready = await ensureXLSX();
+  if(!ready) return;
+
+  const XLSX = window.XLSX;
+  if(!XLSX){
+    alert("XLSX 不存在，請看 console");
+    return;
+  }
+
+  const qDate   = (document.getElementById("qDate")?.value || "").trim();
+  const qRid    = (document.getElementById("qRestaurant")?.value || "").trim();
+  const qName   = (document.getElementById("qName")?.value || "").trim();
+  const qPeriod = (document.getElementById("qPeriod")?.value || "").trim();
+
+  try{
+    statusPill.textContent = "匯出中…";
+
+    let snap;
+    if(qDate){
+      snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
+    }else{
+      snap = await getDocs(query(colOrders, limit(3000)));
+    }
+
+    const rows = [];
+    snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
+
+    const filtered = rows.filter(o=>{
+      if(qRid && o.restaurantId !== qRid) return false;
+      if(qName && !String(o.userName||"").includes(qName)) return false;
+      if(qPeriod && periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
+      return true;
+    });
+
+    if(filtered.length === 0){
+      statusPill.textContent = "無資料可匯出";
+      alert("沒有符合條件的資料");
+      return;
+    }
+
+    const detail = [];
+    for(const o of filtered){
+      const items = Array.isArray(o.items) ? o.items : [];
+      for(const it of items){
+        const addonSum = (it.addons||[]).reduce(
+          (s,a)=> s + ((a && a.free) ? 0 : Number(a.price||0)), 0
+        );
+        const unit = Number(it.price||0) + addonSum;
+        const qty = Number(it.qty||0);
+        detail.push({
+          "訂單日期": o.orderDate || "",
+          "建立時間": fmtTime(Number(o.createdAt||0)),
+          "時段": periodOf(Number(o.createdAt||0)) === "noon" ? "中午" : "晚上",
+          "部門": o.userDept || "",
+          "姓名": o.userName || "",
+          "店家": o.restaurantName || "",
+          "品項": it.name || "",
+          "加購": addonText(it.addons),
+          "數量": qty,
+          "單價": unit,
+          "小計": unit * qty,
+          "整筆備註": o.orderNote || o.remark || "",
+          "訂單總額": Number(o.total||0),
+        });
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detail), "明細");
+
+    const shopName =
+      qRid
+        ? document.getElementById("qRestaurant")?.selectedOptions?.[0]?.textContent
+        : "AllShops";
+
+    const filename =
+      `Orders_${qDate||"AllDates"}_${shopName||"Shop"}`
+      .replace(/[\\/:*?"<>|]/g, "-") + ".xlsx";
+
+    XLSX.writeFile(wb, filename, {
+      bookType: "xlsx",
+      compression: true,
+      type: "array",
+      cellStyles: true,
+    });
+
+    statusPill.textContent = "匯出完成 ✅";
+  }catch(err){
+    console.error(err);
+    statusPill.textContent = "匯出失敗";
+    alert("Excel 匯出失敗，請看 console");
+  }
+}
+
+// ✅ 強制重新綁定匯出按鈕（覆蓋舊設定）
+const __btnExcel = document.getElementById("btnExportExcel");
+if(__btnExcel){
+  __btnExcel.onclick = exportOrdersExcel;
+}
+    
   </script>
 </body>
 </html>
