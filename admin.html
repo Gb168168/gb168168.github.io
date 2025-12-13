@@ -18,6 +18,10 @@
       --ok:#34d399;
       --warn:#fbbf24;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
+
+      --selectOptBg:#0b1630;
+      --selectOptText:#e8eeff;
+      --selectOptActive:rgba(110,231,255,.25);
     }
 
     /* ✅ 修白底：讓瀏覽器原生表單 UI 走深色 */
@@ -105,11 +109,11 @@
 
     /* ✅ 修白底：option 深色 */
     select option{
-      background:#0b1630;
-      color:#e8eeff;
+      background:var(--selectOptBg);
+      color:var(--selectOptText);
     }
     select option[value=""]{ color: rgba(232,238,255,.55); }
-    select option:checked{ background: rgba(110,231,255,.25); color:#e8eeff; }
+    select option:checked{ background: var(--selectOptActive); color:var(--selectOptText); }
 
     .btn{
       border:1px solid var(--line);
@@ -156,7 +160,6 @@
     .groupBody{padding:12px;display:grid;gap:10px}
     .hidden{display:none !important}
 
-    .miniRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
     .itemRow{
       border:1px solid var(--line);
       border-radius:14px;
@@ -169,6 +172,17 @@
     .itemRow .actions{display:flex;gap:8px;align-items:center}
 
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      padding:5px 10px;border-radius:999px;
+      font-size:12px;color:var(--muted);
+      margin-left:8px;
+    }
+    .badge.lunch{border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.10); color:#ffd67a;}
+    .badge.dinner{border-color:rgba(110,231,255,.35); background:rgba(110,231,255,.10); color:#b8f3ff;}
   </style>
 </head>
 
@@ -190,7 +204,7 @@
 
     <div class="hr"></div>
     <div class="hint">
-      提醒：此版本為「不需要 Index」寫法（抓全部 → 前端處理）
+      ✅ 此版本為「不需要 Index」寫法（抓全部 → 前端篩選/排序）
     </div>
   </aside>
 
@@ -227,8 +241,8 @@
         </div>
 
         <div>
-          <div class="hint">快速刪除：在清單內點「刪除」即可</div>
           <div class="hint">資料表：<span class="mono">staff</span>（欄位：dept、name）</div>
+          <div class="hint">刪除：在清單內點「刪除」</div>
         </div>
       </div>
 
@@ -264,13 +278,13 @@
 
       <div class="hr"></div>
 
-      <!-- 餐點新增（對選定餐廳） -->
+      <!-- 餐點新增 -->
       <div class="group" style="margin-bottom:12px">
-        <div class="groupHead" id="menuAddHead">
+        <div class="groupHead">
           <b>新增餐點（先選餐廳）</b>
           <span class="tag" id="menuAddTag">尚未選餐廳</span>
         </div>
-        <div class="groupBody" id="menuAddBody">
+        <div class="groupBody">
           <div class="row">
             <select id="restSelectForMenu" style="flex:1;min-width:240px">
               <option value="">請選餐廳</option>
@@ -289,11 +303,11 @@
           </div>
 
           <div class="group" style="margin-top:10px">
-            <div class="groupHead" id="addonHead">
+            <div class="groupHead">
               <b>此餐點加購項目</b>
               <span class="hint">可新增多筆（免費/金額）</span>
             </div>
-            <div class="groupBody" id="addonBody">
+            <div class="groupBody">
               <div class="row">
                 <input id="addonName" placeholder="加購名稱（例如：加蛋）" style="flex:1;min-width:200px">
                 <input id="addonPrice" placeholder="金額（0=免費）" type="number" min="0" step="1" style="width:180px">
@@ -326,6 +340,7 @@
       <div class="grid2">
         <div>
           <div class="hint">篩選（前端篩選，不需要 index）</div>
+
           <div class="row" style="margin-top:8px">
             <select id="fDept" style="min-width:180px">
               <option value="">全部部門</option>
@@ -336,8 +351,25 @@
             <select id="fRest" style="min-width:220px">
               <option value="">全部餐廳</option>
             </select>
-            <button class="btn" id="btnClearFilter">清除篩選</button>
           </div>
+
+          <div class="row" style="margin-top:8px">
+            <span class="hint">日期範圍</span>
+            <input type="date" id="fDateStart">
+            <span class="hint">～</span>
+            <input type="date" id="fDateEnd">
+
+            <select id="fPeriod" style="min-width:220px">
+              <option value="">全部時段</option>
+              <option value="lunch">中午（12:00 前）</option>
+              <option value="dinner">晚上（12:00(含) 後）</option>
+            </select>
+
+            <button class="btn" id="btnQuickToday">今天</button>
+            <button class="btn" id="btnQuickClearDate">清空日期</button>
+            <button class="btn" id="btnClearFilter">清除所有篩選</button>
+          </div>
+
           <div class="hint" id="orderHint"></div>
         </div>
 
@@ -405,26 +437,54 @@
       ["staff","restaurants","orders"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t!==tab));
     });
   });
-
   $("btnGoUser").onclick=()=>location.href="user.html";
+
+  // ========= 時間工具 =========
+  function toDate(createdAt){
+    if(!createdAt?.seconds) return null;
+    return new Date(createdAt.seconds * 1000);
+  }
+  function ymdLocal(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${dd}`;
+  }
+  function nowYMD(){
+    return ymdLocal(new Date());
+  }
+
+  // 規則：12:00 前為中午；12:00(含) 後為晚上
+  function getPeriod(createdAt){
+    const d = toDate(createdAt);
+    if(!d) return "";
+    return d.getHours() < 12 ? "lunch" : "dinner";
+  }
+  function periodLabel(p){
+    if(p==="lunch") return "中午";
+    if(p==="dinner") return "晚上";
+    return "";
+  }
+  function periodBadgeHTML(p){
+    if(p==="lunch") return `<span class="badge lunch">🟡 中午</span>`;
+    if(p==="dinner") return `<span class="badge dinner">🔵 晚上</span>`;
+    return ``;
+  }
 
   // ========= Data Cache =========
   let staff = [];        // {id,dept,name}
   let restaurants = [];  // {id,name,url,img,menus,addons}
-  let orders = [];       // {id,dept,name,staffKey,restaurantName,total,items,createdAt,note}
+  let orders = [];       // {id,...}
 
   // ========= 人員管理 =========
   async function loadStaff(){
     setHint($("topHint"), "載入人員中…");
-    const snap = await getDocs(collection(db,"staff")); // 不用 orderBy，避免 index
+    const snap = await getDocs(collection(db,"staff"));
     staff = snap.docs.map(d=>({ id:d.id, ...(d.data()||{}) }))
       .filter(x=>x.dept && x.name);
 
-    // 前端排序
     staff.sort((a,b)=> String(a.dept).localeCompare(String(b.dept),"zh-Hant") || String(a.name).localeCompare(String(b.name),"zh-Hant"));
-
     renderStaff();
-    setHint($("topHint"), "已載入", "ok");
   }
 
   function renderStaff(){
@@ -510,7 +570,6 @@
 
     restaurants.sort((a,b)=>a.name.localeCompare(b.name,"zh-Hant"));
 
-    // 填餐廳下拉（給新增餐點用）
     $("restSelectForMenu").innerHTML =
       `<option value="">請選餐廳</option>` +
       restaurants.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("");
@@ -543,24 +602,21 @@
         </div>
       `;
 
-      // 點 head（非刪除）=> 收合
       const body = document.createElement("div");
       body.className = "groupBody hidden";
 
       head.addEventListener("click", (e)=>{
         if(e.target?.closest?.("[data-del]")) return;
-        if(r.url) window.open(r.url, "_blank");
         body.classList.toggle("hidden");
       });
 
       head.querySelector("[data-del]").onclick = async (e)=>{
         e.stopPropagation();
-        if(!confirm(`刪除餐廳：${r.name}（會連同餐點資料一起刪除該文件）？`)) return;
+        if(!confirm(`刪除餐廳：${r.name}？`)) return;
         await deleteDoc(doc(db,"restaurants",r.id));
         await loadAll();
       };
 
-      // body：餐點清單（可刪）
       const menus = (r.menus||[]).map(m=>({
         id: m.id || m.itemId || crypto.randomUUID(),
         category: (m.category||m.type||"").trim(),
@@ -600,10 +656,12 @@
 
           row.querySelector("button").onclick = async ()=>{
             if(!confirm(`刪除餐點：${m.name}（${r.name}）？`)) return;
-            const newMenus = (r.menus||[]).filter(x => (x.id||x.itemId) !== (m.id));
-            // 若原本沒 id，則用 name+price 做 fallback（避免刪不到）
+
+            // 以 id 優先刪；若資料沒有 id，退回 name+price 刪
+            const before = Array.isArray(r.menus) ? r.menus : [];
+            const byId = before.filter(x => (x.id||x.itemId) !== m.id);
             const fallback = (x)=> (String((x.name||x.title||"")).trim()===m.name && Number(x.price||0)===m.price);
-            const filtered = newMenus.length !== (r.menus||[]).length ? newMenus : (r.menus||[]).filter(x=>!fallback(x));
+            const filtered = byId.length !== before.length ? byId : before.filter(x=>!fallback(x));
 
             await updateDoc(doc(db,"restaurants",r.id), { menus: filtered });
             await loadAll();
@@ -701,10 +759,9 @@
       addons: tempAddons.map(a=>({ name:a.name, price:a.price }))
     };
 
-    const newMenus = Array.isArray(r.menus) ? [...r.menus, newItem] : [newItem];
-    await updateDoc(doc(db,"restaurants",r.id), { menus: newMenus });
+    const before = Array.isArray(r.menus) ? r.menus : [];
+    await updateDoc(doc(db,"restaurants",r.id), { menus: [...before, newItem] });
 
-    // reset form
     $("menuCategory").value = "";
     $("menuName").value = "";
     $("menuPrice").value = "";
@@ -756,10 +813,30 @@
     const fn = $("fName").value;
     const fr = $("fRest").value;
 
+    const ds = $("fDateStart").value;  // YYYY-MM-DD
+    const de = $("fDateEnd").value;    // YYYY-MM-DD
+    const fp = $("fPeriod").value;     // lunch/dinner
+
     return orders.filter(o=>{
       if(fd && o.dept !== fd) return false;
       if(fn && o.name !== fn) return false;
       if(fr && o.restaurantName !== fr) return false;
+
+      // 日期範圍
+      if(ds || de){
+        const d = toDate(o.createdAt);
+        if(!d) return false;
+        const ymd = ymdLocal(d);
+        if(ds && ymd < ds) return false;
+        if(de && ymd > de) return false;
+      }
+
+      // 時段
+      if(fp){
+        const p = getPeriod(o.createdAt);
+        if(p !== fp) return false;
+      }
+
       return true;
     });
   }
@@ -773,7 +850,19 @@
     let sum = 0;
     list.forEach(o=> sum += Number(o.total||0));
 
-    setHint($("orderHint"), `共 ${list.length} 筆｜合計 $ ${money(sum)}`, list.length? "ok":"warn");
+    // 顯示篩選摘要
+    const fd = $("fDept").value || "全部部門";
+    const fn = $("fName").value || "全部姓名";
+    const fr = $("fRest").value || "全部餐廳";
+    const ds = $("fDateStart").value || "—";
+    const de = $("fDateEnd").value || "—";
+    const fp = $("fPeriod").value ? ( $("fPeriod").value==="lunch" ? "中午" : "晚上" ) : "全部時段";
+
+    setHint($("orderHint"),
+      `共 ${list.length} 筆｜合計 $ ${money(sum)} ｜ ${fd} / ${fn} / ${fr} ｜ 日期：${ds}～${de} ｜ 時段：${fp}`,
+      list.length ? "ok" : "warn"
+    );
+
     $("statPill").textContent = `訂單 ${list.length}｜$ ${money(sum)}`;
 
     if(!list.length){
@@ -784,29 +873,35 @@
     list.forEach(o=>{
       const items = Array.isArray(o.items) ? o.items : [];
       const itemsText = items.map(it=>{
+        const qty = Number(it.qty||0);
+        const price = Number(it.price||0);
+        const addonsSum = (it.addons||[]).reduce((s,a)=>s+(Number(a?.price||0)),0);
+        const lineTotal = (price + addonsSum) * qty;
+
         const addons = (it.addons||[]).map(a=>{
           const n = (a?.name||"").trim();
           const p = Number(a?.price||0);
           return n ? `${n}${p?`(+${p})`:"(免費)"}` : "";
         }).filter(Boolean).join("、");
 
-        const qty = Number(it.qty||0);
-        const price = Number(it.price||0);
-        const addonsSum = (it.addons||[]).reduce((s,a)=>s+(Number(a?.price||0)),0);
-        const lineTotal = (price + addonsSum) * qty;
-
         return `• ${esc(it.name||"")} x${qty} ｜單價$${money(price)}`
           + (addons ? ` ｜加購：${esc(addons)}` : ``)
           + ` ｜品項金額：$${money(lineTotal)}`;
       }).join("<br>");
 
-      const createdText = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleString("zh-TW") : "";
+      const d = toDate(o.createdAt);
+      const createdText = d ? d.toLocaleString("zh-TW") : "";
+      const p = getPeriod(o.createdAt);
 
       const row = document.createElement("div");
       row.className = "itemRow";
       row.innerHTML = `
         <div>
-          <b>${esc(o.restaurantName||"（未知餐廳）")} <span class="tag">${esc(o.dept||"")}/${esc(o.name||"")}</span></b>
+          <b>
+            ${esc(o.restaurantName||"（未知餐廳）")}
+            <span class="tag">${esc(o.dept||"")}/${esc(o.name||"")}</span>
+            ${periodBadgeHTML(p)}
+          </b>
           <div class="meta">時間：${esc(createdText)}｜訂單總額：$ ${money(o.total||0)}</div>
           <div class="meta" style="margin-top:6px">${itemsText || "（無品項）"}</div>
           ${o.note ? `<div class="meta" style="margin-top:6px">整單備註：${esc(o.note)}</div>` : ``}
@@ -826,37 +921,60 @@
     });
   }
 
+  // 篩選事件
   $("fDept").onchange = renderOrders;
   $("fName").onchange = renderOrders;
   $("fRest").onchange = renderOrders;
+  $("fDateStart").onchange = renderOrders;
+  $("fDateEnd").onchange = renderOrders;
+  $("fPeriod").onchange = renderOrders;
 
   $("btnClearFilter").onclick = ()=>{
     $("fDept").value = "";
     $("fName").value = "";
     $("fRest").value = "";
+    $("fDateStart").value = "";
+    $("fDateEnd").value = "";
+    $("fPeriod").value = "";
+    renderOrders();
+  };
+
+  // ✅ 快捷：今天（起日=迄日=今天）
+  $("btnQuickToday").onclick = ()=>{
+    const t = nowYMD();
+    $("fDateStart").value = t;
+    $("fDateEnd").value = t;
+    renderOrders();
+  };
+
+  // ✅ 快捷：清空日期（保留其他篩選）
+  $("btnQuickClearDate").onclick = ()=>{
+    $("fDateStart").value = "";
+    $("fDateEnd").value = "";
     renderOrders();
   };
 
   $("btnReloadOrders").onclick = async ()=>{ await loadOrders(); };
 
-  // ========= 匯出 Excel（CSV，Excel 可開） =========
+  // ========= 匯出 Excel（CSV，Excel 可開｜匯出篩選後） =========
   $("btnExportExcel").onclick = ()=>{
     const list = getFilteredOrders();
 
-    // 表頭
     const rows = [[
-      "部門","姓名","餐廳","品項","加購","數量","單價","加購金額","品項金額","訂單總額","下單時間","整單備註"
+      "部門","姓名","餐廳","時段","品項","加購","數量","單價","加購金額","品項金額","訂單總額","下單時間","整單備註"
     ]];
 
     list.forEach(o=>{
-      const createdText = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleString("zh-TW") : "";
-      const items = Array.isArray(o.items) ? o.items : [];
+      const d = toDate(o.createdAt);
+      const createdText = d ? d.toLocaleString("zh-TW") : "";
+      const period = periodLabel(getPeriod(o.createdAt)) || "";
 
+      const items = Array.isArray(o.items) ? o.items : [];
       if(!items.length){
         rows.push([
-          o.dept||"", o.name||"", o.restaurantName||"",
+          o.dept||"", o.name||"", o.restaurantName||"", period,
           "", "", "", "", "", "",
-          o.total||0, createdText, o.note||""
+          Number(o.total||0), createdText, o.note||""
         ]);
         return;
       }
@@ -876,7 +994,7 @@
         const lineTotal = (price + addonsSum) * qty;
 
         rows.push([
-          o.dept||"", o.name||"", o.restaurantName||"",
+          o.dept||"", o.name||"", o.restaurantName||"", period,
           it.name||"", addonsText,
           qty, price, addonsSum, lineTotal,
           Number(o.total||0), createdText, o.note||""
@@ -884,10 +1002,9 @@
       });
     });
 
-    // 轉 CSV（含 BOM，避免 Excel 亂碼）
+    // CSV（含 BOM，避免 Excel 亂碼）
     const csv = "\uFEFF" + rows.map(r=>r.map(v=>{
       const s = String(v ?? "");
-      // 逗號/換行/引號 → 用引號包起來，內部引號雙寫
       return /[,"\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
     }).join(",")).join("\n");
 
@@ -912,6 +1029,13 @@
       setHint($("topHint"), "讀取失敗：" + String(err?.message||err), "bad");
     }
   }
+
+  // init：預設帶今天日期（起日=迄日=今天）
+  (function initFilters(){
+    const t = nowYMD();
+    $("fDateStart").value = t;
+    $("fDateEnd").value = t;
+  })();
 
   // init
   renderTempAddons();
