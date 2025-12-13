@@ -3,30 +3,44 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽~｜管理者</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- ✅ Excel（SheetJS） -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
-      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
-      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
-      --shadow:0 10px 30px rgba(15,23,42,.10);
+      /* ✅ 重新拉開層次：背景更柔、卡片更白、文字更清楚、active 更明顯 */
+      --bg:#eef1f7;
+      --panel:#f6f7fb;
+      --card:#ffffff;
+      --text:#0b1220;
+      --muted:#516074;
+      --primary:#fb7185;
+      --primary2:#ff9a9e;
+      --border:rgba(15,23,42,.12);
+      --border2:rgba(15,23,42,.18);
+      --shadow:0 12px 34px rgba(2,6,23,.10);
       --radius:18px;
+
+      --navBg:#f3f5fb;
+      --navActiveBg:rgba(251,113,133,.12);
+      --navActiveBorder:rgba(251,113,133,.70);
+      --focus:rgba(251,113,133,.65);
     }
     *{box-sizing:border-box}
     body{
       margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
-      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
-                  var(--bg);
+      background:
+        radial-gradient(1200px 520px at 18% -12%, rgba(251,113,133,.16), transparent 60%),
+        radial-gradient(900px 520px at 110% 0%, rgba(99,102,241,.10), transparent 55%),
+        linear-gradient(180deg, #f6f7fb 0%, var(--bg) 55%, #eef1f7 100%);
       color:var(--text);
       min-height:100vh;
     }
     .wrap{max-width:1300px; margin:0 auto; padding:16px;}
     .topbar{
-      background: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.86);
       border:1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -36,47 +50,72 @@
     }
     .topbar h1{font-size:18px; margin:0}
     .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
+    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12.5px}
     .btn{
-      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
+      padding:9px 12px; border-radius:14px; border:1px solid var(--border2);
       background:#fff; cursor:pointer; font-weight:900;
     }
+    .btn:hover{filter:brightness(.98)}
     .primary{
       padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
       background: linear-gradient(90deg, var(--primary), var(--primary2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.20);
     }
+    .primary:hover{filter:saturate(1.04)}
     .btn:disabled,.primary:disabled{opacity:.55; cursor:not-allowed}
+
     .grid{display:grid; grid-template-columns: 280px 1fr; gap:14px; margin-top:14px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
     .card{
-      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
-      box-shadow: 0 8px 25px rgba(15,23,42,.07);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: 0 10px 26px rgba(2,6,23,.07);
       padding:14px;
     }
     .card h2{margin:0 0 10px; font-size:15px}
+
     label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
       width:100%; padding:11px 12px; border-radius:14px;
-      border:1px solid var(--border); outline:none; background:#fff;
+      border:1px solid var(--border2); outline:none; background:#fff;
       font-size:14px;
     }
     textarea{min-height:92px; resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
+    input:focus,select:focus,textarea:focus{border-color: var(--focus); box-shadow:0 0 0 4px rgba(251,113,133,.10)}
+
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
     .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
     .hr{height:1px; background: var(--border); margin:12px 0}
-    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
+    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12px}
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .danger{border-color: rgba(239,68,68,.35)}
-    .navBtn{width:100%; text-align:left; padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:900;}
-    .navBtn.active{border-color: rgba(251,113,133,.55); box-shadow:0 10px 22px rgba(251,113,133,.18);}
+    .danger{border-color: rgba(239,68,68,.42)}
+
+    .navCard{
+      background: var(--navBg);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: 0 10px 26px rgba(2,6,23,.06);
+      padding:14px;
+    }
+    .navBtn{
+      width:100%; text-align:left; padding:10px 12px;
+      border-radius:14px; border:1px solid var(--border2);
+      background:#fff; cursor:pointer; font-weight:900;
+    }
+    .navBtn.active{
+      border-color: var(--navActiveBorder);
+      background: var(--navActiveBg);
+      box-shadow:0 10px 22px rgba(251,113,133,.14);
+    }
+
     .section{display:none;}
     .section.active{display:block;}
 
     .optGroup{
       margin-top:10px;
-      border:1px solid rgba(15,23,42,.08);
+      border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
       padding:10px;
       background:#fff;
@@ -85,7 +124,7 @@
     .optHead b{font-size:13.5px}
 
     .box{
-      border:1px solid rgba(15,23,42,.10);
+      border:1px solid rgba(15,23,42,.12);
       border-radius:16px;
       padding:12px;
       background:#fff;
@@ -96,13 +135,20 @@
     table{width:100%; border-collapse:collapse; font-size:13.5px}
     th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
     th{color:var(--muted); font-weight:900}
+
     .listLine{
-      border:1px solid rgba(15,23,42,.10);
+      border:1px solid rgba(15,23,42,.12);
       border-radius:14px;
       padding:10px 12px;
       background:#fff;
       margin-top:10px;
     }
+    details > summary{
+      cursor:pointer;
+      list-style:none;
+      user-select:none;
+    }
+    details > summary::-webkit-details-marker{display:none}
   </style>
 </head>
 
@@ -122,7 +168,7 @@
 
     <div class="grid">
       <!-- LEFT NAV -->
-      <div class="card">
+      <div class="navCard">
         <div class="inline" style="justify-content:space-between">
           <b>功能</b>
           <span class="tag">Admin</span>
@@ -373,7 +419,6 @@
       const cur = Array.isArray(obj?.categoryGroups) ? obj.categoryGroups : null;
       if(cur && cur.length > 0) return cur;
 
-      // ✅ 只建立群組骨架，options 先空（不預設麵/飯/飲料）
       return [{
         name: "餐點類別",
         type: "single",
@@ -406,12 +451,10 @@
           return `<option value="${esc(r.id)}">${esc(r.name||"未命名")}（${esc(hint)}）</option>`;
         }).join("");
 
-        // Orders tab restaurant filter
         $("qRestaurant").innerHTML = `<option value="">全部</option>` + restaurants.map(r=>
           `<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`
         ).join("");
 
-        // keep selected
         if(selectedRestaurantId && restaurants.find(r=> r.id===selectedRestaurantId)){
           sel.value = selectedRestaurantId;
         }else{
@@ -452,7 +495,6 @@
         selectedRestaurantId = rid;
         selectedRestaurant = snap.exists() ? snap.data() : null;
 
-        // ✅ 防呆：若舊資料沒有 categoryGroups，補上骨架（但不預塞類別）
         const fixed = ensureCategoryGroups(selectedRestaurant || {});
         if(!Array.isArray(selectedRestaurant?.categoryGroups) || selectedRestaurant.categoryGroups.length===0){
           try{
@@ -460,7 +502,6 @@
             const snap2 = await getDoc(doc(db, "restaurants", rid));
             selectedRestaurant = snap2.exists() ? snap2.data() : selectedRestaurant;
           }catch(e){
-            // 不阻斷 UI
             console.warn("patch categoryGroups failed:", e);
           }
         }
@@ -501,8 +542,6 @@
           isVisible: true,
           isClosed: false,
           createdAt: Date.now(),
-
-          // ✅ 不預設類別：只建立空群組
           categoryGroups: ensureCategoryGroups({})
         };
         const ref = await addDoc(colRestaurants, payload);
@@ -585,8 +624,6 @@
     async function saveCategoryGroups(groups){
       if(!selectedRestaurantId) return;
       await updateDoc(doc(db, "restaurants", selectedRestaurantId), { categoryGroups: groups });
-
-      // ✅ 重新讀回最新 restaurant，確保 UI 立即更新
       await loadRestaurantDoc(selectedRestaurantId);
       await loadRestaurants();
     }
@@ -651,10 +688,7 @@
             try{
               statusPill.textContent = "刪除類別中…";
               await saveCategoryGroups(groups);
-
-              // ✅ 立刻套用到新增餐點下拉
               renderMenuAdd();
-
               statusPill.textContent = "刪除類別完成 ✅";
             }catch(err){
               console.error(err);
@@ -676,10 +710,7 @@
         try{
           statusPill.textContent = "新增類別中…";
           await saveCategoryGroups(groups);
-
-          // ✅ 立刻套用到新增餐點下拉
           renderMenuAdd();
-
           statusPill.textContent = "新增類別完成 ✅";
         }catch(err){
           console.error(err);
@@ -789,12 +820,13 @@
           </div>
         </div>
 
+        <!-- ✅ 加購改成「加購群組 addonGroups」：單選/多選、必選/可不選 -->
         <div class="box">
           <div class="inline" style="justify-content:space-between">
-            <b>加購項目 addons（可多筆）</b>
-            <button class="btn" id="btnAddAddonRow" type="button">＋新增一列</button>
+            <b>加購群組 addonGroups（可單選 / 多選 / 可加價）</b>
+            <button class="btn" id="btnAddAddonGroup" type="button">＋新增一組</button>
           </div>
-          <div id="addonRows" class="muted" style="margin-top:8px"></div>
+          <div id="addonGroupsWrap" class="muted" style="margin-top:8px"></div>
         </div>
 
         <div class="box">
@@ -811,53 +843,110 @@
         </div>
       `;
 
-      // init addons rows
-      const addonRows = document.getElementById("addonRows");
-      addonRows.innerHTML = `<div class="muted">（尚無加購，按「新增一列」加入）</div>`;
+      // ===== addonGroups builder =====
+      const addonWrap = document.getElementById("addonGroupsWrap");
+      addonWrap.innerHTML = `<div class="muted">（尚無加購群組，按「新增一組」加入）</div>`;
+      let addonGroupCount = 0;
 
-      let addonRowCount = 0;
-      document.getElementById("btnAddAddonRow").onclick = ()=>{
-        addonRowCount++;
-        if(addonRowCount === 1) addonRows.innerHTML = "";
-        const rid = `addon_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-        const el = document.createElement("div");
-        el.className = "box";
-        el.style.marginTop = "10px";
-        el.innerHTML = `
-          <div class="miniRow">
+      document.getElementById("btnAddAddonGroup").onclick = ()=>{
+        addonGroupCount++;
+        if(addonGroupCount === 1) addonWrap.innerHTML = "";
+        const gid = `ag_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+        const groupEl = document.createElement("div");
+        groupEl.className = "box";
+        groupEl.dataset.gid = gid;
+
+        groupEl.innerHTML = `
+          <div class="row">
             <div>
-              <label>名稱</label>
-              <input data-addon-name placeholder="例：加蛋"/>
+              <label>群組名稱</label>
+              <input data-ag-name placeholder="例：加料（麵） / 飲料加購"/>
             </div>
-            <div>
-              <label>價格</label>
-              <input data-addon-price type="number" min="0" value="0"/>
-            </div>
-            <div>
-              <label>免費</label>
-              <select data-addon-free>
-                <option value="false">否</option>
-                <option value="true">是</option>
-              </select>
+            <div class="row" style="grid-template-columns:1fr 1fr; gap:10px">
+              <div>
+                <label>選擇方式</label>
+                <select data-ag-type>
+                  <option value="multi">多選</option>
+                  <option value="single">單選</option>
+                </select>
+              </div>
+              <div>
+                <label>必選</label>
+                <select data-ag-required>
+                  <option value="false">可不選</option>
+                  <option value="true">必選</option>
+                </select>
+              </div>
             </div>
           </div>
+
+          <div class="inline" style="justify-content:space-between; margin-top:8px">
+            <b>加購項目（options）</b>
+            <button class="btn" data-ag-add-opt type="button">＋新增項目</button>
+          </div>
+          <div class="muted" style="margin-top:6px">（每個項目可設定免費/加價）</div>
+          <div data-ag-opt-list style="margin-top:8px"></div>
+
           <div class="inline" style="justify-content:flex-end; margin-top:10px">
-            <button class="btn danger" data-del-addon="${rid}" type="button">刪除此列</button>
+            <button class="btn danger" data-ag-del-group type="button">刪除此群組</button>
           </div>
         `;
-        el.dataset.rowId = rid;
-        addonRows.appendChild(el);
 
-        el.querySelector(`button[data-del-addon="${rid}"]`).onclick = ()=>{
-          el.remove();
-          if(addonRows.querySelectorAll(".box").length === 0){
-            addonRowCount = 0;
-            addonRows.innerHTML = `<div class="muted">（尚無加購，按「新增一列」加入）</div>`;
+        addonWrap.appendChild(groupEl);
+
+        const optList = groupEl.querySelector("[data-ag-opt-list]");
+        optList.innerHTML = `<div class="muted">（尚無項目，請新增）</div>`;
+        let optCount = 0;
+
+        groupEl.querySelector("[data-ag-add-opt]").onclick = ()=>{
+          optCount++;
+          if(optCount === 1) optList.innerHTML = "";
+          const optEl = document.createElement("div");
+          optEl.className = "box";
+          optEl.style.marginTop = "10px";
+          optEl.innerHTML = `
+            <div class="miniRow">
+              <div>
+                <label>名稱</label>
+                <input data-ag-opt-name placeholder="例：加蛋"/>
+              </div>
+              <div>
+                <label>價格</label>
+                <input data-ag-opt-price type="number" min="0" value="0"/>
+              </div>
+              <div>
+                <label>免費</label>
+                <select data-ag-opt-free>
+                  <option value="false">否</option>
+                  <option value="true">是</option>
+                </select>
+              </div>
+            </div>
+            <div class="inline" style="justify-content:flex-end; margin-top:10px">
+              <button class="btn danger" data-ag-del-opt type="button">刪除</button>
+            </div>
+          `;
+          optList.appendChild(optEl);
+          optEl.querySelector("[data-ag-del-opt]").onclick = ()=>{
+            optEl.remove();
+            if(optList.querySelectorAll(".box").length === 0){
+              optCount = 0;
+              optList.innerHTML = `<div class="muted">（尚無項目，請新增）</div>`;
+            }
+          };
+        };
+
+        groupEl.querySelector("[data-ag-del-group]").onclick = ()=>{
+          groupEl.remove();
+          if(addonWrap.querySelectorAll(".box[data-gid]").length === 0){
+            addonGroupCount = 0;
+            addonWrap.innerHTML = `<div class="muted">（尚無加購群組，按「新增一組」加入）</div>`;
           }
         };
       };
 
-      // option groups builder
+      // ===== optionGroups builder（原本保留）=====
       const optWrap = document.getElementById("optGroupsWrap");
       optWrap.innerHTML = `<div class="muted">（尚無選項，按「新增一組」加入）</div>`;
       let groupCount = 0;
@@ -945,17 +1034,34 @@
       document.getElementById("btnAddMenu").onclick = addMenuItem;
     }
 
-    function collectAddons(){
-      const rows = document.querySelectorAll("#addonRows .box");
-      const out = [];
-      rows.forEach(r=>{
-        const name = (r.querySelector("[data-addon-name]")?.value || "").trim();
-        if(!name) return;
-        const price = Number(r.querySelector("[data-addon-price]")?.value || 0);
-        const free = (r.querySelector("[data-addon-free]")?.value || "false") === "true";
-        out.push({ name, price: Number.isFinite(price)?price:0, free });
+    function collectAddonGroups(){
+      const groups = [];
+      const groupEls = document.querySelectorAll("#addonGroupsWrap .box[data-gid]");
+      groupEls.forEach(gel=>{
+        const name = (gel.querySelector("[data-ag-name]")?.value || "").trim();
+        const type = (gel.querySelector("[data-ag-type]")?.value || "multi"); // single|multi
+        const required = (gel.querySelector("[data-ag-required]")?.value || "false") === "true";
+
+        const optList = gel.querySelectorAll("[data-ag-opt-list] .box");
+        const options = [];
+        optList.forEach(oel=>{
+          const oname = (oel.querySelector("[data-ag-opt-name]")?.value || "").trim();
+          if(!oname) return;
+          const price = Number(oel.querySelector("[data-ag-opt-price]")?.value || 0);
+          const free = (oel.querySelector("[data-ag-opt-free]")?.value || "false") === "true";
+          options.push({ name: oname, price: Number.isFinite(price)?price:0, free });
+        });
+
+        if(!name && options.length===0) return;
+
+        groups.push({
+          name: name || "加購",
+          type: (type === "single") ? "single" : "multi",
+          required,
+          options
+        });
       });
-      return out;
+      return groups;
     }
 
     function collectOptionGroups(){
@@ -1000,12 +1106,18 @@
       if(!name) return alert("請輸入餐點名稱");
       if(!Number.isFinite(price) || price < 0) return alert("價格不正確");
 
-      const addons = collectAddons();
+      const addonGroups = collectAddonGroups();
       const optionGroups = collectOptionGroups();
 
+      // 防呆：必選群組必須要有 options
       for(const g of optionGroups){
         if((g.required !== false) && (!Array.isArray(g.options) || g.options.length===0)){
           return alert(`選項群組「${g.name}」是必選，但沒有任何選項`);
+        }
+      }
+      for(const g of addonGroups){
+        if((g.required === true) && (!Array.isArray(g.options) || g.options.length===0)){
+          return alert(`加購群組「${g.name}」是必選，但沒有任何加購項目`);
         }
       }
 
@@ -1018,7 +1130,7 @@
           price,
           defaultQty,
           note,
-          addons,
+          addonGroups,   // ✅ 新增：加購群組（單選/多選）
           optionGroups,
           createdAt: Date.now()
         });
@@ -1058,12 +1170,14 @@
       }
 
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
-        <details open class="box" style="padding:10px 12px">
+        <!-- ✅ 預設收合：拿掉 open -->
+        <details class="box" style="padding:10px 12px">
           <summary><b>${esc(cat)}</b> <span class="tag" style="margin-left:8px">${items.length} 項</span></summary>
           <div style="margin-top:10px">
             ${items.map(m=>{
-              const addons = Array.isArray(m.addons) ? m.addons : [];
               const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
+              const ag = Array.isArray(m.addonGroups) ? m.addonGroups : []; // ✅ 新增
+
               return `
                 <div class="listLine">
                   <div class="inline" style="justify-content:space-between">
@@ -1085,9 +1199,14 @@
                     </div>
                   ` : ``}
 
-                  ${addons.length ? `
+                  ${ag.length ? `
                     <div class="muted" style="margin-top:8px">
-                      加購：${esc(addons.map(a=> `${a.name}${a.free?"(免費)":(" +"+Number(a.price||0))}`).join("；"))}
+                      加購群組：${esc(ag.map(g=>{
+                        const t = (g.type==="single") ? "單選" : "多選";
+                        const req = (g.required===true) ? "必選" : "可不選";
+                        const cnt = Array.isArray(g.options)?g.options.length:0;
+                        return `${g.name}（${t} / ${req} / ${cnt}項）`;
+                      }).join("；"))}
                     </div>
                   ` : ``}
                 </div>
@@ -1136,7 +1255,8 @@
           wrap.innerHTML = `<div class="muted">尚無人員。</div>`;
         }else{
           wrap.innerHTML = depts.map(dept=>`
-            <details open class="box">
+            <!-- ✅ 預設收合：拿掉 open -->
+            <details class="box">
               <summary><b>${esc(dept)}</b> <span class="tag" style="margin-left:8px">${map[dept].length} 人</span></summary>
               <div style="margin-top:10px">
                 ${map[dept].map(p=>`
@@ -1202,7 +1322,7 @@
     }
     function periodOf(ms){
       const d = new Date(ms||0);
-      return d.getHours() < 12 ? "noon" : "night"; // 12:00(含) 後算晚上
+      return d.getHours() < 12 ? "noon" : "night";
     }
 
     function optionText(optionGroups, chosen){
