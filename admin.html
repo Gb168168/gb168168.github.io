@@ -2000,9 +2000,10 @@
     }
 
  // ===== Orders (Query + Excel) =====
-    async function ensureXLSX(){
+ // ===== Orders (Query + Excel) =====
+async function ensureXLSX(){
   const hint = $("xlsxHint");
-  const btn  = $("btnExportExcel"); // ✅ 正確：btnExportExcel
+  const btn  = $("btnExportExcel");
 
   const ok = (from)=>{
     if(hint) hint.textContent = `Excel 元件已就緒 ✅ (${from})`;
@@ -2013,7 +2014,8 @@
     if(btn) btn.disabled = true;
   };
 
-  if (window.XLSX && typeof window.XLSX.writeFile === "function"){
+  // 已存在就直接用
+  if(window.XLSX && typeof window.XLSX.writeFile === "function"){
     ok("cache");
     return true;
   }
@@ -2021,7 +2023,7 @@
   if(hint) hint.textContent = "載入 Excel 元件中…";
   if(btn) btn.disabled = true;
 
-  const loadWithTimeout = (src, label, ms=9000)=> new Promise((resolve, reject)=>{
+  const loadWithTimeout = (src, ms=9000)=> new Promise((resolve, reject)=>{
     const s = document.createElement("script");
     s.src = src;
     s.async = true;
@@ -2035,7 +2037,7 @@
 
     s.onload = ()=>{
       clearTimeout(t);
-      resolve(label);
+      resolve(true);
     };
     s.onerror = ()=>{
       clearTimeout(t);
@@ -2048,20 +2050,20 @@
 
   const sources = [
     ["jsdelivr", "https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
-    ["cdnjs",   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"],
-    ["unpkg",   "https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js"],
-    ["fastly",  "https://fastly.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
+    ["cdnjs",    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"],
+    ["unpkg",    "https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js"],
+    ["fastly",   "https://fastly.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
   ];
 
   for(const [label, url] of sources){
     try{
-      const from = await loadWithTimeout(url, label);
+      await loadWithTimeout(url, 9000);
       if(window.XLSX && typeof window.XLSX.writeFile === "function"){
-        ok(from);
+        ok(label);
         return true;
       }
     }catch(e){
-      console.warn("[XLSX]", label, "fail");
+      console.warn("[XLSX CDN fail]", label, e?.message || e);
     }
   }
 
@@ -2127,9 +2129,9 @@ async function queryOrders(){
     renderOrders(filtered);
     statusPill.textContent = "已查詢 ✅";
   }catch(err){
-    console.error(err);
-    statusPill.textContent = "查詢失敗";
-    alert("查詢失敗，請看 console");
+    console.error("queryOrders failed:", err);
+    statusPill.textContent = "查詢失敗（看 console）";
+    alert("查詢失敗（Rules/網路）\n\n" + (err?.message || err));
   }
 }
 
@@ -2175,135 +2177,100 @@ function renderOrders(list){
   }).join("");
 }
 
-/* =========================================================
-   ✅ Excel Loader（唯一版本，無撞名）
-   ========================================================= */
-async function ensureXLSX(){
-  const hint = $("xlsxHint");
-  const btn  = $("btnExportExcel");
-
-  if(window.XLSX && typeof XLSX.writeFile === "function"){
-    if(hint) hint.textContent = "Excel 元件已就緒 ✅";
-    if(btn) btn.disabled = false;
-    return true;
-  }
-
-  if(hint) hint.textContent = "載入 Excel 元件中…";
-  if(btn) btn.disabled = true;
-
-  const load = (src)=> new Promise((res,rej)=>{
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.onload = ()=>res(true);
-    s.onerror = ()=>rej();
-    document.head.appendChild(s);
-  });
-
-  try{
-    await load("https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js");
-    if(window.XLSX){
-      if(hint) hint.textContent = "Excel 元件已就緒 ✅";
-      if(btn) btn.disabled = false;
-      return true;
-    }
-  }catch{}
-
-  if(hint) hint.textContent = "Excel 載入失敗 ❌";
-  return false;
-}
-
-/* =========================================================
-   ✅ Excel 匯出（唯一版本）
-   ========================================================= */
 async function exportOrdersExcel(){
-  if(!await ensureXLSX()) return;
+  const ready = await ensureXLSX();
+  if(!ready) return;
+
+  const XLSX = window.XLSX; // ✅ module-safe
+  if(!XLSX || typeof XLSX.writeFile !== "function"){
+    alert("XLSX 未載入成功（請看 console）");
+    return;
+  }
 
   const qDate = ($("qDate").value || "").trim();
   const qRid = ($("qRestaurant").value || "").trim();
   const qName = ($("qName").value || "").trim();
   const qPeriod = ($("qPeriod")?.value || "").trim();
 
-  statusPill.textContent = "匯出中…";
+  try{
+    statusPill.textContent = "匯出中…";
 
-  let snap;
-  if(qDate){
-    snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
-  }else{
-    snap = await getDocs(query(colOrders, limit(3000)));
-  }
-
-  const rows = [];
-  snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
-
-  const filtered = rows.filter(o=>{
-    if(qRid && o.restaurantId !== qRid) return false;
-    if(qName && !String(o.userName||"").includes(qName)) return false;
-    if(qPeriod && periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
-    return true;
-  });
-
-  if(filtered.length === 0){
-    alert("目前篩選條件下沒有資料可匯出");
-    statusPill.textContent = "無資料";
-    return;
-  }
-
-  const detail = [];
-  for(const o of filtered){
-    for(const it of (o.items||[])){
-      const calc = calcItemLine(it);
-      detail.push({
-        "訂單日期": o.orderDate || "",
-        "建立時間": fmtTime(Number(o.createdAt||0)),
-        "時段": periodOf(Number(o.createdAt||0)) === "noon" ? "中午" : "晚上",
-        "部門": o.userDept || "",
-        "姓名": o.userName || "",
-        "店家": o.restaurantName || "",
-        "品項": it.name || "",
-        "加購": addonText(it.addons),
-        "數量": Number(it.qty||0),
-        "單價": calc.unit,
-        "小計": calc.lineTotal,
-        "整筆備註": o.orderNote || o.remark || "",
-        "訂單總額": Number(o.total||0),
-      });
+    let snap;
+    if(qDate){
+      snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
+    }else{
+      snap = await getDocs(query(colOrders, limit(3000)));
     }
+
+    const rows = [];
+    snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
+
+    const filtered = rows.filter(o=>{
+      if(qRid && o.restaurantId !== qRid) return false;
+      if(qName && !String(o.userName||"").includes(qName)) return false;
+      if(qPeriod && periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
+      return true;
+    }).sort((a,b)=> Number(a.createdAt||0) - Number(b.createdAt||0));
+
+    if(filtered.length === 0){
+      statusPill.textContent = "無資料可匯出";
+      return alert("目前篩選條件下沒有資料可匯出");
+    }
+
+    const detail = [];
+    for(const o of filtered){
+      const items = Array.isArray(o.items) ? o.items : [];
+      for(const it of items){
+        const calc = calcItemLine(it);
+        detail.push({
+          "訂單日期": o.orderDate || "",
+          "建立時間": fmtTime(Number(o.createdAt||0)),
+          "時段": periodOf(Number(o.createdAt||0)) === "noon" ? "中午" : "晚上",
+          "部門": o.userDept || "",
+          "姓名": o.userName || "",
+          "店家": o.restaurantName || "",
+          "品項": it.name || "",
+          "加購": addonText(it.addons),
+          "單品備註": it.note || "",
+          "數量": Number(it.qty||0),
+          "原單價": Number(it.price||0),
+          "加購加價": Number(calc.addonSum||0),
+          "小計單價": Number(calc.unit||0),
+          "品項小計": Number(calc.lineTotal||0),
+          "整筆備註": (o.orderNote || o.remark) ? (o.orderNote || o.remark) : "",
+          "訂單總額": Number(o.total||0),
+        });
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detail), "明細");
+
+    const shopName = qRid ? ($("qRestaurant").selectedOptions?.[0]?.textContent || "Shop") : "AllShops";
+    const filename = `Orders_${qDate||"AllDates"}_${shopName}_${qPeriod?(qPeriod==="noon"?"Noon":"Night"):"AllDay"}`
+      .replace(/[\\/:*?"<>|]/g, "-") + ".xlsx";
+
+    XLSX.writeFile(wb, filename);
+    statusPill.textContent = "匯出完成 ✅";
+  }catch(err){
+    console.error("exportOrdersExcel failed:", err);
+    statusPill.textContent = "匯出失敗（看 console）";
+    alert("匯出失敗（Rules/網路）\n\n" + (err?.message || err));
   }
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detail), "明細");
-
-  const shopName = qRid
-    ? ($("qRestaurant").selectedOptions?.[0]?.textContent || "Shop")
-    : "AllShops";
-
-  const filename =
-    `Orders_${qDate||"AllDates"}_${shopName}_${qPeriod||"All"}`
-      .replace(/[\\/:*?"<>|]/g,"-") + ".xlsx";
-
-  XLSX.writeFile(wb, filename, {
-    bookType: "xlsx",
-    compression: true,
-    cellStyles: true
-  });
-
-  statusPill.textContent = "匯出完成 ✅";
 }
 
-// ===== Events / Buttons =====
+// ===== Events / Buttons（Orders 區）=====
 $("btnQuery").onclick = queryOrders;
 $("btnToday").onclick = ()=>{
   $("qDate").value = todayISO();
   queryOrders();
 };
 $("btnExportExcel").onclick = exportOrdersExcel;
-
 $("qName").addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){ e.preventDefault(); queryOrders(); }
 });
 
-// ===== Init =====
+// ===== Init（Orders 區）=====
 $("qDate").value = todayISO();
 await queryOrders();
 await ensureXLSX();
@@ -2314,7 +2281,6 @@ document.addEventListener("visibilitychange", async ()=>{
   }
 });
 
-  
   </script>
 </body>
 </html>
