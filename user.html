@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>點餐系統 - 使用者</title>
+  <title>GoldBricks 呷奔啊~~｜使用者</title>
+
   <style>
     :root{
       --bg:#0b1220;
@@ -16,7 +17,17 @@
       --accent:#fb7185;
       --ok:#34d399;
       --warn:#fbbf24;
+
+      /* ✅ 下拉選單 option 深色底 */
+      --selectOptBg:#0b1630;
+      --selectOptText:#e8eeff;
+      --selectOptMuted:rgba(232,238,255,.55);
+      --selectOptActive:rgba(110,231,255,.22);
     }
+
+    /* ✅ 讓原生表單 UI 走深色（Chrome/Edge 超關鍵） */
+    :root, body { color-scheme: dark; }
+
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -46,6 +57,7 @@
     .grid{display:grid;grid-template-columns: 1.1fr .9fr;gap:14px;margin-top:14px}
     @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
     label{font-size:12px;color:var(--muted)}
+
     select,input,textarea{
       width:100%;
       padding:10px 12px;
@@ -55,6 +67,21 @@
       color:var(--text);
       outline:none;
     }
+
+    /* ✅ 修白底：選單 option 深色化（大多數瀏覽器有效） */
+    select option{
+      background-color: var(--selectOptBg);
+      color: var(--selectOptText);
+    }
+    select option[value=""]{
+      color: var(--selectOptMuted);
+    }
+    /* 有支援的瀏覽器：選取更明顯 */
+    select option:checked{
+      background-color: var(--selectOptActive);
+      color: var(--selectOptText);
+    }
+
     textarea{min-height:80px;resize:vertical}
     .btn{
       border:1px solid var(--line);
@@ -242,16 +269,13 @@
   </div>
 
   <script type="module">
-    /***********************
-     *  Firebase (你只要改這裡)
-     ***********************/
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
       getFirestore, collection, getDocs, addDoc,
-      serverTimestamp, doc, getDoc
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ 請換成你自己的 firebaseConfig（務必三頁一致）
+    // ✅ 換成你自己的（並確保 index/user/admin 三頁一致）
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "goldbricks-order.firebaseapp.com",
@@ -264,20 +288,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    /***********************
-     *  Helpers
-     ***********************/
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
     const money = (n) => (Number(n)||0).toLocaleString("zh-TW");
-    const toDateText = (v) => {
-      try{
-        if(!v) return "";
-        const d = v.toDate ? v.toDate() : (v.seconds ? new Date(v.seconds*1000) : new Date(v));
-        if(isNaN(+d)) return "";
-        return d.toLocaleString("zh-TW");
-      }catch{ return ""; }
-    };
+
     function setHint(el, text, type=""){
       el.classList.remove("ok","warn","bad");
       if(type) el.classList.add(type);
@@ -291,17 +305,13 @@
       return "讀取失敗：" + msg;
     }
 
-    /***********************
-     *  State
-     ***********************/
-    let staffList = [];          // [{dept,name,staffKey}]
-    let deptMap = new Map();     // dept => [name]
-    let restaurants = [];        // [{id,name,img,url,menus,addons}]
+    let staffList = [];
+    let deptMap = new Map();
+    let restaurants = [];
     let userDept = "";
     let userName = "";
     let selectedRestaurant = null;
-    let cart = [];              // [{itemId, name, price, qty, addons:[{name,price}]}]
-    let allOrdersCache = [];    // for my records filtering
+    let cart = [];
 
     function userKey(){
       const d = (userDept||"").trim();
@@ -333,27 +343,20 @@
       setOrderAreaVisible(false);
     }
 
-    /***********************
-     *  Load Staff (不使用複合索引)
-     *  建議 staff collection: { dept: "...", name: "..." }
-     ***********************/
     async function loadStaff(){
       setHint($("hintUser"), "讀取人員清單中…");
       staffList = [];
       deptMap = new Map();
 
       try{
-        // ✅ 這裡刻意不 orderBy( dept ) + orderBy( name )，避免 composite index
-        const snap = await getDocs(collection(db, "staff"));
-
+        const snap = await getDocs(collection(db, "staff")); // 不用 orderBy（避免 index）
         staffList = snap.docs.map(d => {
           const v = d.data() || {};
           const dept = (v.dept || "").trim();
           const name = (v.name || "").trim();
-          return { dept, name, staffKey: dept && name ? `${dept}_${name}` : "" };
+          return { dept, name };
         }).filter(x => x.dept && x.name);
 
-        // 前端排序（dept 再 name）
         staffList.sort((a,b) => a.dept.localeCompare(b.dept,"zh-Hant") || a.name.localeCompare(b.name,"zh-Hant"));
 
         for(const s of staffList){
@@ -361,12 +364,10 @@
           deptMap.get(s.dept).push(s.name);
         }
 
-        // render dept select
         $("deptSelect").innerHTML =
           `<option value="">請先選部門</option>` +
           Array.from(deptMap.keys()).map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
 
-        // reset name select
         $("nameSelect").innerHTML = `<option value="">請先選部門</option>`;
         $("nameSelect").disabled = true;
 
@@ -377,12 +378,6 @@
       }
     }
 
-    /***********************
-     *  Load Restaurants (不使用複合索引)
-     *  建議 restaurants collection: { name, img, url, menus:[...], addons:[...] }
-     *  menus: [{id, category, name, price, defaultQty, addons:[{name, price}]}]
-     *  addons: 可選全店加購（也可以不用）
-     ***********************/
     async function loadRestaurants(){
       setHint($("hintRestaurant"), "讀取餐廳中…");
       restaurants = [];
@@ -402,10 +397,9 @@
           };
         }).filter(r => r.name);
 
-        // 前端排序餐廳名稱
         restaurants.sort((a,b) => a.name.localeCompare(b.name,"zh-Hant"));
-
         renderRestaurantList();
+
         setHint($("hintRestaurant"), restaurants.length ? `已載入 ${restaurants.length} 間餐廳` : "目前尚無餐廳資料", restaurants.length ? "ok" : "warn");
       }catch(err){
         console.error(err);
@@ -416,9 +410,7 @@
     function renderRestaurantList(){
       const key = userKey();
       $("restaurantList").innerHTML = "";
-      if(!restaurants.length){
-        return;
-      }
+      if(!restaurants.length) return;
 
       for(const r of restaurants){
         const div = document.createElement("div");
@@ -431,16 +423,11 @@
           </div>
         `;
 
-        // 點整個卡片進入點餐（必須先選人員）
         div.addEventListener("click", () => {
-          if(!key){
-            alert("請先選擇部門與姓名");
-            return;
-          }
+          if(!key){ alert("請先選擇部門與姓名"); return; }
           openRestaurant(r.id);
         });
 
-        // 若有 url，點圖片開新分頁
         const img = div.querySelector("img");
         if(img && r.url){
           img.style.cursor = "pointer";
@@ -467,10 +454,7 @@
       $("restaurantSub").textContent = r.url ? `店家網址：${r.url}` : "";
       setOrderAreaVisible(true);
 
-      // render menu
       renderMenu(r);
-
-      // scroll top of right card (nice)
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -478,7 +462,6 @@
       const list = $("menuList");
       list.innerHTML = "";
 
-      // menus 可能來自 admin 的結構不同，這裡盡量容錯
       const menus = (r.menus || []).map(m => ({
         id: m.id || m.itemId || crypto.randomUUID(),
         category: (m.category || m.type || "").trim(),
@@ -488,7 +471,6 @@
         addons: Array.isArray(m.addons) ? m.addons : Array.isArray(m.addOn) ? m.addOn : []
       })).filter(m => m.name);
 
-      // 分類排序：category -> name
       menus.sort((a,b) => (a.category||"").localeCompare(b.category||"") || a.name.localeCompare(b.name,"zh-Hant"));
 
       if(!menus.length){
@@ -533,7 +515,6 @@
         const noteInput = item.querySelector("input[type='text']");
         const addonWrap = item.querySelector(".addonWrap");
 
-        // 加購：餐點自身 addons + 餐廳全店 addons（都可勾）
         const mergedAddons = [];
         const pushAddon = (a) => {
           const name = (a?.name || a?.title || "").trim();
@@ -549,7 +530,7 @@
           title.textContent = "加購項目：";
           addonWrap.appendChild(title);
 
-          mergedAddons.forEach((a, idx) => {
+          mergedAddons.forEach((a) => {
             const row = document.createElement("div");
             row.className = "addon";
             row.innerHTML = `
@@ -563,11 +544,9 @@
           });
         }
 
-        // 當 qty 或 addons 或 note 變更 => 同步到 cart
         const syncToCart = () => {
           const qty = Math.max(0, parseInt(qtyInput.value || "0", 10) || 0);
 
-          // 收集勾選的 addons
           const addonChecks = Array.from(item.querySelectorAll(".addon input[type='checkbox']"));
           const picked = [];
           addonChecks.forEach((chk, i) => {
@@ -579,7 +558,6 @@
 
           const note = (noteInput.value || "").trim();
 
-          // 找或建
           const idx = cart.findIndex(x => x.itemId === m.id);
           if(qty <= 0){
             if(idx >= 0) cart.splice(idx, 1);
@@ -602,8 +580,6 @@
         qtyInput.addEventListener("input", syncToCart);
         noteInput.addEventListener("input", syncToCart);
         item.querySelectorAll(".addon input[type='checkbox']").forEach(chk => chk.addEventListener("change", syncToCart));
-
-        // 初始化同步（若 defaultQty > 0）
         syncToCart();
 
         list.appendChild(item);
@@ -625,19 +601,9 @@
 
     function updateCartSummary(){
       const { totalQty, totalPrice } = calcCart();
-      if(!totalQty){
-        $("cartSummary").textContent = "尚未選擇餐點";
-        return;
-      }
-      $("cartSummary").textContent = `共 ${totalQty} 份 / $ ${money(totalPrice)}`;
+      $("cartSummary").textContent = totalQty ? `共 ${totalQty} 份 / $ ${money(totalPrice)}` : "尚未選擇餐點";
     }
 
-    /***********************
-     *  Submit Order
-     *  orders 建議欄位：
-     *  { dept, name, staffKey, restaurantId, restaurantName,
-     *    items:[{name,price,qty,addons,note}], note, total, createdAt }
-     ***********************/
     async function submitOrder(){
       const key = userKey();
       if(!key) return alert("請先選擇部門與姓名");
@@ -647,36 +613,30 @@
       const { totalPrice } = calcCart();
       const note = ($("orderNote").value || "").trim();
 
-      const payload = {
-        dept: userDept,
-        name: userName,
-        staffKey: key,
-        restaurantId: selectedRestaurant.id,
-        restaurantName: selectedRestaurant.name,
-        items: cart.map(x => ({
-          name: x.name,
-          category: x.category || "",
-          price: Number(x.price)||0,
-          qty: Number(x.qty)||0,
-          addons: (x.addons || []).map(a => ({ name: a.name, price: Number(a.price)||0 })),
-          note: x.note || ""
-        })),
-        note,
-        total: Number(totalPrice)||0,
-        createdAt: serverTimestamp()
-      };
-
       $("btnSubmit").disabled = true;
       setHint($("submitHint"), "送出中…");
       try{
-        await addDoc(collection(db, "orders"), payload);
+        await addDoc(collection(db, "orders"), {
+          dept: userDept,
+          name: userName,
+          staffKey: key,
+          restaurantId: selectedRestaurant.id,
+          restaurantName: selectedRestaurant.name,
+          items: cart.map(x => ({
+            name: x.name,
+            category: x.category || "",
+            price: Number(x.price)||0,
+            qty: Number(x.qty)||0,
+            addons: (x.addons || []).map(a => ({ name: a.name, price: Number(a.price)||0 })),
+            note: x.note || ""
+          })),
+          note,
+          total: Number(totalPrice)||0,
+          createdAt: serverTimestamp()
+        });
+
         setHint($("submitHint"), "✅ 已送出！", "ok");
-
-        // 清空並回餐廳列表
         resetOrderArea();
-
-        // 重新載入我的紀錄
-        await loadMyOrders();
       }catch(err){
         console.error(err);
         setHint($("submitHint"), friendlyErr(err), "bad");
@@ -685,12 +645,6 @@
       }
     }
 
-    /***********************
-     *  Load My Orders (不使用複合索引)
-     *  ✅ 不用 where + orderBy（會需要 index）
-     *  改成：抓 orders 全部 -> 前端篩選 staffKey -> 前端排序 createdAt
-     *  （若你未來量大，可以再改成建 index 版本）
-     ***********************/
     async function loadMyOrders(){
       const key = userKey();
       $("myRecords").innerHTML = "";
@@ -701,61 +655,52 @@
 
       setHint($("hintMine"), "讀取我的訂餐紀錄中…");
       try{
-        const snap = await getDocs(collection(db, "orders"));
-        const all = snap.docs.map(d => {
-          const v = d.data() || {};
-          return { id: d.id, ...v };
-        });
+        const snap = await getDocs(collection(db, "orders")); // 不用 where/orderBy（避免 index）
+        const all = snap.docs.map(d => ({ id: d.id, ...(d.data()||{}) }));
 
-        // 篩選我的 + 前端排序 createdAt desc
         const mine = all
           .filter(o => (o.staffKey || "") === key)
-          .sort((a,b) => {
-            const ta = a.createdAt?.seconds ? a.createdAt.seconds : (a.createdAt ? +new Date(a.createdAt) : 0);
-            const tb = b.createdAt?.seconds ? b.createdAt.seconds : (b.createdAt ? +new Date(b.createdAt) : 0);
-            return tb - ta;
-          });
+          .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
 
-        renderMyOrders(mine);
-        setHint($("hintMine"), mine.length ? `共 ${mine.length} 筆` : "目前尚無紀錄", mine.length ? "ok" : "warn");
+        const box = $("myRecords");
+        box.innerHTML = "";
+
+        if(!mine.length){
+          setHint($("hintMine"), "目前尚無紀錄", "warn");
+          return;
+        }
+
+        mine.forEach(o=>{
+          const itemsText = (o.items || []).map(it => {
+            const addons = (it.addons || []).map(a => a.price ? `${a.name}(+${a.price})` : `${a.name}(免費)`).join("、");
+            const note = (it.note || "").trim();
+            return `• ${it.name} x${it.qty}` +
+              (addons ? `｜加購：${addons}` : ``) +
+              (note ? `｜備註：${note}` : ``);
+          }).join("<br>");
+
+          const el = document.createElement("div");
+          el.className = "record";
+          el.innerHTML = `
+            <div class="top">
+              <b>${esc(o.restaurantName || "（未知餐廳）")}</b>
+              <span class="pill">$ ${money(o.total || 0)}</span>
+            </div>
+            <div class="sub">${(o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000).toLocaleString("zh-TW") : "")}</div>
+            <div class="items">${itemsText || "<span class='hint warn'>（無餐點明細）</span>"}</div>
+            ${o.note ? `<div class="hint">整單備註：${esc(o.note)}</div>` : ``}
+          `;
+          box.appendChild(el);
+        });
+
+        setHint($("hintMine"), `共 ${mine.length} 筆`, "ok");
       }catch(err){
         console.error(err);
         setHint($("hintMine"), friendlyErr(err), "bad");
       }
     }
 
-    function renderMyOrders(list){
-      const box = $("myRecords");
-      box.innerHTML = "";
-      if(!list.length) return;
-
-      for(const o of list){
-        const itemsText = (o.items || []).map(it => {
-          const addons = (it.addons || []).map(a => a.price ? `${a.name}(+${a.price})` : `${a.name}(免費)`).join("、");
-          const note = (it.note || "").trim();
-          return `• ${it.name} x${it.qty}` +
-                 (addons ? `｜加購：${addons}` : ``) +
-                 (note ? `｜備註：${note}` : ``);
-        }).join("<br>");
-
-        const el = document.createElement("div");
-        el.className = "record";
-        el.innerHTML = `
-          <div class="top">
-            <b>${esc(o.restaurantName || "（未知餐廳）")}</b>
-            <span class="pill">$ ${money(o.total || 0)}</span>
-          </div>
-          <div class="sub">${esc(toDateText(o.createdAt) || "")}</div>
-          <div class="items">${itemsText || "<span class='hint warn'>（無餐點明細）</span>"}</div>
-          ${o.note ? `<div class="hint">整單備註：${esc(o.note)}</div>` : ``}
-        `;
-        box.appendChild(el);
-      }
-    }
-
-    /***********************
-     *  Events
-     ***********************/
+    // events
     $("deptSelect").addEventListener("change", () => {
       userDept = $("deptSelect").value;
       userName = "";
@@ -776,6 +721,7 @@
       nameSelect.innerHTML =
         `<option value="">請選姓名</option>` +
         names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+
       renderRestaurantList();
       resetOrderArea();
       loadMyOrders();
@@ -804,20 +750,13 @@
     // 管理者切換（8520）
     function goAdmin(){
       const pin = ($("adminPin").value || "").trim();
-      if(pin !== "8520"){
-        alert("管理者密碼錯誤");
-        return;
-      }
+      if(pin !== "8520") return alert("管理者密碼錯誤");
       window.location.href = "admin.html";
     }
     $("btnGoAdmin").addEventListener("click", goAdmin);
-    $("adminPin").addEventListener("keydown", (e) => {
-      if(e.key === "Enter") goAdmin();
-    });
+    $("adminPin").addEventListener("keydown", (e) => { if(e.key === "Enter") goAdmin(); });
 
-    /***********************
-     *  Init
-     ***********************/
+    // init
     (async function init(){
       updateWho();
       await loadStaff();
