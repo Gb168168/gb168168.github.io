@@ -214,7 +214,7 @@
 
             <div class="inline" style="margin-top:12px">
               <button class="primary" id="btnAddRestaurant">新增餐廳</button>
-              <span class="muted">新增後會自動建立「餐點類別」下拉群組。</span>
+              <span class="muted">新增後會自動建立「餐點類別」下拉群組（但不預塞類別）。</span>
             </div>
           </div>
 
@@ -368,6 +368,20 @@
       };
     });
 
+    // ===== ✅ CategoryGroups（不預設任何類別） =====
+    function ensureCategoryGroups(obj){
+      const cur = Array.isArray(obj?.categoryGroups) ? obj.categoryGroups : null;
+      if(cur && cur.length > 0) return cur;
+
+      // ✅ 只建立群組骨架，options 先空（不預設麵/飯/飲料）
+      return [{
+        name: "餐點類別",
+        type: "single",
+        required: true,
+        options: []
+      }];
+    }
+
     // ===== Restaurants =====
     async function loadRestaurants(){
       try{
@@ -438,6 +452,19 @@
         selectedRestaurantId = rid;
         selectedRestaurant = snap.exists() ? snap.data() : null;
 
+        // ✅ 防呆：若舊資料沒有 categoryGroups，補上骨架（但不預塞類別）
+        const fixed = ensureCategoryGroups(selectedRestaurant || {});
+        if(!Array.isArray(selectedRestaurant?.categoryGroups) || selectedRestaurant.categoryGroups.length===0){
+          try{
+            await updateDoc(doc(db, "restaurants", rid), { categoryGroups: fixed });
+            const snap2 = await getDoc(doc(db, "restaurants", rid));
+            selectedRestaurant = snap2.exists() ? snap2.data() : selectedRestaurant;
+          }catch(e){
+            // 不阻斷 UI
+            console.warn("patch categoryGroups failed:", e);
+          }
+        }
+
         setWhoLine();
         renderRestaurantFlags();
         renderCategoryManager();
@@ -452,22 +479,6 @@
         statusPill.textContent = "讀取餐廳失敗（看 console）";
         alert("讀取餐廳失敗（Rules/網路）\n\n" + (err?.message || err));
       }
-    }
-
-    function ensureDefaultCategoryGroups(obj){
-      const cur = Array.isArray(obj?.categoryGroups) ? obj.categoryGroups : [];
-      if(cur.length > 0) return cur;
-      return [{
-        name: "餐點類別",
-        type: "single",
-        required: true,
-        options: [
-          { name: "麵類" },
-          { name: "飯類" },
-          { name: "小菜" },
-          { name: "飲料" }
-        ]
-      }];
     }
 
     async function addRestaurant(){
@@ -490,7 +501,9 @@
           isVisible: true,
           isClosed: false,
           createdAt: Date.now(),
-          categoryGroups: ensureDefaultCategoryGroups({})
+
+          // ✅ 不預設類別：只建立空群組
+          categoryGroups: ensureCategoryGroups({})
         };
         const ref = await addDoc(colRestaurants, payload);
 
@@ -565,13 +578,15 @@
 
     // ===== Category Manager (categoryGroups) =====
     function getCategoryGroup(){
-      const groups = ensureDefaultCategoryGroups(selectedRestaurant || {});
+      const groups = ensureCategoryGroups(selectedRestaurant || {});
       return { groups, g0: groups[0] };
     }
 
     async function saveCategoryGroups(groups){
       if(!selectedRestaurantId) return;
       await updateDoc(doc(db, "restaurants", selectedRestaurantId), { categoryGroups: groups });
+
+      // ✅ 重新讀回最新 restaurant，確保 UI 立即更新
       await loadRestaurantDoc(selectedRestaurantId);
       await loadRestaurants();
     }
@@ -603,7 +618,6 @@
             </div>
             <div class="inline" style="align-self:end; justify-content:flex-end">
               <button class="primary" id="btnAddCategory" type="button">新增</button>
-              <button class="btn" id="btnResetCategoryDefault" type="button">套用預設</button>
             </div>
           </div>
 
@@ -637,6 +651,10 @@
             try{
               statusPill.textContent = "刪除類別中…";
               await saveCategoryGroups(groups);
+
+              // ✅ 立刻套用到新增餐點下拉
+              renderMenuAdd();
+
               statusPill.textContent = "刪除類別完成 ✅";
             }catch(err){
               console.error(err);
@@ -658,23 +676,14 @@
         try{
           statusPill.textContent = "新增類別中…";
           await saveCategoryGroups(groups);
+
+          // ✅ 立刻套用到新增餐點下拉
+          renderMenuAdd();
+
           statusPill.textContent = "新增類別完成 ✅";
         }catch(err){
           console.error(err);
           alert("新增類別失敗（Rules/網路）\n\n" + (err?.message || err));
-        }
-      };
-
-      document.getElementById("btnResetCategoryDefault").onclick = async ()=>{
-        if(!confirm("確定套用預設類別（會覆蓋目前類別）？")) return;
-        const groups = ensureDefaultCategoryGroups({});
-        try{
-          statusPill.textContent = "套用預設類別中…";
-          await saveCategoryGroups(groups);
-          statusPill.textContent = "套用完成 ✅";
-        }catch(err){
-          console.error(err);
-          alert("套用失敗（Rules/網路）\n\n" + (err?.message || err));
         }
       };
     }
@@ -717,7 +726,7 @@
               <b>${esc(g0.name || "餐點類別")}</b>
               <span class="tag">${req ? "必選" : "可不選"}</span>
             </div>
-            <div class="muted" style="margin-top:6px">尚無類別，請先到上方「類別管理」新增。</div>
+            <div class="muted" style="margin-top:6px">尚無類別，請先到上方「類別管理」新增至少一個類別。</div>
           </div>
         `;
       }
