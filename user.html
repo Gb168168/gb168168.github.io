@@ -7,33 +7,36 @@
 
   <style>
     :root{
-      --bg:#eef1f7;
-      --panel:#f6f7fb;
-      --card:#fff;
+      /* ✅ 清爽：降低漸層、提高白底層次、減少陰影 */
+      --bg:#f3f5f9;
+      --panel:#f7f8fc;
+      --card:#ffffff;
       --text:#0b1220;
-      --muted:#516074;
+      --muted:#5b6678;
 
       --accent:#fb7185;
       --accent2:#ff9a9e;
-      --accentSoft:rgba(251,113,133,.12);
+      --accentSoft:rgba(251,113,133,.10);
 
       --border:rgba(15,23,42,.10);
-      --border2:rgba(15,23,42,.18);
-      --shadow:0 12px 34px rgba(2,6,23,.10);
+      --border2:rgba(15,23,42,.16);
+      --shadow:0 10px 22px rgba(2,6,23,.07);
       --radius:18px;
 
       --ok:#16a34a;
       --warn:#f59e0b;
       --danger:#ef4444;
+
+      --focus:rgba(251,113,133,.55);
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
       background:
-        radial-gradient(1200px 520px at 18% -12%, rgba(251,113,133,.14), transparent 60%),
-        radial-gradient(900px 520px at 110% 0%, rgba(99,102,241,.10), transparent 55%),
-        linear-gradient(180deg, #f6f7fb 0%, var(--bg) 55%, #eef1f7 100%);
+        radial-gradient(1000px 520px at 20% -12%, rgba(251,113,133,.10), transparent 60%),
+        radial-gradient(900px 520px at 110% 0%, rgba(99,102,241,.08), transparent 55%),
+        linear-gradient(180deg, var(--panel) 0%, var(--bg) 60%, var(--bg) 100%);
       color:var(--text);
       min-height:100vh;
     }
@@ -54,8 +57,19 @@
     .topbar h1{font-size:16.5px; margin:0}
     .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
 
-    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12.5px}
-    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12px}
+    .pill{
+      padding:8px 12px; border-radius:999px;
+      border:1px solid var(--border2);
+      background:#fff; color:var(--muted);
+      font-size:12.5px;
+    }
+    .tag{
+      display:inline-flex; padding:5px 10px; border-radius:999px;
+      border:1px solid var(--border2);
+      background:#fff; color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
     .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
     .hr{height:1px; background: var(--border); margin:12px 0}
 
@@ -63,13 +77,13 @@
       padding:9px 12px; border-radius:14px; border:1px solid var(--border2);
       background:#fff; cursor:pointer; font-weight:900;
     }
-    .btn:hover{filter:brightness(.98)}
+    .btn:hover{filter:brightness(.99)}
     .primary{
       padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.18);
+      color:#fff; box-shadow: 0 12px 22px rgba(251,113,133,.15);
     }
-    .primary:hover{filter:saturate(1.04)}
+    .primary:hover{filter:saturate(1.03)}
     .danger{border-color: rgba(239,68,68,.42)}
     .btn:disabled,.primary:disabled{opacity:.55; cursor:not-allowed}
 
@@ -80,7 +94,7 @@
       background:var(--card);
       border:1px solid var(--border);
       border-radius:var(--radius);
-      box-shadow: 0 10px 26px rgba(2,6,23,.07);
+      box-shadow: 0 8px 18px rgba(2,6,23,.06);
       padding:14px;
     }
     .card h2{margin:0 0 10px; font-size:15px}
@@ -92,7 +106,10 @@
       font-size:14px;
     }
     textarea{min-height:86px; resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.65); box-shadow:0 0 0 4px rgba(251,113,133,.10)}
+    input:focus,select:focus,textarea:focus{
+      border-color: var(--focus);
+      box-shadow:0 0 0 4px rgba(251,113,133,.10)
+    }
 
     details > summary{
       cursor:pointer;
@@ -115,7 +132,6 @@
       background:#fff;
       margin-top:10px;
     }
-
     .menuItem{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
@@ -128,33 +144,41 @@
     @media (max-width:980px){.row{grid-template-columns:1fr}}
 
     .priceTag{color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); border:none}
-    .lockTag{color:#92400e; background:rgba(245,158,11,.18); border:1px solid rgba(245,158,11,.35)}
-    .okTag{color:#065f46; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.30)}
+    .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
+    .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
 
-    /* ===== ✅ Restaurant Cards ===== */
+    /* ===== ✅ Restaurant Cards (清爽 list style) ===== */
     .rGrid{
       display:grid;
       grid-template-columns: 1fr;
-      gap:12px;
+      gap:10px;
       margin-top:10px;
     }
-    @media (min-width:980px){
-      .rGrid{grid-template-columns: 1fr 1fr;}
-    }
+
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      overflow:hidden;
       background:#fff;
-      box-shadow: 0 10px 26px rgba(2,6,23,.06);
-      display:flex;
-      flex-direction:column;
+      box-shadow: 0 8px 18px rgba(2,6,23,.05);
+      overflow:hidden;
+
+      display:grid;
+      grid-template-columns: 108px 1fr;
+      gap:12px;
+
+      padding:10px;
+      cursor:pointer;
     }
+    .rCard:hover{ filter:brightness(.995); }
+
     .rThumb{
       position:relative;
-      width:100%;
-      aspect-ratio: 16/9;
-      background: linear-gradient(120deg, rgba(251,113,133,.12), rgba(99,102,241,.10));
+      width:108px;
+      height:92px;
+      border-radius:14px;
+      overflow:hidden;
+      background: linear-gradient(120deg, rgba(251,113,133,.08), rgba(99,102,241,.08));
+      flex:0 0 auto;
     }
     .rThumb img{
       width:100%;
@@ -162,10 +186,12 @@
       object-fit:cover;
       display:block;
     }
+
+    /* ✅ 狀態只顯示一次：只留 badge（不再重複放 tag） */
     .rBadge{
       position:absolute;
-      left:10px; top:10px;
-      padding:6px 10px;
+      left:8px; top:8px;
+      padding:5px 9px;
       border-radius:999px;
       font-size:12px;
       font-weight:900;
@@ -174,20 +200,26 @@
     }
     .rBadge.ok{
       color:#065f46;
-      background:rgba(16,185,129,.14);
-      border-color:rgba(16,185,129,.30);
+      background:rgba(16,185,129,.12);
+      border-color:rgba(16,185,129,.26);
     }
     .rBadge.lock{
       color:#92400e;
-      background:rgba(245,158,11,.18);
-      border-color:rgba(245,158,11,.35);
+      background:rgba(245,158,11,.16);
+      border-color:rgba(245,158,11,.32);
     }
-    .rBody{padding:12px}
-    .rTitleRow{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .rName{font-size:15px}
-    .rMeta{margin-top:8px}
-    .rMeta .muted{margin-top:4px}
-    .rActions{margin-top:10px; display:flex; justify-content:flex-end}
+
+    .rBody{ padding:0; }
+    .rTitleRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .rName{ font-size:15px; }
+    .rMeta{ margin-top:6px; }
+    .rMeta .muted{ margin-top:4px; }
+
     .rMap{
       display:inline-block;
       margin-top:6px;
@@ -195,7 +227,19 @@
       color:#334155;
       text-decoration:none;
     }
-    .rMap:hover{text-decoration:underline}
+    .rMap:hover{ text-decoration:underline; }
+
+    .rActions{
+      margin-top:8px;
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+    }
+
+    @media (max-width:420px){
+      .rCard{ grid-template-columns: 92px 1fr; }
+      .rThumb{ width:92px; height:84px; }
+    }
   </style>
 </head>
 
@@ -377,7 +421,6 @@
           map[dept].push({ id:d.id, name, order: Number(v.order||0), createdAt:Number(v.createdAt||0) });
         });
 
-        // 依 order 排
         Object.keys(map).forEach(dept=>{
           map[dept].sort((a,b)=>{
             const ao=a.order||0, bo=b.order||0;
@@ -392,7 +435,6 @@
         const deptSel = $("deptSelect");
         deptSel.innerHTML = `<option value="">請選擇</option>` + depts.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("");
 
-        // restore last user
         const savedDept = localStorage.getItem("gb_user_dept") || "";
         const savedName = localStorage.getItem("gb_user_name") || "";
         if(savedDept && staffByDept[savedDept]){
@@ -427,7 +469,7 @@
       ).join("");
     }
 
-    // ===== Restaurants (Cards) =====
+    // ===== Restaurants =====
     async function loadRestaurants(){
       try{
         statusPill.textContent = "載入店家中…";
@@ -448,7 +490,6 @@
         $("rCount").textContent = `${restaurants.length} 間`;
         renderRestaurantCards();
 
-        // restore last restaurant
         const savedRid = localStorage.getItem("gb_user_rid") || "";
         if(savedRid && restaurants.some(r=> r.id===savedRid)){
           await pickRestaurant(savedRid, {silent:true});
@@ -462,6 +503,7 @@
       }
     }
 
+    // ✅ 店家卡片（清爽版：整張可點 + 選完自動收合 + 狀態不重複）
     function renderRestaurantCards(){
       const wrap = $("restaurantGrid");
       if(restaurants.length===0){
@@ -473,12 +515,12 @@
         "data:image/svg+xml;charset=UTF-8," +
         encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'>
           <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0' stop-color='#fb7185' stop-opacity='.18'/>
-            <stop offset='1' stop-color='#6366f1' stop-opacity='.14'/>
+            <stop offset='0' stop-color='#fb7185' stop-opacity='.14'/>
+            <stop offset='1' stop-color='#6366f1' stop-opacity='.10'/>
           </linearGradient></defs>
           <rect width='100%' height='100%' fill='url(#g)'/>
           <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
-            font-family='system-ui' font-size='28' fill='#0f172a' opacity='.65'>No Image</text>
+            font-family='system-ui' font-size='28' fill='#0f172a' opacity='.55'>No Image</text>
         </svg>`);
 
       wrap.innerHTML = restaurants.map(r=>{
@@ -486,7 +528,7 @@
         const img = (r.imageUrl||"").trim() || placeholder;
 
         return `
-          <div class="rCard">
+          <div class="rCard" data-pick-card="${esc(r.id)}" role="button" tabindex="0" aria-label="選擇店家 ${esc(r.name||"")}">
             <div class="rThumb">
               <img src="${esc(img)}" alt="${esc(r.name||"")}"
                 onerror="this.onerror=null; this.src='${placeholder}'"/>
@@ -496,7 +538,6 @@
             <div class="rBody">
               <div class="rTitleRow">
                 <b class="rName">${esc(r.name||"未命名")}</b>
-                ${closed ? `<span class="tag lockTag">已結單</span>` : `<span class="tag okTag">開單中</span>`}
               </div>
 
               <div class="rMeta">
@@ -517,11 +558,34 @@
         `;
       }).join("");
 
+      // ✅ 按鈕點選（避免點整張卡重複觸發）
       wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
-        btn.onclick = async ()=>{
+        btn.onclick = async (e)=>{
+          e.stopPropagation();
           const rid = btn.dataset.pickR;
           await pickRestaurant(rid);
+          const d = btn.closest("details");
+          if(d) d.open = false; // ✅ 選完自動收合
         };
+      });
+
+      // ✅ 整張卡可點（結單阻擋）
+      wrap.querySelectorAll(".rCard[data-pick-card]").forEach(card=>{
+        const rid = card.dataset.pickCard;
+        const r = restaurants.find(x=> x.id===rid);
+        const closed = !!r?.isClosed;
+
+        const go = async ()=>{
+          if(closed) return alert("此店家已結單，無法選擇");
+          await pickRestaurant(rid);
+          const d = card.closest("details");
+          if(d) d.open = false; // ✅ 選完自動收合
+        };
+
+        card.addEventListener("click", go);
+        card.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter") go();
+        });
       });
     }
 
@@ -547,7 +611,7 @@
 
         await loadMenu(rid);
         renderMenu();
-        renderCart(); // 會自動鎖住送出
+        renderCart();
 
         if(!opt.silent){
           statusPill.textContent = "已選擇店家 ✅";
@@ -609,6 +673,7 @@
         map.get(cat).push(m);
       }
 
+      // ✅ 類別預設收合（details 不加 open）
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
         <details class="box" style="padding:10px 12px">
           <summary>
@@ -621,7 +686,6 @@
         </details>
       `).join("");
 
-      // bind add-to-cart
       wrap.querySelectorAll("[data-add-mid]").forEach(btn=>{
         btn.onclick = ()=>{
           const mid = btn.dataset.addMid;
@@ -629,7 +693,6 @@
         };
       });
 
-      // Enter in note => add
       wrap.querySelectorAll("[data-mid-note]").forEach(inp=>{
         inp.addEventListener("keydown",(e)=>{
           if(e.key==="Enter"){
@@ -775,7 +838,6 @@
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
 
-      // optionGroups 必選：若 required 且選 -1 -> fail
       const og = Array.isArray(m.optionGroups)?m.optionGroups:[];
       for(let gi=0; gi<og.length; gi++){
         const g = og[gi]||{};
@@ -788,7 +850,6 @@
         if(!opt) return `請先選擇「${g.name||"選項"}」`;
       }
 
-      // addonGroups 必選：checked 必須>=1
       const ag = Array.isArray(m.addonGroups)?m.addonGroups:[];
       for(let gi=0; gi<ag.length; gi++){
         const g = ag[gi]||{};
@@ -843,7 +904,6 @@
       });
 
       if(noteEl) noteEl.value = "";
-
       renderCart();
     }
 
@@ -1056,7 +1116,7 @@
 
       renderCart();
       loadMyOrders();
-      renderMenu(); // 更新加入按鈕狀態
+      renderMenu();
     };
 
     $("nameSelect").onchange = ()=>{
@@ -1066,7 +1126,7 @@
 
       renderCart();
       loadMyOrders();
-      renderMenu(); // 更新加入按鈕 enabled/disabled
+      renderMenu();
     };
 
     $("btnSubmit").onclick = submitOrder;
