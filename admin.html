@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者</title>
+  <title>GoldBricks 呷奔👽~~｜管理者</title>
 
   <!-- ✅ Excel（SheetJS） -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
-      /* ✅ 重新拉開層次：背景更柔、卡片更白、文字更清楚、active 更明顯 */
       --bg:#eef1f7;
       --panel:#f6f7fb;
       --card:#ffffff;
@@ -27,6 +26,10 @@
       --navActiveBg:rgba(251,113,133,.12);
       --navActiveBorder:rgba(251,113,133,.70);
       --focus:rgba(251,113,133,.65);
+
+      /* ✅ Drag UI */
+      --dragBorder: rgba(251,113,133,.70);
+      --dragBg: rgba(251,113,133,.10);
     }
     *{box-sizing:border-box}
     body{
@@ -149,6 +152,26 @@
       user-select:none;
     }
     details > summary::-webkit-details-marker{display:none}
+
+    /* ✅ Drag area */
+    .draggableItem{cursor:grab}
+    .draggableItem:active{cursor:grabbing}
+    .dragOver{
+      border-color: var(--dragBorder) !important;
+      background: var(--dragBg) !important;
+      box-shadow: 0 10px 22px rgba(251,113,133,.14);
+    }
+    .dragHint{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px dashed rgba(15,23,42,.22);
+      background:#fff;
+      color:var(--muted);
+      font-size:12px;
+    }
   </style>
 </head>
 
@@ -265,7 +288,10 @@
           </div>
 
           <div class="card" style="margin-top:14px">
-            <h2>3）類別管理（categoryGroups：下拉選單選項）</h2>
+            <div class="inline" style="justify-content:space-between">
+              <h2 style="margin:0">3）類別管理（categoryGroups：下拉選單選項）</h2>
+              <span class="dragHint">可拖曳排序，放開自動儲存</span>
+            </div>
             <div id="catMgrWrap" class="muted">請先選擇餐廳。</div>
           </div>
 
@@ -275,7 +301,10 @@
             <div id="menuAddWrap" class="muted">請先選擇餐廳。</div>
 
             <div class="hr"></div>
-            <h2 style="margin-top:0">5）餐點清單（可刪除）</h2>
+            <div class="inline" style="justify-content:space-between">
+              <h2 style="margin:0">5）餐點清單（可刪除 / 可拖曳排序）</h2>
+              <span class="dragHint">餐點只能在同類別內拖曳</span>
+            </div>
             <div id="menuList" class="muted">尚未選擇餐廳。</div>
           </div>
 
@@ -284,7 +313,10 @@
         <!-- TAB: STAFF -->
         <div class="section" id="tabStaff">
           <div class="card">
-            <h2>人員管理（部門 / 人員）</h2>
+            <div class="inline" style="justify-content:space-between">
+              <h2 style="margin:0">人員管理（部門 / 人員）</h2>
+              <span class="dragHint">人員只能在同部門內拖曳</span>
+            </div>
 
             <div class="row">
               <div>
@@ -358,7 +390,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, collection, addDoc, doc, getDocs, getDoc, updateDoc,
-      deleteDoc, query, where, limit
+      deleteDoc, query, where, limit, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -394,8 +426,11 @@
     // ===== State =====
     let restaurants = [];
     let selectedRestaurantId = "";
-    let selectedRestaurant = null;   // restaurants/{rid} doc
-    let menuCache = [];             // restaurants/{rid}/menu list
+    let selectedRestaurant = null;
+    let menuCache = [];
+
+    // ===== Drag State =====
+    let dragPayload = null; // {type:"cat"|"menu"|"staff", ...}
 
     function setWhoLine(){
       $("whoLine").innerHTML = selectedRestaurantId
@@ -414,11 +449,10 @@
       };
     });
 
-    // ===== ✅ CategoryGroups（不預設任何類別） =====
+    // ===== CategoryGroups =====
     function ensureCategoryGroups(obj){
       const cur = Array.isArray(obj?.categoryGroups) ? obj.categoryGroups : null;
       if(cur && cur.length > 0) return cur;
-
       return [{
         name: "餐點類別",
         type: "single",
@@ -615,7 +649,7 @@
       }
     }
 
-    // ===== Category Manager (categoryGroups) =====
+    // ===== Category Manager =====
     function getCategoryGroup(){
       const groups = ensureCategoryGroups(selectedRestaurant || {});
       return { groups, g0: groups[0] };
@@ -635,7 +669,7 @@
         return;
       }
 
-      const { groups, g0 } = getCategoryGroup();
+      const { g0 } = getCategoryGroup();
       const opts = Array.isArray(g0.options) ? g0.options : [];
 
       wrap.innerHTML = `
@@ -669,14 +703,18 @@
         listWrap.innerHTML = `<div class="muted" style="margin-top:8px">尚無類別，請先新增。</div>`;
       }else{
         listWrap.innerHTML = opts.map((o,idx)=>`
-          <div class="listLine">
+          <div class="listLine draggableItem" draggable="true" data-dragtype="cat" data-cat-idx="${idx}">
             <div class="inline" style="justify-content:space-between">
-              <div><b>${esc(o.name||"")}</b></div>
+              <div class="inline">
+                <b>${esc(o.name||"")}</b>
+                <span class="tag">順序：${idx+1}</span>
+              </div>
               <button class="btn danger" data-del-cat="${idx}" type="button">刪除</button>
             </div>
           </div>
         `).join("");
 
+        // delete
         listWrap.querySelectorAll("button[data-del-cat]").forEach(btn=>{
           btn.onclick = async ()=>{
             const idx = Number(btn.dataset.delCat);
@@ -696,6 +734,9 @@
             }
           };
         });
+
+        // drag bind
+        bindDragForCategoryList(listWrap);
       }
 
       document.getElementById("btnAddCategory").onclick = async ()=>{
@@ -719,6 +760,64 @@
       };
     }
 
+    function bindDragForCategoryList(container){
+      const items = Array.from(container.querySelectorAll('[data-dragtype="cat"]'));
+
+      items.forEach(el=>{
+        el.addEventListener("dragstart", (e)=>{
+          dragPayload = { type:"cat", fromIdx: Number(el.dataset.catIdx) };
+          e.dataTransfer.effectAllowed = "move";
+        });
+
+        el.addEventListener("dragover", (e)=>{
+          if(!dragPayload || dragPayload.type!=="cat") return;
+          e.preventDefault();
+          el.classList.add("dragOver");
+          e.dataTransfer.dropEffect = "move";
+        });
+
+        el.addEventListener("dragleave", ()=>{
+          el.classList.remove("dragOver");
+        });
+
+        el.addEventListener("drop", async (e)=>{
+          e.preventDefault();
+          el.classList.remove("dragOver");
+          if(!dragPayload || dragPayload.type!=="cat") return;
+
+          const toIdx = Number(el.dataset.catIdx);
+          const fromIdx = Number(dragPayload.fromIdx);
+          dragPayload = null;
+
+          if(!Number.isFinite(fromIdx) || !Number.isFinite(toIdx) || fromIdx===toIdx) return;
+
+          const { groups, g0 } = getCategoryGroup();
+          const cur = Array.isArray(g0.options) ? [...g0.options] : [];
+          if(fromIdx<0 || toIdx<0 || fromIdx>=cur.length || toIdx>=cur.length) return;
+
+          const [moved] = cur.splice(fromIdx, 1);
+          cur.splice(toIdx, 0, moved);
+          g0.options = cur;
+          groups[0] = g0;
+
+          try{
+            statusPill.textContent = "儲存類別順序…";
+            await saveCategoryGroups(groups);
+            renderMenuAdd();
+            statusPill.textContent = "類別順序已更新 ✅";
+          }catch(err){
+            console.error(err);
+            alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+          }
+        });
+
+        el.addEventListener("dragend", ()=>{
+          container.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
+          dragPayload = null;
+        });
+      });
+    }
+
     // ===== Menu =====
     async function loadMenu(rid){
       try{
@@ -728,20 +827,64 @@
         const list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
+        // category -> order -> createdAt -> name
         list.sort((a,b)=>{
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(bb !== aa) return bb - aa;
           const ca = (a.category||"").localeCompare((b.category||""),"zh-Hant");
           if(ca !== 0) return ca;
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+          if(ao !== bo) return ao - bo;
+          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
+          if(aa !== bb) return aa - bb;
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
 
         menuCache = list;
+
+        await normalizeMenuOrders();
         statusPill.textContent = "餐點載入完成 ✅";
       }catch(err){
         console.error("loadMenu failed:", err);
         statusPill.textContent = "餐點讀取失敗（看 console）";
         menuCache = [];
+      }
+    }
+
+    async function normalizeMenuOrders(){
+      if(!selectedRestaurantId) return;
+
+      const byCat = new Map();
+      for(const m of menuCache){
+        const cat = (m.category || "未分類").trim();
+        if(!byCat.has(cat)) byCat.set(cat, []);
+        byCat.get(cat).push(m);
+      }
+
+      const batch = writeBatch(db);
+      let touched = 0;
+
+      for(const [cat, arr] of byCat.entries()){
+        const sorted = [...arr].sort((a,b)=>{
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+          if(ao !== bo) return ao - bo;
+          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
+          if(aa !== bb) return aa - bb;
+          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
+        });
+
+        for(let i=0;i<sorted.length;i++){
+          const cur = sorted[i];
+          if(!Number.isFinite(Number(cur.order)) || Number(cur.order)!==i){
+            batch.update(doc(db, "restaurants", selectedRestaurantId, "menu", cur.id), { order: i });
+            cur.order = i;
+            touched++;
+          }
+        }
+      }
+
+      if(touched > 0){
+        try{ await batch.commit(); }catch(e){ console.warn("normalizeMenuOrders batch commit failed:", e); }
       }
     }
 
@@ -820,7 +963,6 @@
           </div>
         </div>
 
-        <!-- ✅ 加購改成「加購群組 addonGroups」：單選/多選、必選/可不選 -->
         <div class="box">
           <div class="inline" style="justify-content:space-between">
             <b>加購群組 addonGroups（可單選 / 多選 / 可加價）</b>
@@ -843,7 +985,7 @@
         </div>
       `;
 
-      // ===== addonGroups builder =====
+      // addon groups builder
       const addonWrap = document.getElementById("addonGroupsWrap");
       addonWrap.innerHTML = `<div class="muted">（尚無加購群組，按「新增一組」加入）</div>`;
       let addonGroupCount = 0;
@@ -946,7 +1088,7 @@
         };
       };
 
-      // ===== optionGroups builder（原本保留）=====
+      // option groups builder
       const optWrap = document.getElementById("optGroupsWrap");
       optWrap.innerHTML = `<div class="muted">（尚無選項，按「新增一組」加入）</div>`;
       let groupCount = 0;
@@ -1039,7 +1181,7 @@
       const groupEls = document.querySelectorAll("#addonGroupsWrap .box[data-gid]");
       groupEls.forEach(gel=>{
         const name = (gel.querySelector("[data-ag-name]")?.value || "").trim();
-        const type = (gel.querySelector("[data-ag-type]")?.value || "multi"); // single|multi
+        const type = (gel.querySelector("[data-ag-type]")?.value || "multi");
         const required = (gel.querySelector("[data-ag-required]")?.value || "false") === "true";
 
         const optList = gel.querySelectorAll("[data-ag-opt-list] .box");
@@ -1109,7 +1251,6 @@
       const addonGroups = collectAddonGroups();
       const optionGroups = collectOptionGroups();
 
-      // 防呆：必選群組必須要有 options
       for(const g of optionGroups){
         if((g.required !== false) && (!Array.isArray(g.options) || g.options.length===0)){
           return alert(`選項群組「${g.name}」是必選，但沒有任何選項`);
@@ -1124,14 +1265,15 @@
       try{
         statusPill.textContent = "新增餐點中…";
         const menuCol = collection(db, "restaurants", selectedRestaurantId, "menu");
+
+        const sameCat = menuCache.filter(x=> (x.category||"").trim()===(category||"").trim());
+        const order = sameCat.length;
+
         await addDoc(menuCol, {
-          category,
-          name,
-          price,
-          defaultQty,
-          note,
-          addonGroups,   // ✅ 新增：加購群組（單選/多選）
+          category, name, price, defaultQty, note,
+          addonGroups,
           optionGroups,
+          order,
           createdAt: Date.now()
         });
 
@@ -1169,52 +1311,68 @@
         map.get(cat).push(m);
       }
 
-      wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
-        <!-- ✅ 預設收合：拿掉 open -->
-        <details class="box" style="padding:10px 12px">
-          <summary><b>${esc(cat)}</b> <span class="tag" style="margin-left:8px">${items.length} 項</span></summary>
-          <div style="margin-top:10px">
-            ${items.map(m=>{
-              const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
-              const ag = Array.isArray(m.addonGroups) ? m.addonGroups : []; // ✅ 新增
+      wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>{
+        const sortedItems = [...items].sort((a,b)=>{
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+          if(ao !== bo) return ao - bo;
+          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
+          if(aa !== bb) return aa - bb;
+          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
+        });
 
-              return `
-                <div class="listLine">
-                  <div class="inline" style="justify-content:space-between">
-                    <div>
-                      <b>${esc(m.name||"")}</b>
-                      <span class="tag" style="margin-left:8px">價格：${Number(m.price||0)}</span>
-                      <span class="tag" style="margin-left:6px">預設：${Number(m.defaultQty||1)}</span>
+        return `
+          <details class="box" style="padding:10px 12px">
+            <summary><b>${esc(cat)}</b> <span class="tag" style="margin-left:8px">${sortedItems.length} 項</span></summary>
+            <div style="margin-top:10px" data-menu-cat="${esc(cat)}" data-menu-dropzone="1">
+              ${sortedItems.map((m,idx)=>{
+                const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
+                const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
+
+                return `
+                  <div class="listLine draggableItem"
+                       draggable="true"
+                       data-dragtype="menu"
+                       data-menu-id="${esc(m.id)}"
+                       data-menu-cat="${esc(cat)}"
+                       data-menu-idx="${idx}">
+                    <div class="inline" style="justify-content:space-between">
+                      <div>
+                        <b>${esc(m.name||"")}</b>
+                        <span class="tag" style="margin-left:8px">價格：${Number(m.price||0)}</span>
+                        <span class="tag" style="margin-left:6px">預設：${Number(m.defaultQty||1)}</span>
+                        <span class="tag" style="margin-left:6px">順序：${idx+1}</span>
+                      </div>
+                      <div class="inline">
+                        <button class="btn danger" data-del-menu="${esc(m.id)}" type="button">刪除</button>
+                      </div>
                     </div>
-                    <div class="inline">
-                      <button class="btn danger" data-del-menu="${esc(m.id)}" type="button">刪除</button>
-                    </div>
+
+                    ${m.note ? `<div class="muted" style="margin-top:6px">備註：${esc(m.note)}</div>` : ``}
+
+                    ${og.length ? `
+                      <div class="muted" style="margin-top:8px">
+                        選項群組：${esc(og.map(g=> `${g.name}（${(g.required!==false)?"必選":"可不選"} / ${Array.isArray(g.options)?g.options.length:0}項）`).join("；"))}
+                      </div>
+                    ` : ``}
+
+                    ${ag.length ? `
+                      <div class="muted" style="margin-top:8px">
+                        加購群組：${esc(ag.map(g=>{
+                          const t = (g.type==="single") ? "單選" : "多選";
+                          const req = (g.required===true) ? "必選" : "可不選";
+                          const cnt = Array.isArray(g.options)?g.options.length:0;
+                          return `${g.name}（${t} / ${req} / ${cnt}項）`;
+                        }).join("；"))}
+                      </div>
+                    ` : ``}
                   </div>
-
-                  ${m.note ? `<div class="muted" style="margin-top:6px">備註：${esc(m.note)}</div>` : ``}
-
-                  ${og.length ? `
-                    <div class="muted" style="margin-top:8px">
-                      選項群組：${esc(og.map(g=> `${g.name}（${(g.required!==false)?"必選":"可不選"} / ${Array.isArray(g.options)?g.options.length:0}項）`).join("；"))}
-                    </div>
-                  ` : ``}
-
-                  ${ag.length ? `
-                    <div class="muted" style="margin-top:8px">
-                      加購群組：${esc(ag.map(g=>{
-                        const t = (g.type==="single") ? "單選" : "多選";
-                        const req = (g.required===true) ? "必選" : "可不選";
-                        const cnt = Array.isArray(g.options)?g.options.length:0;
-                        return `${g.name}（${t} / ${req} / ${cnt}項）`;
-                      }).join("；"))}
-                    </div>
-                  ` : ``}
-                </div>
-              `;
-            }).join("")}
-          </div>
-        </details>
-      `).join("");
+                `;
+              }).join("")}
+            </div>
+          </details>
+        `;
+      }).join("");
 
       wrap.querySelectorAll("button[data-del-menu]").forEach(btn=>{
         btn.onclick = async ()=>{
@@ -1230,6 +1388,103 @@
           }
         };
       });
+
+      bindDragForMenu(wrap);
+    }
+
+    function bindDragForMenu(root){
+      const items = Array.from(root.querySelectorAll('[data-dragtype="menu"]'));
+
+      items.forEach(el=>{
+        el.addEventListener("dragstart", (e)=>{
+          dragPayload = {
+            type:"menu",
+            rid: selectedRestaurantId,
+            cat: el.dataset.menuCat,
+            fromId: el.dataset.menuId
+          };
+          e.dataTransfer.effectAllowed = "move";
+        });
+
+        el.addEventListener("dragover", (e)=>{
+          if(!dragPayload || dragPayload.type!=="menu") return;
+          if(dragPayload.cat !== el.dataset.menuCat) return; // only same category
+          e.preventDefault();
+          el.classList.add("dragOver");
+          e.dataTransfer.dropEffect = "move";
+        });
+
+        el.addEventListener("dragleave", ()=>{
+          el.classList.remove("dragOver");
+        });
+
+        el.addEventListener("drop", async (e)=>{
+          e.preventDefault();
+          el.classList.remove("dragOver");
+
+          if(!dragPayload || dragPayload.type!=="menu") return;
+          if(dragPayload.cat !== el.dataset.menuCat) return;
+
+          const cat = dragPayload.cat;
+          const fromId = dragPayload.fromId;
+          const toId = el.dataset.menuId;
+          dragPayload = null;
+          if(!fromId || !toId || fromId===toId) return;
+
+          await reorderMenuWithinCategory(cat, fromId, toId);
+        });
+
+        el.addEventListener("dragend", ()=>{
+          root.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
+          dragPayload = null;
+        });
+      });
+    }
+
+    async function reorderMenuWithinCategory(cat, fromId, toId){
+      if(!selectedRestaurantId) return;
+
+      const arr = menuCache
+        .filter(x=> ((x.category||"未分類").trim()===String(cat||"").trim()))
+        .sort((a,b)=>{
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+          if(ao !== bo) return ao - bo;
+          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
+          if(aa !== bb) return aa - bb;
+          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
+        });
+
+      const fromIdx = arr.findIndex(x=> x.id===fromId);
+      const toIdx = arr.findIndex(x=> x.id===toId);
+      if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
+
+      const [moved] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, moved);
+
+      try{
+        statusPill.textContent = "儲存餐點順序…";
+        const batch = writeBatch(db);
+        arr.forEach((m,i)=>{
+          batch.update(doc(db, "restaurants", selectedRestaurantId, "menu", m.id), { order: i });
+          m.order = i;
+        });
+        await batch.commit();
+
+        // 更新本地 cache 的 order
+        for(const m of menuCache){
+          if((m.category||"").trim() !== (cat||"").trim()) continue;
+          const found = arr.find(x=> x.id===m.id);
+          if(found) m.order = found.order;
+        }
+
+        renderMenuList();
+        statusPill.textContent = "餐點順序已更新 ✅";
+      }catch(err){
+        console.error(err);
+        statusPill.textContent = "儲存餐點順序失敗";
+        alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
     }
 
     // ===== Staff =====
@@ -1244,32 +1499,56 @@
           const name = (v.name || "").trim();
           if(!name) return;
           if(!map[dept]) map[dept] = [];
-          map[dept].push({ id:d.id, name });
+          map[dept].push({ id:d.id, name, createdAt: Number(v.createdAt||0), order: v.order });
         });
 
-        Object.keys(map).forEach(k=> map[k].sort((a,b)=> a.name.localeCompare(b.name,"zh-Hant")));
-        const depts = Object.keys(map).sort((a,b)=> a.localeCompare(b,"zh-Hant"));
+        // dept: order -> createdAt -> name
+        Object.keys(map).forEach(k=>{
+          map[k].sort((a,b)=>{
+            const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+            const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+            if(ao !== bo) return ao - bo;
+            const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
+            if(aa !== bb) return aa - bb;
+            return a.name.localeCompare(b.name,"zh-Hant");
+          });
+        });
 
+        // normalize staff order
+        await normalizeStaffOrders(map);
+
+        const depts = Object.keys(map).sort((a,b)=> a.localeCompare(b,"zh-Hant"));
         const wrap = $("staffWrap");
+
         if(depts.length===0){
           wrap.innerHTML = `<div class="muted">尚無人員。</div>`;
         }else{
-          wrap.innerHTML = depts.map(dept=>`
-            <!-- ✅ 預設收合：拿掉 open -->
-            <details class="box">
-              <summary><b>${esc(dept)}</b> <span class="tag" style="margin-left:8px">${map[dept].length} 人</span></summary>
-              <div style="margin-top:10px">
-                ${map[dept].map(p=>`
-                  <div class="listLine">
-                    <div class="inline" style="justify-content:space-between">
-                      <div><b>${esc(p.name)}</b></div>
-                      <button class="btn danger" data-del-staff="${esc(p.id)}" type="button">刪除</button>
+          wrap.innerHTML = depts.map(dept=>{
+            const arr = map[dept] || [];
+            return `
+              <details class="box">
+                <summary><b>${esc(dept)}</b> <span class="tag" style="margin-left:8px">${arr.length} 人</span></summary>
+                <div style="margin-top:10px" data-staff-dept="${esc(dept)}">
+                  ${arr.map((p,idx)=>`
+                    <div class="listLine draggableItem"
+                         draggable="true"
+                         data-dragtype="staff"
+                         data-staff-id="${esc(p.id)}"
+                         data-staff-dept="${esc(dept)}"
+                         data-staff-idx="${idx}">
+                      <div class="inline" style="justify-content:space-between">
+                        <div class="inline">
+                          <b>${esc(p.name)}</b>
+                          <span class="tag">順序：${idx+1}</span>
+                        </div>
+                        <button class="btn danger" data-del-staff="${esc(p.id)}" type="button">刪除</button>
+                      </div>
                     </div>
-                  </div>
-                `).join("")}
-              </div>
-            </details>
-          `).join("");
+                  `).join("")}
+                </div>
+              </details>
+            `;
+          }).join("");
 
           wrap.querySelectorAll("button[data-del-staff]").forEach(btn=>{
             btn.onclick = async ()=>{
@@ -1284,6 +1563,8 @@
               }
             };
           });
+
+          bindDragForStaff(wrap);
         }
 
         statusPill.textContent = "人員載入完成 ✅";
@@ -1291,6 +1572,121 @@
         console.error("loadStaff failed:", err);
         statusPill.textContent = "人員讀取失敗（看 console）";
         alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
+    }
+
+    async function normalizeStaffOrders(map){
+      const batch = writeBatch(db);
+      let touched = 0;
+
+      for(const dept of Object.keys(map)){
+        const arr = map[dept] || [];
+        for(let i=0;i<arr.length;i++){
+          const p = arr[i];
+          if(!Number.isFinite(Number(p.order)) || Number(p.order)!==i){
+            batch.update(doc(db, "staff", p.id), { order: i });
+            p.order = i;
+            touched++;
+          }
+        }
+      }
+
+      if(touched > 0){
+        try{ await batch.commit(); }catch(e){ console.warn("normalizeStaffOrders batch commit failed:", e); }
+      }
+    }
+
+    function bindDragForStaff(root){
+      const items = Array.from(root.querySelectorAll('[data-dragtype="staff"]'));
+
+      items.forEach(el=>{
+        el.addEventListener("dragstart", (e)=>{
+          dragPayload = {
+            type:"staff",
+            dept: el.dataset.staffDept,
+            fromId: el.dataset.staffId
+          };
+          e.dataTransfer.effectAllowed = "move";
+        });
+
+        el.addEventListener("dragover", (e)=>{
+          if(!dragPayload || dragPayload.type!=="staff") return;
+          if(dragPayload.dept !== el.dataset.staffDept) return;
+          e.preventDefault();
+          el.classList.add("dragOver");
+          e.dataTransfer.dropEffect = "move";
+        });
+
+        el.addEventListener("dragleave", ()=>{
+          el.classList.remove("dragOver");
+        });
+
+        el.addEventListener("drop", async (e)=>{
+          e.preventDefault();
+          el.classList.remove("dragOver");
+          if(!dragPayload || dragPayload.type!=="staff") return;
+          if(dragPayload.dept !== el.dataset.staffDept) return;
+
+          const dept = dragPayload.dept;
+          const fromId = dragPayload.fromId;
+          const toId = el.dataset.staffId;
+          dragPayload = null;
+
+          if(!fromId || !toId || fromId===toId) return;
+          await reorderStaffWithinDept(dept, fromId, toId);
+        });
+
+        el.addEventListener("dragend", ()=>{
+          root.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
+          dragPayload = null;
+        });
+      });
+    }
+
+    async function reorderStaffWithinDept(dept, fromId, toId){
+      try{
+        statusPill.textContent = "儲存人員順序…";
+
+        const snap = await getDocs(colStaff);
+        const arr = [];
+        snap.forEach(d=>{
+          const v = d.data() || {};
+          const dpt = (v.dept || "未分部門").trim();
+          if(dpt !== dept) return;
+          arr.push({
+            id: d.id,
+            name: (v.name||"").trim(),
+            createdAt: Number(v.createdAt||0),
+            order: v.order
+          });
+        });
+
+        arr.sort((a,b)=>{
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+          if(ao !== bo) return ao - bo;
+          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
+          if(aa !== bb) return aa - bb;
+          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
+        });
+
+        const fromIdx = arr.findIndex(x=> x.id===fromId);
+        const toIdx = arr.findIndex(x=> x.id===toId);
+        if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
+
+        const [moved] = arr.splice(fromIdx, 1);
+        arr.splice(toIdx, 0, moved);
+
+        const batch = writeBatch(db);
+        arr.forEach((p,i)=> batch.update(doc(db, "staff", p.id), { order: i }));
+        await batch.commit();
+
+        await loadStaff();
+        statusPill.textContent = "人員順序已更新 ✅";
+      }catch(err){
+        console.error(err);
+        statusPill.textContent = "儲存人員順序失敗";
+        alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -1302,7 +1698,17 @@
 
       try{
         statusPill.textContent = "新增人員中…";
-        await addDoc(colStaff, { dept, name, createdAt: Date.now() });
+
+        // add at end of dept
+        let count = 0;
+        const snap = await getDocs(colStaff);
+        snap.forEach(d=>{
+          const v = d.data() || {};
+          const dpt = (v.dept || "未分部門").trim();
+          if(dpt === dept) count++;
+        });
+
+        await addDoc(colStaff, { dept, name, order: count, createdAt: Date.now() });
         $("staffName").value = "";
         await loadStaff();
         statusPill.textContent = "新增人員完成 ✅";
@@ -1555,7 +1961,7 @@
       }
     }
 
-    // ===== Events / Buttons =====
+    // ===== Buttons / Events =====
     $("restaurantSelect").onchange = async ()=>{
       const rid = $("restaurantSelect").value;
       await loadRestaurantDoc(rid);
