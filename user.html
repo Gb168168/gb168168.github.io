@@ -3,26 +3,37 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者</title>
+  <title>GoldBricks 呷奔🍚~~ ｜使用者</title>
   <style>
     :root{
-      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
-      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
-      --shadow:0 10px 30px rgba(15,23,42,.10);
+      /* ✅ 更舒服：灰白底 + 粉色只留給主要動作 */
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#6b7280;
+
+      --primary:#fb7185;
+      --primary2:#fda4af;
+
+      --border:rgba(15,23,42,.12);
+      --soft:#f1f5f9;
+
+      --shadow:0 10px 26px rgba(15,23,42,.08);
       --radius:18px;
     }
     *{box-sizing:border-box}
     body{
       margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
-      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
-                  var(--bg);
+      background:
+        radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.10), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(253,164,175,.08), transparent 55%),
+        var(--bg);
       color:var(--text);
       min-height:100vh;
     }
     .wrap{max-width:1200px; margin:0 auto; padding:16px;}
     .topbar{
-      background: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.82);
       border:1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -40,14 +51,16 @@
     .primary{
       padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
       background: linear-gradient(90deg, var(--primary), var(--primary2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.18);
     }
     .btn:disabled,.primary:disabled{opacity:.55; cursor:not-allowed}
+
     .grid{display:grid; grid-template-columns: 1.25fr .85fr; gap:14px; margin-top:14px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
     .card{
       background:#fff; border:1px solid var(--border); border-radius:var(--radius);
-      box-shadow: 0 8px 25px rgba(15,23,42,.07);
+      box-shadow: 0 8px 22px rgba(15,23,42,.06);
       padding:14px;
     }
     .card h2{margin:0 0 10px; font-size:15px}
@@ -58,66 +71,71 @@
       font-size:14px;
     }
     textarea{min-height:92px; resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
+    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.55)}
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
     .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
-    .hr{height:1px; background: var(--border); margin:12px 0}
-    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
+    .hr{height:1px; background: rgba(15,23,42,.10); margin:12px 0}
+    .tag{
+      display:inline-flex; padding:5px 10px; border-radius:999px;
+      border:1px solid rgba(15,23,42,.12); background:#f8fafc; color:#475569; font-size:12px
+    }
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
     .restaurantGrid{display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px}
     @media (max-width:980px){.restaurantGrid{grid-template-columns:1fr}}
+
     .rCard{
-      border:1px solid rgba(15,23,42,.10);
+      border:1px solid rgba(15,23,42,.12);
       border-radius:16px;
       overflow:hidden;
       background:#fff;
       cursor:pointer;
-      transition:.12s transform;
+      transition:.12s transform, .12s box-shadow, .12s border-color;
     }
-    .rCard:hover{transform: translateY(-1px)}
+    .rCard:hover{transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15,23,42,.06)}
     .rImg{width:100%; height:160px; object-fit:cover; background:rgba(15,23,42,.04); display:block}
     .rBody{padding:10px 12px}
     .rBody h3{margin:0; font-size:15px}
     .rBody .muted{margin-top:6px}
     .rCard.active{
       border-color: rgba(251,113,133,.55);
-      box-shadow: 0 10px 22px rgba(251,113,133,.18);
+      box-shadow: 0 10px 22px rgba(251,113,133,.14);
     }
+
     .menuItem{
-      border:1px solid rgba(15,23,42,.10);
+      border:1px solid rgba(15,23,42,.12);
       border-radius:16px;
       padding:12px;
       background:#fff;
       margin-top:10px;
     }
     .menuItem h4{margin:0; font-size:14.5px}
+
+    /* ✅ 降干擾：加購/選項改用淡灰底 */
     .addonBox{
-      background: rgba(15,23,42,.02);
-      border:1px dashed rgba(15,23,42,.18);
+      background: var(--soft);
+      border:1px dashed rgba(15,23,42,.15);
       border-radius:16px;
       padding:10px;
       margin-top:10px;
     }
 
-    /* 原本 addonRow（checkbox） */
-    .addonRow{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px}
-    .addonRow input{width:18px; height:18px; margin:0}
-
-    /* ✅ radio/checkbox 統一的 option row */
     .pickRow{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:8px 10px;
-      border:1px solid rgba(15,23,42,.08);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      padding:10px 10px;
+      border:1px solid rgba(15,23,42,.12);
       border-radius:14px;
       margin-top:8px;
       background:#fff;
     }
-    .pickRow input{width:18px; height:18px; margin:0}
+    .pickRow:hover{background:#f8fafc}
+    .pickRow input{width:18px; height:18px; margin:2px 0 0}
 
     .qtyRow{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px}
     .qtyRow input[type="number"]{width:140px}
+
     .cartLine{
-      border:1px solid rgba(15,23,42,.10);
+      border:1px solid rgba(15,23,42,.12);
       border-radius:14px;
       padding:10px 12px;
       margin-top:10px;
@@ -125,9 +143,6 @@
     }
     .cartLine .top{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
     .danger{border-color: rgba(239,68,68,.35)}
-    table{width:100%; border-collapse:collapse; font-size:13.5px}
-    th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
-    th{color:var(--muted); font-weight:900}
 
     /* ✅ 結單提示 */
     .banner{
@@ -141,32 +156,19 @@
       display:none;
     }
 
-    /* ✅ 只讓「狀態標籤」不吃點擊（避免擋住卡片點擊） */
+    /* ✅ 只讓狀態標籤不吃點擊 */
     .statusTag{ pointer-events:none !important; }
 
-    /* ✅ 選項群組 UI */
-    .optGroup{
+    /* ✅ addonGroups 群組 */
+    .groupBox{
       margin-top:10px;
-      border:1px solid rgba(15,23,42,.08);
+      border:1px solid rgba(15,23,42,.12);
       border-radius:14px;
       padding:10px;
       background:#fff;
     }
-    .optHead{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .optHead b{font-size:13.5px}
-
-    /* ✅ 加購群組 UI */
-    .addonGroup{
-      margin-top:10px;
-      border:1px solid rgba(15,23,42,.08);
-      border-radius:14px;
-      padding:10px;
-      background:#fff;
-    }
-    .addonGroupHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap
-    }
-    .addonGroupHead b{font-size:13.5px}
+    .groupHead{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    .groupHead b{font-size:13.5px}
   </style>
 </head>
 
@@ -530,6 +532,119 @@
       }
     }
 
+    // =========================
+    // ✅ addonGroups：相容工具
+    // 支援新 schema：m.addonGroups[]
+    // 相容舊 schema：m.addons[] -> 轉成一組 multi
+    // addonGroups 結構建議：
+    // [{ name:"加購", type:"multi"|"single", required:true|false, options:[{name, price, free}] }]
+    // =========================
+    function normalizeAddonGroups(m){
+      const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
+      if(ag.length){
+        // 清理 options
+        return ag.map(g=>({
+          name: (g?.name || "加購").toString(),
+          type: (g?.type === "single" ? "single" : "multi"),
+          required: (g?.required !== false),
+          options: Array.isArray(g?.options) ? g.options.map(o=>({
+            name: (o?.name || "").toString(),
+            price: Number(o?.price || 0),
+            free: !!o?.free
+          })).filter(o=>o.name) : []
+        }));
+      }
+
+      // fallback 舊 addons
+      const old = Array.isArray(m.addons) ? m.addons : [];
+      if(old.length){
+        return [{
+          name: "加購項目",
+          type: "multi",
+          required: false,
+          options: old.map(a=>({
+            name: (a?.name || "").toString(),
+            price: Number(a?.price || 0),
+            free: !!a?.free
+          })).filter(o=>o.name)
+        }];
+      }
+      return [];
+    }
+
+    function addonOptionLabel(opt){
+      const p = (opt && opt.free) ? 0 : Number(opt?.price || 0);
+      if(opt?.free) return `免費`;
+      return p ? `+${p}` : `+0`;
+    }
+
+    // 從 UI 收集某餐點的 addonGroups 勾選，回傳扁平 addons[]（相容你現在的訂單計算）
+    function collectPickedAddonsFromUI(wrap, mid, addonGroups){
+      const picked = [];
+
+      addonGroups.forEach((g, gi)=>{
+        const type = g.type || "multi";
+        const opts = Array.isArray(g.options) ? g.options : [];
+
+        if(type === "single"){
+          // radio：name 同一組
+          const sel = wrap.querySelector(`input[type="radio"][data-ag-mid="${mid}"][data-gi="${gi}"]:checked`);
+          if(sel){
+            const oi = Number(sel.dataset.oi);
+            const o = opts[oi];
+            if(o){
+              picked.push({
+                group: g.name || "加購",
+                name: o.name,
+                price: Number(o.price||0),
+                free: !!o.free
+              });
+            }
+          }
+        }else{
+          // multi：checkbox
+          const cbs = wrap.querySelectorAll(`input[type="checkbox"][data-ag-mid="${mid}"][data-gi="${gi}"]`);
+          cbs.forEach(cb=>{
+            if(!cb.checked) return;
+            const oi = Number(cb.dataset.oi);
+            const o = opts[oi];
+            if(o){
+              picked.push({
+                group: g.name || "加購",
+                name: o.name,
+                price: Number(o.price||0),
+                free: !!o.free
+              });
+            }
+          });
+        }
+      });
+
+      return picked;
+    }
+
+    function validateAddonGroupsSelected(wrap, mid, addonGroups){
+      for(let gi=0; gi<addonGroups.length; gi++){
+        const g = addonGroups[gi];
+        const opts = Array.isArray(g.options) ? g.options : [];
+        if(opts.length === 0) continue;
+
+        const required = (g.required !== false);
+        if(!required) continue;
+
+        if((g.type||"multi") === "single"){
+          const sel = wrap.querySelector(`input[type="radio"][data-ag-mid="${mid}"][data-gi="${gi}"]:checked`);
+          if(!sel) return { ok:false, msg:`「${g.name||"加購"}」是必選，請先選擇一個。` };
+        }else{
+          const cbs = wrap.querySelectorAll(`input[type="checkbox"][data-ag-mid="${mid}"][data-gi="${gi}"]`);
+          let any = false;
+          cbs.forEach(cb=>{ if(cb.checked) any = true; });
+          if(!any) return { ok:false, msg:`「${g.name||"加購"}」至少要勾選一個。` };
+        }
+      }
+      return { ok:true, msg:"" };
+    }
+
     // ====== ✅ 選項群組工具：單價加總 / 顯示文字 ======
     function optionUnitSum(optionGroups, chosen){
       const groups = Array.isArray(optionGroups) ? optionGroups : [];
@@ -565,148 +680,6 @@
       return out.join("；");
     }
 
-    // ====== ✅ 加購群組：相容 addonGroups / 舊 addons ======
-    function normalizeAddonGroups(m){
-      // 新版：addonGroups
-      const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
-      if(ag.length){
-        return ag.map(g=>{
-          const type = (g.type === "single" || g.type === "multi") ? g.type : "multi";
-          const opts = Array.isArray(g.options) ? g.options : [];
-          return {
-            name: (g.name || "加購").trim() || "加購",
-            type,
-            required: (g.required === true), // 沒寫就當不必選
-            options: opts.map(o=>({
-              name: (o?.name || "").trim(),
-              price: Number(o?.price || 0),
-              free: !!o?.free
-            })).filter(x=>x.name)
-          };
-        }).filter(g=>g.options.length);
-      }
-
-      // 舊版：addons（一律視為一組 multi）
-      const old = Array.isArray(m.addons) ? m.addons : [];
-      if(old.length){
-        return [{
-          name: "加購項目",
-          type: "multi",
-          required: false,
-          options: old.map(a=>({
-            name: (a?.name || "").trim(),
-            price: Number(a?.price || 0),
-            free: !!a?.free
-          })).filter(x=>x.name)
-        }];
-      }
-
-      return [];
-    }
-
-    function addonTextFromList(addons){
-      const list = Array.isArray(addons) ? addons : [];
-      return list.map(a=>{
-        const p = (a && a.free) ? 0 : Number(a.price||0);
-        return `+${a.name||""}${a && a.free ? "(免費)" : (p?(" "+p):"")}`;
-      }).join("；");
-    }
-
-    function collectAddonsForMenuItem(wrap, m, mid){
-      const groups = normalizeAddonGroups(m);
-      const picked = [];
-
-      for(let gi=0; gi<groups.length; gi++){
-        const g = groups[gi];
-        const type = g.type || "multi";
-        const req = !!g.required;
-
-        if(type === "single"){
-          const sel = wrap.querySelector(`input[type="radio"][data-ag-mid="${mid}"][data-gi="${gi}"]:checked`);
-          if(req && !sel) return { ok:false, msg:`「${g.name}」為必選（單選），請先選擇。` };
-
-          if(sel){
-            const oi = Number(sel.dataset.oi);
-            const opt = g.options[oi];
-            if(opt) picked.push({ name: opt.name, price: Number(opt.price||0), free: !!opt.free });
-          }
-        }else{
-          // multi
-          const checks = wrap.querySelectorAll(`input[type="checkbox"][data-ag-mid="${mid}"][data-gi="${gi}"]`);
-          let any = false;
-          checks.forEach(ch=>{
-            if(ch.checked){
-              any = true;
-              const oi = Number(ch.dataset.oi);
-              const opt = g.options[oi];
-              if(opt) picked.push({ name: opt.name, price: Number(opt.price||0), free: !!opt.free });
-            }
-          });
-          if(req && !any) return { ok:false, msg:`「${g.name}」為必選（多選），請至少勾選一個。` };
-        }
-      }
-
-      return { ok:true, picked };
-    }
-
-    function clearAddonsUIForMenuItem(wrap, m, mid){
-      const groups = normalizeAddonGroups(m);
-      for(let gi=0; gi<groups.length; gi++){
-        const g = groups[gi];
-        if(g.type === "single"){
-          wrap.querySelectorAll(`input[type="radio"][data-ag-mid="${mid}"][data-gi="${gi}"]`).forEach(x=> x.checked = false);
-        }else{
-          wrap.querySelectorAll(`input[type="checkbox"][data-ag-mid="${mid}"][data-gi="${gi}"]`).forEach(x=> x.checked = false);
-        }
-      }
-    }
-
-    function renderAddonGroupsHTML(m, mid){
-      const groups = normalizeAddonGroups(m);
-      if(!groups.length){
-        return `<div class="muted" style="margin-top:6px">（此餐點無加購）</div>`;
-      }
-
-      return groups.map((g,gi)=>{
-        const type = g.type || "multi";
-        const req = !!g.required;
-        const hasPrice = g.options.some(o=> (o.free ? 0 : Number(o.price||0)) > 0);
-
-        return `
-          <div class="addonGroup">
-            <div class="addonGroupHead">
-              <b>${esc(g.name)}</b>
-              <span class="tag">${type==="single" ? "單選" : "多選"}${req ? " · 必選" : ""}${hasPrice ? " · 可加價" : ""}</span>
-            </div>
-
-            ${g.options.map((o,oi)=>{
-              const p = (o.free ? 0 : Number(o.price||0));
-              const inputType = (type==="single") ? "radio" : "checkbox";
-              const radioName = `ag_${mid}_${gi}`; // 同組單選
-              return `
-                <label class="pickRow">
-                  <div class="inline">
-                    <input
-                      type="${inputType}"
-                      ${inputType==="radio" ? `name="${esc(radioName)}"` : ``}
-                      data-ag-mid="${esc(mid)}"
-                      data-gi="${gi}"
-                      data-oi="${oi}"
-                      ${selectedRestaurantClosed?"disabled":""}
-                    >
-                    <div>
-                      <b>${esc(o.name||"")}</b>
-                      ${o.free ? `<span class="tag" style="margin-left:8px">免費</span>` : `<span class="tag" style="margin-left:8px">+${p}</span>`}
-                    </div>
-                  </div>
-                </label>
-              `;
-            }).join("")}
-          </div>
-        `;
-      }).join("");
-    }
-
     function renderMenu(){
       const wrap = $("menuWrap");
       refreshClosedUI();
@@ -740,13 +713,15 @@
         </div>
         <div class="hr"></div>
         ${Array.from(catMap.entries()).map(([cat, items])=>`
-          <details open style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:12px;">
-            <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${items.length} 項</span></summary>
+          <!-- ✅ 預設收合：拿掉 open -->
+          <details style="border:1px solid rgba(15,23,42,.12); border-radius:16px; padding:10px 12px; background:#fff; margin-top:12px;">
+            <summary><b>${esc(cat)}</b> <span class="tag" style="margin-left:8px">${items.length} 項</span></summary>
             <div style="margin-top:10px">
               ${items.map(m=>{
                 const optionGroups = Array.isArray(m.optionGroups) ? m.optionGroups : [];
                 const addonGroups = normalizeAddonGroups(m);
-                const hasAddons = addonGroups.length > 0;
+
+                const hasAny = optionGroups.length || addonGroups.length;
 
                 return `
                   <div class="menuItem" data-mid="${esc(m.id)}">
@@ -755,10 +730,11 @@
                         <h4>${esc(m.name||"未命名")}</h4>
                         <div class="muted">價格：${Number(m.price||0)}　｜　預設數量：${Number(m.defaultQty||1)}</div>
                       </div>
-                      <span class="tag">${(optionGroups.length || hasAddons) ? "有選項/加購" : "—"}</span>
+                      <span class="tag">${hasAny ? "有選項/加購" : "—"}</span>
                     </div>
 
                     <div class="addonBox">
+
                       ${optionGroups.length ? `
                         <div class="muted" style="margin-bottom:6px">選項（下拉）</div>
                         ${optionGroups.map((g,gi)=>{
@@ -769,8 +745,8 @@
                           const hasPrice = opts.some(o=> Number(o?.price||0) > 0);
 
                           return `
-                            <div class="optGroup">
-                              <div class="optHead">
+                            <div class="groupBox">
+                              <div class="groupHead">
                                 <b>${esc(g.name || "選項")}</b>
                                 <span class="tag">${req ? "必選" : "可不選"}${hasPrice ? "（可加價）" : ""}</span>
                               </div>
@@ -781,15 +757,70 @@
                                   return `<option value="${oi}">${esc(o?.name||"")} ${p?(" +"+p):""}</option>`;
                                 }).join("")}
                               </select>
-                              <div class="muted" style="margin-top:6px">※ 送出後會記錄此選項</div>
                             </div>
                           `;
                         }).join("")}
                         <div class="hr"></div>
                       ` : ``}
 
-                      <div class="muted">加購（依 addonGroups：單選/多選）</div>
-                      ${renderAddonGroupsHTML(m, m.id)}
+                      ${addonGroups.length ? `
+                        <div class="muted" style="margin-bottom:6px">加購（依 addonGroups：單選/多選）</div>
+                        ${addonGroups.map((g,gi)=>{
+                          const type = g.type || "multi";
+                          const req = (g.required !== false);
+                          const opts = Array.isArray(g.options) ? g.options : [];
+                          if(opts.length===0) return ``;
+
+                          const isSingle = type === "single";
+                          const inputType = isSingle ? "radio" : "checkbox";
+
+                          return `
+                            <div class="groupBox">
+                              <div class="groupHead">
+                                <b>${esc(g.name || "加購")}</b>
+                                <span class="tag">${isSingle ? "單選" : "多選"}｜${req ? "必選" : "可不選"}</span>
+                              </div>
+
+                              ${(!req && isSingle) ? `
+                                <label class="pickRow">
+                                  <div class="inline" style="gap:10px">
+                                    <input type="radio"
+                                      name="ag_${esc(m.id)}_${gi}"
+                                      data-ag-mid="${esc(m.id)}" data-gi="${gi}"
+                                      data-oi="-1"
+                                      ${selectedRestaurantClosed?"disabled":""}
+                                      checked>
+                                    <div>
+                                      <b>不選擇</b>
+                                      <div class="muted" style="margin-top:4px">（可不選時才會出現）</div>
+                                    </div>
+                                  </div>
+                                  <span class="tag">+0</span>
+                                </label>
+                              ` : ``}
+
+                              ${opts.map((o,oi)=>`
+                                <label class="pickRow">
+                                  <div class="inline" style="gap:10px">
+                                    <input
+                                      type="${inputType}"
+                                      ${isSingle ? `name="ag_${esc(m.id)}_${gi}"` : ``}
+                                      data-ag-mid="${esc(m.id)}" data-gi="${gi}" data-oi="${oi}"
+                                      ${selectedRestaurantClosed?"disabled":""}
+                                    >
+                                    <div>
+                                      <b>${esc(o.name||"")}</b>
+                                      ${o.free ? `<div class="muted" style="margin-top:4px">免費</div>` : ``}
+                                    </div>
+                                  </div>
+                                  <span class="tag">${esc(addonOptionLabel(o))}</span>
+                                </label>
+                              `).join("")}
+                            </div>
+                          `;
+                        }).join("")}
+                        <div class="hr"></div>
+                      ` : `<div class="muted">（此餐點無加購）</div>`}
 
                       <div class="qtyRow">
                         <div style="flex:1; min-width:180px">
@@ -826,14 +857,15 @@
           const qty = Math.max(1, Number(qtyEl?.value || 1));
           const note = (noteEl?.value || "").trim();
 
-          // ✅ 取加購（依 addonGroups 單選/多選；相容舊 addons）
-          const addonPick = collectAddonsForMenuItem(wrap, m, mid);
-          if(!addonPick.ok) return alert(addonPick.msg || "加購選擇不完整");
-          const pickedAddons = addonPick.picked || [];
+          // ✅ addonGroups（單選/多選） -> 扁平 addons[]
+          const addonGroups = normalizeAddonGroups(m);
+          const v = validateAddonGroupsSelected(wrap, mid, addonGroups);
+          if(!v.ok) return alert(v.msg);
+          const pickedAddons = collectPickedAddonsFromUI(wrap, mid, addonGroups);
 
-          // ✅ 取「選項（下拉）」：optionGroups
+          // ✅ 選項（下拉）
           const optionGroups = Array.isArray(m.optionGroups) ? m.optionGroups : [];
-          const chosenOptions = {}; // { gi: optionIndex }
+          const chosenOptions = {};
           let optionValid = true;
 
           wrap.querySelectorAll(`[data-opt-mid="${mid}"]`).forEach(sel=>{
@@ -845,7 +877,7 @@
               optionValid = false;
               return;
             }
-            chosenOptions[gi] = val; // -1 代表不選
+            chosenOptions[gi] = val;
           });
 
           if(!optionValid) return alert("此餐點有必選選項，請先選擇。");
@@ -859,16 +891,23 @@
             qty,
             note,
 
-            // ✅ 仍維持扁平 addons（相容你現有 orders / total 算法）
-            addons: pickedAddons,
+            // ✅ 扁平 addons（相容你現在 orders 計算/匯出）
+            addons: pickedAddons.map(a=>({ name:a.name, price:Number(a.price||0), free:!!a.free, group:a.group||"" })),
 
-            // ✅ 新增：選項群組（原文 + 選到的值）
             optionGroups: optionGroups,
             chosenOptions: chosenOptions
           });
 
+          // 清掉輸入
           if(noteEl) noteEl.value = "";
-          clearAddonsUIForMenuItem(wrap, m, mid);
+          // 清勾選（radio/checkbox）
+          wrap.querySelectorAll(`input[data-ag-mid="${mid}"]`).forEach(i=>{
+            if(i.type === "checkbox") i.checked = false;
+            if(i.type === "radio"){
+              // 如果有「不選擇」且是 checked 預設那個
+              if(i.dataset.oi === "-1") i.checked = true;
+            }
+          });
 
           renderCart();
           refreshSubmitState();
@@ -898,7 +937,13 @@
       }
 
       wrap.innerHTML = cart.map((it, idx)=>{
-        const addonTxt = addonTextFromList(it.addons||[]);
+        const addonTxt = (it.addons||[]).map(a=>{
+          const p = (a && a.free) ? 0 : Number(a.price||0);
+          const g = (a.group||"").trim();
+          const head = g ? `${g}：` : `+`;
+          return `${head}${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
+        }).join("；");
+
         const optTxt = optionText(it.optionGroups, it.chosenOptions);
         const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
         const lineTotal = calcLineTotal(it);
@@ -977,10 +1022,10 @@
           qty: Number(it.qty||0),
           note: it.note || "",
 
-          // ✅ 加購（扁平清單，保持相容）
-          addons: (it.addons||[]).map(a=>({ name:a.name, price:Number(a.price||0), free:!!a.free })),
+          // ✅ 扁平 addons（含 free/price）
+          addons: (it.addons||[]).map(a=>({ name:a.name, price:Number(a.price||0), free:!!a.free, group:a.group||"" })),
 
-          // ✅ 選項（下拉）
+          // ✅ 原本選項（下拉）
           optionGroups: Array.isArray(it.optionGroups) ? it.optionGroups : [],
           chosenOptions: it.chosenOptions || {}
         }))
@@ -1054,7 +1099,13 @@
       wrap.innerHTML = list.map(o=>{
         const items = Array.isArray(o.items) ? o.items : [];
         const itemLines = items.map(it=>{
-          const addonTxt = addonTextFromList(it.addons||[]);
+          const addonTxt = (it.addons||[]).map(a=>{
+            const p = (a && a.free) ? 0 : Number(a.price||0);
+            const g = (a.group||"").trim();
+            const head = g ? `${g}：` : `+`;
+            return `${head}${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
+          }).join("；");
+
           const optTxt = optionText(it.optionGroups, it.chosenOptions);
           const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
 
@@ -1067,7 +1118,7 @@
 
         const canDelete = (getCurrentName() && (o.userName === getCurrentName()));
         return `
-          <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; margin-top:10px; background:#fff">
+          <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.12); border-radius:14px; margin-top:10px; background:#fff">
             <div class="inline" style="justify-content:space-between">
               <div>
                 <b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b>
