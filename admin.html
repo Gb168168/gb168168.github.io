@@ -582,34 +582,59 @@
     }
 
     // ===== ✅ XLSX loader（修你遇到的「XLSX 未載入」） =====
- 
-      if(hint) hint.textContent = "載入 Excel 元件中…";
-      if(btn) btn.disabled = true;
+ async function ensureXLSX(){
+  const hint = $("xlsxHint");
+  const btn  = $("btnExportExcel");
 
-      const load = (src)=> new Promise((resolve, reject)=>{
-        const s = document.createElement("script");
-        s.src = src;
-        s.async = true;
-        s.onload = ()=> resolve(true);
-        s.onerror = ()=> reject(new Error("load failed: " + src));
-        document.head.appendChild(s);
-      });
+  const ok = (from)=>{
+    if(hint) hint.textContent = `Excel 元件已就緒 ✅ (${from})`;
+    if(btn) btn.disabled = false;
+  };
+  const bad = (msg)=>{
+    if(hint) hint.textContent = msg || "Excel 元件載入失敗";
+    if(btn) btn.disabled = true;
+  };
 
-      // 先補載入一次（跟上面 script 同源，但避免 CDN/快取造成 window.XLSX 沒掛上）
-      try{
-        await load("https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js");
-        if(window.XLSX){ ok(); return true; }
-      }catch(e){}
+  // 已存在就直接用
+  if(window.XLSX && typeof window.XLSX.writeFile === "function"){
+    ok("cache");
+    return true;
+  }
 
-      // fallback：unpkg
-      try{
-        await load("https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js");
-        if(window.XLSX){ ok(); return true; }
-      }catch(e){}
+  if(hint) hint.textContent = "載入 Excel 元件中…";
+  if(btn) btn.disabled = true;
 
-      bad("Excel 匯出元件未載入（XLSX）— 請確認網路/CDN 是否被擋");
-      return false;
+  const load = (src)=> new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = ()=> resolve(true);
+    s.onerror = ()=> reject(new Error("load failed: " + src));
+    document.head.appendChild(s);
+  });
+
+  // ✅ 依序嘗試多個 CDN（最常成功的放前面）
+  const sources = [
+    ["cdnjs",   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"],
+    ["jsdelivr","https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
+    ["unpkg",   "https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js"],
+  ];
+
+  for(const [label, url] of sources){
+    try{
+      await load(url);
+      if(window.XLSX && typeof window.XLSX.writeFile === "function"){
+        ok(label);
+        return true;
+      }
+    }catch(e){
+      console.warn("[XLSX CDN fail]", label, e?.message || e);
     }
+  }
+
+  bad("Excel 匯出元件未載入（XLSX）— 可能是公司網路/CSP 擋了 CDN");
+  return false;
+}
 
     statusPill.textContent = "已連線 Firestore";
 
