@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽~~｜管理者</title>
+  <title>GoldBricks 呷奔👽~｜管理者</title>
 
   <!-- ✅ Excel（SheetJS） -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
@@ -94,6 +94,7 @@
     .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12px}
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .danger{border-color: rgba(239,68,68,.42)}
+    .ok{border-color: rgba(34,197,94,.35)}
 
     .navCard{
       background: var(--navBg);
@@ -201,9 +202,7 @@
         <button class="navBtn" data-tab="tabStaff">人員管理</button>
         <button class="navBtn" data-tab="tabOrders">歷史紀錄 / 匯出</button>
         <div class="hr"></div>
-        <div class="muted">
-          提示：如果讀取失敗，多半是 Rules / 網路 / Firebase 設定。
-        </div>
+        <div class="muted">提示：如果讀取失敗，多半是 Rules / 網路 / Firebase 設定。</div>
       </div>
 
       <!-- RIGHT CONTENT -->
@@ -213,9 +212,12 @@
         <div class="section active" id="tabRestaurants">
 
           <div class="card">
-            <h2>1）餐廳清單（可選擇後管理餐點/類別/狀態）</h2>
+            <div class="inline" style="justify-content:space-between">
+              <h2 style="margin:0">1）餐廳清單（選擇 / 拖曳排序）</h2>
+              <span class="dragHint">下方清單可拖曳排序，放開自動儲存</span>
+            </div>
 
-            <div class="row">
+            <div class="row" style="margin-top:8px">
               <div>
                 <label>選擇餐廳</label>
                 <select id="restaurantSelect">
@@ -227,6 +229,18 @@
                 <button class="btn danger" id="btnDeleteRestaurant">刪除餐廳</button>
               </div>
             </div>
+
+            <!-- ✅ Restaurant sort list -->
+            <details class="box" style="margin-top:12px">
+              <summary class="inline" style="justify-content:space-between">
+                <div class="inline">
+                  <b>餐廳排序清單</b>
+                  <span class="tag" id="rCountTag">0 間</span>
+                </div>
+                <span class="muted">（拖曳可調整顯示順序）</span>
+              </summary>
+              <div id="restaurantSortWrap" style="margin-top:10px" class="muted">載入中…</div>
+            </details>
 
             <div class="hr"></div>
 
@@ -253,8 +267,17 @@
             </div>
           </div>
 
+          <!-- ✅ Restaurant edit -->
           <div class="card" style="margin-top:14px">
-            <h2>2）新增餐廳</h2>
+            <div class="inline" style="justify-content:space-between">
+              <h2 style="margin:0">2）餐廳資訊（可編輯）</h2>
+              <span class="muted">選擇餐廳後可修改，儲存會直接寫回 Firestore</span>
+            </div>
+            <div id="restaurantEditWrap" class="muted" style="margin-top:10px">請先選擇餐廳。</div>
+          </div>
+
+          <div class="card" style="margin-top:14px">
+            <h2>3）新增餐廳</h2>
 
             <div class="row">
               <div>
@@ -283,26 +306,25 @@
 
             <div class="inline" style="margin-top:12px">
               <button class="primary" id="btnAddRestaurant">新增餐廳</button>
-              <span class="muted">新增後會自動建立「餐點類別」下拉群組（但不預塞類別）。</span>
+              <span class="muted">新增後會自動建立「餐點類別」下拉群組（不預塞類別）。</span>
             </div>
           </div>
 
           <div class="card" style="margin-top:14px">
             <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">3）類別管理（categoryGroups：下拉選單選項）</h2>
-              <span class="dragHint">可拖曳排序，放開自動儲存</span>
+              <h2 style="margin:0">4）類別管理（categoryGroups：下拉選單選項）</h2>
+              <span class="dragHint">目前類別預設收合；可拖曳排序自動儲存</span>
             </div>
-            <div id="catMgrWrap" class="muted">請先選擇餐廳。</div>
+            <div id="catMgrWrap" class="muted" style="margin-top:10px">請先選擇餐廳。</div>
           </div>
 
           <div class="card" style="margin-top:14px">
-            <h2>4）新增餐點（類別改用下拉/群組）</h2>
-
+            <h2>5）新增餐點（類別下拉）</h2>
             <div id="menuAddWrap" class="muted">請先選擇餐廳。</div>
 
             <div class="hr"></div>
             <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">5）餐點清單（可刪除 / 可拖曳排序）</h2>
+              <h2 style="margin:0">6）餐點清單（可刪除 / 可拖曳排序）</h2>
               <span class="dragHint">餐點只能在同類別內拖曳</span>
             </div>
             <div id="menuList" class="muted">尚未選擇餐廳。</div>
@@ -426,11 +448,11 @@
     // ===== State =====
     let restaurants = [];
     let selectedRestaurantId = "";
-    let selectedRestaurant = null;
+    let selectedRestaurant = null; // restaurants/{rid} doc data
     let menuCache = [];
 
     // ===== Drag State =====
-    let dragPayload = null; // {type:"cat"|"menu"|"staff", ...}
+    let dragPayload = null; // {type:"cat"|"menu"|"staff"|"restaurant", ...}
 
     function setWhoLine(){
       $("whoLine").innerHTML = selectedRestaurantId
@@ -469,13 +491,21 @@
         const list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
+        // ✅ sort: order -> createdAt desc -> name
         list.sort((a,b)=>{
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
+          if(ao !== bo) return ao - bo;
+
           const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
           if(bb !== aa) return bb - aa;
+
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
 
         restaurants = list;
+
+        await normalizeRestaurantOrders(); // ✅ 確保每間餐廳都有連續 order
 
         const sel = $("restaurantSelect");
         sel.innerHTML = `<option value="">請選擇</option>` + restaurants.map(r=>{
@@ -489,6 +519,7 @@
           `<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`
         ).join("");
 
+        // keep selection
         if(selectedRestaurantId && restaurants.find(r=> r.id===selectedRestaurantId)){
           sel.value = selectedRestaurantId;
         }else{
@@ -497,8 +528,11 @@
           menuCache = [];
         }
 
+        renderRestaurantSortList(); // ✅ 顯示可拖曳排序清單
+
         setWhoLine();
         renderRestaurantFlags();
+        renderRestaurantEditor();
         renderCategoryManager();
         renderMenuAdd();
         renderMenuList();
@@ -511,6 +545,25 @@
       }
     }
 
+    async function normalizeRestaurantOrders(){
+      // 確保 restaurants.order 連續（0..n-1），避免新增後沒有 order 造成排序不穩
+      const batch = writeBatch(db);
+      let touched = 0;
+
+      restaurants.forEach((r, i)=>{
+        const cur = Number(r.order);
+        if(!Number.isFinite(cur) || cur !== i){
+          batch.update(doc(db, "restaurants", r.id), { order: i });
+          r.order = i;
+          touched++;
+        }
+      });
+
+      if(touched > 0){
+        try{ await batch.commit(); }catch(e){ console.warn("normalizeRestaurantOrders failed:", e); }
+      }
+    }
+
     async function loadRestaurantDoc(rid){
       if(!rid){
         selectedRestaurantId = "";
@@ -518,6 +571,7 @@
         menuCache = [];
         setWhoLine();
         renderRestaurantFlags();
+        renderRestaurantEditor();
         renderCategoryManager();
         renderMenuAdd();
         renderMenuList();
@@ -529,6 +583,7 @@
         selectedRestaurantId = rid;
         selectedRestaurant = snap.exists() ? snap.data() : null;
 
+        // patch categoryGroups
         const fixed = ensureCategoryGroups(selectedRestaurant || {});
         if(!Array.isArray(selectedRestaurant?.categoryGroups) || selectedRestaurant.categoryGroups.length===0){
           try{
@@ -542,6 +597,7 @@
 
         setWhoLine();
         renderRestaurantFlags();
+        renderRestaurantEditor();
         renderCategoryManager();
 
         await loadMenu(rid);
@@ -567,6 +623,10 @@
 
       try{
         statusPill.textContent = "新增餐廳中…";
+
+        // ✅ order = 放最後
+        const order = restaurants.length;
+
         const payload = {
           name,
           imageUrl,
@@ -576,6 +636,7 @@
           isVisible: true,
           isClosed: false,
           createdAt: Date.now(),
+          order,
           categoryGroups: ensureCategoryGroups({})
         };
         const ref = await addDoc(colRestaurants, payload);
@@ -649,6 +710,214 @@
       }
     }
 
+    // ✅ 餐廳排序清單（拖曳＋自動儲存）
+    function renderRestaurantSortList(){
+      const wrap = $("restaurantSortWrap");
+      $("rCountTag").textContent = `${restaurants.length} 間`;
+
+      if(restaurants.length === 0){
+        wrap.innerHTML = `<div class="muted">尚無餐廳。</div>`;
+        return;
+      }
+
+      wrap.innerHTML = restaurants.map((r,idx)=>{
+        const vis = (r.isVisible !== false);
+        const closed = !!r.isClosed;
+        return `
+          <div class="listLine draggableItem"
+               draggable="true"
+               data-dragtype="restaurant"
+               data-rid="${esc(r.id)}"
+               data-ridx="${idx}">
+            <div class="inline" style="justify-content:space-between">
+              <div>
+                <b>${esc(r.name||"未命名")}</b>
+                <span class="tag" style="margin-left:8px">順序：${idx+1}</span>
+                <span class="tag" style="margin-left:6px">${vis?"顯示":"隱藏"}</span>
+                <span class="tag" style="margin-left:6px">${closed?"已結單":"開單中"}</span>
+              </div>
+              <button class="btn" data-pick-r="${esc(r.id)}" type="button">選擇</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
+        btn.onclick = async ()=>{
+          const rid = btn.dataset.pickR;
+          $("restaurantSelect").value = rid;
+          await loadRestaurantDoc(rid);
+        };
+      });
+
+      bindDragForRestaurants(wrap);
+    }
+
+    function bindDragForRestaurants(container){
+      const items = Array.from(container.querySelectorAll('[data-dragtype="restaurant"]'));
+
+      items.forEach(el=>{
+        el.addEventListener("dragstart", (e)=>{
+          dragPayload = { type:"restaurant", fromId: el.dataset.rid };
+          e.dataTransfer.effectAllowed = "move";
+        });
+
+        el.addEventListener("dragover", (e)=>{
+          if(!dragPayload || dragPayload.type!=="restaurant") return;
+          e.preventDefault();
+          el.classList.add("dragOver");
+          e.dataTransfer.dropEffect = "move";
+        });
+
+        el.addEventListener("dragleave", ()=>{
+          el.classList.remove("dragOver");
+        });
+
+        el.addEventListener("drop", async (e)=>{
+          e.preventDefault();
+          el.classList.remove("dragOver");
+          if(!dragPayload || dragPayload.type!=="restaurant") return;
+
+          const fromId = dragPayload.fromId;
+          const toId = el.dataset.rid;
+          dragPayload = null;
+          if(!fromId || !toId || fromId===toId) return;
+
+          await reorderRestaurants(fromId, toId);
+        });
+
+        el.addEventListener("dragend", ()=>{
+          container.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
+          dragPayload = null;
+        });
+      });
+    }
+
+    async function reorderRestaurants(fromId, toId){
+      const fromIdx = restaurants.findIndex(r=> r.id===fromId);
+      const toIdx = restaurants.findIndex(r=> r.id===toId);
+      if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
+
+      const next = [...restaurants];
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+
+      try{
+        statusPill.textContent = "儲存餐廳順序…";
+        const batch = writeBatch(db);
+        next.forEach((r,i)=>{
+          batch.update(doc(db,"restaurants", r.id), { order:i });
+          r.order = i;
+        });
+        await batch.commit();
+
+        restaurants = next;
+
+        // 重建 select + 查詢店家下拉 + 排序清單
+        const curSel = selectedRestaurantId;
+        const sel = $("restaurantSelect");
+        sel.innerHTML = `<option value="">請選擇</option>` + restaurants.map(r=>{
+          const vis = (r.isVisible !== false);
+          const closed = !!r.isClosed;
+          const hint = `${vis ? "顯示" : "隱藏"} / ${closed ? "已結單" : "開單中"}`;
+          return `<option value="${esc(r.id)}">${esc(r.name||"未命名")}（${esc(hint)}）</option>`;
+        }).join("");
+        $("qRestaurant").innerHTML = `<option value="">全部</option>` + restaurants.map(r=>
+          `<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`
+        ).join("");
+
+        if(curSel){
+          sel.value = curSel;
+        }
+
+        renderRestaurantSortList();
+        statusPill.textContent = "餐廳順序已更新 ✅";
+      }catch(err){
+        console.error(err);
+        statusPill.textContent = "儲存餐廳順序失敗";
+        alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
+    }
+
+    // ✅ 餐廳資訊編輯
+    function renderRestaurantEditor(){
+      const wrap = $("restaurantEditWrap");
+      if(!selectedRestaurantId || !selectedRestaurant){
+        wrap.innerHTML = `<div class="muted">請先選擇餐廳。</div>`;
+        return;
+      }
+
+      const r = selectedRestaurant;
+
+      wrap.innerHTML = `
+        <div class="row">
+          <div>
+            <label>餐廳名稱（name）</label>
+            <input id="editRName" value="${esc(r.name||"")}" />
+          </div>
+          <div>
+            <label>圖片 URL（imageUrl）</label>
+            <input id="editRImg" value="${esc(r.imageUrl||"")}" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>地址（address）</label>
+            <input id="editRAddr" value="${esc(r.address||"")}" />
+          </div>
+          <div>
+            <label>電話（phone）</label>
+            <input id="editRPhone" value="${esc(r.phone||"")}" />
+          </div>
+        </div>
+
+        <label>Google Map（mapUrl）</label>
+        <input id="editRMap" value="${esc(r.mapUrl||"")}" placeholder="https://maps.google.com/..." />
+
+        <div class="inline" style="margin-top:12px">
+          <button class="primary" id="btnSaveRestaurantInfo" type="button">儲存餐廳資訊</button>
+          <button class="btn" id="btnOpenMap" type="button">開啟 Map</button>
+          <span class="muted" id="saveRInfoHint"></span>
+        </div>
+      `;
+
+      document.getElementById("btnOpenMap").onclick = ()=>{
+        const url = (document.getElementById("editRMap").value || "").trim();
+        if(!url) return alert("尚未設定 Map 連結");
+        window.open(url, "_blank");
+      };
+
+      document.getElementById("btnSaveRestaurantInfo").onclick = saveRestaurantInfo;
+    }
+
+    async function saveRestaurantInfo(){
+      if(!selectedRestaurantId) return;
+      const name = (document.getElementById("editRName").value || "").trim();
+      const imageUrl = (document.getElementById("editRImg").value || "").trim();
+      const address = (document.getElementById("editRAddr").value || "").trim();
+      const phone = (document.getElementById("editRPhone").value || "").trim();
+      const mapUrl = (document.getElementById("editRMap").value || "").trim();
+
+      if(!name) return alert("餐廳名稱不可空白");
+
+      try{
+        statusPill.textContent = "儲存餐廳資訊…";
+        await updateDoc(doc(db,"restaurants", selectedRestaurantId), {
+          name, imageUrl, address, phone, mapUrl
+        });
+
+        await loadRestaurantDoc(selectedRestaurantId);
+        await loadRestaurants();
+
+        statusPill.textContent = "餐廳資訊已更新 ✅";
+      }catch(err){
+        console.error(err);
+        statusPill.textContent = "儲存餐廳資訊失敗";
+        alert("儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
+    }
+
     // ===== Category Manager =====
     function getCategoryGroup(){
       const groups = ensureCategoryGroups(selectedRestaurant || {});
@@ -693,14 +962,24 @@
           </div>
 
           <div class="hr"></div>
-          <div class="muted">目前類別（${opts.length}）</div>
-          <div id="catList"></div>
+
+          <!-- ✅ 目前類別收合 -->
+          <details class="box" style="margin:0; padding:10px 12px">
+            <summary class="inline" style="justify-content:space-between">
+              <div class="inline">
+                <b>目前類別</b>
+                <span class="tag">${opts.length} 個</span>
+              </div>
+              <span class="muted">（展開後可刪除/拖曳排序）</span>
+            </summary>
+            <div id="catList" style="margin-top:10px"></div>
+          </details>
         </div>
       `;
 
       const listWrap = document.getElementById("catList");
       if(opts.length === 0){
-        listWrap.innerHTML = `<div class="muted" style="margin-top:8px">尚無類別，請先新增。</div>`;
+        listWrap.innerHTML = `<div class="muted">尚無類別，請先新增。</div>`;
       }else{
         listWrap.innerHTML = opts.map((o,idx)=>`
           <div class="listLine draggableItem" draggable="true" data-dragtype="cat" data-cat-idx="${idx}">
@@ -714,7 +993,6 @@
           </div>
         `).join("");
 
-        // delete
         listWrap.querySelectorAll("button[data-del-cat]").forEach(btn=>{
           btn.onclick = async ()=>{
             const idx = Number(btn.dataset.delCat);
@@ -735,7 +1013,6 @@
           };
         });
 
-        // drag bind
         bindDragForCategoryList(listWrap);
       }
 
@@ -985,7 +1262,7 @@
         </div>
       `;
 
-      // addon groups builder
+      // ===== addonGroups builder =====
       const addonWrap = document.getElementById("addonGroupsWrap");
       addonWrap.innerHTML = `<div class="muted">（尚無加購群組，按「新增一組」加入）</div>`;
       let addonGroupCount = 0;
@@ -1088,7 +1365,7 @@
         };
       };
 
-      // option groups builder
+      // ===== optionGroups builder =====
       const optWrap = document.getElementById("optGroupsWrap");
       optWrap.innerHTML = `<div class="muted">（尚無選項，按「新增一組」加入）</div>`;
       let groupCount = 0;
@@ -1266,6 +1543,7 @@
         statusPill.textContent = "新增餐點中…";
         const menuCol = collection(db, "restaurants", selectedRestaurantId, "menu");
 
+        // order 放同類別最後
         const sameCat = menuCache.filter(x=> (x.category||"").trim()===(category||"").trim());
         const order = sameCat.length;
 
@@ -1324,18 +1602,16 @@
         return `
           <details class="box" style="padding:10px 12px">
             <summary><b>${esc(cat)}</b> <span class="tag" style="margin-left:8px">${sortedItems.length} 項</span></summary>
-            <div style="margin-top:10px" data-menu-cat="${esc(cat)}" data-menu-dropzone="1">
+            <div style="margin-top:10px" data-menu-cat="${esc(cat)}">
               ${sortedItems.map((m,idx)=>{
                 const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
                 const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
-
                 return `
                   <div class="listLine draggableItem"
                        draggable="true"
                        data-dragtype="menu"
                        data-menu-id="${esc(m.id)}"
-                       data-menu-cat="${esc(cat)}"
-                       data-menu-idx="${idx}">
+                       data-menu-cat="${esc(cat)}">
                     <div class="inline" style="justify-content:space-between">
                       <div>
                         <b>${esc(m.name||"")}</b>
@@ -1399,7 +1675,6 @@
         el.addEventListener("dragstart", (e)=>{
           dragPayload = {
             type:"menu",
-            rid: selectedRestaurantId,
             cat: el.dataset.menuCat,
             fromId: el.dataset.menuId
           };
@@ -1408,7 +1683,7 @@
 
         el.addEventListener("dragover", (e)=>{
           if(!dragPayload || dragPayload.type!=="menu") return;
-          if(dragPayload.cat !== el.dataset.menuCat) return; // only same category
+          if(dragPayload.cat !== el.dataset.menuCat) return;
           e.preventDefault();
           el.classList.add("dragOver");
           e.dataTransfer.dropEffect = "move";
@@ -1471,7 +1746,7 @@
         });
         await batch.commit();
 
-        // 更新本地 cache 的 order
+        // update cache orders
         for(const m of menuCache){
           if((m.category||"").trim() !== (cat||"").trim()) continue;
           const found = arr.find(x=> x.id===m.id);
@@ -1502,7 +1777,6 @@
           map[dept].push({ id:d.id, name, createdAt: Number(v.createdAt||0), order: v.order });
         });
 
-        // dept: order -> createdAt -> name
         Object.keys(map).forEach(k=>{
           map[k].sort((a,b)=>{
             const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
@@ -1514,7 +1788,6 @@
           });
         });
 
-        // normalize staff order
         await normalizeStaffOrders(map);
 
         const depts = Object.keys(map).sort((a,b)=> a.localeCompare(b,"zh-Hant"));
@@ -1528,14 +1801,13 @@
             return `
               <details class="box">
                 <summary><b>${esc(dept)}</b> <span class="tag" style="margin-left:8px">${arr.length} 人</span></summary>
-                <div style="margin-top:10px" data-staff-dept="${esc(dept)}">
+                <div style="margin-top:10px">
                   ${arr.map((p,idx)=>`
                     <div class="listLine draggableItem"
                          draggable="true"
                          data-dragtype="staff"
                          data-staff-id="${esc(p.id)}"
-                         data-staff-dept="${esc(dept)}"
-                         data-staff-idx="${idx}">
+                         data-staff-dept="${esc(dept)}">
                       <div class="inline" style="justify-content:space-between">
                         <div class="inline">
                           <b>${esc(p.name)}</b>
@@ -1592,7 +1864,7 @@
       }
 
       if(touched > 0){
-        try{ await batch.commit(); }catch(e){ console.warn("normalizeStaffOrders batch commit failed:", e); }
+        try{ await batch.commit(); }catch(e){ console.warn("normalizeStaffOrders failed:", e); }
       }
     }
 
@@ -1961,7 +2233,7 @@
       }
     }
 
-    // ===== Buttons / Events =====
+    // ===== Events / Buttons =====
     $("restaurantSelect").onchange = async ()=>{
       const rid = $("restaurantSelect").value;
       await loadRestaurantDoc(rid);
