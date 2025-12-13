@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者</title>
+  <title>GoldBricks 呷奔👽~｜管理者</title>
 
   <!-- Drag & Drop -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -212,6 +212,18 @@
     table{width:100%; border-collapse:collapse; font-size:13.5px}
     th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
     th{color:var(--muted); font-weight:900}
+
+    /* ✅ 編輯餐點：內嵌編輯區 */
+    .editBox{
+      border:1px dashed rgba(15,23,42,.18);
+      background: rgba(2,6,23,.02);
+      border-radius:16px;
+      padding:12px;
+      margin-top:10px;
+      display:none;
+    }
+    .editBox.show{display:block;}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 
@@ -361,6 +373,7 @@
 
             <div class="hr"></div>
             <h2 style="margin-top:0">5）餐點清單（類別內可拖曳排序＋自動儲存）</h2>
+            <div class="muted" style="margin-top:-6px">✅ 已加入「編輯餐點」：可改名稱/價格/預設數量/備註，亦可用 JSON 編修選項群組與加購群組（編輯後自動儲存）。</div>
             <div id="menuList" class="muted">尚未選擇餐廳。</div>
           </div>
 
@@ -542,6 +555,17 @@
         }
       });
       el.addEventListener("blur", ()=> saver());
+    }
+
+    // ✅ JSON parse helper（編輯 optionGroups / addonGroups 用）
+    function safeParseJSON(txt){
+      try{
+        if(!txt || !txt.trim()) return { ok:true, value: [] };
+        const v = JSON.parse(txt);
+        return { ok:true, value:v };
+      }catch(err){
+        return { ok:false, error: err?.message || String(err) };
+      }
     }
 
     statusPill.textContent = "已連線 Firestore";
@@ -1459,7 +1483,119 @@
       }
     }
 
-    // ===== ✅ 餐點清單：類別內拖曳排序 =====
+    // ===== ✅ 餐點：編輯（已設置好的餐點） =====
+    async function saveMenuItemEdits(mid){
+      if(!selectedRestaurantId || !mid) return;
+
+      const nameEl = document.querySelector(`[data-mid="${mid}"][data-edit-name]`);
+      const priceEl = document.querySelector(`[data-mid="${mid}"][data-edit-price]`);
+      const qtyEl = document.querySelector(`[data-mid="${mid}"][data-edit-qty]`);
+      const noteEl = document.querySelector(`[data-mid="${mid}"][data-edit-note]`);
+      const optJsonEl = document.querySelector(`[data-mid="${mid}"][data-edit-optjson]`);
+      const addJsonEl = document.querySelector(`[data-mid="${mid}"][data-edit-addjson]`);
+      const errEl = document.querySelector(`[data-mid="${mid}"][data-edit-err]`);
+
+      if(!nameEl || !priceEl || !qtyEl) return;
+
+      const name = (nameEl.value||"").trim();
+      const price = Number(priceEl.value||0);
+      const defaultQty = Math.max(1, Number(qtyEl.value||1));
+      const note = (noteEl?.value||"").trim();
+
+      if(!name) {
+        if(errEl) errEl.textContent = "❗ 餐點名稱不可空白";
+        return;
+      }
+      if(!Number.isFinite(price) || price < 0){
+        if(errEl) errEl.textContent = "❗ 價格不正確";
+        return;
+      }
+
+      // optionGroups/addonGroups 允許空白（代表 []）
+      const optRes = safeParseJSON(optJsonEl?.value || "");
+      const addRes = safeParseJSON(addJsonEl?.value || "");
+      if(!optRes.ok){
+        if(errEl) errEl.textContent = `❗ optionGroups JSON 格式錯誤：${optRes.error}`;
+        return;
+      }
+      if(!addRes.ok){
+        if(errEl) errEl.textContent = `❗ addonGroups JSON 格式錯誤：${addRes.error}`;
+        return;
+      }
+
+      // 基本防呆：必選群組不能沒 options
+      const optGroups = Array.isArray(optRes.value) ? optRes.value : [];
+      const addGroups = Array.isArray(addRes.value) ? addRes.value : [];
+      for(const g of optGroups){
+        if((g?.required !== false) && (!Array.isArray(g?.options) || g.options.length===0)){
+          if(errEl) errEl.textContent = `❗ 選項群組「${g?.name||"未命名"}」是必選，但 options 不能為空`;
+          return;
+        }
+      }
+      for(const g of addGroups){
+        if((g?.required === true) && (!Array.isArray(g?.options) || g.options.length===0)){
+          if(errEl) errEl.textContent = `❗ 加購群組「${g?.name||"未命名"}」是必選，但 options 不能為空`;
+          return;
+        }
+      }
+
+      try{
+        if(errEl) errEl.textContent = "";
+        statusPill.textContent = "儲存餐點編輯…";
+        await updateDoc(doc(db,"restaurants",selectedRestaurantId,"menu",mid), {
+          name, price, defaultQty, note,
+          optionGroups: optGroups,
+          addonGroups: addGroups,
+          updatedAt: Date.now()
+        });
+        await loadMenu(selectedRestaurantId);
+        renderMenuList();
+        statusPill.textContent = "餐點已更新 ✅";
+      }catch(err){
+        console.error(err);
+        if(errEl) errEl.textContent = `❗ 儲存失敗：${err?.message||err}`;
+        statusPill.textContent = "餐點儲存失敗";
+      }
+    }
+
+    function toggleMenuEditBox(mid){
+      const box = document.querySelector(`[data-mid="${mid}"][data-edit-box]`);
+      if(!box) return;
+      const willShow = !box.classList.contains("show");
+      document.querySelectorAll("[data-edit-box].show").forEach(el=>{
+        el.classList.remove("show");
+      });
+      if(willShow) box.classList.add("show");
+    }
+
+    function bindMenuEditAutoSave(mid){
+      const save = ()=> saveMenuItemEdits(mid);
+
+      const ids = [
+        `[data-mid="${mid}"][data-edit-name]`,
+        `[data-mid="${mid}"][data-edit-price]`,
+        `[data-mid="${mid}"][data-edit-qty]`,
+        `[data-mid="${mid}"][data-edit-note]`,
+      ];
+      ids.forEach(sel=>{
+        const el = document.querySelector(sel);
+        if(el) bindEnterBlurSave(el, save);
+      });
+
+      // textarea 不做 Enter（會換行），改 blur 自動存
+      const optJsonEl = document.querySelector(`[data-mid="${mid}"][data-edit-optjson]`);
+      const addJsonEl = document.querySelector(`[data-mid="${mid}"][data-edit-addjson]`);
+      if(optJsonEl) optJsonEl.addEventListener("blur", save);
+      if(addJsonEl) addJsonEl.addEventListener("blur", save);
+
+      const btnSave = document.querySelector(`[data-mid="${mid}"][data-edit-save]`);
+      if(btnSave) btnSave.onclick = save;
+
+      const btnCancel = document.querySelector(`[data-mid="${mid}"][data-edit-cancel]`);
+      if(btnCancel) btnCancel.onclick = ()=> toggleMenuEditBox(mid);
+    }
+
+    // ===== ✅ 餐點清單：類別內拖曳排序 + 編輯 =====
     const menuSorters = new Map(); // key=category -> Sortable
 
     function renderMenuList(){
@@ -1524,6 +1660,7 @@
                       </div>
                     </div>
                     <div class="dragRight">
+                      <button class="tinyBtn" data-edit-menu="${esc(m.id)}" type="button">編輯</button>
                       <button class="tinyBtn tinyDanger" data-del-menu="${esc(m.id)}" type="button">刪除</button>
                     </div>
                   </div>
@@ -1546,6 +1683,64 @@
                       }).join("；"))}
                     </div>
                   ` : ``}
+
+                  <!-- ✅ 內嵌編輯區（Enter/blur 自動存） -->
+                  <div class="editBox" data-mid="${esc(m.id)}" data-edit-box>
+                    <div class="inline" style="justify-content:space-between">
+                      <b>編輯餐點</b>
+                      <span class="tag">Enter/離開會自動存</span>
+                    </div>
+
+                    <div class="row" style="margin-top:8px">
+                      <div>
+                        <label>餐點名稱</label>
+                        <input data-mid="${esc(m.id)}" data-edit-name value="${esc(m.name||"")}"/>
+                      </div>
+                      <div>
+                        <label>價格（單份）</label>
+                        <input data-mid="${esc(m.id)}" data-edit-price type="number" min="0" value="${Number(m.price||0)}"/>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div>
+                        <label>預設數量（defaultQty）</label>
+                        <input data-mid="${esc(m.id)}" data-edit-qty type="number" min="1" value="${Number(m.defaultQty||1)}"/>
+                      </div>
+                      <div>
+                        <label>備註（可空）</label>
+                        <input data-mid="${esc(m.id)}" data-edit-note value="${esc(m.note||"")}"/>
+                      </div>
+                    </div>
+
+                    <div class="hr"></div>
+
+                    <details class="panel">
+                      <summary class="inline" style="justify-content:space-between">
+                        <div class="inline">
+                          <b>進階：編輯 optionGroups / addonGroups（JSON）</b>
+                          <span class="tag">可選</span>
+                        </div>
+                        <span class="tag">收合</span>
+                      </summary>
+
+                      <div class="muted" style="margin-top:8px">※ 這裡是「原始資料」編修，請保持 JSON 格式正確；離開 textarea 會自動儲存。</div>
+
+                      <label>optionGroups（選項群組 JSON）</label>
+                      <textarea class="mono" data-mid="${esc(m.id)}" data-edit-optjson>${esc(JSON.stringify(og, null, 2))}</textarea>
+
+                      <label>addonGroups（加購群組 JSON）</label>
+                      <textarea class="mono" data-mid="${esc(m.id)}" data-edit-addjson>${esc(JSON.stringify(ag, null, 2))}</textarea>
+                    </details>
+
+                    <div class="inline" style="justify-content:space-between; margin-top:10px">
+                      <div class="muted" data-mid="${esc(m.id)}" data-edit-err style="color:#b91c1c"></div>
+                      <div class="inline">
+                        <button class="btn" data-mid="${esc(m.id)}" data-edit-cancel type="button">收起</button>
+                        <button class="primary" data-mid="${esc(m.id)}" data-edit-save type="button">立即儲存</button>
+                      </div>
+                    </div>
+                  </div>
                 `;
               }).join("")}
             </div>
@@ -1566,6 +1761,16 @@
             console.error("delete menu failed:", err);
             alert("刪除餐點失敗（Rules/網路）\n\n" + (err?.message || err));
           }
+        };
+      });
+
+      // edit buttons
+      wrap.querySelectorAll("button[data-edit-menu]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const mid = btn.dataset.editMenu;
+          toggleMenuEditBox(mid);
+          // 綁定自動存（避免每次 render 前已失效）
+          setTimeout(()=> bindMenuEditAutoSave(mid), 0);
         };
       });
 
