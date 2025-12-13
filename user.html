@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚~｜使用者</title>
+  <title>GoldBricks 呷奔🍚｜使用者</title>
 
   <style>
     :root{
@@ -110,6 +110,13 @@
       box-shadow:0 0 0 4px rgba(251,113,133,.10)
     }
 
+    /* ✅ disabled 視覺提示（避免以為壞掉） */
+    select:disabled, input:disabled, textarea:disabled{
+      background:#f1f5f9;
+      color:#94a3b8;
+      cursor:not-allowed;
+    }
+
     details > summary{
       cursor:pointer;
       list-style:none;
@@ -145,14 +152,10 @@
     .priceTag{color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); border:none}
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
+    .warnTag{color:#7c2d12; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
 
     /* ===== ✅ Restaurant Cards (無圖片清爽版) ===== */
-    .rGrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      margin-top:10px;
-    }
+    .rGrid{display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px;}
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
@@ -162,13 +165,7 @@
       cursor:pointer;
     }
     .rCard:hover{filter:brightness(.995)}
-
-    .rTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
+    .rTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
     .rName{font-size:15px}
     .rBadge{
       padding:5px 10px;
@@ -179,32 +176,20 @@
       background:#fff;
       white-space:nowrap;
     }
-    .rBadge.ok{
-      color:#065f46;
-      background:rgba(16,185,129,.12);
-      border-color:rgba(16,185,129,.26);
-    }
-    .rBadge.lock{
-      color:#92400e;
-      background:rgba(245,158,11,.16);
-      border-color:rgba(245,158,11,.32);
-    }
+    .rBadge.ok{color:#065f46; background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.26);}
+    .rBadge.lock{color:#92400e; background:rgba(245,158,11,.16); border-color:rgba(245,158,11,.32);}
     .rMeta{margin-top:8px}
     .rMeta .muted{margin-top:4px}
-    .rMap{
-      display:inline-block;
-      margin-top:6px;
-      font-size:12.5px;
-      color:#334155;
-      text-decoration:none;
-    }
+    .rMap{display:inline-block; margin-top:6px; font-size:12.5px; color:#334155; text-decoration:none;}
     .rMap:hover{text-decoration:underline}
-    .rActions{
-      margin-top:10px;
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
-    }
+    .rActions{margin-top:10px; display:flex; justify-content:flex-end; gap:8px;}
+
+    /* ✅ 避免下拉被裁切/層級怪（保險） */
+    .card, .box, .menuItem { overflow: visible !important; }
+    #menuWrap { position: relative; z-index: 1; }
+    #menuWrap .menuItem { position: relative; z-index: 2; }
+    #menuWrap select { position: relative; z-index: 9999; -webkit-appearance: menulist; appearance: auto; }
+    #menuWrap, #menuWrap * { transform: none !important; }
   </style>
 </head>
 
@@ -468,7 +453,6 @@
       }
     }
 
-    // ✅ 店家卡片（無圖片：整張可點 + 選完自動收合）
     function renderRestaurantCards(){
       const wrap = $("restaurantGrid");
       if(restaurants.length===0){
@@ -502,18 +486,16 @@
         `;
       }).join("");
 
-      // ✅ 按鈕點選（避免點整張卡重複觸發）
       wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
         btn.onclick = async (e)=>{
           e.stopPropagation();
           const rid = btn.dataset.pickR;
           await pickRestaurant(rid);
           const d = btn.closest("details");
-          if(d) d.open = false; // ✅ 選完自動收合
+          if(d) d.open = false;
         };
       });
 
-      // ✅ 整張卡可點（結單阻擋）
       wrap.querySelectorAll(".rCard[data-pick-card]").forEach(card=>{
         const rid = card.dataset.pickCard;
         const r = restaurants.find(x=> x.id===rid);
@@ -647,6 +629,7 @@
       });
     }
 
+    // ✅ 這裡是關鍵：防呆「options 空」也要能顯示提示，而不是出現空 select
     function renderMenuItem(m){
       const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
       const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
@@ -658,16 +641,27 @@
 
       const optionHTML = og.map((g,gi)=>{
         const opts = Array.isArray(g.options)?g.options:[];
+        const empty = opts.length === 0;
+        const disabledByEmpty = empty ? "disabled" : "";
+
+        const required = (g.required !== false);
+        const placeholder = required
+          ? (empty ? `<option value="-1">（此選項尚未設定）</option>` : `<option value="-1" disabled selected>請選擇</option>`)
+          : `<option value="-1">不選擇</option>`;
+
         return `
           <div class="box" style="margin-top:10px">
             <div class="inline" style="justify-content:space-between">
               <b>${esc(g.name||"選項")}</b>
-              <span class="tag">${(g.required!==false)?"必選":"可不選"}</span>
+              <span class="tag">${required ? "必選" : "可不選"}</span>
             </div>
-            <select data-mid-opt="${esc(m.id)}" data-gi="${gi}" ${lock}>
-              ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
+
+            <select data-mid-opt="${esc(m.id)}" data-gi="${gi}" ${lock} ${disabledByEmpty}>
+              ${placeholder}
               ${opts.map((o,oi)=>`<option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>`).join("")}
             </select>
+
+            ${empty ? `<div class="muted" style="margin-top:6px"><span class="tag warnTag">未設定</span> 此餐點「${esc(g.name||"選項")}」沒有選項內容，請通知管理者補齊。</div>` : ``}
           </div>
         `;
       }).join("");
@@ -675,6 +669,7 @@
       const addonHTML = ag.map((g,gi)=>{
         const opts = Array.isArray(g.options)?g.options:[];
         const isSingle = (g.type==="single");
+
         return `
           <div class="box" style="margin-top:10px">
             <div class="inline" style="justify-content:space-between">
@@ -696,6 +691,7 @@
                   </label>
                 `;
               }).join("")}
+              ${opts.length===0 ? `<div class="muted">（此加購群組尚未設定選項）</div>` : ``}
             </div>
           </div>
         `;
@@ -741,13 +737,16 @@
       let optSum = 0;
 
       for(let gi=0; gi<og.length; gi++){
+        const g = og[gi] || {};
+        const opts = Array.isArray(g.options) ? g.options : [];
+
         const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
         const idx = sel ? Number(sel.value) : -1;
         chosenOptions[gi] = idx;
 
-        if(Number.isFinite(idx) && idx >= 0){
-          const opt = (Array.isArray(og[gi].options)?og[gi].options:[])[idx];
-          if(opt) optSum += Number(opt.price||0);
+        if(Number.isFinite(idx) && idx >= 0 && opts[idx]){
+          const opt = opts[idx];
+          optSum += Number(opt.price||0);
         }
       }
       return { chosenOptions, optSum };
@@ -777,6 +776,7 @@
       return { addons, addonSum };
     }
 
+    // ✅ 關鍵：必選驗證加入「options 空」防呆（避免永遠卡住）
     function validateRequired(mid){
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
@@ -786,10 +786,16 @@
         const g = og[gi]||{};
         const req = (g.required!==false);
         if(!req) continue;
+
+        const opts = Array.isArray(g.options) ? g.options : [];
+        if(opts.length === 0){
+          return `「${g.name||"選項"}」尚未設定選項內容，請通知管理者修正`;
+        }
+
         const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
         const idx = sel ? Number(sel.value) : -1;
         if(!Number.isFinite(idx) || idx < 0) return `請先選擇「${g.name||"選項"}」`;
-        const opt = (Array.isArray(g.options)?g.options:[])[idx];
+        const opt = opts[idx];
         if(!opt) return `請先選擇「${g.name||"選項"}」`;
       }
 
@@ -797,6 +803,12 @@
       for(let gi=0; gi<ag.length; gi++){
         const g = ag[gi]||{};
         if(g.required!==true) continue;
+
+        const opts = Array.isArray(g.options) ? g.options : [];
+        if(opts.length === 0){
+          return `「${g.name||"加購"}」尚未設定選項內容，請通知管理者修正`;
+        }
+
         const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
         let any = false;
         els.forEach(el=>{ if(el.checked) any = true; });
