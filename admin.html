@@ -2259,10 +2259,10 @@
 
     // 👉【整段 Excel 覆蓋程式碼貼在這】👈
 /* =========================================================
-   ✅ Excel 匯出（完整參數 / module-safe / 覆蓋舊版）
+   ✅ Excel 匯出（module-safe / 不撞名版）
    ========================================================= */
 
-async function ensureXLSX(){
+async function ensureXLSX2(){
   const hint = document.getElementById("xlsxHint");
   const btn  = document.getElementById("btnExportExcel");
 
@@ -2306,9 +2306,8 @@ async function ensureXLSX(){
   return false;
 }
 
-
-async function exportOrdersExcel(){
-  const ready = await ensureXLSX();
+async function exportOrdersExcel2(){
+  const ready = await ensureXLSX2();
   if(!ready) return;
 
   const XLSX = window.XLSX;
@@ -2357,6 +2356,7 @@ async function exportOrdersExcel(){
         );
         const unit = Number(it.price||0) + addonSum;
         const qty = Number(it.qty||0);
+
         detail.push({
           "訂單日期": o.orderDate || "",
           "建立時間": fmtTime(Number(o.createdAt||0)),
@@ -2391,7 +2391,7 @@ async function exportOrdersExcel(){
       bookType: "xlsx",
       compression: true,
       type: "array",
-      cellStyles: true,
+      cellStyles: true, // ✅ 注意：S 要大寫
     });
 
     statusPill.textContent = "匯出完成 ✅";
@@ -2402,12 +2402,13 @@ async function exportOrdersExcel(){
   }
 }
 
-// ✅ 強制重新綁定匯出按鈕（覆蓋舊設定）
+// ✅ 強制重新綁定匯出按鈕（用新函式）
 const __btnExcel = document.getElementById("btnExportExcel");
 if(__btnExcel){
-  __btnExcel.onclick = exportOrdersExcel;
+  __btnExcel.onclick = exportOrdersExcel2;
 }
-    
+
+  
   </script>
 </body>
 </html>
