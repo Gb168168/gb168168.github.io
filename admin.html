@@ -10,125 +10,172 @@
 
   <style>
     :root{
-      --bg:#eef1f7;
-      --panel:#f6f7fb;
-      --card:#ffffff;
+      /* ✅ 分層更清楚：背景 / 側欄 / 卡片 / 清單 */
+      --bg-main:#eef1f7;
+      --bg-panel:#f6f7fb;
+
+      --card-main:#ffffff;
+      --card-sub:#fafbff;
+
       --text:#0b1220;
       --muted:#516074;
-      --primary:#fb7185;
-      --primary2:#ff9a9e;
-      --border:rgba(15,23,42,.12);
-      --border2:rgba(15,23,42,.18);
+
+      --accent:#fb7185;
+      --accent2:#ff9a9e;
+      --accent-soft:rgba(251,113,133,.12);
+
+      --border-soft:rgba(15,23,42,.10);
+      --border-strong:rgba(15,23,42,.18);
+
       --shadow:0 12px 34px rgba(2,6,23,.10);
+      --shadow2:0 10px 26px rgba(2,6,23,.08);
       --radius:18px;
 
-      --navBg:#f3f5fb;
-      --navActiveBg:rgba(251,113,133,.12);
-      --navActiveBorder:rgba(251,113,133,.70);
-      --focus:rgba(251,113,133,.65);
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
 
-      /* ✅ Drag UI */
-      --dragBorder: rgba(251,113,133,.70);
-      --dragBg: rgba(251,113,133,.10);
+      --focus:rgba(251,113,133,.65);
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
       background:
-        radial-gradient(1200px 520px at 18% -12%, rgba(251,113,133,.16), transparent 60%),
+        radial-gradient(1200px 520px at 18% -12%, rgba(251,113,133,.14), transparent 60%),
         radial-gradient(900px 520px at 110% 0%, rgba(99,102,241,.10), transparent 55%),
-        linear-gradient(180deg, #f6f7fb 0%, var(--bg) 55%, #eef1f7 100%);
+        linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-main) 60%, var(--bg-main) 100%);
       color:var(--text);
       min-height:100vh;
     }
     .wrap{max-width:1300px; margin:0 auto; padding:16px;}
+
+    /* ✅ sticky topbar */
     .topbar{
-      background: rgba(255,255,255,.86);
-      border:1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,.90);
+      border:1px solid var(--border-soft);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 6px 20px rgba(15,23,42,.12);
+      backdrop-filter: blur(12px);
       padding:12px 14px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
     }
     .topbar h1{font-size:18px; margin:0}
     .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12.5px}
+
+    .pill{
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--border-strong);
+      background:#fff;
+      color:var(--muted);
+      font-size:12.5px
+    }
     .btn{
-      padding:9px 12px; border-radius:14px; border:1px solid var(--border2);
-      background:#fff; cursor:pointer; font-weight:900;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid var(--border-strong);
+      background:#fff;
+      cursor:pointer;
+      font-weight:900;
     }
     .btn:hover{filter:brightness(.98)}
     .primary{
-      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
-      background: linear-gradient(90deg, var(--primary), var(--primary2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.20);
+      padding:9px 12px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font-weight:900;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color:#fff;
+      box-shadow: 0 14px 28px rgba(251,113,133,.20);
     }
     .primary:hover{filter:saturate(1.04)}
     .btn:disabled,.primary:disabled{opacity:.55; cursor:not-allowed}
+    .danger{border-color: rgba(239,68,68,.42)}
 
     .grid{display:grid; grid-template-columns: 280px 1fr; gap:14px; margin-top:14px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
+    .navCard{
+      background: var(--bg-panel);
+      border:1px solid var(--border-soft);
       border-radius:var(--radius);
-      box-shadow: 0 10px 26px rgba(2,6,23,.07);
+      box-shadow: var(--shadow2);
       padding:14px;
+    }
+    .navBtn{
+      width:100%;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border-strong);
+      background:#fff;
+      cursor:pointer;
+      font-weight:900;
+    }
+    .navBtn.active{
+      border-color: rgba(251,113,133,.70);
+      background: var(--accent-soft);
+      box-shadow:0 10px 22px rgba(251,113,133,.14);
+    }
+
+    .card{
+      background:var(--card-main);
+      border:1px solid var(--border-soft);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow2);
+      padding:14px;
+    }
+    .cardSub{
+      background:var(--card-sub);
+      border:1px solid var(--border-soft);
+      border-radius:var(--radius);
+      padding:12px;
     }
     .card h2{margin:0 0 10px; font-size:15px}
 
     label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
-      width:100%; padding:11px 12px; border-radius:14px;
-      border:1px solid var(--border2); outline:none; background:#fff;
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid var(--border-strong);
+      outline:none;
+      background:#fff;
       font-size:14px;
     }
     textarea{min-height:92px; resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color: var(--focus); box-shadow:0 0 0 4px rgba(251,113,133,.10)}
+    input:focus,select:focus,textarea:focus{
+      border-color: var(--focus);
+      box-shadow:0 0 0 4px rgba(251,113,133,.10)
+    }
 
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
     .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
-    .hr{height:1px; background: var(--border); margin:12px 0}
-    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border2); background:#fff; color:var(--muted); font-size:12px}
+    .hr{height:1px; background: var(--border-soft); margin:12px 0}
+    .tag{
+      display:inline-flex;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid var(--border-strong);
+      background:#fff;
+      color:var(--muted);
+      font-size:12px
+    }
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .danger{border-color: rgba(239,68,68,.42)}
-    .ok{border-color: rgba(34,197,94,.35)}
-
-    .navCard{
-      background: var(--navBg);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow: 0 10px 26px rgba(2,6,23,.06);
-      padding:14px;
-    }
-    .navBtn{
-      width:100%; text-align:left; padding:10px 12px;
-      border-radius:14px; border:1px solid var(--border2);
-      background:#fff; cursor:pointer; font-weight:900;
-    }
-    .navBtn.active{
-      border-color: var(--navActiveBorder);
-      background: var(--navActiveBg);
-      box-shadow:0 10px 22px rgba(251,113,133,.14);
-    }
 
     .section{display:none;}
     .section.active{display:block;}
 
-    .optGroup{
-      margin-top:10px;
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:14px;
-      padding:10px;
-      background:#fff;
-    }
-    .optHead{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .optHead b{font-size:13.5px}
-
     .box{
-      border:1px solid rgba(15,23,42,.12);
+      border:1px solid var(--border-soft);
       border-radius:16px;
       padding:12px;
       background:#fff;
@@ -136,12 +183,13 @@
     }
     .miniRow{display:grid; grid-template-columns: 1.1fr .7fr .6fr; gap:10px}
     @media (max-width:980px){.miniRow{grid-template-columns:1fr}}
+
     table{width:100%; border-collapse:collapse; font-size:13.5px}
     th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
     th{color:var(--muted); font-weight:900}
 
     .listLine{
-      border:1px solid rgba(15,23,42,.12);
+      border:1px solid var(--border-soft);
       border-radius:14px;
       padding:10px 12px;
       background:#fff;
@@ -154,24 +202,40 @@
     }
     details > summary::-webkit-details-marker{display:none}
 
-    /* ✅ Drag area */
-    .draggableItem{cursor:grab}
-    .draggableItem:active{cursor:grabbing}
-    .dragOver{
-      border-color: var(--dragBorder) !important;
-      background: var(--dragBg) !important;
-      box-shadow: 0 10px 22px rgba(251,113,133,.14);
-    }
-    .dragHint{
-      display:inline-flex;
+    /* ✅ 拖曳清單（不顯示順序號碼） */
+    .draggableItem{
+      display:flex;
       align-items:center;
-      gap:6px;
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px dashed rgba(15,23,42,.22);
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border-soft);
       background:#fff;
-      color:var(--muted);
-      font-size:12px;
+      margin-top:10px;
+    }
+    .draggableItem:hover{
+      border-color: rgba(251,113,133,.35);
+      box-shadow: 0 10px 22px rgba(251,113,133,.10);
+    }
+    .dragHandle{
+      cursor: grab;
+      opacity:.55;
+      user-select:none;
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:12px;
+      border:1px solid var(--border-soft);
+      background: var(--card-sub);
+    }
+    .draggableItem:hover .dragHandle{opacity:1}
+    .dragging{
+      opacity:.55;
+      transform: scale(.995);
+    }
+    .dragOver{
+      background: var(--accent-soft) !important;
+      border-color: var(--accent) !important;
     }
   </style>
 </head>
@@ -202,7 +266,9 @@
         <button class="navBtn" data-tab="tabStaff">人員管理</button>
         <button class="navBtn" data-tab="tabOrders">歷史紀錄 / 匯出</button>
         <div class="hr"></div>
-        <div class="muted">提示：如果讀取失敗，多半是 Rules / 網路 / Firebase 設定。</div>
+        <div class="muted">
+          提示：若讀取失敗，多半是 Rules / 網路 / Firebase 設定。
+        </div>
       </div>
 
       <!-- RIGHT CONTENT -->
@@ -212,35 +278,32 @@
         <div class="section active" id="tabRestaurants">
 
           <div class="card">
-            <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">1）餐廳清單（選擇 / 拖曳排序）</h2>
-              <span class="dragHint">下方清單可拖曳排序，放開自動儲存</span>
+            <h2>1）餐廳清單（拖曳排序＋自動儲存）</h2>
+
+            <!-- ✅ 可拖曳餐廳列表（取代「下拉無法拖曳」的問題） -->
+            <div class="cardSub">
+              <div class="inline" style="justify-content:space-between">
+                <b>店家列表（拖曳可排序）</b>
+                <button class="btn" id="btnReloadRestaurants">重新載入</button>
+              </div>
+              <div class="muted" style="margin-top:6px">拖曳放開會自動儲存順序（不顯示順序號碼）。</div>
+              <div id="restaurantDnDList" class="muted" style="margin-top:10px">載入中…</div>
             </div>
 
-            <div class="row" style="margin-top:8px">
+            <div class="hr"></div>
+
+            <!-- 保留：下拉選餐廳（方便快速跳） -->
+            <div class="row">
               <div>
-                <label>選擇餐廳</label>
+                <label>快速選擇餐廳（下拉）</label>
                 <select id="restaurantSelect">
                   <option value="">載入中…</option>
                 </select>
               </div>
               <div class="inline" style="align-self:end; justify-content:flex-end">
-                <button class="btn" id="btnReloadRestaurants">重新載入</button>
                 <button class="btn danger" id="btnDeleteRestaurant">刪除餐廳</button>
               </div>
             </div>
-
-            <!-- ✅ Restaurant sort list -->
-            <details class="box" style="margin-top:12px">
-              <summary class="inline" style="justify-content:space-between">
-                <div class="inline">
-                  <b>餐廳排序清單</b>
-                  <span class="tag" id="rCountTag">0 間</span>
-                </div>
-                <span class="muted">（拖曳可調整顯示順序）</span>
-              </summary>
-              <div id="restaurantSortWrap" style="margin-top:10px" class="muted">載入中…</div>
-            </details>
 
             <div class="hr"></div>
 
@@ -262,22 +325,18 @@
             </div>
 
             <div class="inline" style="margin-top:10px">
-              <button class="primary" id="btnSaveRestaurantFlags">儲存狀態</button>
-              <span class="muted" id="restaurantFlagHint"></span>
+              <span class="muted" id="restaurantFlagHint">（狀態變更會自動儲存）</span>
             </div>
-          </div>
 
-          <!-- ✅ Restaurant edit -->
-          <div class="card" style="margin-top:14px">
-            <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">2）餐廳資訊（可編輯）</h2>
-              <span class="muted">選擇餐廳後可修改，儲存會直接寫回 Firestore</span>
-            </div>
-            <div id="restaurantEditWrap" class="muted" style="margin-top:10px">請先選擇餐廳。</div>
+            <div class="hr"></div>
+
+            <!-- ✅ 餐廳資訊可編輯（Enter/Blur 自動存） -->
+            <h2 style="margin:0 0 10px">1-2）餐廳資訊（可編輯，Enter 即存）</h2>
+            <div id="restaurantEditWrap" class="muted">請先選擇餐廳。</div>
           </div>
 
           <div class="card" style="margin-top:14px">
-            <h2>3）新增餐廳</h2>
+            <h2>2）新增餐廳（Enter 也可直接新增）</h2>
 
             <div class="row">
               <div>
@@ -306,27 +365,22 @@
 
             <div class="inline" style="margin-top:12px">
               <button class="primary" id="btnAddRestaurant">新增餐廳</button>
-              <span class="muted">新增後會自動建立「餐點類別」下拉群組（不預塞類別）。</span>
+              <span class="muted">新增後會自動建立「餐點類別」群組（不預塞類別）。</span>
             </div>
           </div>
 
           <div class="card" style="margin-top:14px">
-            <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">4）類別管理（categoryGroups：下拉選單選項）</h2>
-              <span class="dragHint">目前類別預設收合；可拖曳排序自動儲存</span>
-            </div>
-            <div id="catMgrWrap" class="muted" style="margin-top:10px">請先選擇餐廳。</div>
+            <h2>3）類別管理（categoryGroups）</h2>
+            <div id="catMgrWrap" class="muted">請先選擇餐廳。</div>
           </div>
 
           <div class="card" style="margin-top:14px">
-            <h2>5）新增餐點（類別下拉）</h2>
+            <h2>4）新增餐點（類別下拉 + 選項/加購群組）</h2>
             <div id="menuAddWrap" class="muted">請先選擇餐廳。</div>
 
             <div class="hr"></div>
-            <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">6）餐點清單（可刪除 / 可拖曳排序）</h2>
-              <span class="dragHint">餐點只能在同類別內拖曳</span>
-            </div>
+            <h2 style="margin-top:0">5）餐點清單（類別內可拖曳排序＋自動儲存）</h2>
+            <div class="muted" style="margin-top:-6px">每個類別內可拖曳餐點順序（不顯示順序號碼）。</div>
             <div id="menuList" class="muted">尚未選擇餐廳。</div>
           </div>
 
@@ -335,10 +389,7 @@
         <!-- TAB: STAFF -->
         <div class="section" id="tabStaff">
           <div class="card">
-            <div class="inline" style="justify-content:space-between">
-              <h2 style="margin:0">人員管理（部門 / 人員）</h2>
-              <span class="dragHint">人員只能在同部門內拖曳</span>
-            </div>
+            <h2>人員管理（部門 / 人員）</h2>
 
             <div class="row">
               <div>
@@ -346,8 +397,8 @@
                 <input id="staffDept" placeholder="例：工程部"/>
               </div>
               <div>
-                <label>人員姓名</label>
-                <input id="staffName" placeholder="例：小明（Enter 直接新增）"/>
+                <label>人員姓名（Enter 直接新增）</label>
+                <input id="staffName" placeholder="例：小明"/>
               </div>
             </div>
 
@@ -357,7 +408,8 @@
             </div>
 
             <div class="hr"></div>
-            <div id="staffWrap" class="muted">載入中…</div>
+            <div class="muted">部門預設收合；部門內人員可拖曳排序（自動儲存）。</div>
+            <div id="staffWrap" class="muted" style="margin-top:10px">載入中…</div>
           </div>
         </div>
 
@@ -379,7 +431,7 @@
             </div>
 
             <label>輸入名稱（人員）</label>
-            <input id="qName" placeholder="例：小明"/>
+            <input id="qName" placeholder="例：小明（Enter 直接查詢）"/>
 
             <div class="inline" style="margin-top:12px">
               <button class="primary" id="btnQuery">查詢</button>
@@ -412,9 +464,10 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, collection, addDoc, doc, getDocs, getDoc, updateDoc,
-      deleteDoc, query, where, limit, writeBatch
+      deleteDoc, query, where, limit
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+    // ✅ 你的 Firebase 設定（沿用你提供的）
     const firebaseConfig = {
       apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
       authDomain: "goldbricks-order.firebaseapp.com",
@@ -438,7 +491,76 @@
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     };
 
-    statusPill.textContent = "已連線 Firestore";
+    function setStatus(txt, ok=true){
+      statusPill.textContent = txt;
+      statusPill.style.borderColor = ok ? "rgba(15,23,42,.18)" : "rgba(239,68,68,.42)";
+    }
+
+    // ✅ Enter/Blur Auto Save（所有輸入的共用規則）
+    function bindEnterSave(el, saveFn){
+      if(!el) return;
+      el.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){
+          e.preventDefault();
+          saveFn();
+          el.blur();
+        }
+      });
+      el.addEventListener("blur", ()=>{
+        saveFn();
+      });
+    }
+
+    // ✅ 拖曳排序：DOM reorder 後回傳 ids
+    function enableSortable(container, itemSelector, getId, onReorder){
+      let draggingEl = null;
+
+      function clearOver(){
+        container.querySelectorAll(".dragOver").forEach(x=> x.classList.remove("dragOver"));
+      }
+
+      container.addEventListener("dragstart", (e)=>{
+        const item = e.target.closest(itemSelector);
+        if(!item) return;
+        draggingEl = item;
+        item.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      container.addEventListener("dragend", ()=>{
+        if(draggingEl) draggingEl.classList.remove("dragging");
+        draggingEl = null;
+        clearOver();
+      });
+
+      container.addEventListener("dragover", (e)=>{
+        if(!draggingEl) return;
+        e.preventDefault();
+
+        const over = e.target.closest(itemSelector);
+        if(!over || over === draggingEl) return;
+
+        clearOver();
+        over.classList.add("dragOver");
+
+        const rect = over.getBoundingClientRect();
+        const shouldInsertBefore = (e.clientY - rect.top) < rect.height/2;
+
+        if(shouldInsertBefore){
+          container.insertBefore(draggingEl, over);
+        }else{
+          container.insertBefore(draggingEl, over.nextSibling);
+        }
+      });
+
+      container.addEventListener("drop", async (e)=>{
+        if(!draggingEl) return;
+        e.preventDefault();
+        clearOver();
+        const ids = Array.from(container.querySelectorAll(itemSelector)).map(el=> getId(el)).filter(Boolean);
+        await onReorder(ids);
+      });
+    }
 
     // ===== Collections =====
     const colStaff = collection(db, "staff");
@@ -448,11 +570,8 @@
     // ===== State =====
     let restaurants = [];
     let selectedRestaurantId = "";
-    let selectedRestaurant = null; // restaurants/{rid} doc data
+    let selectedRestaurant = null;
     let menuCache = [];
-
-    // ===== Drag State =====
-    let dragPayload = null; // {type:"cat"|"menu"|"staff"|"restaurant", ...}
 
     function setWhoLine(){
       $("whoLine").innerHTML = selectedRestaurantId
@@ -471,42 +590,115 @@
       };
     });
 
-    // ===== CategoryGroups =====
+    // ===== CategoryGroups (不預設任何類別) =====
     function ensureCategoryGroups(obj){
       const cur = Array.isArray(obj?.categoryGroups) ? obj.categoryGroups : null;
       if(cur && cur.length > 0) return cur;
+
       return [{
         name: "餐點類別",
         type: "single",
         required: true,
-        options: []
+        options: [] // options: [{name, order}]
       }];
     }
 
     // ===== Restaurants =====
-    async function loadRestaurants(){
+    function normalizeOrder(list){
+      // 讓沒有 order 的也能排，並且穩定
+      return list.map((x,idx)=> ({
+        ...x,
+        order: Number.isFinite(Number(x.order)) ? Number(x.order) : (idx*10)
+      }));
+    }
+
+    async function saveRestaurantOrder(ids){
+      // ids = [rid, rid, ...] in visual order
       try{
-        statusPill.textContent = "載入餐廳中…";
+        setStatus("儲存餐廳排序中…");
+        // 用 index*10 重新編號（不顯示給人看）
+        for(let i=0;i<ids.length;i++){
+          await updateDoc(doc(db, "restaurants", ids[i]), { order: i*10 });
+        }
+        setStatus("餐廳排序已儲存 ✅");
+        await loadRestaurants(true);
+      }catch(err){
+        console.error(err);
+        setStatus("餐廳排序儲存失敗", false);
+        alert("餐廳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
+    }
+
+    function renderRestaurantDnDList(){
+      const wrap = $("restaurantDnDList");
+      if(restaurants.length === 0){
+        wrap.innerHTML = `<div class="muted">尚無餐廳。</div>`;
+        return;
+      }
+
+      wrap.innerHTML = `
+        <div id="rDnDContainer">
+          ${restaurants.map(r=>{
+            const vis = (r.isVisible !== false);
+            const closed = !!r.isClosed;
+            return `
+              <div class="draggableItem" draggable="true" data-rid="${esc(r.id)}">
+                <div class="inline" style="gap:10px; align-items:center">
+                  <span class="dragHandle" title="拖曳排序">☰</span>
+                  <div>
+                    <div style="font-weight:900">${esc(r.name||"未命名")}</div>
+                    <div class="muted" style="margin-top:2px">
+                      ${vis ? `<span class="tag">顯示</span>` : `<span class="tag">隱藏</span>`}
+                      ${closed ? `<span class="tag" style="margin-left:6px">已結單</span>` : `<span class="tag" style="margin-left:6px">開單中</span>`}
+                    </div>
+                  </div>
+                </div>
+                <div class="inline" style="justify-content:flex-end">
+                  <button class="btn" data-pick-r="${esc(r.id)}" type="button">選擇</button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+
+      wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
+        btn.onclick = async ()=>{
+          const rid = btn.dataset.pickR;
+          $("restaurantSelect").value = rid;
+          await loadRestaurantDoc(rid);
+        };
+      });
+
+      const container = document.getElementById("rDnDContainer");
+      enableSortable(
+        container,
+        ".draggableItem",
+        (el)=> el.dataset.rid,
+        saveRestaurantOrder
+      );
+    }
+
+    async function loadRestaurants(keepSelection=false){
+      try{
+        setStatus("載入餐廳中…");
         const snap = await getDocs(colRestaurants);
-        const list = [];
+        let list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
-        // ✅ sort: order -> createdAt desc -> name
+        list = normalizeOrder(list);
+
         list.sort((a,b)=>{
-          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-          if(ao !== bo) return ao - bo;
-
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(bb !== aa) return bb - aa;
-
+          const aa = Number(a.order||0), bb = Number(b.order||0);
+          if(aa !== bb) return aa - bb;
+          const ta = Number(a.createdAt||0), tb = Number(b.createdAt||0);
+          if(tb !== ta) return tb - ta;
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
 
         restaurants = list;
 
-        await normalizeRestaurantOrders(); // ✅ 確保每間餐廳都有連續 order
-
+        // 下拉
         const sel = $("restaurantSelect");
         sel.innerHTML = `<option value="">請選擇</option>` + restaurants.map(r=>{
           const vis = (r.isVisible !== false);
@@ -519,8 +711,13 @@
           `<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`
         ).join("");
 
-        // keep selection
-        if(selectedRestaurantId && restaurants.find(r=> r.id===selectedRestaurantId)){
+        // DnD list
+        renderRestaurantDnDList();
+
+        // 保持選擇
+        if(keepSelection && selectedRestaurantId && restaurants.find(r=> r.id===selectedRestaurantId)){
+          sel.value = selectedRestaurantId;
+        }else if(selectedRestaurantId && restaurants.find(r=> r.id===selectedRestaurantId)){
           sel.value = selectedRestaurantId;
         }else{
           selectedRestaurantId = "";
@@ -528,39 +725,18 @@
           menuCache = [];
         }
 
-        renderRestaurantSortList(); // ✅ 顯示可拖曳排序清單
-
         setWhoLine();
         renderRestaurantFlags();
-        renderRestaurantEditor();
+        renderRestaurantEdit();
         renderCategoryManager();
         renderMenuAdd();
         renderMenuList();
 
-        statusPill.textContent = "餐廳載入完成 ✅";
+        setStatus("餐廳載入完成 ✅");
       }catch(err){
         console.error("loadRestaurants failed:", err);
-        statusPill.textContent = "餐廳讀取失敗（看 console）";
+        setStatus("餐廳讀取失敗", false);
         alert("餐廳讀取失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
-    async function normalizeRestaurantOrders(){
-      // 確保 restaurants.order 連續（0..n-1），避免新增後沒有 order 造成排序不穩
-      const batch = writeBatch(db);
-      let touched = 0;
-
-      restaurants.forEach((r, i)=>{
-        const cur = Number(r.order);
-        if(!Number.isFinite(cur) || cur !== i){
-          batch.update(doc(db, "restaurants", r.id), { order: i });
-          r.order = i;
-          touched++;
-        }
-      });
-
-      if(touched > 0){
-        try{ await batch.commit(); }catch(e){ console.warn("normalizeRestaurantOrders failed:", e); }
       }
     }
 
@@ -571,19 +747,18 @@
         menuCache = [];
         setWhoLine();
         renderRestaurantFlags();
-        renderRestaurantEditor();
+        renderRestaurantEdit();
         renderCategoryManager();
         renderMenuAdd();
         renderMenuList();
         return;
       }
       try{
-        statusPill.textContent = "讀取餐廳資料…";
+        setStatus("讀取餐廳資料…");
         const snap = await getDoc(doc(db, "restaurants", rid));
         selectedRestaurantId = rid;
         selectedRestaurant = snap.exists() ? snap.data() : null;
 
-        // patch categoryGroups
         const fixed = ensureCategoryGroups(selectedRestaurant || {});
         if(!Array.isArray(selectedRestaurant?.categoryGroups) || selectedRestaurant.categoryGroups.length===0){
           try{
@@ -597,17 +772,17 @@
 
         setWhoLine();
         renderRestaurantFlags();
-        renderRestaurantEditor();
+        renderRestaurantEdit();
         renderCategoryManager();
 
         await loadMenu(rid);
         renderMenuAdd();
         renderMenuList();
 
-        statusPill.textContent = "已選擇餐廳 ✅";
+        setStatus("已選擇餐廳 ✅");
       }catch(err){
         console.error("loadRestaurantDoc failed:", err);
-        statusPill.textContent = "讀取餐廳失敗（看 console）";
+        setStatus("讀取餐廳失敗", false);
         alert("讀取餐廳失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
@@ -622,11 +797,7 @@
       if(!name) return alert("請輸入餐廳名稱");
 
       try{
-        statusPill.textContent = "新增餐廳中…";
-
-        // ✅ order = 放最後
-        const order = restaurants.length;
-
+        setStatus("新增餐廳中…");
         const payload = {
           name,
           imageUrl,
@@ -636,7 +807,8 @@
           isVisible: true,
           isClosed: false,
           createdAt: Date.now(),
-          order,
+          // ✅ 順序欄位（不顯示）：新店家放最後
+          order: (restaurants.length ? (Number(restaurants[restaurants.length-1].order||0)+10) : 0),
           categoryGroups: ensureCategoryGroups({})
         };
         const ref = await addDoc(colRestaurants, payload);
@@ -647,14 +819,14 @@
         $("newRPhone").value = "";
         $("newRMap").value = "";
 
-        await loadRestaurants();
+        await loadRestaurants(true);
         $("restaurantSelect").value = ref.id;
         await loadRestaurantDoc(ref.id);
 
-        statusPill.textContent = "新增餐廳完成 ✅";
+        setStatus("新增餐廳完成 ✅");
       }catch(err){
         console.error("addRestaurant failed:", err);
-        statusPill.textContent = "新增餐廳失敗（看 console）";
+        setStatus("新增餐廳失敗", false);
         alert("新增餐廳失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
@@ -664,34 +836,99 @@
       if(!selectedRestaurantId || !selectedRestaurant){
         $("rVisible").disabled = true;
         $("rClosed").disabled = true;
-        $("btnSaveRestaurantFlags").disabled = true;
         hint.textContent = "請先選擇餐廳";
         return;
       }
       $("rVisible").disabled = false;
       $("rClosed").disabled = false;
-      $("btnSaveRestaurantFlags").disabled = false;
 
       $("rVisible").value = (selectedRestaurant.isVisible !== false) ? "true" : "false";
       $("rClosed").value = (!!selectedRestaurant.isClosed) ? "true" : "false";
-      hint.textContent = "";
+      hint.textContent = "（狀態變更會自動儲存）";
     }
 
     async function saveRestaurantFlags(){
       if(!selectedRestaurantId) return;
       try{
-        statusPill.textContent = "儲存餐廳狀態…";
+        setStatus("儲存餐廳狀態…");
         const isVisible = $("rVisible").value === "true";
         const isClosed = $("rClosed").value === "true";
         await updateDoc(doc(db, "restaurants", selectedRestaurantId), { isVisible, isClosed });
         await loadRestaurantDoc(selectedRestaurantId);
-        await loadRestaurants();
-        statusPill.textContent = "儲存完成 ✅";
+        await loadRestaurants(true);
+        setStatus("狀態已儲存 ✅");
       }catch(err){
         console.error("saveRestaurantFlags failed:", err);
-        statusPill.textContent = "儲存失敗（看 console）";
+        setStatus("狀態儲存失敗", false);
         alert("儲存失敗（Rules/網路）\n\n" + (err?.message || err));
       }
+    }
+
+    function renderRestaurantEdit(){
+      const wrap = $("restaurantEditWrap");
+      if(!selectedRestaurantId || !selectedRestaurant){
+        wrap.innerHTML = `<div class="muted">請先選擇餐廳。</div>`;
+        return;
+      }
+
+      const r = selectedRestaurant || {};
+      wrap.innerHTML = `
+        <div class="row">
+          <div>
+            <label>餐廳名稱（Enter/離開即存）</label>
+            <input id="editRName" value="${esc(r.name||"")}"/>
+          </div>
+          <div>
+            <label>圖片 URL（可空）</label>
+            <input id="editRImg" value="${esc(r.imageUrl||"")}"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>地址（可空）</label>
+            <input id="editRAddr" value="${esc(r.address||"")}"/>
+          </div>
+          <div>
+            <label>電話（可空）</label>
+            <input id="editRPhone" value="${esc(r.phone||"")}"/>
+          </div>
+        </div>
+
+        <label>Google Map 連結（可空）</label>
+        <input id="editRMap" value="${esc(r.mapUrl||"")}"/>
+
+        <div class="inline" style="margin-top:10px">
+          <span class="muted">※ 你不用按按鈕，Enter 或離開欄位會自動儲存。</span>
+        </div>
+      `;
+
+      const saveInfo = async ()=>{
+        const payload = {
+          name: (document.getElementById("editRName").value||"").trim(),
+          imageUrl: (document.getElementById("editRImg").value||"").trim(),
+          address: (document.getElementById("editRAddr").value||"").trim(),
+          phone: (document.getElementById("editRPhone").value||"").trim(),
+          mapUrl: (document.getElementById("editRMap").value||"").trim(),
+        };
+        if(!payload.name) return; // name 不允許空白（避免誤觸把名字清掉）
+        try{
+          setStatus("儲存餐廳資訊…");
+          await updateDoc(doc(db, "restaurants", selectedRestaurantId), payload);
+          await loadRestaurantDoc(selectedRestaurantId);
+          await loadRestaurants(true);
+          setStatus("餐廳資訊已儲存 ✅");
+        }catch(err){
+          console.error(err);
+          setStatus("餐廳資訊儲存失敗", false);
+        }
+      };
+
+      bindEnterSave(document.getElementById("editRName"), saveInfo);
+      bindEnterSave(document.getElementById("editRImg"), saveInfo);
+      bindEnterSave(document.getElementById("editRAddr"), saveInfo);
+      bindEnterSave(document.getElementById("editRPhone"), saveInfo);
+      bindEnterSave(document.getElementById("editRMap"), saveInfo);
     }
 
     async function deleteRestaurant(){
@@ -702,233 +939,54 @@
         selectedRestaurantId = "";
         selectedRestaurant = null;
         menuCache = [];
-        await loadRestaurants();
-        statusPill.textContent = "刪除餐廳完成 ✅";
+        await loadRestaurants(false);
+        setStatus("刪除餐廳完成 ✅");
       }catch(err){
         console.error("deleteRestaurant failed:", err);
         alert("刪除餐廳失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
-    // ✅ 餐廳排序清單（拖曳＋自動儲存）
-    function renderRestaurantSortList(){
-      const wrap = $("restaurantSortWrap");
-      $("rCountTag").textContent = `${restaurants.length} 間`;
-
-      if(restaurants.length === 0){
-        wrap.innerHTML = `<div class="muted">尚無餐廳。</div>`;
-        return;
-      }
-
-      wrap.innerHTML = restaurants.map((r,idx)=>{
-        const vis = (r.isVisible !== false);
-        const closed = !!r.isClosed;
-        return `
-          <div class="listLine draggableItem"
-               draggable="true"
-               data-dragtype="restaurant"
-               data-rid="${esc(r.id)}"
-               data-ridx="${idx}">
-            <div class="inline" style="justify-content:space-between">
-              <div>
-                <b>${esc(r.name||"未命名")}</b>
-                <span class="tag" style="margin-left:8px">順序：${idx+1}</span>
-                <span class="tag" style="margin-left:6px">${vis?"顯示":"隱藏"}</span>
-                <span class="tag" style="margin-left:6px">${closed?"已結單":"開單中"}</span>
-              </div>
-              <button class="btn" data-pick-r="${esc(r.id)}" type="button">選擇</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
-        btn.onclick = async ()=>{
-          const rid = btn.dataset.pickR;
-          $("restaurantSelect").value = rid;
-          await loadRestaurantDoc(rid);
-        };
-      });
-
-      bindDragForRestaurants(wrap);
-    }
-
-    function bindDragForRestaurants(container){
-      const items = Array.from(container.querySelectorAll('[data-dragtype="restaurant"]'));
-
-      items.forEach(el=>{
-        el.addEventListener("dragstart", (e)=>{
-          dragPayload = { type:"restaurant", fromId: el.dataset.rid };
-          e.dataTransfer.effectAllowed = "move";
-        });
-
-        el.addEventListener("dragover", (e)=>{
-          if(!dragPayload || dragPayload.type!=="restaurant") return;
-          e.preventDefault();
-          el.classList.add("dragOver");
-          e.dataTransfer.dropEffect = "move";
-        });
-
-        el.addEventListener("dragleave", ()=>{
-          el.classList.remove("dragOver");
-        });
-
-        el.addEventListener("drop", async (e)=>{
-          e.preventDefault();
-          el.classList.remove("dragOver");
-          if(!dragPayload || dragPayload.type!=="restaurant") return;
-
-          const fromId = dragPayload.fromId;
-          const toId = el.dataset.rid;
-          dragPayload = null;
-          if(!fromId || !toId || fromId===toId) return;
-
-          await reorderRestaurants(fromId, toId);
-        });
-
-        el.addEventListener("dragend", ()=>{
-          container.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
-          dragPayload = null;
-        });
-      });
-    }
-
-    async function reorderRestaurants(fromId, toId){
-      const fromIdx = restaurants.findIndex(r=> r.id===fromId);
-      const toIdx = restaurants.findIndex(r=> r.id===toId);
-      if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
-
-      const next = [...restaurants];
-      const [moved] = next.splice(fromIdx, 1);
-      next.splice(toIdx, 0, moved);
-
-      try{
-        statusPill.textContent = "儲存餐廳順序…";
-        const batch = writeBatch(db);
-        next.forEach((r,i)=>{
-          batch.update(doc(db,"restaurants", r.id), { order:i });
-          r.order = i;
-        });
-        await batch.commit();
-
-        restaurants = next;
-
-        // 重建 select + 查詢店家下拉 + 排序清單
-        const curSel = selectedRestaurantId;
-        const sel = $("restaurantSelect");
-        sel.innerHTML = `<option value="">請選擇</option>` + restaurants.map(r=>{
-          const vis = (r.isVisible !== false);
-          const closed = !!r.isClosed;
-          const hint = `${vis ? "顯示" : "隱藏"} / ${closed ? "已結單" : "開單中"}`;
-          return `<option value="${esc(r.id)}">${esc(r.name||"未命名")}（${esc(hint)}）</option>`;
-        }).join("");
-        $("qRestaurant").innerHTML = `<option value="">全部</option>` + restaurants.map(r=>
-          `<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`
-        ).join("");
-
-        if(curSel){
-          sel.value = curSel;
-        }
-
-        renderRestaurantSortList();
-        statusPill.textContent = "餐廳順序已更新 ✅";
-      }catch(err){
-        console.error(err);
-        statusPill.textContent = "儲存餐廳順序失敗";
-        alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
-    // ✅ 餐廳資訊編輯
-    function renderRestaurantEditor(){
-      const wrap = $("restaurantEditWrap");
-      if(!selectedRestaurantId || !selectedRestaurant){
-        wrap.innerHTML = `<div class="muted">請先選擇餐廳。</div>`;
-        return;
-      }
-
-      const r = selectedRestaurant;
-
-      wrap.innerHTML = `
-        <div class="row">
-          <div>
-            <label>餐廳名稱（name）</label>
-            <input id="editRName" value="${esc(r.name||"")}" />
-          </div>
-          <div>
-            <label>圖片 URL（imageUrl）</label>
-            <input id="editRImg" value="${esc(r.imageUrl||"")}" placeholder="https://..." />
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>地址（address）</label>
-            <input id="editRAddr" value="${esc(r.address||"")}" />
-          </div>
-          <div>
-            <label>電話（phone）</label>
-            <input id="editRPhone" value="${esc(r.phone||"")}" />
-          </div>
-        </div>
-
-        <label>Google Map（mapUrl）</label>
-        <input id="editRMap" value="${esc(r.mapUrl||"")}" placeholder="https://maps.google.com/..." />
-
-        <div class="inline" style="margin-top:12px">
-          <button class="primary" id="btnSaveRestaurantInfo" type="button">儲存餐廳資訊</button>
-          <button class="btn" id="btnOpenMap" type="button">開啟 Map</button>
-          <span class="muted" id="saveRInfoHint"></span>
-        </div>
-      `;
-
-      document.getElementById("btnOpenMap").onclick = ()=>{
-        const url = (document.getElementById("editRMap").value || "").trim();
-        if(!url) return alert("尚未設定 Map 連結");
-        window.open(url, "_blank");
-      };
-
-      document.getElementById("btnSaveRestaurantInfo").onclick = saveRestaurantInfo;
-    }
-
-    async function saveRestaurantInfo(){
-      if(!selectedRestaurantId) return;
-      const name = (document.getElementById("editRName").value || "").trim();
-      const imageUrl = (document.getElementById("editRImg").value || "").trim();
-      const address = (document.getElementById("editRAddr").value || "").trim();
-      const phone = (document.getElementById("editRPhone").value || "").trim();
-      const mapUrl = (document.getElementById("editRMap").value || "").trim();
-
-      if(!name) return alert("餐廳名稱不可空白");
-
-      try{
-        statusPill.textContent = "儲存餐廳資訊…";
-        await updateDoc(doc(db,"restaurants", selectedRestaurantId), {
-          name, imageUrl, address, phone, mapUrl
-        });
-
-        await loadRestaurantDoc(selectedRestaurantId);
-        await loadRestaurants();
-
-        statusPill.textContent = "餐廳資訊已更新 ✅";
-      }catch(err){
-        console.error(err);
-        statusPill.textContent = "儲存餐廳資訊失敗";
-        alert("儲存失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
-    // ===== Category Manager =====
+    // ===== Category Manager (categoryGroups) =====
     function getCategoryGroup(){
       const groups = ensureCategoryGroups(selectedRestaurant || {});
-      return { groups, g0: groups[0] };
+      // options: [{name, order}]
+      const g0 = groups[0] || { name:"餐點類別", type:"single", required:true, options:[] };
+      g0.options = Array.isArray(g0.options) ? g0.options : [];
+      g0.options = g0.options.map((o,idx)=> ({
+        ...o,
+        order: Number.isFinite(Number(o.order)) ? Number(o.order) : idx*10
+      })).sort((a,b)=> Number(a.order||0)-Number(b.order||0));
+      groups[0] = g0;
+      return { groups, g0 };
     }
 
     async function saveCategoryGroups(groups){
       if(!selectedRestaurantId) return;
       await updateDoc(doc(db, "restaurants", selectedRestaurantId), { categoryGroups: groups });
       await loadRestaurantDoc(selectedRestaurantId);
-      await loadRestaurants();
+      await loadRestaurants(true);
+    }
+
+    async function saveCategoryOrder(namesInOrder){
+      try{
+        setStatus("儲存類別排序中…");
+        const { groups, g0 } = getCategoryGroup();
+        const map = new Map((g0.options||[]).map(o=> [o.name, o]));
+        const next = namesInOrder.map((name,idx)=> ({
+          ...(map.get(name) || { name }),
+          order: idx*10
+        }));
+        g0.options = next;
+        groups[0] = g0;
+        await saveCategoryGroups(groups);
+        renderMenuAdd();
+        setStatus("類別排序已儲存 ✅");
+      }catch(err){
+        console.error(err);
+        setStatus("類別排序儲存失敗", false);
+        alert("類別排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
     }
 
     function renderCategoryManager(){
@@ -938,7 +996,7 @@
         return;
       }
 
-      const { g0 } = getCategoryGroup();
+      const { groups, g0 } = getCategoryGroup();
       const opts = Array.isArray(g0.options) ? g0.options : [];
 
       wrap.innerHTML = `
@@ -947,13 +1005,13 @@
             <span class="tag">群組</span>
             <b style="margin-left:8px">${esc(g0.name || "餐點類別")}</b>
           </div>
-          <span class="muted">（此群組用於「新增餐點」的類別下拉）</span>
+          <span class="muted">（用於「新增餐點」的類別下拉）</span>
         </div>
 
         <div class="box" style="margin-top:10px">
           <div class="row">
             <div>
-              <label>新增類別</label>
+              <label>新增類別（Enter 直接新增）</label>
               <input id="catNewName" placeholder="例：麵類 / 飯類 / 小菜"/>
             </div>
             <div class="inline" style="align-self:end; justify-content:flex-end">
@@ -963,49 +1021,54 @@
 
           <div class="hr"></div>
 
-          <!-- ✅ 目前類別收合 -->
-          <details class="box" style="margin:0; padding:10px 12px">
-            <summary class="inline" style="justify-content:space-between">
-              <div class="inline">
-                <b>目前類別</b>
-                <span class="tag">${opts.length} 個</span>
-              </div>
-              <span class="muted">（展開後可刪除/拖曳排序）</span>
+          <!-- ✅ 目前項目預設收合 -->
+          <details class="box" style="margin-top:0; background:var(--card-sub)">
+            <summary>
+              <b>目前類別（${opts.length}）</b>
+              <span class="tag" style="margin-left:8px">點我展開</span>
+              <span class="muted" style="margin-left:8px">（可拖曳排序）</span>
             </summary>
-            <div id="catList" style="margin-top:10px"></div>
+
+            <div style="margin-top:10px">
+              <div id="catDnDWrap" class="muted"></div>
+            </div>
           </details>
         </div>
       `;
 
-      const listWrap = document.getElementById("catList");
+      const catListWrap = document.getElementById("catDnDWrap");
       if(opts.length === 0){
-        listWrap.innerHTML = `<div class="muted">尚無類別，請先新增。</div>`;
+        catListWrap.innerHTML = `<div class="muted">尚無類別，請先新增。</div>`;
       }else{
-        listWrap.innerHTML = opts.map((o,idx)=>`
-          <div class="listLine draggableItem" draggable="true" data-dragtype="cat" data-cat-idx="${idx}">
-            <div class="inline" style="justify-content:space-between">
-              <div class="inline">
-                <b>${esc(o.name||"")}</b>
-                <span class="tag">順序：${idx+1}</span>
+        catListWrap.innerHTML = `
+          <div id="catDnDContainer">
+            ${opts.map(o=>`
+              <div class="draggableItem" draggable="true" data-cat="${esc(o.name||"")}">
+                <div class="inline" style="gap:10px">
+                  <span class="dragHandle" title="拖曳排序">☰</span>
+                  <b>${esc(o.name||"")}</b>
+                </div>
+                <div class="inline">
+                  <button class="btn danger" data-del-cat="${esc(o.name||"")}" type="button">刪除</button>
+                </div>
               </div>
-              <button class="btn danger" data-del-cat="${idx}" type="button">刪除</button>
-            </div>
+            `).join("")}
           </div>
-        `).join("");
+        `;
 
-        listWrap.querySelectorAll("button[data-del-cat]").forEach(btn=>{
+        // 刪除類別
+        catListWrap.querySelectorAll("button[data-del-cat]").forEach(btn=>{
           btn.onclick = async ()=>{
-            const idx = Number(btn.dataset.delCat);
+            const name = btn.dataset.delCat;
             if(!confirm("確定刪除此類別？")) return;
             const { groups, g0 } = getCategoryGroup();
-            const cur = Array.isArray(g0.options) ? g0.options : [];
-            g0.options = cur.filter((_,i)=> i!==idx);
+            g0.options = (g0.options||[]).filter(o=> (o.name||"") !== name);
             groups[0] = g0;
             try{
-              statusPill.textContent = "刪除類別中…";
+              setStatus("刪除類別中…");
               await saveCategoryGroups(groups);
               renderMenuAdd();
-              statusPill.textContent = "刪除類別完成 ✅";
+              setStatus("刪除類別完成 ✅");
             }catch(err){
               console.error(err);
               alert("刪除類別失敗（Rules/網路）\n\n" + (err?.message || err));
@@ -1013,155 +1076,74 @@
           };
         });
 
-        bindDragForCategoryList(listWrap);
+        // 拖曳排序
+        const container = document.getElementById("catDnDContainer");
+        enableSortable(
+          container,
+          ".draggableItem",
+          (el)=> el.dataset.cat,
+          async (names)=> await saveCategoryOrder(names)
+        );
       }
 
-      document.getElementById("btnAddCategory").onclick = async ()=>{
+      // 新增類別
+      const addCat = async ()=>{
         const name = (document.getElementById("catNewName").value || "").trim();
         if(!name) return alert("請輸入類別名稱");
+
         const { groups, g0 } = getCategoryGroup();
         const cur = Array.isArray(g0.options) ? g0.options : [];
         if(cur.some(x => (x.name||"") === name)) return alert("此類別已存在");
-        g0.options = [...cur, { name }];
+
+        g0.options = [...cur, { name, order: (cur.length ? (Number(cur[cur.length-1].order||0)+10) : 0) }];
         groups[0] = g0;
 
         try{
-          statusPill.textContent = "新增類別中…";
+          setStatus("新增類別中…");
           await saveCategoryGroups(groups);
           renderMenuAdd();
-          statusPill.textContent = "新增類別完成 ✅";
+          setStatus("新增類別完成 ✅");
         }catch(err){
           console.error(err);
           alert("新增類別失敗（Rules/網路）\n\n" + (err?.message || err));
         }
       };
-    }
 
-    function bindDragForCategoryList(container){
-      const items = Array.from(container.querySelectorAll('[data-dragtype="cat"]'));
-
-      items.forEach(el=>{
-        el.addEventListener("dragstart", (e)=>{
-          dragPayload = { type:"cat", fromIdx: Number(el.dataset.catIdx) };
-          e.dataTransfer.effectAllowed = "move";
-        });
-
-        el.addEventListener("dragover", (e)=>{
-          if(!dragPayload || dragPayload.type!=="cat") return;
-          e.preventDefault();
-          el.classList.add("dragOver");
-          e.dataTransfer.dropEffect = "move";
-        });
-
-        el.addEventListener("dragleave", ()=>{
-          el.classList.remove("dragOver");
-        });
-
-        el.addEventListener("drop", async (e)=>{
-          e.preventDefault();
-          el.classList.remove("dragOver");
-          if(!dragPayload || dragPayload.type!=="cat") return;
-
-          const toIdx = Number(el.dataset.catIdx);
-          const fromIdx = Number(dragPayload.fromIdx);
-          dragPayload = null;
-
-          if(!Number.isFinite(fromIdx) || !Number.isFinite(toIdx) || fromIdx===toIdx) return;
-
-          const { groups, g0 } = getCategoryGroup();
-          const cur = Array.isArray(g0.options) ? [...g0.options] : [];
-          if(fromIdx<0 || toIdx<0 || fromIdx>=cur.length || toIdx>=cur.length) return;
-
-          const [moved] = cur.splice(fromIdx, 1);
-          cur.splice(toIdx, 0, moved);
-          g0.options = cur;
-          groups[0] = g0;
-
-          try{
-            statusPill.textContent = "儲存類別順序…";
-            await saveCategoryGroups(groups);
-            renderMenuAdd();
-            statusPill.textContent = "類別順序已更新 ✅";
-          }catch(err){
-            console.error(err);
-            alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
-          }
-        });
-
-        el.addEventListener("dragend", ()=>{
-          container.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
-          dragPayload = null;
-        });
+      document.getElementById("btnAddCategory").onclick = addCat;
+      document.getElementById("catNewName").addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){ e.preventDefault(); addCat(); }
       });
     }
 
     // ===== Menu =====
     async function loadMenu(rid){
       try{
-        statusPill.textContent = "載入餐點中…";
+        setStatus("載入餐點中…");
         const menuCol = collection(db, "restaurants", rid, "menu");
         const snap = await getDocs(menuCol);
-        const list = [];
+        let list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
-        // category -> order -> createdAt -> name
+        // ✅ 讓餐點能拖曳排序：使用 menu.order（沒 order 就用 createdAt）
+        list = list.map((m,idx)=> ({
+          ...m,
+          order: Number.isFinite(Number(m.order)) ? Number(m.order) : (Number(m.createdAt||0) || idx*10)
+        }));
+
         list.sort((a,b)=>{
           const ca = (a.category||"").localeCompare((b.category||""),"zh-Hant");
           if(ca !== 0) return ca;
-          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-          if(ao !== bo) return ao - bo;
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(aa !== bb) return aa - bb;
+          const oa = Number(a.order||0), ob = Number(b.order||0);
+          if(oa !== ob) return oa - ob;
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
 
         menuCache = list;
-
-        await normalizeMenuOrders();
-        statusPill.textContent = "餐點載入完成 ✅";
+        setStatus("餐點載入完成 ✅");
       }catch(err){
         console.error("loadMenu failed:", err);
-        statusPill.textContent = "餐點讀取失敗（看 console）";
+        setStatus("餐點讀取失敗", false);
         menuCache = [];
-      }
-    }
-
-    async function normalizeMenuOrders(){
-      if(!selectedRestaurantId) return;
-
-      const byCat = new Map();
-      for(const m of menuCache){
-        const cat = (m.category || "未分類").trim();
-        if(!byCat.has(cat)) byCat.set(cat, []);
-        byCat.get(cat).push(m);
-      }
-
-      const batch = writeBatch(db);
-      let touched = 0;
-
-      for(const [cat, arr] of byCat.entries()){
-        const sorted = [...arr].sort((a,b)=>{
-          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-          if(ao !== bo) return ao - bo;
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(aa !== bb) return aa - bb;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-
-        for(let i=0;i<sorted.length;i++){
-          const cur = sorted[i];
-          if(!Number.isFinite(Number(cur.order)) || Number(cur.order)!==i){
-            batch.update(doc(db, "restaurants", selectedRestaurantId, "menu", cur.id), { order: i });
-            cur.order = i;
-            touched++;
-          }
-        }
-      }
-
-      if(touched > 0){
-        try{ await batch.commit(); }catch(e){ console.warn("normalizeMenuOrders batch commit failed:", e); }
       }
     }
 
@@ -1172,8 +1154,8 @@
 
       if(opts.length === 0){
         return `
-          <div class="optGroup">
-            <div class="optHead">
+          <div class="box" style="background:var(--card-sub)">
+            <div class="inline" style="justify-content:space-between">
               <b>${esc(g0.name || "餐點類別")}</b>
               <span class="tag">${req ? "必選" : "可不選"}</span>
             </div>
@@ -1183,12 +1165,12 @@
       }
 
       return `
-        <div class="optGroup">
-          <div class="optHead">
+        <div class="box" style="background:var(--card-sub)">
+          <div class="inline" style="justify-content:space-between">
             <b>${esc(g0.name || "餐點類別")}</b>
             <span class="tag">${req ? "必選" : "可不選"}</span>
           </div>
-          <select id="menuCategorySelect" data-cat-gi="0">
+          <select id="menuCategorySelect" data-cat-gi="0" style="margin-top:8px">
             ${req ? "" : `<option value="-1">不選擇</option>`}
             ${opts.map((o,oi)=>`<option value="${oi}">${esc(o.name||"")}</option>`).join("")}
           </select>
@@ -1220,7 +1202,7 @@
 
         <div class="row" style="margin-top:10px">
           <div>
-            <label>餐點名稱</label>
+            <label>餐點名稱（Enter 直接新增）</label>
             <input id="mName" placeholder="例：法式炒麵"/>
           </div>
           <div>
@@ -1240,6 +1222,7 @@
           </div>
         </div>
 
+        <!-- ✅ addonGroups -->
         <div class="box">
           <div class="inline" style="justify-content:space-between">
             <b>加購群組 addonGroups（可單選 / 多選 / 可加價）</b>
@@ -1258,7 +1241,7 @@
 
         <div class="inline" style="margin-top:12px">
           <button class="primary" id="btnAddMenu" type="button">新增餐點</button>
-          <span class="muted">新增後會出現在下方清單</span>
+          <span class="muted">Enter 也可直接新增（焦點在餐點名稱時）</span>
         </div>
       `;
 
@@ -1451,6 +1434,11 @@
       };
 
       document.getElementById("btnAddMenu").onclick = addMenuItem;
+
+      // ✅ Enter = 新增餐點（焦點在名稱）
+      document.getElementById("mName").addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){ e.preventDefault(); addMenuItem(); }
+      });
     }
 
     function collectAddonGroups(){
@@ -1540,19 +1528,20 @@
       }
 
       try{
-        statusPill.textContent = "新增餐點中…";
+        setStatus("新增餐點中…");
         const menuCol = collection(db, "restaurants", selectedRestaurantId, "menu");
-
-        // order 放同類別最後
-        const sameCat = menuCache.filter(x=> (x.category||"").trim()===(category||"").trim());
-        const order = sameCat.length;
-
+        const lastOrder = menuCache.length ? Number(menuCache[menuCache.length-1].order||0) : 0;
         await addDoc(menuCol, {
-          category, name, price, defaultQty, note,
+          category,
+          name,
+          price,
+          defaultQty,
+          note,
           addonGroups,
           optionGroups,
-          order,
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          // ✅ 新增的餐點放在該類別最後（這裡先用整體最後，之後拖曳可調）
+          order: lastOrder + 10
         });
 
         $("mName").value = "";
@@ -1563,11 +1552,28 @@
         await loadMenu(selectedRestaurantId);
         renderMenuAdd();
         renderMenuList();
-        statusPill.textContent = "新增餐點完成 ✅";
+        setStatus("新增餐點完成 ✅");
       }catch(err){
         console.error("addMenuItem failed:", err);
-        statusPill.textContent = "新增餐點失敗（看 console）";
+        setStatus("新增餐點失敗", false);
         alert("新增餐點失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
+    }
+
+    async function saveMenuOrderForCategory(cat, ids){
+      // ids: menu doc ids in visual order for that category
+      try{
+        setStatus("儲存餐點排序中…");
+        for(let i=0;i<ids.length;i++){
+          await updateDoc(doc(db, "restaurants", selectedRestaurantId, "menu", ids[i]), { order: i*10 });
+        }
+        setStatus("餐點排序已儲存 ✅");
+        await loadMenu(selectedRestaurantId);
+        renderMenuList();
+      }catch(err){
+        console.error(err);
+        setStatus("餐點排序儲存失敗", false);
+        alert("餐點排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -1589,59 +1595,55 @@
         map.get(cat).push(m);
       }
 
-      wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>{
-        const sortedItems = [...items].sort((a,b)=>{
-          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-          if(ao !== bo) return ao - bo;
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(aa !== bb) return aa - bb;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-
+      wrap.innerHTML = Array.from(map.entries()).map(([cat, items], ci)=>{
+        const listId = `menuDnD_${ci}_${cat.replace(/\s/g,"_")}`;
         return `
           <details class="box" style="padding:10px 12px">
-            <summary><b>${esc(cat)}</b> <span class="tag" style="margin-left:8px">${sortedItems.length} 項</span></summary>
-            <div style="margin-top:10px" data-menu-cat="${esc(cat)}">
-              ${sortedItems.map((m,idx)=>{
+            <summary>
+              <b>${esc(cat)}</b>
+              <span class="tag" style="margin-left:8px">${items.length} 項</span>
+              <span class="muted" style="margin-left:8px">（展開後可拖曳排序）</span>
+            </summary>
+
+            <div style="margin-top:10px" id="${esc(listId)}">
+              ${items.map(m=>{
                 const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
                 const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
                 return `
-                  <div class="listLine draggableItem"
-                       draggable="true"
-                       data-dragtype="menu"
-                       data-menu-id="${esc(m.id)}"
-                       data-menu-cat="${esc(cat)}">
-                    <div class="inline" style="justify-content:space-between">
+                  <div class="draggableItem" draggable="true" data-mid="${esc(m.id)}">
+                    <div class="inline" style="gap:10px; align-items:flex-start">
+                      <span class="dragHandle" title="拖曳排序">☰</span>
                       <div>
-                        <b>${esc(m.name||"")}</b>
-                        <span class="tag" style="margin-left:8px">價格：${Number(m.price||0)}</span>
-                        <span class="tag" style="margin-left:6px">預設：${Number(m.defaultQty||1)}</span>
-                        <span class="tag" style="margin-left:6px">順序：${idx+1}</span>
-                      </div>
-                      <div class="inline">
-                        <button class="btn danger" data-del-menu="${esc(m.id)}" type="button">刪除</button>
+                        <div style="font-weight:900">${esc(m.name||"")}</div>
+                        <div class="muted" style="margin-top:4px">
+                          <span class="tag">價格：${Number(m.price||0)}</span>
+                          <span class="tag" style="margin-left:6px">預設：${Number(m.defaultQty||1)}</span>
+                        </div>
+
+                        ${m.note ? `<div class="muted" style="margin-top:6px">備註：${esc(m.note)}</div>` : ``}
+
+                        ${og.length ? `
+                          <div class="muted" style="margin-top:8px">
+                            選項群組：${esc(og.map(g=> `${g.name}（${(g.required!==false)?"必選":"可不選"} / ${Array.isArray(g.options)?g.options.length:0}項）`).join("；"))}
+                          </div>
+                        ` : ``}
+
+                        ${ag.length ? `
+                          <div class="muted" style="margin-top:8px">
+                            加購群組：${esc(ag.map(g=>{
+                              const t = (g.type==="single") ? "單選" : "多選";
+                              const req = (g.required===true) ? "必選" : "可不選";
+                              const cnt = Array.isArray(g.options)?g.options.length:0;
+                              return `${g.name}（${t} / ${req} / ${cnt}項）`;
+                            }).join("；"))}
+                          </div>
+                        ` : ``}
                       </div>
                     </div>
 
-                    ${m.note ? `<div class="muted" style="margin-top:6px">備註：${esc(m.note)}</div>` : ``}
-
-                    ${og.length ? `
-                      <div class="muted" style="margin-top:8px">
-                        選項群組：${esc(og.map(g=> `${g.name}（${(g.required!==false)?"必選":"可不選"} / ${Array.isArray(g.options)?g.options.length:0}項）`).join("；"))}
-                      </div>
-                    ` : ``}
-
-                    ${ag.length ? `
-                      <div class="muted" style="margin-top:8px">
-                        加購群組：${esc(ag.map(g=>{
-                          const t = (g.type==="single") ? "單選" : "多選";
-                          const req = (g.required===true) ? "必選" : "可不選";
-                          const cnt = Array.isArray(g.options)?g.options.length:0;
-                          return `${g.name}（${t} / ${req} / ${cnt}項）`;
-                        }).join("；"))}
-                      </div>
-                    ` : ``}
+                    <div class="inline" style="justify-content:flex-end">
+                      <button class="btn danger" data-del-menu="${esc(m.id)}" type="button">刪除</button>
+                    </div>
                   </div>
                 `;
               }).join("")}
@@ -1650,6 +1652,7 @@
         `;
       }).join("");
 
+      // 刪除餐點
       wrap.querySelectorAll("button[data-del-menu]").forEach(btn=>{
         btn.onclick = async ()=>{
           const mid = btn.dataset.delMenu;
@@ -1665,156 +1668,78 @@
         };
       });
 
-      bindDragForMenu(wrap);
-    }
+      // ✅ 類別內拖曳排序
+      Array.from(map.entries()).forEach(([cat, items], ci)=>{
+        const listId = `menuDnD_${ci}_${cat.replace(/\s/g,"_")}`;
+        const container = document.getElementById(listId);
+        if(!container) return;
 
-    function bindDragForMenu(root){
-      const items = Array.from(root.querySelectorAll('[data-dragtype="menu"]'));
-
-      items.forEach(el=>{
-        el.addEventListener("dragstart", (e)=>{
-          dragPayload = {
-            type:"menu",
-            cat: el.dataset.menuCat,
-            fromId: el.dataset.menuId
-          };
-          e.dataTransfer.effectAllowed = "move";
-        });
-
-        el.addEventListener("dragover", (e)=>{
-          if(!dragPayload || dragPayload.type!=="menu") return;
-          if(dragPayload.cat !== el.dataset.menuCat) return;
-          e.preventDefault();
-          el.classList.add("dragOver");
-          e.dataTransfer.dropEffect = "move";
-        });
-
-        el.addEventListener("dragleave", ()=>{
-          el.classList.remove("dragOver");
-        });
-
-        el.addEventListener("drop", async (e)=>{
-          e.preventDefault();
-          el.classList.remove("dragOver");
-
-          if(!dragPayload || dragPayload.type!=="menu") return;
-          if(dragPayload.cat !== el.dataset.menuCat) return;
-
-          const cat = dragPayload.cat;
-          const fromId = dragPayload.fromId;
-          const toId = el.dataset.menuId;
-          dragPayload = null;
-          if(!fromId || !toId || fromId===toId) return;
-
-          await reorderMenuWithinCategory(cat, fromId, toId);
-        });
-
-        el.addEventListener("dragend", ()=>{
-          root.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
-          dragPayload = null;
-        });
+        enableSortable(
+          container,
+          ".draggableItem",
+          (el)=> el.dataset.mid,
+          async (ids)=> await saveMenuOrderForCategory(cat, ids)
+        );
       });
     }
 
-    async function reorderMenuWithinCategory(cat, fromId, toId){
-      if(!selectedRestaurantId) return;
-
-      const arr = menuCache
-        .filter(x=> ((x.category||"未分類").trim()===String(cat||"").trim()))
-        .sort((a,b)=>{
-          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-          if(ao !== bo) return ao - bo;
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(aa !== bb) return aa - bb;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-
-      const fromIdx = arr.findIndex(x=> x.id===fromId);
-      const toIdx = arr.findIndex(x=> x.id===toId);
-      if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
-
-      const [moved] = arr.splice(fromIdx, 1);
-      arr.splice(toIdx, 0, moved);
-
+    // ===== Staff =====
+    async function saveStaffOrder(dept, ids){
+      // ids: staff doc ids
       try{
-        statusPill.textContent = "儲存餐點順序…";
-        const batch = writeBatch(db);
-        arr.forEach((m,i)=>{
-          batch.update(doc(db, "restaurants", selectedRestaurantId, "menu", m.id), { order: i });
-          m.order = i;
-        });
-        await batch.commit();
-
-        // update cache orders
-        for(const m of menuCache){
-          if((m.category||"").trim() !== (cat||"").trim()) continue;
-          const found = arr.find(x=> x.id===m.id);
-          if(found) m.order = found.order;
+        setStatus("儲存人員排序中…");
+        for(let i=0;i<ids.length;i++){
+          await updateDoc(doc(db, "staff", ids[i]), { order: i*10 });
         }
-
-        renderMenuList();
-        statusPill.textContent = "餐點順序已更新 ✅";
+        setStatus("人員排序已儲存 ✅");
+        await loadStaff();
       }catch(err){
         console.error(err);
-        statusPill.textContent = "儲存餐點順序失敗";
-        alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
+        setStatus("人員排序儲存失敗", false);
+        alert("人員排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
-    // ===== Staff =====
     async function loadStaff(){
       try{
-        statusPill.textContent = "載入人員中…";
+        setStatus("載入人員中…");
         const snap = await getDocs(colStaff);
-        const map = {};
+        const map = {}; // dept -> [{id,name,order}]
         snap.forEach(d=>{
           const v = d.data() || {};
           const dept = (v.dept || "未分部門").trim();
           const name = (v.name || "").trim();
           if(!name) return;
+          const order = Number.isFinite(Number(v.order)) ? Number(v.order) : (Number(v.createdAt||0) || 0);
           if(!map[dept]) map[dept] = [];
-          map[dept].push({ id:d.id, name, createdAt: Number(v.createdAt||0), order: v.order });
+          map[dept].push({ id:d.id, name, order });
         });
 
-        Object.keys(map).forEach(k=>{
-          map[k].sort((a,b)=>{
-            const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-            const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-            if(ao !== bo) return ao - bo;
-            const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-            if(aa !== bb) return aa - bb;
-            return a.name.localeCompare(b.name,"zh-Hant");
-          });
-        });
-
-        await normalizeStaffOrders(map);
-
+        Object.keys(map).forEach(k=> map[k].sort((a,b)=> (a.order-b.order) || a.name.localeCompare(b.name,"zh-Hant")));
         const depts = Object.keys(map).sort((a,b)=> a.localeCompare(b,"zh-Hant"));
-        const wrap = $("staffWrap");
 
+        const wrap = $("staffWrap");
         if(depts.length===0){
           wrap.innerHTML = `<div class="muted">尚無人員。</div>`;
         }else{
-          wrap.innerHTML = depts.map(dept=>{
-            const arr = map[dept] || [];
+          wrap.innerHTML = depts.map((dept,di)=>{
+            const listId = `staffDnD_${di}_${dept.replace(/\s/g,"_")}`;
             return `
+              <!-- ✅ 預設收合：拿掉 open -->
               <details class="box">
-                <summary><b>${esc(dept)}</b> <span class="tag" style="margin-left:8px">${arr.length} 人</span></summary>
-                <div style="margin-top:10px">
-                  ${arr.map((p,idx)=>`
-                    <div class="listLine draggableItem"
-                         draggable="true"
-                         data-dragtype="staff"
-                         data-staff-id="${esc(p.id)}"
-                         data-staff-dept="${esc(dept)}">
-                      <div class="inline" style="justify-content:space-between">
-                        <div class="inline">
-                          <b>${esc(p.name)}</b>
-                          <span class="tag">順序：${idx+1}</span>
-                        </div>
-                        <button class="btn danger" data-del-staff="${esc(p.id)}" type="button">刪除</button>
+                <summary>
+                  <b>${esc(dept)}</b>
+                  <span class="tag" style="margin-left:8px">${map[dept].length} 人</span>
+                  <span class="muted" style="margin-left:8px">（展開後可拖曳排序）</span>
+                </summary>
+                <div style="margin-top:10px" id="${esc(listId)}">
+                  ${map[dept].map(p=>`
+                    <div class="draggableItem" draggable="true" data-sid="${esc(p.id)}">
+                      <div class="inline" style="gap:10px">
+                        <span class="dragHandle" title="拖曳排序">☰</span>
+                        <b>${esc(p.name)}</b>
                       </div>
+                      <button class="btn danger" data-del-staff="${esc(p.id)}" type="button">刪除</button>
                     </div>
                   `).join("")}
                 </div>
@@ -1822,6 +1747,7 @@
             `;
           }).join("");
 
+          // 刪除人員
           wrap.querySelectorAll("button[data-del-staff]").forEach(btn=>{
             btn.onclick = async ()=>{
               const id = btn.dataset.delStaff;
@@ -1836,129 +1762,25 @@
             };
           });
 
-          bindDragForStaff(wrap);
+          // 拖曳排序（每個 dept 各一個容器）
+          depts.forEach((dept,di)=>{
+            const listId = `staffDnD_${di}_${dept.replace(/\s/g,"_")}`;
+            const container = document.getElementById(listId);
+            if(!container) return;
+            enableSortable(
+              container,
+              ".draggableItem",
+              (el)=> el.dataset.sid,
+              async (ids)=> await saveStaffOrder(dept, ids)
+            );
+          });
         }
 
-        statusPill.textContent = "人員載入完成 ✅";
+        setStatus("人員載入完成 ✅");
       }catch(err){
         console.error("loadStaff failed:", err);
-        statusPill.textContent = "人員讀取失敗（看 console）";
+        setStatus("人員讀取失敗", false);
         alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
-    async function normalizeStaffOrders(map){
-      const batch = writeBatch(db);
-      let touched = 0;
-
-      for(const dept of Object.keys(map)){
-        const arr = map[dept] || [];
-        for(let i=0;i<arr.length;i++){
-          const p = arr[i];
-          if(!Number.isFinite(Number(p.order)) || Number(p.order)!==i){
-            batch.update(doc(db, "staff", p.id), { order: i });
-            p.order = i;
-            touched++;
-          }
-        }
-      }
-
-      if(touched > 0){
-        try{ await batch.commit(); }catch(e){ console.warn("normalizeStaffOrders failed:", e); }
-      }
-    }
-
-    function bindDragForStaff(root){
-      const items = Array.from(root.querySelectorAll('[data-dragtype="staff"]'));
-
-      items.forEach(el=>{
-        el.addEventListener("dragstart", (e)=>{
-          dragPayload = {
-            type:"staff",
-            dept: el.dataset.staffDept,
-            fromId: el.dataset.staffId
-          };
-          e.dataTransfer.effectAllowed = "move";
-        });
-
-        el.addEventListener("dragover", (e)=>{
-          if(!dragPayload || dragPayload.type!=="staff") return;
-          if(dragPayload.dept !== el.dataset.staffDept) return;
-          e.preventDefault();
-          el.classList.add("dragOver");
-          e.dataTransfer.dropEffect = "move";
-        });
-
-        el.addEventListener("dragleave", ()=>{
-          el.classList.remove("dragOver");
-        });
-
-        el.addEventListener("drop", async (e)=>{
-          e.preventDefault();
-          el.classList.remove("dragOver");
-          if(!dragPayload || dragPayload.type!=="staff") return;
-          if(dragPayload.dept !== el.dataset.staffDept) return;
-
-          const dept = dragPayload.dept;
-          const fromId = dragPayload.fromId;
-          const toId = el.dataset.staffId;
-          dragPayload = null;
-
-          if(!fromId || !toId || fromId===toId) return;
-          await reorderStaffWithinDept(dept, fromId, toId);
-        });
-
-        el.addEventListener("dragend", ()=>{
-          root.querySelectorAll(".dragOver").forEach(x=>x.classList.remove("dragOver"));
-          dragPayload = null;
-        });
-      });
-    }
-
-    async function reorderStaffWithinDept(dept, fromId, toId){
-      try{
-        statusPill.textContent = "儲存人員順序…";
-
-        const snap = await getDocs(colStaff);
-        const arr = [];
-        snap.forEach(d=>{
-          const v = d.data() || {};
-          const dpt = (v.dept || "未分部門").trim();
-          if(dpt !== dept) return;
-          arr.push({
-            id: d.id,
-            name: (v.name||"").trim(),
-            createdAt: Number(v.createdAt||0),
-            order: v.order
-          });
-        });
-
-        arr.sort((a,b)=>{
-          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 999999;
-          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 999999;
-          if(ao !== bo) return ao - bo;
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(aa !== bb) return aa - bb;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-
-        const fromIdx = arr.findIndex(x=> x.id===fromId);
-        const toIdx = arr.findIndex(x=> x.id===toId);
-        if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
-
-        const [moved] = arr.splice(fromIdx, 1);
-        arr.splice(toIdx, 0, moved);
-
-        const batch = writeBatch(db);
-        arr.forEach((p,i)=> batch.update(doc(db, "staff", p.id), { order: i }));
-        await batch.commit();
-
-        await loadStaff();
-        statusPill.textContent = "人員順序已更新 ✅";
-      }catch(err){
-        console.error(err);
-        statusPill.textContent = "儲存人員順序失敗";
-        alert("拖曳排序儲存失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -1969,24 +1791,14 @@
       if(!name) return alert("請輸入人員姓名");
 
       try{
-        statusPill.textContent = "新增人員中…";
-
-        // add at end of dept
-        let count = 0;
-        const snap = await getDocs(colStaff);
-        snap.forEach(d=>{
-          const v = d.data() || {};
-          const dpt = (v.dept || "未分部門").trim();
-          if(dpt === dept) count++;
-        });
-
-        await addDoc(colStaff, { dept, name, order: count, createdAt: Date.now() });
+        setStatus("新增人員中…");
+        await addDoc(colStaff, { dept, name, createdAt: Date.now(), order: 999999 });
         $("staffName").value = "";
         await loadStaff();
-        statusPill.textContent = "新增人員完成 ✅";
+        setStatus("新增人員完成 ✅");
       }catch(err){
         console.error("addStaff failed:", err);
-        statusPill.textContent = "新增人員失敗（看 console）";
+        setStatus("新增人員失敗", false);
         alert("新增人員失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
@@ -2055,7 +1867,7 @@
       const qPeriod = ($("qPeriod").value || "").trim();
 
       try{
-        statusPill.textContent = "查詢中…";
+        setStatus("查詢中…");
         let snap;
         if(qDate){
           snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
@@ -2076,10 +1888,10 @@
         }).sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
 
         renderOrders(filtered);
-        statusPill.textContent = "已查詢 ✅";
+        setStatus("已查詢 ✅");
       }catch(err){
         console.error("queryOrders failed:", err);
-        statusPill.textContent = "查詢失敗（看 console）";
+        setStatus("查詢失敗", false);
         alert("查詢失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
@@ -2137,7 +1949,7 @@
       const qPeriod = ($("qPeriod")?.value || "").trim();
 
       try{
-        statusPill.textContent = "匯出中…";
+        setStatus("匯出中…");
 
         let snap;
         if(qDate){
@@ -2159,7 +1971,7 @@
         }).sort((a,b)=> Number(a.createdAt||0) - Number(b.createdAt||0));
 
         if(filtered.length === 0){
-          statusPill.textContent = "無資料可匯出";
+          setStatus("無資料可匯出", false);
           return alert("目前篩選條件下沒有資料可匯出");
         }
 
@@ -2225,10 +2037,10 @@
         const filename = `Orders_${qDate||"AllDates"}_${shopName}_${qPeriod?(qPeriod==="noon"?"Noon":"Night"):"AllDay"}`.replace(/[\\/:*?"<>|]/g, "-") + ".xlsx";
         XLSX.writeFile(wb, filename);
 
-        statusPill.textContent = "匯出完成 ✅";
+        setStatus("匯出完成 ✅");
       }catch(err){
         console.error("exportOrdersExcel failed:", err);
-        statusPill.textContent = "匯出失敗（看 console）";
+        setStatus("匯出失敗", false);
         alert("匯出失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
@@ -2238,15 +2050,18 @@
       const rid = $("restaurantSelect").value;
       await loadRestaurantDoc(rid);
     };
-    $("btnReloadRestaurants").onclick = loadRestaurants;
-    $("btnSaveRestaurantFlags").onclick = saveRestaurantFlags;
+
+    $("rVisible").onchange = saveRestaurantFlags;
+    $("rClosed").onchange = saveRestaurantFlags;
+
+    $("btnReloadRestaurants").onclick = ()=> loadRestaurants(true);
     $("btnAddRestaurant").onclick = addRestaurant;
     $("btnDeleteRestaurant").onclick = deleteRestaurant;
 
     $("btnAddStaff").onclick = addStaff;
     $("btnReloadStaff").onclick = loadStaff;
     $("staffName").addEventListener("keydown", (e)=>{
-      if(e.key === "Enter") addStaff();
+      if(e.key === "Enter"){ e.preventDefault(); addStaff(); }
     });
 
     $("btnQuery").onclick = queryOrders;
@@ -2255,6 +2070,11 @@
       queryOrders();
     };
     $("btnExportExcel").onclick = exportOrdersExcel;
+
+    // ✅ qName Enter 直接查詢
+    $("qName").addEventListener("keydown",(e)=>{
+      if(e.key==="Enter"){ e.preventDefault(); queryOrders(); }
+    });
 
     $("btnGoUser").onclick = ()=>{
       localStorage.setItem(roleKey, "user");
@@ -2265,15 +2085,21 @@
       location.href = "./index.html";
     };
 
+    // ✅ 新增餐廳 Enter 直接新增（在名稱輸入框）
+    $("newRName").addEventListener("keydown",(e)=>{
+      if(e.key==="Enter"){ e.preventDefault(); addRestaurant(); }
+    });
+
     // ===== Init =====
     $("qDate").value = todayISO();
-    await loadRestaurants();
+    setStatus("已連線 Firestore ✅");
+    await loadRestaurants(false);
     await loadStaff();
     await queryOrders();
 
     document.addEventListener("visibilitychange", async ()=>{
       if(document.visibilityState === "visible"){
-        await loadRestaurants();
+        await loadRestaurants(true);
         if(selectedRestaurantId) await loadRestaurantDoc(selectedRestaurantId);
       }
     });
