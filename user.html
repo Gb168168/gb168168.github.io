@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔啊~~ ｜使用者</title>
+  <title>GoldBricks 呷奔🍚~ ｜使用者</title>
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -127,8 +127,19 @@
       display:none;
     }
 
-    /* ✅ 關鍵修正：只讓「狀態標籤」不吃點擊（避免擋住卡片點擊） */
+    /* ✅ 只讓「狀態標籤」不吃點擊（避免擋住卡片點擊） */
     .statusTag{ pointer-events:none !important; }
+
+    /* ✅ 選項群組 UI */
+    .optGroup{
+      margin-top:10px;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:14px;
+      padding:10px;
+      background:#fff;
+    }
+    .optHead{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    .optHead b{font-size:13.5px}
   </style>
 </head>
 
@@ -492,6 +503,44 @@
       }
     }
 
+    // ====== ✅ 選項群組工具：單價加總 / 顯示文字 ======
+    function optionUnitSum(optionGroups, chosen){
+      const groups = Array.isArray(optionGroups) ? optionGroups : [];
+      const pick = chosen || {};
+      let sum = 0;
+      for (let gi=0; gi<groups.length; gi++){
+        const g = groups[gi] || {};
+        if ((g.type || "single") !== "single") continue; // 目前先做 single（下拉）
+        const idx = Number(pick[gi]);
+        if (!Number.isFinite(idx) || idx < 0) continue;
+        const opt = (Array.isArray(g.options) ? g.options : [])[idx];
+        if (!opt) continue;
+        sum += Number(opt.price || 0);
+      }
+      return sum;
+    }
+
+    function optionText(optionGroups, chosen){
+      const groups = Array.isArray(optionGroups) ? optionGroups : [];
+      const pick = chosen || {};
+      const out = [];
+      for (let gi=0; gi<groups.length; gi++){
+        const g = groups[gi] || {};
+        if ((g.type || "single") !== "single") continue;
+        const idx = Number(pick[gi]);
+        const name = (g.name || "").trim();
+        if (!Number.isFinite(idx) || idx < 0){
+          // 不選（若 required false 才可能）
+          continue;
+        }
+        const opt = (Array.isArray(g.options) ? g.options : [])[idx];
+        if (!opt) continue;
+        const p = Number(opt.price || 0);
+        out.push(`${name ? (name+"：") : ""}${opt.name || ""}${p ? (" +"+p) : ""}`);
+      }
+      return out.join("；");
+    }
+
     function renderMenu(){
       const wrap = $("menuWrap");
       refreshClosedUI();
@@ -530,6 +579,8 @@
             <div style="margin-top:10px">
               ${items.map(m=>{
                 const addons = Array.isArray(m.addons) ? m.addons : [];
+                const optionGroups = Array.isArray(m.optionGroups) ? m.optionGroups : []; // ✅ 新增：選項群組
+
                 return `
                   <div class="menuItem" data-mid="${esc(m.id)}">
                     <div class="inline" style="justify-content:space-between">
@@ -537,11 +588,40 @@
                         <h4>${esc(m.name||"未命名")}</h4>
                         <div class="muted">價格：${Number(m.price||0)}　｜　預設數量：${Number(m.defaultQty||1)}</div>
                       </div>
-                      <span class="tag">可加購</span>
+                      <span class="tag">${optionGroups.length ? "有選項/加購" : (addons.length ? "可加購" : "—")}</span>
                     </div>
 
                     <div class="addonBox">
-                      <div class="muted">加購項目</div>
+                      ${optionGroups.length ? `
+                        <div class="muted" style="margin-bottom:6px">選項（下拉）</div>
+                        ${optionGroups.map((g,gi)=>{
+                          const type = (g.type || "single");
+                          if(type !== "single") return ``; // 先做單選下拉
+                          const req = (g.required !== false);
+                          const opts = Array.isArray(g.options) ? g.options : [];
+                          const hasPrice = opts.some(o=> Number(o?.price||0) > 0);
+
+                          return `
+                            <div class="optGroup">
+                              <div class="optHead">
+                                <b>${esc(g.name || "選項")}</b>
+                                <span class="tag">${req ? "必選" : "可不選"}${hasPrice ? "（可加價）" : ""}</span>
+                              </div>
+                              <select data-opt-mid="${esc(m.id)}" data-gi="${gi}" ${selectedRestaurantClosed?"disabled":""}>
+                                ${req ? `` : `<option value="-1">不選擇</option>`}
+                                ${opts.map((o,oi)=>{
+                                  const p = Number(o?.price||0);
+                                  return `<option value="${oi}">${esc(o?.name||"")} ${p?(" +"+p):""}</option>`;
+                                }).join("")}
+                              </select>
+                              <div class="muted" style="margin-top:6px">※ 送出後會記錄此選項</div>
+                            </div>
+                          `;
+                        }).join("")}
+                        <div class="hr"></div>
+                      ` : ``}
+
+                      <div class="muted">加購項目（可多選）</div>
                       ${addons.length===0
                         ? `<div class="muted" style="margin-top:6px">（此餐點無加購）</div>`
                         : addons.map((a,idx)=>`
@@ -593,16 +673,36 @@
           const qty = Math.max(1, Number(qtyEl?.value || 1));
           const note = (noteEl?.value || "").trim();
 
+          // ✅ 取加購（多選）
           const addonsAll = Array.isArray(m.addons) ? m.addons : [];
           const checkedEls = wrap.querySelectorAll(`[data-addon-mid="${mid}"]`);
-          const picked = [];
+          const pickedAddons = [];
           checkedEls.forEach(ch=>{
             if(ch.checked){
               const idx = Number(ch.dataset.idx);
               const a = addonsAll[idx];
-              if(a) picked.push({ name: a.name, price: Number(a.price||0), free: !!a.free });
+              if(a) pickedAddons.push({ name: a.name, price: Number(a.price||0), free: !!a.free });
             }
           });
+
+          // ✅ 取「選項（下拉）」：optionGroups
+          const optionGroups = Array.isArray(m.optionGroups) ? m.optionGroups : [];
+          const chosenOptions = {}; // { gi: optionIndex }
+          let optionValid = true;
+
+          wrap.querySelectorAll(`[data-opt-mid="${mid}"]`).forEach(sel=>{
+            const gi = Number(sel.dataset.gi);
+            const g = optionGroups[gi] || {};
+            const req = (g.required !== false);
+            const val = Number(sel.value);
+            if(req && (!Number.isFinite(val) || val < 0)){
+              optionValid = false;
+              return;
+            }
+            chosenOptions[gi] = val; // -1 代表不選
+          });
+
+          if(!optionValid) return alert("此餐點有必選選項，請先選擇。");
 
           cart.push({
             rid: selectedRestaurantId,
@@ -612,7 +712,11 @@
             price: Number(m.price||0),
             qty,
             note,
-            addons: picked
+            addons: pickedAddons,
+
+            // ✅ 新增：選項群組（原文 + 選到的值）
+            optionGroups: optionGroups,
+            chosenOptions: chosenOptions
           });
 
           if(noteEl) noteEl.value = "";
@@ -627,8 +731,11 @@
     function addonSum(it){
       return (it.addons||[]).reduce((s,a)=> s + (a && a.free ? 0 : Number(a.price||0)), 0);
     }
+    function optionSum(it){
+      return optionUnitSum(it.optionGroups, it.chosenOptions);
+    }
     function calcLineTotal(it){
-      return (Number(it.price||0) + addonSum(it)) * Number(it.qty||0);
+      return (Number(it.price||0) + addonSum(it) + optionSum(it)) * Number(it.qty||0);
     }
     function calcTotal(){
       return cart.reduce((s,it)=> s + calcLineTotal(it), 0);
@@ -648,6 +755,7 @@
           return `+${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
         }).join("");
 
+        const optTxt = optionText(it.optionGroups, it.chosenOptions);
         const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
         const lineTotal = calcLineTotal(it);
 
@@ -657,8 +765,13 @@
               <div>
                 <b>${esc(it.name)}</b>
                 <span class="tag" style="margin-left:8px">${esc(it.restaurantName||"")}</span>
+
+                ${optTxt ? `<div class="muted" style="margin-top:6px">選項：${esc(optTxt)}</div>` : ``}
+                ${addonTxt ? `<div class="muted" style="margin-top:6px">加購：${esc(addonTxt)}</div>` : ``}
+
                 <div class="muted" style="margin-top:6px">
-                  ${esc(it.name)} ${Number(it.price||0)} ${esc(addonTxt)} × ${Number(it.qty||0)} ${noteTxt}
+                  單價：${Number(it.price||0)} ${optTxt?`（選項加價 +${optionSum(it)}）`:``} ${addonTxt?`（加購 +${addonSum(it)}）`:``}
+                  × ${Number(it.qty||0)} ${noteTxt}
                 </div>
                 <div class="muted" style="margin-top:6px">小計：${lineTotal}</div>
               </div>
@@ -717,7 +830,13 @@
           price: Number(it.price||0),
           qty: Number(it.qty||0),
           note: it.note || "",
-          addons: (it.addons||[]).map(a=>({ name:a.name, price:Number(a.price||0), free:!!a.free }))
+
+          // ✅ 原本加購
+          addons: (it.addons||[]).map(a=>({ name:a.name, price:Number(a.price||0), free:!!a.free })),
+
+          // ✅ 新增：選項（下拉）
+          optionGroups: Array.isArray(it.optionGroups) ? it.optionGroups : [],
+          chosenOptions: it.chosenOptions || {}
         }))
       };
 
@@ -793,8 +912,15 @@
             const p = (a && a.free) ? 0 : Number(a.price||0);
             return `+${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
           }).join("");
+
+          const optTxt = optionText(it.optionGroups, it.chosenOptions);
           const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
-          return `• ${esc(it.name)} ${Number(it.price||0)} ${esc(addonTxt)} × ${Number(it.qty||0)} ${noteTxt}`;
+
+          const base = `• ${esc(it.name)} ${Number(it.price||0)} × ${Number(it.qty||0)} ${noteTxt}`;
+          const optLine = optTxt ? `<div class="muted" style="margin-top:4px">　　選項：${esc(optTxt)}</div>` : ``;
+          const addonLine = addonTxt ? `<div class="muted" style="margin-top:4px">　　加購：${esc(addonTxt)}</div>` : ``;
+
+          return `${base}${optLine}${addonLine}`;
         }).join("<br/>");
 
         const canDelete = (getCurrentName() && (o.userName === getCurrentName()));
