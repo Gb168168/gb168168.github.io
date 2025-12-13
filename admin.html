@@ -4,10 +4,6 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>GoldBricks Order｜管理者</title>
-
-  <!-- ✅ Excel 匯出用（XLSX） -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -143,7 +139,7 @@
         <h2 id="pageTitle">新增餐廳</h2>
         <div class="right">
           <span class="pill" id="statusPill">連線中…</span>
-          <button class="ghost" id="gotoIndex" type="button">回登入頁</button>
+          <button class="ghost" id="gotoIndex">回登入頁</button>
         </div>
       </div>
 
@@ -184,7 +180,7 @@
             <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
 
             <div class="actions">
-              <button class="primary" id="btnSubmitAll" type="button">直接新增上（餐廳 + 餐點清單）</button>
+              <button class="primary" id="btnSubmitAll">直接新增上（餐廳 + 餐點清單）</button>
               <button class="ghost" id="btnClearAll" type="button">清空</button>
             </div>
 
@@ -278,7 +274,7 @@
 
           <div class="card">
             <h3>人員清單（部門收合）</h3>
-            <div id="staffWrap"></div>
+            <div id="staffWrap" class="muted">載入中…</div>
           </div>
         </div>
       </section>
@@ -308,7 +304,7 @@
       <section class="view" id="view_orders" style="display:none">
         <div class="grid">
           <div class="card">
-            <h3>訂單統計</h3>
+            <h3>訂單統計（預留版位）</h3>
             <div class="row">
               <div>
                 <label>訂單日期</label>
@@ -325,13 +321,8 @@
             <div class="actions">
               <button class="primary" id="btnLoadOrders" type="button">載入</button>
               <button class="ghost" id="btnToday" type="button">今天</button>
-              <button class="btnSmall btnOk" id="btnExportExcel" type="button">匯出 Excel</button>
             </div>
-            <p class="muted">
-              Excel 會輸出：<br/>
-              1) 明細：訂單日期/部門/姓名/店家/品項/品項金額(主餐)/加購/單品備註/數量/單價含加購/小計/整筆備註/訂單ID<br/>
-              2) 每人加總、部門加總、總加總
-            </p>
+            <p class="muted">彙整格式例：排骨飯70+蛋10 數量2；排骨飯70 數量1…</p>
           </div>
 
           <div class="card">
@@ -377,10 +368,6 @@
       const d = new Date(); const pad = (n)=> String(n).padStart(2,"0");
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     };
-    const money = (v)=>{
-      const n = Number(v);
-      return isNaN(n) ? 0 : n;
-    };
 
     // ✅ 強制移除「餐廳名稱預設 123」（避免瀏覽器記住）
     window.addEventListener("load", ()=>{
@@ -407,6 +394,9 @@
       if(viewKey==="restaurants"){
         refreshRestaurantSelects();
         refreshRestaurantsManage();
+      }
+      if(viewKey==="staff"){
+        refreshStaffList();
       }
     }
     document.querySelectorAll(".navBtn[data-view]").forEach(btn=>{
@@ -569,21 +559,41 @@
       }
     };
 
-    // ====== 人員 ======
+    // ==========================================================
+    // ✅ 人員：修正「讀取失敗（Rules）」——移除複合 orderBy
+    // ==========================================================
     async function refreshStaffList(){
       const wrap = $("staffWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
+
       try{
-        const snap = await getDocs(query(colStaff, orderBy("dept","asc"), orderBy("name","asc"), limit(800)));
-        const map = new Map();
-        snap.forEach(d=>{
-          const v = d.data();
-          const dept = (v.dept||"未分部門").trim();
-          if(!map.has(dept)) map.set(dept, []);
-          map.get(dept).push({ id:d.id, ...v });
+        // ✅ 不用 orderBy("dept")+orderBy("name")（會卡複合索引/被誤判 Rules）
+        const snap = await getDocs(colStaff);
+
+        const list = [];
+        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
+
+        // ✅ 前端排序：dept -> name
+        list.sort((a,b)=>{
+          const ad = (a.dept||"未分部門").trim();
+          const bd = (b.dept||"未分部門").trim();
+          if(ad !== bd) return ad.localeCompare(bd, "zh-Hant");
+          const an = (a.name||"").trim();
+          const bn = (b.name||"").trim();
+          return an.localeCompare(bn, "zh-Hant");
         });
 
-        if(map.size===0){ wrap.innerHTML = `<div class="muted">尚未新增人員</div>`; return; }
+        const map = new Map();
+        for(const v of list){
+          const dept = (v.dept||"未分部門").trim();
+          if(!map.has(dept)) map.set(dept, []);
+          map.get(dept).push(v);
+        }
+
+        if(map.size===0){
+          wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
+          return;
+        }
 
         wrap.innerHTML = Array.from(map.entries()).map(([dept, arr])=>`
           <details open style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
@@ -592,7 +602,7 @@
               ${arr.map(p=>`
                 <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
                   <div><b>${esc(p.name||"")}</b></div>
-                  <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
+                  <button class="btnSmall btnDanger" type="button" data-delstaff="${p.id}">刪除</button>
                 </div>
               `).join("")}
             </div>
@@ -611,8 +621,9 @@
             }
           };
         });
+
       }catch(err){
-        console.error(err);
+        console.error("refreshStaffList failed:", err);
         wrap.innerHTML = `<div class="muted">讀取失敗（Rules）</div>`;
       }
     }
@@ -635,9 +646,13 @@
     $("btnClearStaff").onclick = ()=>{
       $("s_dept").value="";
       $("s_name").value="";
+      $("s_dept").focus();
     };
     $("s_name").addEventListener("keydown", (e)=>{
-      if(e.key==="Enter"){ e.preventDefault(); $("btnAddStaff").click(); }
+      if(e.key==="Enter"){
+        e.preventDefault();
+        $("btnAddStaff").click();
+      }
     });
 
     // ====== 餐廳下拉 ======
@@ -689,8 +704,8 @@
                     <td><input data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
                     <td class="muted" style="max-width:280px">${esc(addons)}</td>
                     <td style="white-space:nowrap">
-                      <button class="btnSmall btnOk" data-savem="${m.id}" type="button">儲存</button>
-                      <button class="btnSmall btnDanger" data-delm="${m.id}" type="button">刪除</button>
+                      <button class="btnSmall btnOk" type="button" data-savem="${m.id}">儲存</button>
+                      <button class="btnSmall btnDanger" type="button" data-delm="${m.id}">刪除</button>
                     </td>
                   </tr>
                 `;
@@ -758,7 +773,6 @@
       }
     }
 
-    // ✅ 每間餐廳的「新增餐點」加購暫存
     const draftAddonsByRid = {}; // { [rid]: Array<{name,price,free}> }
 
     function renderDraftAddons(rid, wrapEl){
@@ -776,7 +790,7 @@
             <span class="tag" style="margin-left:8px">+${a.price}</span>
             ${a.free ? '<span class="tag" style="margin-left:6px">免費</span>' : ''}
           </div>
-          <button class="btnSmall btnDanger" data-draft-del="${rid}" data-i="${i}" type="button">刪除</button>
+          <button class="btnSmall btnDanger" type="button" data-draft-del="${rid}" data-i="${i}">刪除</button>
         </div>
       `).join("");
 
@@ -959,15 +973,15 @@
 
       wrap.innerHTML = blocks.join("");
 
-      // 初始化每間餐廳的加購暫存 + render
+      // init draft
       wrap.querySelectorAll(`[data-addmenu]`).forEach(btn=>{
         const rid = btn.dataset.addmenu;
         if(!draftAddonsByRid[rid]) draftAddonsByRid[rid] = [];
         renderDraftAddons(rid, wrap);
       });
 
-      // ✅ 圖片網址：開啟新分頁（確保從 click 事件觸發）
-      wrap.querySelectorAll(`button[data-openimg]`).forEach(btn=>{
+      // open image
+      wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.openimg;
           const input = wrap.querySelector(`[data-r="${rid}"][data-k="imageUrl"]`);
@@ -977,7 +991,7 @@
         };
       });
 
-      // 儲存餐廳資料
+      // save restaurant
       wrap.querySelectorAll("button[data-saver]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.saver;
@@ -998,7 +1012,7 @@
         };
       });
 
-      // ✅ 刪除餐廳：先刪 menu 子集合，再刪 restaurants/{rid}
+      // delete restaurant (delete menus first)
       wrap.querySelectorAll("button[data-delr]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.delr;
@@ -1012,7 +1026,6 @@
 
             let batch = writeBatch(db);
             let count = 0;
-
             for (const d of menuSnap.docs){
               batch.delete(d.ref);
               count++;
@@ -1038,7 +1051,7 @@
         };
       });
 
-      // 餐點儲存/刪除（在餐廳收合內）
+      // save menu in collapse
       wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.rid;
@@ -1062,6 +1075,7 @@
         };
       });
 
+      // delete menu in collapse
       wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.rid;
@@ -1078,7 +1092,7 @@
         };
       });
 
-      // ✅ 加入加購（直接新增餐點表單）
+      // add addon draft
       wrap.querySelectorAll("button[data-addaddon]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.addaddon;
@@ -1104,7 +1118,7 @@
         };
       });
 
-      // ✅ 清空加購
+      // clear addons
       wrap.querySelectorAll("button[data-clearaddons]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.clearaddons;
@@ -1119,7 +1133,7 @@
         };
       });
 
-      // ✅ 新增餐點（含加購）—— 你說「沒辦法再新增餐點」就是這段要確保存在且每次 render 後都綁到
+      // add menu with addons
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
           const rid = btn.dataset.addmenu;
@@ -1141,7 +1155,7 @@
 
             statusPill.textContent = "已新增餐點 ✅";
 
-            // 清空餐點欄位
+            // clear fields
             const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
             const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
             const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
@@ -1151,11 +1165,9 @@
             if(c3) c3.value = "";
             if(c4) c4.value = "1";
 
-            // 清空加購
             draftAddonsByRid[rid] = [];
             renderDraftAddons(rid, wrap);
 
-            // 重新載入
             await refreshRestaurantsManage();
             await refreshMenuManage();
             await refreshRestaurantSelects();
@@ -1166,7 +1178,7 @@
         };
       });
 
-      // 清空（餐點欄位）
+      // clear add fields
       wrap.querySelectorAll("button[data-clearadd]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.clearadd;
@@ -1186,29 +1198,15 @@
     $("btnToday").onclick = ()=> $("o_date").value = todayISO();
     $("o_date").value = todayISO();
 
-    async function fetchOrdersByDate(date){
-      const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(3000)));
-      const orders = [];
-      snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
-      return orders;
-    }
-
-    function itemAddonText(addons){
-      const arr = addons || [];
-      if(!arr.length) return "";
-      return arr.map(a=>{
-        const p = money(a.price);
-        return a.free ? `${a.name}(免費)` : `${a.name}${p}`;
-      }).join("、");
-    }
-
     $("btnLoadOrders").onclick = async ()=>{
       const date = $("o_date").value;
       if(!date) return alert("請選日期");
       const mode = $("o_mode").value;
 
       try{
-        const orders = await fetchOrdersByDate(date);
+        const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(3000)));
+        const orders = [];
+        snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
 
         if(orders.length===0){
           $("ordersOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
@@ -1223,7 +1221,7 @@
                 ${(o.items||[]).map(it=>{
                   const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
                   const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
-                  return `• ${esc(it.name)} ${money(it.price)} ${addonTxt} × ${money(it.qty)} ${noteTxt}`;
+                  return `• ${esc(it.name)} ${it.price} ${addonTxt} × ${it.qty} ${noteTxt}`;
                 }).join("<br/>")}
               </div>
             </div>
@@ -1234,12 +1232,12 @@
         const agg = new Map();
         for(const o of orders){
           for(const it of (o.items||[])){
-            const addonKey = (it.addons||[]).map(a=> `${a.name}:${money(a.price)}:${a.free?1:0}`).sort().join("|");
-            const key = `${it.name}__${money(it.price)}__${addonKey}`;
+            const addonKey = (it.addons||[]).map(a=> `${a.name}:${a.price||0}:${a.free?1:0}`).sort().join("|");
+            const key = `${it.name}__${it.price}__${addonKey}`;
             if(!agg.has(key)){
-              agg.set(key, { name: it.name, price: money(it.price), addons: it.addons||[], qty: 0 });
+              agg.set(key, { name: it.name, price: it.price, addons: it.addons||[], qty: 0 });
             }
-            agg.get(key).qty += money(it.qty);
+            agg.get(key).qty += Number(it.qty||0);
           }
         }
 
@@ -1257,93 +1255,6 @@
         console.error(err);
         $("ordersOut").innerHTML = `<div class="muted">讀取訂單失敗（Rules）</div>`;
         alert("讀取訂單失敗（Rules）\n\n" + (err?.message || err));
-      }
-    };
-
-    // ====== ✅ Excel 匯出（含：品項金額=主餐、不含加購） ======
-    $("btnExportExcel").onclick = async ()=>{
-      const date = $("o_date").value;
-      if(!date) return alert("請先選日期");
-      if(!window.XLSX) return alert("Excel 匯出元件未載入（XLSX）");
-
-      try{
-        const orders = await fetchOrdersByDate(date);
-        if(!orders.length) return alert("此日期沒有訂單");
-
-        const detailRows = [];
-        const sumByPerson = new Map(); // key: dept|name -> total
-        const sumByDept = new Map();   // dept -> total
-        let grandTotal = 0;
-
-        for(const o of orders){
-          const orderDate = o.orderDate || date;
-          const dept = o.userDept || "";
-          const name = o.userName || "";
-          const rName = o.restaurantName || "";
-          const orderId = o.id || "";
-          const orderNote = o.orderNote || "";
-
-          for(const it of (o.items||[])){
-            const base = money(it.price);       // 主餐
-            const qty  = money(it.qty);         // 數量
-            const addons = it.addons || [];
-            const addonSum = addons.reduce((s,a)=> s + money(a.price), 0);
-
-            // ✅ 你要的：品項金額 = 主餐金額（不含加購）
-            const itemAmount = base;
-
-            const unit = base + addonSum;       // 單價含加購
-            const lineTotal = unit * qty;       // 小計
-
-            detailRows.push({
-              訂單日期: orderDate,
-              部門: dept,
-              姓名: name,
-              店家: rName,
-              品項: it.name || "",
-              品項金額: itemAmount,
-              加購: itemAddonText(addons),
-              單品備註: it.note || "",
-              數量: qty,
-              單價含加購: unit,
-              小計: lineTotal,
-              整筆備註: orderNote,
-              訂單ID: orderId,
-            });
-
-            const personKey = `${dept}__${name}`;
-            sumByPerson.set(personKey, (sumByPerson.get(personKey) || 0) + lineTotal);
-            sumByDept.set(dept, (sumByDept.get(dept) || 0) + lineTotal);
-            grandTotal += lineTotal;
-          }
-        }
-
-        const personRows = Array.from(sumByPerson.entries()).map(([k,v])=>{
-          const [dept, name] = k.split("__");
-          return { 部門: dept, 姓名: name, 合計: v };
-        }).sort((a,b)=> (a.部門+a.姓名).localeCompare(b.部門+b.姓名));
-
-        const deptRows = Array.from(sumByDept.entries()).map(([dept,v])=>{
-          return { 部門: dept, 合計: v };
-        }).sort((a,b)=> (a.部門||"").localeCompare(b.部門||""));
-
-        const grandRows = [{ 訂單日期: date, 總加總: grandTotal }];
-
-        const wb = XLSX.utils.book_new();
-        const ws1 = XLSX.utils.json_to_sheet(detailRows);
-        const ws2 = XLSX.utils.json_to_sheet(personRows);
-        const ws3 = XLSX.utils.json_to_sheet(deptRows);
-        const ws4 = XLSX.utils.json_to_sheet(grandRows);
-
-        XLSX.utils.book_append_sheet(wb, ws1, "明細");
-        XLSX.utils.book_append_sheet(wb, ws2, "每人加總");
-        XLSX.utils.book_append_sheet(wb, ws3, "部門加總");
-        XLSX.utils.book_append_sheet(wb, ws4, "總加總");
-
-        XLSX.writeFile(wb, `訂餐紀錄_${date}.xlsx`);
-      }catch(err){
-        console.error(err);
-        alert("匯出失敗\n\n" + (err?.message || err));
       }
     };
   </script>
