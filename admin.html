@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- Drag & Drop -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -279,7 +279,7 @@
         <button class="navBtn" data-tab="tabStaff"><span>人員管理</span><span class="tag">⛑️</span></button>
         <button class="navBtn" data-tab="tabOrders"><span>歷史紀錄 / 匯出</span><span class="tag">📃</span></button>
         <div class="hr"></div>
-        <div class="muted">☃️</div>
+        <div class="muted">提示：讀取失敗多半是 Rules / 網路 / Firebase 設定。</div>
 
         <div class="hr"></div>
 
@@ -287,7 +287,7 @@
         <details class="panel" id="restaurantSortPanel">
           <summary class="inline" style="justify-content:space-between">
             <div class="inline">
-              <b>店家列表</b>
+              <b>店家列表（可拖曳排序）</b>
               <span class="tag" id="restCountTag">0 間</span>
             </div>
             <span class="tag">收合</span>
@@ -302,7 +302,7 @@
         <!-- TAB: RESTAURANTS / MENU -->
         <div class="section active" id="tabRestaurants">
           <div class="card">
-            <h2>1）餐廳清單</h2>
+            <h2>1）餐廳清單（選擇後管理餐點/類別/狀態）</h2>
 
             <div class="row">
               <div>
@@ -310,7 +310,7 @@
                 <select id="restaurantSelect">
                   <option value="">載入中…</option>
                 </select>
-                <div class="muted" style="margin-top:6px">排序跟左側一致</div>
+                <div class="muted" style="margin-top:6px">提示：餐廳選單排序跟左側「店家拖曳排序」一致。</div>
               </div>
               <div class="inline" style="align-self:end; justify-content:flex-end">
                 <button class="btn" id="btnReloadRestaurants">重新載入</button>
@@ -322,14 +322,14 @@
 
             <div class="row">
               <div>
-                <label>顯示給使用者</label>
+                <label>顯示給使用者（isVisible）</label>
                 <select id="rVisible">
                   <option value="true">顯示</option>
                   <option value="false">隱藏</option>
                 </select>
               </div>
               <div>
-                <label>結單</label>
+                <label>結單（isClosed）</label>
                 <select id="rClosed">
                   <option value="false">開單中</option>
                   <option value="true">已結單</option>
@@ -345,7 +345,7 @@
 
           <!-- ✅ 餐廳資訊：可編輯（Enter/blur 自動存） -->
           <div class="card" style="margin-top:14px">
-            <h2>1-2）餐廳資訊</h2>
+            <h2>1-2）餐廳資訊（可編輯）</h2>
             <div id="restaurantEditWrap" class="muted">請先選擇餐廳。</div>
           </div>
 
@@ -393,9 +393,10 @@
             <div id="menuAddWrap" class="muted">請先選擇餐廳。</div>
 
             <div class="hr"></div>
-            <h2 style="margin-top:0">5）餐點清單</h2>
+            <h2 style="margin-top:0">5）餐點清單（類別內可拖曳排序＋自動儲存）</h2>
             <div class="muted" style="margin-top:-6px">
-              <br/> ✔️可拖曳排序
+              ✅ 已套用：餐點「加購 addonGroups」改成直覺輸入（不是 JSON 參數）。
+              <br/>❌ 已移除：選項 optionGroups（下拉 / 可加價）功能（新增/編輯/計算/匯出都不再使用）。
             </div>
             <div id="menuList" class="muted">尚未選擇餐廳。</div>
           </div>
@@ -412,7 +413,7 @@
                 <input id="staffDept" placeholder="例：工程部"/>
               </div>
               <div>
-                <label>人員姓名</label>
+                <label>人員姓名（Enter 直接新增）</label>
                 <input id="staffName" placeholder="例：小明"/>
               </div>
             </div>
@@ -424,8 +425,8 @@
 
             <div class="hr"></div>
             <div class="hintBar">
-              <div class="muted">展開可拖曳排序</div>
-              <span class="tag">🎠</span>
+              <div class="muted">部門預設收合；展開後可拖曳排序（自動儲存）。</div>
+              <span class="tag">不顯示順序號碼</span>
             </div>
             <div id="staffWrap" class="muted" style="margin-top:10px">載入中…</div>
           </div>
@@ -436,6 +437,7 @@
           <div class="card">
             <h2>歷史紀錄（查詢 / Excel 匯出）</h2>
             <div class="muted" style="margin-top:-6px">
+              ✅ 已修：若跳出「Excel 匯出元件未載入（XLSX）」，會自動補載入，載入完成才可匯出。
             </div>
 
             <div class="row" style="margin-top:10px">
@@ -582,59 +584,51 @@
     }
 
     // ===== ✅ XLSX loader（修你遇到的「XLSX 未載入」） =====
- async function ensureXLSX(){
-  const hint = $("xlsxHint");
-  const btn  = $("btnExportExcel");
+    async function ensureXLSX(){
+      const hint = $("xlsxHint");
+      const btn = $("btnExportExcel");
 
-  const ok = (from)=>{
-    if(hint) hint.textContent = `Excel 元件已就緒 ✅ (${from})`;
-    if(btn) btn.disabled = false;
-  };
-  const bad = (msg)=>{
-    if(hint) hint.textContent = msg || "Excel 元件載入失敗";
-    if(btn) btn.disabled = true;
-  };
+      const ok = ()=> {
+        if(hint) hint.textContent = "Excel 元件已就緒 ✅";
+        if(btn) btn.disabled = false;
+      };
+      const bad = (msg)=> {
+        if(hint) hint.textContent = msg || "Excel 元件載入失敗";
+        if(btn) btn.disabled = true;
+      };
 
-  // 已存在就直接用
-  if(window.XLSX && typeof window.XLSX.writeFile === "function"){
-    ok("cache");
-    return true;
-  }
-
-  if(hint) hint.textContent = "載入 Excel 元件中…";
-  if(btn) btn.disabled = true;
-
-  const load = (src)=> new Promise((resolve, reject)=>{
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.onload = ()=> resolve(true);
-    s.onerror = ()=> reject(new Error("load failed: " + src));
-    document.head.appendChild(s);
-  });
-
-  // ✅ 依序嘗試多個 CDN（最常成功的放前面）
-  const sources = [
-    ["cdnjs",   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"],
-    ["jsdelivr","https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
-    ["unpkg",   "https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js"],
-  ];
-
-  for(const [label, url] of sources){
-    try{
-      await load(url);
-      if(window.XLSX && typeof window.XLSX.writeFile === "function"){
-        ok(label);
+      if(window.XLSX){
+        ok();
         return true;
       }
-    }catch(e){
-      console.warn("[XLSX CDN fail]", label, e?.message || e);
-    }
-  }
 
-  bad("Excel 匯出元件未載入（XLSX）— 可能是公司網路/CSP 擋了 CDN");
-  return false;
-}
+      if(hint) hint.textContent = "載入 Excel 元件中…";
+      if(btn) btn.disabled = true;
+
+      const load = (src)=> new Promise((resolve, reject)=>{
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = true;
+        s.onload = ()=> resolve(true);
+        s.onerror = ()=> reject(new Error("load failed: " + src));
+        document.head.appendChild(s);
+      });
+
+      // 先補載入一次（跟上面 script 同源，但避免 CDN/快取造成 window.XLSX 沒掛上）
+      try{
+        await load("https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js");
+        if(window.XLSX){ ok(); return true; }
+      }catch(e){}
+
+      // fallback：unpkg
+      try{
+        await load("https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js");
+        if(window.XLSX){ ok(); return true; }
+      }catch(e){}
+
+      bad("Excel 匯出元件未載入（XLSX）— 請確認網路/CDN 是否被擋");
+      return false;
+    }
 
     statusPill.textContent = "已連線 Firestore";
 
@@ -1999,288 +1993,266 @@
       }
     }
 
- // ===== Orders (Query + Excel) =====
- // ===== Orders (Query + Excel) =====
-async function ensureXLSX(){
-  const hint = $("xlsxHint");
-  const btn  = $("btnExportExcel");
+    // ===== Orders (Query + Excel) =====
+    function fmtTime(ms){
+      if(!ms) return "";
+      const d = new Date(ms);
+      const pad = (n)=> String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function periodOf(ms){
+      const d = new Date(ms||0);
+      return d.getHours() < 12 ? "noon" : "night";
+    }
 
-  const ok = (from)=>{
-    if(hint) hint.textContent = `Excel 元件已就緒 ✅ (${from})`;
-    if(btn) btn.disabled = false;
-  };
-  const bad = (msg)=>{
-    if(hint) hint.textContent = msg || "Excel 元件載入失敗";
-    if(btn) btn.disabled = true;
-  };
+    function addonText(addons){
+      const list = Array.isArray(addons) ? addons : [];
+      return list.map(a=>{
+        const p = (a && a.free) ? 0 : Number(a.price||0);
+        return `+${a.name||""}${(a && a.free) ? "(免費)" : (p?(" "+p):"")}`;
+      }).join("；");
+    }
 
-  // 已存在就直接用
-  if(window.XLSX && typeof window.XLSX.writeFile === "function"){
-    ok("cache");
-    return true;
-  }
+    function calcItemLine(it){
+      const base = Number(it.price||0);
+      const addonSum = (it.addons||[]).reduce((s,a)=> s + ((a && a.free) ? 0 : Number(a.price||0)), 0);
+      const qty = Number(it.qty||0);
+      const unit = base + addonSum;
+      const lineTotal = unit * qty;
+      return { unit, lineTotal, addonSum };
+    }
 
-  if(hint) hint.textContent = "載入 Excel 元件中…";
-  if(btn) btn.disabled = true;
+    async function queryOrders(){
+      const qDate = ($("qDate").value || "").trim();
+      const qRid = ($("qRestaurant").value || "").trim();
+      const qName = ($("qName").value || "").trim();
+      const qPeriod = ($("qPeriod").value || "").trim();
 
-  const loadWithTimeout = (src, ms=9000)=> new Promise((resolve, reject)=>{
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    s.referrerPolicy = "no-referrer";
+      try{
+        statusPill.textContent = "查詢中…";
+        let snap;
+        if(qDate){
+          snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
+        }else{
+          snap = await getDocs(query(colOrders, limit(3000)));
+        }
 
-    const t = setTimeout(()=>{
-      s.remove();
-      reject(new Error("timeout"));
-    }, ms);
+        const rows = [];
+        snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
 
-    s.onload = ()=>{
-      clearTimeout(t);
-      resolve(true);
-    };
-    s.onerror = ()=>{
-      clearTimeout(t);
-      s.remove();
-      reject(new Error("load failed"));
-    };
+        const filtered = rows.filter(o=>{
+          if(qRid && o.restaurantId !== qRid) return false;
+          if(qName && !(String(o.userName||"").includes(qName))) return false;
+          if(qPeriod){
+            if(periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
+          }
+          return true;
+        }).sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
 
-    document.head.appendChild(s);
-  });
-
-  const sources = [
-    ["jsdelivr", "https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
-    ["cdnjs",    "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"],
-    ["unpkg",    "https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js"],
-    ["fastly",   "https://fastly.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
-  ];
-
-  for(const [label, url] of sources){
-    try{
-      await loadWithTimeout(url, 9000);
-      if(window.XLSX && typeof window.XLSX.writeFile === "function"){
-        ok(label);
-        return true;
+        renderOrders(filtered);
+        statusPill.textContent = "已查詢 ✅";
+      }catch(err){
+        console.error("queryOrders failed:", err);
+        statusPill.textContent = "查詢失敗（看 console）";
+        alert("查詢失敗（Rules/網路）\n\n" + (err?.message || err));
       }
-    }catch(e){
-      console.warn("[XLSX CDN fail]", label, e?.message || e);
-    }
-  }
-
-  bad("Excel 匯出元件未載入（你的網路或 CSP 擋了 CDN）");
-  return false;
-}
-
-function fmtTime(ms){
-  if(!ms) return "";
-  const d = new Date(ms);
-  const pad = (n)=> String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-function periodOf(ms){
-  const d = new Date(ms||0);
-  return d.getHours() < 12 ? "noon" : "night";
-}
-
-function addonText(addons){
-  const list = Array.isArray(addons) ? addons : [];
-  return list.map(a=>{
-    const p = (a && a.free) ? 0 : Number(a.price||0);
-    return `+${a.name||""}${(a && a.free) ? "(免費)" : (p?(" "+p):"")}`;
-  }).join("；");
-}
-
-function calcItemLine(it){
-  const base = Number(it.price||0);
-  const addonSum = (it.addons||[]).reduce(
-    (s,a)=> s + ((a && a.free) ? 0 : Number(a.price||0)), 0
-  );
-  const qty = Number(it.qty||0);
-  const unit = base + addonSum;
-  const lineTotal = unit * qty;
-  return { unit, lineTotal, addonSum };
-}
-
-async function queryOrders(){
-  const qDate = ($("qDate").value || "").trim();
-  const qRid = ($("qRestaurant").value || "").trim();
-  const qName = ($("qName").value || "").trim();
-  const qPeriod = ($("qPeriod").value || "").trim();
-
-  try{
-    statusPill.textContent = "查詢中…";
-    let snap;
-    if(qDate){
-      snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
-    }else{
-      snap = await getDocs(query(colOrders, limit(3000)));
     }
 
-    const rows = [];
-    snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
+    function renderOrders(list){
+      const wrap = $("ordersWrap");
+      if(list.length===0){
+        wrap.innerHTML = `<div class="muted">尚無資料。</div>`;
+        return;
+      }
+      wrap.innerHTML = list.map(o=>{
+        const items = Array.isArray(o.items) ? o.items : [];
+        const lines = items.map(it=>{
+          const addTxt = addonText(it.addons);
+          const calc = calcItemLine(it);
+          return `
+            • <b>${esc(it.name||"")}</b>
+            單價：${Number(it.price||0)}
+            ${addTxt?`（加購 +${calc.addonSum}）`:``}
+            × ${Number(it.qty||0)}
+            → 小計：${calc.lineTotal}
+            ${it.note?`（備註：${esc(it.note)}）`:``}
+            ${addTxt?`<div class="muted" style="margin-top:4px">　　加購：${esc(addTxt)}</div>`:``}
+          `;
+        }).join("<br/>");
 
-    const filtered = rows.filter(o=>{
-      if(qRid && o.restaurantId !== qRid) return false;
-      if(qName && !String(o.userName||"").includes(qName)) return false;
-      if(qPeriod && periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
-      return true;
-    }).sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
-
-    renderOrders(filtered);
-    statusPill.textContent = "已查詢 ✅";
-  }catch(err){
-    console.error("queryOrders failed:", err);
-    statusPill.textContent = "查詢失敗（看 console）";
-    alert("查詢失敗（Rules/網路）\n\n" + (err?.message || err));
-  }
-}
-
-function renderOrders(list){
-  const wrap = $("ordersWrap");
-  if(list.length===0){
-    wrap.innerHTML = `<div class="muted">尚無資料。</div>`;
-    return;
-  }
-
-  wrap.innerHTML = list.map(o=>{
-    const items = Array.isArray(o.items) ? o.items : [];
-    const lines = items.map(it=>{
-      const addTxt = addonText(it.addons);
-      const calc = calcItemLine(it);
-      return `
-        • <b>${esc(it.name||"")}</b>
-        單價：${Number(it.price||0)}
-        ${addTxt?`（加購 +${calc.addonSum}）`:``}
-        × ${Number(it.qty||0)}
-        → 小計：${calc.lineTotal}
-        ${it.note?`（備註：${esc(it.note)}）`:``}
-        ${addTxt?`<div class="muted" style="margin-top:4px">　　加購：${esc(addTxt)}</div>`:``}
-      `;
-    }).join("<br/>");
-
-    return `
-      <div class="listLine">
-        <div class="inline" style="justify-content:space-between">
-          <div>
-            <b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b>
-            — <span class="tag">${esc(o.restaurantName||"")}</span>
-            ${o.orderDate ? `<span class="tag">${esc(o.orderDate)}</span>` : ``}
-            <span class="tag">${periodOf(Number(o.createdAt||0))==="noon"?"中午":"晚上"}</span>
+        return `
+          <div class="listLine">
+            <div class="inline" style="justify-content:space-between">
+              <div>
+                <b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b>
+                — <span class="tag">${esc(o.restaurantName||"")}</span>
+                ${o.orderDate ? `<span class="tag">${esc(o.orderDate)}</span>` : ``}
+                <span class="tag">${periodOf(Number(o.createdAt||0))==="noon"?"中午":"晚上"}</span>
+              </div>
+              <span class="tag">總額：${Number(o.total||0)}</span>
+            </div>
+            <div class="muted" style="margin-top:8px">${lines}</div>
+            ${(o.orderNote||o.remark) ? `<div class="muted" style="margin-top:8px">整筆備註：${esc(o.orderNote||o.remark)}</div>` : ``}
+            <div class="muted" style="margin-top:8px">建立時間：${esc(fmtTime(Number(o.createdAt||0)))}</div>
           </div>
-          <span class="tag">總額：${Number(o.total||0)}</span>
-        </div>
-        <div class="muted" style="margin-top:8px">${lines}</div>
-        ${(o.orderNote||o.remark) ? `<div class="muted" style="margin-top:8px">整筆備註：${esc(o.orderNote||o.remark)}</div>` : ``}
-        <div class="muted" style="margin-top:8px">建立時間：${esc(fmtTime(Number(o.createdAt||0)))}</div>
-      </div>
-    `;
-  }).join("");
-}
-
-async function exportOrdersExcel(){
-  const ready = await ensureXLSX();
-  if(!ready) return;
-
-  const XLSX = window.XLSX; // ✅ module-safe
-  if(!XLSX || typeof XLSX.writeFile !== "function"){
-    alert("XLSX 未載入成功（請看 console）");
-    return;
-  }
-
-  const qDate = ($("qDate").value || "").trim();
-  const qRid = ($("qRestaurant").value || "").trim();
-  const qName = ($("qName").value || "").trim();
-  const qPeriod = ($("qPeriod")?.value || "").trim();
-
-  try{
-    statusPill.textContent = "匯出中…";
-
-    let snap;
-    if(qDate){
-      snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
-    }else{
-      snap = await getDocs(query(colOrders, limit(3000)));
+        `;
+      }).join("");
     }
 
-    const rows = [];
-    snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
+    async function exportOrdersExcel(){
+      const ok = await ensureXLSX();
+      if(!ok) return;
 
-    const filtered = rows.filter(o=>{
-      if(qRid && o.restaurantId !== qRid) return false;
-      if(qName && !String(o.userName||"").includes(qName)) return false;
-      if(qPeriod && periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
-      return true;
-    }).sort((a,b)=> Number(a.createdAt||0) - Number(b.createdAt||0));
+      const qDate = ($("qDate").value || "").trim();
+      const qRid = ($("qRestaurant").value || "").trim();
+      const qName = ($("qName").value || "").trim();
+      const qPeriod = ($("qPeriod")?.value || "").trim();
 
-    if(filtered.length === 0){
-      statusPill.textContent = "無資料可匯出";
-      return alert("目前篩選條件下沒有資料可匯出");
-    }
+      try{
+        statusPill.textContent = "匯出中…";
 
-    const detail = [];
-    for(const o of filtered){
-      const items = Array.isArray(o.items) ? o.items : [];
-      for(const it of items){
-        const calc = calcItemLine(it);
-        detail.push({
-          "訂單日期": o.orderDate || "",
-          "建立時間": fmtTime(Number(o.createdAt||0)),
-          "時段": periodOf(Number(o.createdAt||0)) === "noon" ? "中午" : "晚上",
-          "部門": o.userDept || "",
-          "姓名": o.userName || "",
-          "店家": o.restaurantName || "",
-          "品項": it.name || "",
-          "加購": addonText(it.addons),
-          "單品備註": it.note || "",
-          "數量": Number(it.qty||0),
-          "原單價": Number(it.price||0),
-          "加購加價": Number(calc.addonSum||0),
-          "小計單價": Number(calc.unit||0),
-          "品項小計": Number(calc.lineTotal||0),
-          "整筆備註": (o.orderNote || o.remark) ? (o.orderNote || o.remark) : "",
-          "訂單總額": Number(o.total||0),
-        });
+        let snap;
+        if(qDate){
+          snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
+        }else{
+          snap = await getDocs(query(colOrders, limit(3000)));
+        }
+
+        const rows = [];
+        snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
+
+        const filtered = rows.filter(o=>{
+          if(qRid && o.restaurantId !== qRid) return false;
+          if(qName && !(String(o.userName||"").includes(qName))) return false;
+          if(qPeriod){
+            if(periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
+          }
+          return true;
+        }).sort((a,b)=> Number(a.createdAt||0) - Number(b.createdAt||0));
+
+        if(filtered.length === 0){
+          statusPill.textContent = "無資料可匯出";
+          return alert("目前篩選條件下沒有資料可匯出");
+        }
+
+        const detail = [];
+        for(const o of filtered){
+          const items = Array.isArray(o.items) ? o.items : [];
+          for(const it of items){
+            const addTxt = addonText(it.addons);
+            const calc = calcItemLine(it);
+
+            detail.push({
+              "訂單日期": o.orderDate || "",
+              "建立時間": fmtTime(Number(o.createdAt||0)),
+              "時段": periodOf(Number(o.createdAt||0)) === "noon" ? "中午" : "晚上",
+              "部門": o.userDept || "",
+              "姓名": o.userName || "",
+              "店家": o.restaurantName || "",
+              "品項": it.name || "",
+              "加購": addTxt || "",
+              "單品備註": it.note || "",
+              "數量": Number(it.qty||0),
+              "原單價": Number(it.price||0),
+              "加購加價": Number(calc.addonSum||0),
+              "小計單價": Number(calc.unit||0),
+              "品項小計": Number(calc.lineTotal||0),
+              "整筆備註": (o.orderNote || o.remark) ? (o.orderNote || o.remark) : "",
+              "訂單總額": Number(o.total||0),
+            });
+          }
+        }
+
+        const sumMap = new Map();
+        for(const r of detail){
+          const key = `${r["部門"]}__${r["姓名"]}`;
+          if(!sumMap.has(key)) sumMap.set(key, { "部門": r["部門"], "姓名": r["姓名"], "金額小計": 0 });
+          sumMap.get(key)["金額小計"] += Number(r["品項小計"]||0);
+        }
+        const byPerson = Array.from(sumMap.values())
+          .sort((a,b)=> (a["部門"]+a["姓名"]).localeCompare(b["部門"]+b["姓名"], "zh-Hant"));
+
+        const deptMap = new Map();
+        for(const p of byPerson){
+          const d = p["部門"] || "未分部門";
+          if(!deptMap.has(d)) deptMap.set(d, { "部門": d, "金額小計": 0 });
+          deptMap.get(d)["金額小計"] += Number(p["金額小計"]||0);
+        }
+        const byDept = Array.from(deptMap.values())
+          .sort((a,b)=> a["部門"].localeCompare(b["部門"], "zh-Hant"));
+
+        const grandTotal = byPerson.reduce((s,x)=> s + Number(x["金額小計"]||0), 0);
+        byDept.push({ "部門": "—", "金額小計": "" });
+        byDept.push({ "部門": "總計", "金額小計": grandTotal });
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detail), "明細");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(byPerson), "人員加總");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(byDept), "部門加總");
+
+        const shopName = qRid ? ($("qRestaurant").selectedOptions?.[0]?.textContent || "Shop") : "AllShops";
+        const filename = `Orders_${qDate||"AllDates"}_${shopName}_${qPeriod?(qPeriod==="noon"?"Noon":"Night"):"AllDay"}`.replace(/[\\/:*?"<>|]/g, "-") + ".xlsx";
+        XLSX.writeFile(wb, filename);
+
+        statusPill.textContent = "匯出完成 ✅";
+      }catch(err){
+        console.error("exportOrdersExcel failed:", err);
+        statusPill.textContent = "匯出失敗（看 console）";
+        alert("匯出失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detail), "明細");
+    // ===== Events / Buttons =====
+    $("restaurantSelect").onchange = async ()=>{
+      const rid = $("restaurantSelect").value;
+      await loadRestaurantDoc(rid);
+    };
+    $("btnReloadRestaurants").onclick = loadRestaurants;
+    $("btnSaveRestaurantFlags").onclick = saveRestaurantFlags;
+    $("btnAddRestaurant").onclick = addRestaurant;
+    $("btnDeleteRestaurant").onclick = deleteRestaurant;
 
-    const shopName = qRid ? ($("qRestaurant").selectedOptions?.[0]?.textContent || "Shop") : "AllShops";
-    const filename = `Orders_${qDate||"AllDates"}_${shopName}_${qPeriod?(qPeriod==="noon"?"Noon":"Night"):"AllDay"}`
-      .replace(/[\\/:*?"<>|]/g, "-") + ".xlsx";
+    $("btnAddStaff").onclick = addStaff;
+    $("btnReloadStaff").onclick = loadStaff;
+    $("staffName").addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){ e.preventDefault(); addStaff(); }
+    });
 
-    XLSX.writeFile(wb, filename);
-    statusPill.textContent = "匯出完成 ✅";
-  }catch(err){
-    console.error("exportOrdersExcel failed:", err);
-    statusPill.textContent = "匯出失敗（看 console）";
-    alert("匯出失敗（Rules/網路）\n\n" + (err?.message || err));
-  }
-}
+    $("btnQuery").onclick = queryOrders;
+    $("btnToday").onclick = ()=>{
+      $("qDate").value = todayISO();
+      queryOrders();
+    };
+    $("btnExportExcel").onclick = exportOrdersExcel;
 
-// ===== Events / Buttons（Orders 區）=====
-$("btnQuery").onclick = queryOrders;
-$("btnToday").onclick = ()=>{
-  $("qDate").value = todayISO();
-  queryOrders();
-};
-$("btnExportExcel").onclick = exportOrdersExcel;
-$("qName").addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){ e.preventDefault(); queryOrders(); }
-});
+    $("qName").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); queryOrders(); } });
 
-// ===== Init（Orders 區）=====
-$("qDate").value = todayISO();
-await queryOrders();
-await ensureXLSX();
+    $("btnGoUser").onclick = ()=>{
+      localStorage.setItem(roleKey, "user");
+      location.href = "./user.html";
+    };
+    $("btnLogout").onclick = ()=>{
+      localStorage.removeItem(roleKey);
+      location.href = "./index.html";
+    };
 
-document.addEventListener("visibilitychange", async ()=>{
-  if(document.visibilityState === "visible"){
+    // ===== Init =====
+    $("qDate").value = todayISO();
+
+    await loadRestaurants();
+    await loadStaff();
+    await queryOrders();
+
+    // ✅ 先把 XLSX 準備好（避免你點匯出就跳未載入）
     await ensureXLSX();
-  }
-});
 
+    document.addEventListener("visibilitychange", async ()=>{
+      if(document.visibilityState === "visible"){
+        await loadRestaurants();
+        if(selectedRestaurantId) await loadRestaurantDoc(selectedRestaurantId);
+        await ensureXLSX();
+      }
+    });
   </script>
 </body>
 </html>
