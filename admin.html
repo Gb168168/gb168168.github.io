@@ -582,24 +582,7 @@
     }
 
     // ===== ✅ XLSX loader（修你遇到的「XLSX 未載入」） =====
-    async function ensureXLSX(){
-      const hint = $("xlsxHint");
-      const btn = $("btnExportExcel");
-
-      const ok = ()=> {
-        if(hint) hint.textContent = "Excel 元件已就緒 ✅";
-        if(btn) btn.disabled = false;
-      };
-      const bad = (msg)=> {
-        if(hint) hint.textContent = msg || "Excel 元件載入失敗";
-        if(btn) btn.disabled = true;
-      };
-
-      if(window.XLSX){
-        ok();
-        return true;
-      }
-
+ 
       if(hint) hint.textContent = "載入 Excel 元件中…";
       if(btn) btn.disabled = true;
 
@@ -1992,6 +1975,75 @@
     }
 
  // ===== Orders (Query + Excel) =====
+    async function ensureXLSX(){
+  const hint = $("xlsxHint");
+  const btn  = $("btnExportExcel"); // ✅ 正確：btnExportExcel
+
+  const ok = (from)=>{
+    if(hint) hint.textContent = `Excel 元件已就緒 ✅ (${from})`;
+    if(btn) btn.disabled = false;
+  };
+  const bad = (msg)=>{
+    if(hint) hint.textContent = msg || "Excel 元件載入失敗";
+    if(btn) btn.disabled = true;
+  };
+
+  if (window.XLSX && typeof window.XLSX.writeFile === "function"){
+    ok("cache");
+    return true;
+  }
+
+  if(hint) hint.textContent = "載入 Excel 元件中…";
+  if(btn) btn.disabled = true;
+
+  const loadWithTimeout = (src, label, ms=9000)=> new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.referrerPolicy = "no-referrer";
+
+    const t = setTimeout(()=>{
+      s.remove();
+      reject(new Error("timeout"));
+    }, ms);
+
+    s.onload = ()=>{
+      clearTimeout(t);
+      resolve(label);
+    };
+    s.onerror = ()=>{
+      clearTimeout(t);
+      s.remove();
+      reject(new Error("load failed"));
+    };
+
+    document.head.appendChild(s);
+  });
+
+  const sources = [
+    ["jsdelivr", "https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
+    ["cdnjs",   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"],
+    ["unpkg",   "https://unpkg.com/xlsx@0.19.3/dist/xlsx.full.min.js"],
+    ["fastly",  "https://fastly.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"],
+  ];
+
+  for(const [label, url] of sources){
+    try{
+      const from = await loadWithTimeout(url, label);
+      if(window.XLSX && typeof window.XLSX.writeFile === "function"){
+        ok(from);
+        return true;
+      }
+    }catch(e){
+      console.warn("[XLSX]", label, "fail");
+    }
+  }
+
+  bad("Excel 匯出元件未載入（你的網路或 CSP 擋了 CDN）");
+  return false;
+}
+
 function fmtTime(ms){
   if(!ms) return "";
   const d = new Date(ms);
