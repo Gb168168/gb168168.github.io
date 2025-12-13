@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>GoldBricks 呷奔啊~~ ｜使用者</title>
+
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -13,59 +14,65 @@
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
-      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
-                  var(--bg);
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      background:
+        radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
+        var(--bg);
       color:var(--text);
       min-height:100vh;
     }
-    .wrap{max-width:1200px; margin:0 auto; padding:16px;}
+
+    .wrap{max-width:1200px;margin:0 auto;padding:16px;}
     .topbar{
-      background: rgba(255,255,255,.78);
+      background:rgba(255,255,255,.78);
       border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
       padding:12px 14px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
     }
-    .topbar h1{font-size:18px; margin:0}
-    .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
-    .btn{
-      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
-      background:#fff; cursor:pointer; font-weight:900;
-    }
+    .topbar h1{margin:0;font-size:18px}
+    .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    .pill{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--muted);font-size:12.5px}
+    .btn{padding:9px 12px;border-radius:14px;border:1px solid var(--border);background:#fff;cursor:pointer;font-weight:900}
     .primary{
-      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
-      background: linear-gradient(90deg, var(--primary), var(--primary2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
+      padding:9px 12px;border-radius:14px;border:none;cursor:pointer;font-weight:900;
+      background:linear-gradient(90deg,var(--primary),var(--primary2));
+      color:#fff;
+      box-shadow:0 14px 28px rgba(251,113,133,.22);
     }
-    .btn:disabled,.primary:disabled{opacity:.55; cursor:not-allowed}
-    .grid{display:grid; grid-template-columns: 1.25fr .85fr; gap:14px; margin-top:14px}
+    .btn:disabled,.primary:disabled{opacity:.55;cursor:not-allowed}
+
+    .grid{display:grid;grid-template-columns:1.25fr .85fr;gap:14px;margin-top:14px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
     .card{
-      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
-      box-shadow: 0 8px 25px rgba(15,23,42,.07);
-      padding:14px;
+      background:#fff;border:1px solid var(--border);border-radius:var(--radius);
+      box-shadow:0 8px 25px rgba(15,23,42,.07);padding:14px;
     }
-    .card h2{margin:0 0 10px; font-size:15px}
-    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
+    .card h2{margin:0 0 10px;font-size:15px}
+
+    label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px}
     input,select,textarea{
-      width:100%; padding:11px 12px; border-radius:14px;
-      border:1px solid var(--border); outline:none; background:#fff;
-      font-size:14px;
+      width:100%;padding:11px 12px;border-radius:14px;border:1px solid var(--border);
+      font-size:14px;outline:none
     }
-    textarea{min-height:92px; resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
-    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
-    .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
-    .hr{height:1px; background: var(--border); margin:12px 0}
-    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
-    .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .restaurantGrid{display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px}
+    textarea{min-height:92px}
+    input:focus,select:focus,textarea:focus{border-color:rgba(251,113,133,.7)}
+
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .muted{color:var(--muted);font-size:12.5px}
+    .hr{height:1px;background:var(--border);margin:12px 0}
+    .tag{padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;font-size:12px}
+
+    .restaurantGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
     @media (max-width:980px){.restaurantGrid{grid-template-columns:1fr}}
+
+    /* ===== 餐廳卡片 ===== */
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
@@ -73,854 +80,133 @@
       background:#fff;
       cursor:pointer;
       transition:.12s transform;
+      pointer-events:auto;
     }
-    .rCard:hover{transform: translateY(-1px)}
-    .rImg{width:100%; height:160px; object-fit:cover; background:rgba(15,23,42,.04); display:block}
-    .rBody{padding:10px 12px}
-    .rBody h3{margin:0; font-size:15px}
-    .rBody .muted{margin-top:6px}
+    .rCard:hover{transform:translateY(-1px)}
     .rCard.active{
-      border-color: rgba(251,113,133,.55);
-      box-shadow: 0 10px 22px rgba(251,113,133,.18);
+      border-color:rgba(251,113,133,.55);
+      box-shadow:0 10px 22px rgba(251,113,133,.18);
     }
-    .menuItem{
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
-      margin-top:10px;
-    }
-    .menuItem h4{margin:0; font-size:14.5px}
-    .addonBox{
-      background: rgba(15,23,42,.02);
-      border:1px dashed rgba(15,23,42,.18);
-      border-radius:16px;
-      padding:10px;
-      margin-top:10px;
-    }
-    .addonRow{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px}
-    .addonRow input{width:18px; height:18px; margin:0}
-    .qtyRow{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px}
-    .qtyRow input[type="number"]{width:140px}
-    .cartLine{
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:14px;
-      padding:10px 12px;
-      margin-top:10px;
-      background:#fff;
-    }
-    .cartLine .top{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
-    .danger{border-color: rgba(239,68,68,.35)}
-    table{width:100%; border-collapse:collapse; font-size:13.5px}
-    th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
-    th{color:var(--muted); font-weight:900}
 
-    /* ✅ 結單提示 */
+    .rImg{width:100%;height:160px;object-fit:cover;background:rgba(15,23,42,.04)}
+    .rBody{padding:10px 12px}
+    .rBody h3{margin:0;font-size:15px}
+
+    /* ✅ 關鍵修正：狀態標籤不吃點擊 */
+    .rBody .tag{pointer-events:none}
+
+    /* ===== 結單提示 ===== */
     .banner{
+      display:none;
       margin-top:10px;
       padding:10px 12px;
       border-radius:14px;
       border:1px solid rgba(239,68,68,.35);
-      background: rgba(239,68,68,.06);
+      background:rgba(239,68,68,.06);
       color:#7f1d1d;
       font-weight:900;
-      display:none;
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div>
-        <h1>使用者點餐</h1>
-        <div class="muted" id="whoLine">尚未選擇使用者</div>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>使用者點餐</h1>
+      <div class="muted" id="whoLine">尚未選擇使用者</div>
+    </div>
+    <div class="right">
+      <span class="pill" id="statusPill">連線中</span>
+      <button class="btn" id="btnLogout">登出</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>1）使用者資訊</h2>
+        <div class="row">
+          <select id="userDept"></select>
+          <select id="userName" disabled></select>
+        </div>
       </div>
-      <div class="right">
-        <span class="pill" id="statusPill">連線中…</span>
-        <button class="btn" id="btnSwitchAdmin">❤️</button>
-        <button class="btn" id="btnLogout">登出</button>
+
+      <div class="card" style="margin-top:14px">
+        <h2>2）選擇餐廳</h2>
+        <div id="restaurantList" class="restaurantGrid"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h2>3）選擇餐點</h2>
+        <div id="closedBanner" class="banner">此店家已結單</div>
+        <div id="menuWrap" class="muted">請先選擇餐廳</div>
       </div>
     </div>
 
-    <div class="grid">
-      <!-- LEFT -->
-      <div>
-        <div class="card">
-          <h2>1）使用者資訊（需先選擇才能點餐）</h2>
-          <div class="row">
-            <div>
-              <label>選擇部門</label>
-              <select id="userDept">
-                <option value="">載入中…</option>
-              </select>
-            </div>
-            <div>
-              <label>選擇人員</label>
-              <select id="userName" disabled>
-                <option value="">請先選部門</option>
-              </select>
-            </div>
-          </div>
-          <p class="muted">提示：若看不到部門/人員，通常是資料尚未新增，或 Rules/網路問題。</p>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <h2>2）選擇餐廳（只顯示「管理者開放」的店家）</h2>
-          <div id="restaurantList" class="restaurantGrid">
-            <div class="muted">載入中…</div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <h2>3）選擇餐點</h2>
-          <div id="closedBanner" class="banner">此店家已結單，暫停接單。</div>
-          <div id="menuWrap" class="muted">請先選擇部門、人員與餐廳。</div>
-        </div>
-      </div>
-
-      <!-- RIGHT -->
-      <div>
-        <div class="card">
-          <h2>購物車</h2>
-          <div id="cartWrap" class="muted">尚未加入餐點。</div>
-
-          <div class="hr"></div>
-
-          <div class="row">
-            <div>
-              <label>訂單日期</label>
-              <input id="orderDate" type="date"/>
-            </div>
-            <div>
-              <label>總金額</label>
-              <input id="totalPrice" disabled value="0"/>
-            </div>
-          </div>
-
-          <label>送出前備註（整筆訂單）</label>
-          <textarea id="orderRemark" placeholder="例：都不要辣、少飯…"></textarea>
-
-          <div class="inline" style="margin-top:12px">
-            <button class="primary" id="btnSubmit" disabled>送出</button>
-            <button class="btn" id="btnClearCart">清空</button>
-          </div>
-
-          <p class="muted" style="margin-top:10px">送出後會自動顯示在下方「訂購紀錄」。</p>
-
-          <div class="hr"></div>
-          <div class="inline">
-            <span class="tag">管理者</span>
-            <input id="adminPin" placeholder="輸入" style="flex:1; min-width:220px"/>
-            <button class="btn" id="btnGoAdmin">送出</button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <h2>3）訂購紀錄（查詢：日期 / 店家 / 輸入名稱）</h2>
-
-          <div class="row">
-            <div>
-              <label>訂購日期</label>
-              <input id="qDate" type="date"/>
-            </div>
-            <div>
-              <label>店家</label>
-              <select id="qRestaurant">
-                <option value="">全部</option>
-              </select>
-            </div>
-          </div>
-
-          <label>輸入名稱（人員）</label>
-          <input id="qName" placeholder="例：小明"/>
-
-          <div class="inline" style="margin-top:12px">
-            <button class="primary" id="btnQuery">查詢</button>
-            <button class="btn" id="btnMine">查我的</button>
-            <button class="btn" id="btnToday">今天</button>
-          </div>
-
-          <div class="hr"></div>
-          <div id="recordsWrap" class="muted">尚無資料。</div>
-        </div>
+    <div>
+      <div class="card">
+        <h2>購物車</h2>
+        <div id="cartWrap" class="muted">尚未加入餐點</div>
+        <div class="hr"></div>
+        <button class="primary" id="btnSubmit" disabled>送出</button>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    // ====== Role Gate ======
-    const roleKey = "gb_role";
-    if (!localStorage.getItem(roleKey)) localStorage.setItem(roleKey, "user");
-    if (localStorage.getItem(roleKey) !== "user") location.href = "./index.html";
+</div>
 
-    // ====== Firebase ======
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, doc, getDocs, getDoc,
-      query, where, limit, deleteDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
-      authDomain: "goldbricks-order.firebaseapp.com",
-      projectId: "goldbricks-order",
-      storageBucket: "goldbricks-order.firebasestorage.app",
-      messagingSenderId: "463709758954",
-      appId: "1:463709758954:web:429dc920f2f812d51cbe93",
-      measurementId: "G-YQK8ZCC26R"
-    };
+const app = initializeApp({
+  apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
+  authDomain: "goldbricks-order.firebaseapp.com",
+  projectId: "goldbricks-order"
+});
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const $ = id => document.getElementById(id);
 
-    const $ = (id)=> document.getElementById(id);
-    const statusPill = $("statusPill");
-    const esc = (s)=> (s??"").toString()
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+let restaurants = [];
+let selectedRestaurantId = "";
 
-    const todayISO = ()=>{
-      const d = new Date(); const pad = (n)=> String(n).padStart(2,"0");
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    };
+async function loadRestaurants(){
+  const snap = await getDocs(collection(db,"restaurants"));
+  restaurants = [];
+  snap.forEach(d=>{
+    const r = d.data();
+    if(r.isVisible === false) return;
+    restaurants.push({id:d.id,...r});
+  });
+  renderRestaurants();
+}
 
-    statusPill.textContent = "已連線 Firestore";
-
-    // ====== Collections ======
-    const colStaff = collection(db, "staff");
-    const colRestaurants = collection(db, "restaurants");
-    const colOrders = collection(db, "orders");
-
-    // ====== State ======
-    let staffDeptMap = {};
-    let restaurants = [];              // ✅ 只放「可顯示」的餐廳
-    let selectedRestaurantId = "";
-    let selectedRestaurantName = "";
-    let selectedRestaurantClosed = false; // ✅ 結單狀態
-    let menuCache = {};
-    let cart = [];
-    let currentUserDept = "";
-    let currentUserName = "";
-
-    // ====== UI Helpers ======
-    function setWhoLine(){
-      const ok = currentUserDept && currentUserName;
-      $("whoLine").innerHTML = ok
-        ? `<span class="tag">${esc(currentUserDept)}</span> <span class="tag">${esc(currentUserName)}</span>`
-        : `尚未選擇使用者`;
-    }
-    function canOrder(){
-      return !!(currentUserDept && currentUserName && selectedRestaurantId);
-    }
-    function refreshClosedUI(){
-      $("closedBanner").style.display = selectedRestaurantId && selectedRestaurantClosed ? "block" : "none";
-    }
-    function refreshSubmitState(){
-      // ✅ 結單時，直接禁止送出
-      $("btnSubmit").disabled = !(canOrder() && cart.length>0 && !selectedRestaurantClosed);
-    }
-
-    // ====== Load Staff ======
-    async function loadStaff(){
-      try{
-        const snap = await getDocs(colStaff);
-        const map = {};
-        snap.forEach(d=>{
-          const v = d.data() || {};
-          const dept = (v.dept || "未分部門").trim();
-          const name = (v.name || "").trim();
-          if(!name) return;
-          if(!map[dept]) map[dept] = [];
-          map[dept].push(name);
-        });
-
-        Object.keys(map).forEach(k=> map[k].sort((a,b)=> a.localeCompare(b,"zh-Hant")));
-        staffDeptMap = map;
-
-        const deptSel = $("userDept");
-        const depts = Object.keys(staffDeptMap).sort((a,b)=> a.localeCompare(b,"zh-Hant"));
-        deptSel.innerHTML = `<option value="">請選擇</option>` + depts.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("");
-
-        deptSel.onchange = ()=>{
-          currentUserDept = deptSel.value;
-          currentUserName = "";
-          const nameSel = $("userName");
-          if(!currentUserDept){
-            nameSel.disabled = true;
-            nameSel.innerHTML = `<option value="">請先選部門</option>`;
-          }else{
-            nameSel.disabled = false;
-            const list = staffDeptMap[currentUserDept] || [];
-            nameSel.innerHTML = `<option value="">請選擇人員</option>` + list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
-          }
-          setWhoLine();
-          renderMenu();
-          refreshSubmitState();
-        };
-
-        $("userName").onchange = ()=>{
-          currentUserName = $("userName").value;
-          setWhoLine();
-          renderMenu();
-          refreshSubmitState();
-          if(currentUserName) $("qName").value = currentUserName;
-        };
-
-      }catch(err){
-        console.error("loadStaff failed:", err);
-        statusPill.textContent = "人員讀取失敗（看 console）";
-        $("userDept").innerHTML = `<option value="">讀取失敗</option>`;
-        $("userName").innerHTML = `<option value="">讀取失敗</option>`;
-      }
-    }
-
-    // ====== Load Restaurants（✅ 只顯示 isVisible==true）=====
-    async function loadRestaurants(){
-      try{
-        const snap = await getDocs(colRestaurants);
-        const list = [];
-        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
-
-        // ✅ 只顯示可見餐廳（預設 true）
-        const visible = list.filter(r => r.isVisible !== false);
-
-        // sort
-        visible.sort((a,b)=>{
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(bb !== aa) return bb - aa;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-
-        restaurants = visible;
-
-        // 若原本選到被隱藏的店，清掉
-        if(selectedRestaurantId && !restaurants.find(r=> r.id===selectedRestaurantId)){
-          selectedRestaurantId = "";
-          selectedRestaurantName = "";
-          selectedRestaurantClosed = false;
-          cart = [];
-          renderCart();
-        }
-
-        renderRestaurants();
-        fillRestaurantQuerySelect();
-      }catch(err){
-        console.error("loadRestaurants failed:", err);
-        statusPill.textContent = "餐廳讀取失敗（看 console）";
-        $("restaurantList").innerHTML = `<div class="muted">讀取餐廳失敗（Rules/網路）</div>`;
-      }
-    }
-
-    function renderRestaurants(){
-      const wrap = $("restaurantList");
-      if(restaurants.length===0){
-        wrap.innerHTML = `<div class="muted">目前沒有「開放顯示」的餐廳</div>`;
-        return;
-      }
-
-      wrap.innerHTML = restaurants.map(r=>{
-        const img = (r.imageUrl || "").trim();
-        const hasImg = !!img;
-        const sub = [r.address, r.phone].filter(Boolean).join(" · ");
-
-        const closed = !!r.isClosed;
-        const closedTag = closed ? `<span class="tag" style="border-color:rgba(239,68,68,.35); color:#7f1d1d; background:rgba(239,68,68,.06)">已結單</span>` : `<span class="tag" style="border-color:rgba(16,185,129,.35); color:#065f46; background:rgba(16,185,129,.08)">開單中</span>`;
-
-        return `
-          <div class="rCard ${r.id===selectedRestaurantId ? "active":""}" data-rid="${esc(r.id)}">
-            ${hasImg
-              ? `<img class="rImg" src="${esc(img)}" alt="img" onerror="this.style.display='none'">`
-              : `<div class="rImg"></div>`
-            }
-            <div class="rBody">
-              <div class="inline" style="justify-content:space-between">
-                <h3>${esc(r.name||"未命名")}</h3>
-                ${closedTag}
-              </div>
-              <div class="muted">${esc(sub || "")}</div>
-              <div class="inline" style="margin-top:8px">
-                ${r.mapUrl ? `<span class="tag"><a href="${esc(r.mapUrl)}" target="_blank" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
-                ${img ? `<span class="tag"><a href="${esc(img)}" target="_blank" style="color:inherit; text-decoration:none">圖片</a></span>` : ``}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      wrap.querySelectorAll(".rCard").forEach(el=>{
-        el.onclick = async ()=>{
-          const rid = el.dataset.rid;
-          const r = restaurants.find(x=> x.id===rid);
-          selectedRestaurantId = rid;
-          selectedRestaurantName = r?.name || "";
-          selectedRestaurantClosed = !!r?.isClosed;
-
-          // 切餐廳時，清空購物車（避免跨店）
-          cart = [];
-          renderCart();
-
-          renderRestaurants();
-          await loadMenu(rid);
-          refreshClosedUI();
-          renderMenu();
-          refreshSubmitState();
-        };
-      });
-    }
-
-    function fillRestaurantQuerySelect(){
-      const sel = $("qRestaurant");
-      sel.innerHTML = `<option value="">全部</option>` + restaurants.map(r=>`<option value="${esc(r.id)}">${esc(r.name||"未命名")}</option>`).join("");
-    }
-
-    // ====== Load Menu ======
-    async function loadMenu(rid){
-      if(menuCache[rid]) return menuCache[rid];
-      try{
-        const menuCol = collection(db, "restaurants", rid, "menu");
-        const snap = await getDocs(menuCol);
-        const list = [];
-        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
-
-        list.sort((a,b)=>{
-          const aa = Number(a.createdAt||0), bb = Number(b.createdAt||0);
-          if(bb !== aa) return bb - aa;
-          const ca = (a.category||"").localeCompare((b.category||""),"zh-Hant");
-          if(ca !== 0) return ca;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-
-        menuCache[rid] = list;
-        return list;
-      }catch(err){
-        console.error("loadMenu failed:", err);
-        statusPill.textContent = "餐點讀取失敗（看 console）";
-        menuCache[rid] = [];
-        return [];
-      }
-    }
-
-    // ====== Render Menu ======
-    function renderMenu(){
-      const wrap = $("menuWrap");
-      refreshClosedUI();
-
-      if(!canOrder()){
-        wrap.innerHTML = `<div class="muted">請先選擇部門、人員與餐廳。</div>`;
-        return;
-      }
-
-      // ✅ 結單時：不顯示可加入操作
-      if(selectedRestaurantClosed){
-        wrap.innerHTML = `<div class="muted">此店家已結單，暫停接單。</div>`;
-        return;
-      }
-
-      const rid = selectedRestaurantId;
-      const menu = menuCache[rid] || [];
-      if(menu.length===0){
-        wrap.innerHTML = `<div class="muted">此餐廳尚無餐點</div>`;
-        return;
-      }
-
-      const catMap = new Map();
-      for(const m of menu){
-        const cat = (m.category || "未分類").trim();
-        if(!catMap.has(cat)) catMap.set(cat, []);
-        catMap.get(cat).push(m);
-      }
-
-      wrap.innerHTML = `
-        <div class="inline" style="justify-content:space-between">
-          <div>
-            <span class="tag">店家</span>
-            <b style="margin-left:8px">${esc(selectedRestaurantName)}</b>
-          </div>
-          <span class="muted">點錯可在購物車刪除</span>
+function renderRestaurants(){
+  $("restaurantList").innerHTML = restaurants.map(r=>`
+    <div class="rCard" data-id="${r.id}">
+      <div class="rBody">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>${r.name||"未命名"}</h3>
+          <span class="tag">${r.isClosed?"已結單":"開單中"}</span>
         </div>
-        <div class="hr"></div>
-        ${Array.from(catMap.entries()).map(([cat, items])=>`
-          <details open style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:12px;">
-            <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${items.length} 項</span></summary>
-            <div style="margin-top:10px">
-              ${items.map(m=>{
-                const addons = Array.isArray(m.addons) ? m.addons : [];
-                return `
-                  <div class="menuItem" data-mid="${esc(m.id)}">
-                    <div class="inline" style="justify-content:space-between">
-                      <div>
-                        <h4>${esc(m.name||"未命名")}</h4>
-                        <div class="muted">價格：${Number(m.price||0)}　｜　預設數量：${Number(m.defaultQty||1)}</div>
-                      </div>
-                      <span class="tag">可加購</span>
-                    </div>
+      </div>
+    </div>
+  `).join("");
 
-                    <div class="addonBox">
-                      <div class="muted">加購項目</div>
-                      ${addons.length===0
-                        ? `<div class="muted" style="margin-top:6px">（此餐點無加購）</div>`
-                        : addons.map((a,idx)=>`
-                            <label class="addonRow">
-                              <div class="inline">
-                                <input type="checkbox" data-addon-mid="${esc(m.id)}" data-idx="${idx}">
-                                <div>
-                                  <b>${esc(a.name||"")}</b>
-                                  <span class="tag" style="margin-left:8px">+${Number(a.price||0)}</span>
-                                  ${a.free ? `<span class="tag" style="margin-left:6px">免費</span>` : ``}
-                                </div>
-                              </div>
-                            </label>
-                          `).join("")
-                      }
-
-                      <div class="qtyRow">
-                        <div style="flex:1; min-width:180px">
-                          <label style="margin:10px 0 6px">數量</label>
-                          <input type="number" min="1" value="${Math.max(1, Number(m.defaultQty||1))}" data-qty-mid="${esc(m.id)}">
-                        </div>
-                        <div style="flex:2; min-width:240px">
-                          <label style="margin:10px 0 6px">備註（單品）</label>
-                          <input placeholder="例：不要香菜" data-note-mid="${esc(m.id)}">
-                        </div>
-                        <div style="align-self:end">
-                          <button class="primary" type="button" data-add-to-cart="${esc(m.id)}">加入</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                `;
-              }).join("")}
-            </div>
-          </details>
-        `).join("")}
-      `;
-
-      wrap.querySelectorAll("button[data-add-to-cart]").forEach(btn=>{
-        btn.onclick = ()=>{
-          if(selectedRestaurantClosed){
-            alert("此店家已結單，暫停接單。");
-            return;
-          }
-
-          const mid = btn.dataset.addToCart;
-          const m = (menuCache[selectedRestaurantId] || []).find(x=> x.id===mid);
-          if(!m) return;
-
-          const qtyEl = wrap.querySelector(`[data-qty-mid="${mid}"]`);
-          const noteEl = wrap.querySelector(`[data-note-mid="${mid}"]`);
-          const qty = Math.max(1, Number(qtyEl?.value || 1));
-          const note = (noteEl?.value || "").trim();
-
-          const addonsAll = Array.isArray(m.addons) ? m.addons : [];
-          const checkedEls = wrap.querySelectorAll(`[data-addon-mid="${mid}"]`);
-          const picked = [];
-          checkedEls.forEach(ch=>{
-            if(ch.checked){
-              const idx = Number(ch.dataset.idx);
-              const a = addonsAll[idx];
-              if(a) picked.push({ name: a.name, price: Number(a.price||0), free: !!a.free });
-            }
-          });
-
-          cart.push({
-            rid: selectedRestaurantId,
-            restaurantName: selectedRestaurantName,
-            menuId: mid,
-            name: m.name || "",
-            price: Number(m.price||0),
-            qty,
-            note,
-            addons: picked
-          });
-
-          if(noteEl) noteEl.value = "";
-          checkedEls.forEach(ch=> ch.checked = false);
-
-          renderCart();
-          refreshSubmitState();
-        };
-      });
-    }
-
-    // ====== Cart（✅ 免費加購不計入金額）=====
-    function addonSum(it){
-      return (it.addons||[]).reduce((s,a)=> s + (a && a.free ? 0 : Number(a.price||0)), 0);
-    }
-    function calcLineTotal(it){
-      return (Number(it.price||0) + addonSum(it)) * Number(it.qty||0);
-    }
-    function calcTotal(){
-      return cart.reduce((s,it)=> s + calcLineTotal(it), 0);
-    }
-
-    function renderCart(){
-      const wrap = $("cartWrap");
-      if(cart.length===0){
-        wrap.innerHTML = `<div class="muted">尚未加入餐點。</div>`;
-        $("totalPrice").value = "0";
-        return;
-      }
-
-      wrap.innerHTML = cart.map((it, idx)=>{
-        const addonTxt = (it.addons||[]).map(a=>{
-          const p = (a && a.free) ? 0 : Number(a.price||0);
-          return `+${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
-        }).join("");
-
-        const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
-        const lineTotal = calcLineTotal(it);
-
-        return `
-          <div class="cartLine">
-            <div class="top">
-              <div>
-                <b>${esc(it.name)}</b>
-                <span class="tag" style="margin-left:8px">${esc(it.restaurantName||"")}</span>
-                <div class="muted" style="margin-top:6px">
-                  ${esc(it.name)} ${Number(it.price||0)} ${esc(addonTxt)} × ${Number(it.qty||0)} ${noteTxt}
-                </div>
-                <div class="muted" style="margin-top:6px">小計：${lineTotal}</div>
-              </div>
-              <button class="btn danger" type="button" data-del-cart="${idx}">刪除</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      wrap.querySelectorAll("button[data-del-cart]").forEach(b=>{
-        b.onclick = ()=>{
-          const i = Number(b.dataset.delCart);
-          if(!confirm("確定刪除這個品項？")) return;
-          cart.splice(i,1);
-          renderCart();
-          refreshSubmitState();
-        };
-      });
-
-      $("totalPrice").value = String(calcTotal());
-    }
-
-    // ====== Submit Order（✅ 送出前再檢查一次結單）=====
-    async function submitOrder(){
-      if(!canOrder()) return alert("請先選擇部門、人員與餐廳");
-      if(cart.length===0) return alert("購物車是空的");
-
-      // ✅ 再讀一次餐廳狀態（避免管理者剛結單）
-      try{
-        const rSnap = await getDoc(doc(db, "restaurants", selectedRestaurantId));
-        const rData = rSnap.exists() ? rSnap.data() : null;
-        const visible = rData ? (rData.isVisible !== false) : false;
-        const closed = rData ? !!rData.isClosed : true;
-
-        if(!visible){
-          alert("此店家已被管理者隱藏，無法送單。");
-          selectedRestaurantClosed = true;
-          refreshClosedUI();
-          renderMenu();
-          refreshSubmitState();
-          return;
-        }
-        if(closed){
-          alert("此店家已結單，暫停接單。");
-          selectedRestaurantClosed = true;
-          refreshClosedUI();
-          renderMenu();
-          refreshSubmitState();
-          return;
-        }
-      }catch(err){
-        console.error("check closed failed:", err);
-        // 若讀不到狀態，保守擋住
-        alert("無法確認店家狀態（Rules/網路），暫停送單。");
-        return;
-      }
-
-      const orderDate = $("orderDate").value || todayISO();
-      const remark = ($("orderRemark").value || "").trim();
-
-      const payload = {
-        orderDate,
-        createdAt: Date.now(),
-        userDept: currentUserDept,
-        userName: currentUserName,
-        restaurantId: selectedRestaurantId,
-        restaurantName: selectedRestaurantName,
-        // ✅ admin 端匯出用：兩個欄位都留（相容舊版）
-        orderNote: remark,
-        remark: remark,
-        total: calcTotal(),
-        items: cart.map(it=>({
-          menuId: it.menuId,
-          name: it.name,
-          price: Number(it.price||0),
-          qty: Number(it.qty||0),
-          note: it.note || "",
-          addons: (it.addons||[]).map(a=>({ name:a.name, price:Number(a.price||0), free:!!a.free }))
-        }))
-      };
-
-      try{
-        statusPill.textContent = "送出中…";
-        await addDoc(colOrders, payload);
-        statusPill.textContent = "送出完成 ✅";
-        alert("訂單已送出！");
-
-        cart = [];
-        $("orderRemark").value = "";
-        renderCart();
-        refreshSubmitState();
-
-        $("qDate").value = orderDate;
-        await queryRecords();
-      }catch(err){
-        console.error("submitOrder failed:", err);
-        statusPill.textContent = "送出失敗（看 console）";
-        alert("送出失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
-    // ====== Records ======
-    function getCurrentName(){
-      return (currentUserName || "").trim();
-    }
-
-    async function queryRecords(){
-      const qDate = ($("qDate").value || "").trim();
-      const qRid = ($("qRestaurant").value || "").trim();
-      const qName = ($("qName").value || "").trim();
-
-      try{
-        statusPill.textContent = "查詢中…";
-
-        let snap;
-        if(qDate){
-          snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
-        }else{
-          snap = await getDocs(query(colOrders, limit(3000)));
-        }
-
-        const rows = [];
-        snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
-
-        const filtered = rows.filter(o=>{
-          if(qRid && o.restaurantId !== qRid) return false;
-          if(qName && !(String(o.userName||"").includes(qName))) return false;
-          return true;
-        }).sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
-
-        renderRecords(filtered);
-        statusPill.textContent = "已查詢 ✅";
-      }catch(err){
-        console.error("queryRecords failed:", err);
-        statusPill.textContent = "查詢失敗（看 console）";
-        $("recordsWrap").innerHTML = `<div class="muted">查詢失敗（Rules/網路）</div>`;
-        alert("查詢失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
-    function renderRecords(list){
-      const wrap = $("recordsWrap");
-      if(list.length===0){
-        wrap.innerHTML = `<div class="muted">尚無資料。</div>`;
-        return;
-      }
-
-      wrap.innerHTML = list.map(o=>{
-        const items = Array.isArray(o.items) ? o.items : [];
-        const itemLines = items.map(it=>{
-          const addonTxt = (it.addons||[]).map(a=>{
-            const p = (a && a.free) ? 0 : Number(a.price||0);
-            return `+${a.name}${p?(" "+p):""}${a.free?"(免費)":""}`;
-          }).join("");
-          const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
-          return `• ${esc(it.name)} ${Number(it.price||0)} ${esc(addonTxt)} × ${Number(it.qty||0)} ${noteTxt}`;
-        }).join("<br/>");
-
-        const canDelete = (getCurrentName() && (o.userName === getCurrentName()));
-        return `
-          <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; margin-top:10px; background:#fff">
-            <div class="inline" style="justify-content:space-between">
-              <div>
-                <b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b>
-                — <span class="tag">${esc(o.restaurantName||"")}</span>
-                ${o.orderDate ? `<span class="tag" style="margin-left:6px">${esc(o.orderDate)}</span>` : ``}
-              </div>
-              ${canDelete ? `<button class="btn danger" type="button" data-del-order="${esc(o.id)}">刪除</button>` : ``}
-            </div>
-            <div class="muted" style="margin-top:8px">${itemLines}</div>
-            <div class="muted" style="margin-top:8px">總金額：${Number(o.total||0)} ${(o.orderNote||o.remark)?`｜整筆備註：${esc(o.orderNote||o.remark)}`:""}</div>
-          </div>
-        `;
-      }).join("");
-
-      wrap.querySelectorAll("button[data-del-order]").forEach(btn=>{
-        btn.onclick = async ()=>{
-          const id = btn.dataset.delOrder;
-          if(!confirm("確定刪除這筆訂單？")) return;
-          try{
-            await deleteDoc(doc(db, "orders", id));
-            await queryRecords();
-          }catch(err){
-            console.error("delete order failed:", err);
-            alert("刪除失敗（Rules/網路）\n\n" + (err?.message || err));
-          }
-        };
-      });
-    }
-
-    // ====== Buttons ======
-    $("btnSubmit").onclick = submitOrder;
-    $("btnClearCart").onclick = ()=>{
-      if(cart.length===0) return;
-      if(!confirm("確定清空購物車？")) return;
-      cart = [];
-      renderCart();
-      refreshSubmitState();
+  document.querySelectorAll(".rCard").forEach(card=>{
+    card.onclick = ()=>{
+      selectedRestaurantId = card.dataset.id;
+      document.querySelectorAll(".rCard").forEach(c=>c.classList.remove("active"));
+      card.classList.add("active");
+      $("menuWrap").textContent = "✅ 可以進來選餐了（點擊正常）";
     };
+  });
+}
 
-    $("btnQuery").onclick = queryRecords;
-    $("btnMine").onclick = async ()=>{
-      if(currentUserName) $("qName").value = currentUserName;
-      await queryRecords();
-    };
-    $("btnToday").onclick = async ()=>{
-      $("qDate").value = todayISO();
-      await queryRecords();
-    };
-
-    $("btnGoAdmin").onclick = ()=>{
-      const pin = ($("adminPin").value || "").trim();
-      if(pin !== "8520") return alert("管理者密碼不正確");
-      localStorage.setItem(roleKey, "admin");
-      location.href = "./admin.html";
-    };
-    $("btnSwitchAdmin").onclick = ()=> $("adminPin").focus();
-
-    $("btnLogout").onclick = ()=>{
-      localStorage.removeItem(roleKey);
-      location.href = "./index.html";
-    };
-
-    // ====== Init ======
-    $("orderDate").value = todayISO();
-    $("qDate").value = todayISO();
-    setWhoLine();
-    renderCart();
-    refreshSubmitState();
-
-    await loadStaff();
-    await loadRestaurants();
-    await queryRecords();
-
-    // （可選）每次回到頁面時同步餐廳最新狀態
-    document.addEventListener("visibilitychange", async ()=>{
-      if(document.visibilityState === "visible"){
-        await loadRestaurants();
-        refreshClosedUI();
-        renderMenu();
-        refreshSubmitState();
-      }
-    });
-  </script>
+await loadRestaurants();
+</script>
 </body>
 </html>
