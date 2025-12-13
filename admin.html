@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽~｜管理者</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- Drag & Drop -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1994,8 +1994,114 @@
     }
 
     // ===== Orders (Query + Excel) =====
-     async function exportOrdersExcel(){
-      if(!window.XLSX) return alert("Excel 匯出元件未載入（XLSX）");
+    function fmtTime(ms){
+      if(!ms) return "";
+      const d = new Date(ms);
+      const pad = (n)=> String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function periodOf(ms){
+      const d = new Date(ms||0);
+      return d.getHours() < 12 ? "noon" : "night";
+    }
+
+    function addonText(addons){
+      const list = Array.isArray(addons) ? addons : [];
+      return list.map(a=>{
+        const p = (a && a.free) ? 0 : Number(a.price||0);
+        return `+${a.name||""}${(a && a.free) ? "(免費)" : (p?(" "+p):"")}`;
+      }).join("；");
+    }
+
+    function calcItemLine(it){
+      const base = Number(it.price||0);
+      const addonSum = (it.addons||[]).reduce((s,a)=> s + ((a && a.free) ? 0 : Number(a.price||0)), 0);
+      const qty = Number(it.qty||0);
+      const unit = base + addonSum;
+      const lineTotal = unit * qty;
+      return { unit, lineTotal, addonSum };
+    }
+
+    async function queryOrders(){
+      const qDate = ($("qDate").value || "").trim();
+      const qRid = ($("qRestaurant").value || "").trim();
+      const qName = ($("qName").value || "").trim();
+      const qPeriod = ($("qPeriod").value || "").trim();
+
+      try{
+        statusPill.textContent = "查詢中…";
+        let snap;
+        if(qDate){
+          snap = await getDocs(query(colOrders, where("orderDate","==", qDate), limit(3000)));
+        }else{
+          snap = await getDocs(query(colOrders, limit(3000)));
+        }
+
+        const rows = [];
+        snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
+
+        const filtered = rows.filter(o=>{
+          if(qRid && o.restaurantId !== qRid) return false;
+          if(qName && !(String(o.userName||"").includes(qName))) return false;
+          if(qPeriod){
+            if(periodOf(Number(o.createdAt||0)) !== qPeriod) return false;
+          }
+          return true;
+        }).sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
+
+        renderOrders(filtered);
+        statusPill.textContent = "已查詢 ✅";
+      }catch(err){
+        console.error("queryOrders failed:", err);
+        statusPill.textContent = "查詢失敗（看 console）";
+        alert("查詢失敗（Rules/網路）\n\n" + (err?.message || err));
+      }
+    }
+
+    function renderOrders(list){
+      const wrap = $("ordersWrap");
+      if(list.length===0){
+        wrap.innerHTML = `<div class="muted">尚無資料。</div>`;
+        return;
+      }
+      wrap.innerHTML = list.map(o=>{
+        const items = Array.isArray(o.items) ? o.items : [];
+        const lines = items.map(it=>{
+          const addTxt = addonText(it.addons);
+          const calc = calcItemLine(it);
+          return `
+            • <b>${esc(it.name||"")}</b>
+            單價：${Number(it.price||0)}
+            ${addTxt?`（加購 +${calc.addonSum}）`:``}
+            × ${Number(it.qty||0)}
+            → 小計：${calc.lineTotal}
+            ${it.note?`（備註：${esc(it.note)}）`:``}
+            ${addTxt?`<div class="muted" style="margin-top:4px">　　加購：${esc(addTxt)}</div>`:``}
+          `;
+        }).join("<br/>");
+
+        return `
+          <div class="listLine">
+            <div class="inline" style="justify-content:space-between">
+              <div>
+                <b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b>
+                — <span class="tag">${esc(o.restaurantName||"")}</span>
+                ${o.orderDate ? `<span class="tag">${esc(o.orderDate)}</span>` : ``}
+                <span class="tag">${periodOf(Number(o.createdAt||0))==="noon"?"中午":"晚上"}</span>
+              </div>
+              <span class="tag">總額：${Number(o.total||0)}</span>
+            </div>
+            <div class="muted" style="margin-top:8px">${lines}</div>
+            ${(o.orderNote||o.remark) ? `<div class="muted" style="margin-top:8px">整筆備註：${esc(o.orderNote||o.remark)}</div>` : ``}
+            <div class="muted" style="margin-top:8px">建立時間：${esc(fmtTime(Number(o.createdAt||0)))}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function exportOrdersExcel(){
+      const ok = await ensureXLSX();
+      if(!ok) return;
 
       const qDate = ($("qDate").value || "").trim();
       const qRid = ($("qRestaurant").value || "").trim();
@@ -2033,7 +2139,6 @@
         for(const o of filtered){
           const items = Array.isArray(o.items) ? o.items : [];
           for(const it of items){
-            const optTxt = optionText(it.optionGroups, it.chosenOptions);
             const addTxt = addonText(it.addons);
             const calc = calcItemLine(it);
 
@@ -2045,12 +2150,10 @@
               "姓名": o.userName || "",
               "店家": o.restaurantName || "",
               "品項": it.name || "",
-              "選項": optTxt || "",
               "加購": addTxt || "",
               "單品備註": it.note || "",
               "數量": Number(it.qty||0),
               "原單價": Number(it.price||0),
-              "選項加價": Number(calc.optSum||0),
               "加購加價": Number(calc.addonSum||0),
               "小計單價": Number(calc.unit||0),
               "品項小計": Number(calc.lineTotal||0),
@@ -2112,7 +2215,7 @@
     $("btnAddStaff").onclick = addStaff;
     $("btnReloadStaff").onclick = loadStaff;
     $("staffName").addEventListener("keydown", (e)=>{
-      if(e.key === "Enter") addStaff();
+      if(e.key === "Enter"){ e.preventDefault(); addStaff(); }
     });
 
     $("btnQuery").onclick = queryOrders;
@@ -2121,6 +2224,8 @@
       queryOrders();
     };
     $("btnExportExcel").onclick = exportOrdersExcel;
+
+    $("qName").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); queryOrders(); } });
 
     $("btnGoUser").onclick = ()=>{
       localStorage.setItem(roleKey, "user");
@@ -2133,14 +2238,19 @@
 
     // ===== Init =====
     $("qDate").value = todayISO();
+
     await loadRestaurants();
     await loadStaff();
     await queryOrders();
+
+    // ✅ 先把 XLSX 準備好（避免你點匯出就跳未載入）
+    await ensureXLSX();
 
     document.addEventListener("visibilitychange", async ()=>{
       if(document.visibilityState === "visible"){
         await loadRestaurants();
         if(selectedRestaurantId) await loadRestaurantDoc(selectedRestaurantId);
+        await ensureXLSX();
       }
     });
   </script>
