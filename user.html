@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者</title>
+  <title>GoldBricks 呷奔🍚~｜使用者</title>
 
   <style>
     :root{
-      /* ✅ 清爽：降低漸層、提高白底層次、減少陰影 */
       --bg:#f3f5f9;
       --panel:#f7f8fc;
       --card:#ffffff;
@@ -147,56 +146,38 @@
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
 
-    /* ===== ✅ Restaurant Cards (清爽 list style) ===== */
+    /* ===== ✅ Restaurant Cards (無圖片清爽版) ===== */
     .rGrid{
       display:grid;
       grid-template-columns: 1fr;
       gap:10px;
       margin-top:10px;
     }
-
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       background:#fff;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
-      overflow:hidden;
-
-      display:grid;
-      grid-template-columns: 108px 1fr;
-      gap:12px;
-
-      padding:10px;
+      padding:12px;
       cursor:pointer;
     }
-    .rCard:hover{ filter:brightness(.995); }
+    .rCard:hover{filter:brightness(.995)}
 
-    .rThumb{
-      position:relative;
-      width:108px;
-      height:92px;
-      border-radius:14px;
-      overflow:hidden;
-      background: linear-gradient(120deg, rgba(251,113,133,.08), rgba(99,102,241,.08));
-      flex:0 0 auto;
+    .rTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
     }
-    .rThumb img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    /* ✅ 狀態只顯示一次：只留 badge（不再重複放 tag） */
+    .rName{font-size:15px}
     .rBadge{
-      position:absolute;
-      left:8px; top:8px;
-      padding:5px 9px;
+      padding:5px 10px;
       border-radius:999px;
       font-size:12px;
       font-weight:900;
       border:1px solid rgba(15,23,42,.12);
       background:#fff;
+      white-space:nowrap;
     }
     .rBadge.ok{
       color:#065f46;
@@ -208,18 +189,8 @@
       background:rgba(245,158,11,.16);
       border-color:rgba(245,158,11,.32);
     }
-
-    .rBody{ padding:0; }
-    .rTitleRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-    }
-    .rName{ font-size:15px; }
-    .rMeta{ margin-top:6px; }
-    .rMeta .muted{ margin-top:4px; }
-
+    .rMeta{margin-top:8px}
+    .rMeta .muted{margin-top:4px}
     .rMap{
       display:inline-block;
       margin-top:6px;
@@ -227,18 +198,12 @@
       color:#334155;
       text-decoration:none;
     }
-    .rMap:hover{ text-decoration:underline; }
-
+    .rMap:hover{text-decoration:underline}
     .rActions{
-      margin-top:8px;
+      margin-top:10px;
       display:flex;
       justify-content:flex-end;
       gap:8px;
-    }
-
-    @media (max-width:420px){
-      .rCard{ grid-template-columns: 92px 1fr; }
-      .rThumb{ width:92px; height:84px; }
     }
   </style>
 </head>
@@ -287,7 +252,7 @@
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>2）店家列表（卡片式 / 收合）</h2>
+          <h2>2）店家列表（無圖片 / 收合）</h2>
 
           <!-- ✅ 預設收合 -->
           <details class="box">
@@ -503,7 +468,7 @@
       }
     }
 
-    // ✅ 店家卡片（清爽版：整張可點 + 選完自動收合 + 狀態不重複）
+    // ✅ 店家卡片（無圖片：整張可點 + 選完自動收合）
     function renderRestaurantCards(){
       const wrap = $("restaurantGrid");
       if(restaurants.length===0){
@@ -511,48 +476,27 @@
         return;
       }
 
-      const placeholder =
-        "data:image/svg+xml;charset=UTF-8," +
-        encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'>
-          <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0' stop-color='#fb7185' stop-opacity='.14'/>
-            <stop offset='1' stop-color='#6366f1' stop-opacity='.10'/>
-          </linearGradient></defs>
-          <rect width='100%' height='100%' fill='url(#g)'/>
-          <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
-            font-family='system-ui' font-size='28' fill='#0f172a' opacity='.55'>No Image</text>
-        </svg>`);
-
       wrap.innerHTML = restaurants.map(r=>{
         const closed = !!r.isClosed;
-        const img = (r.imageUrl||"").trim() || placeholder;
-
         return `
-          <div class="rCard" data-pick-card="${esc(r.id)}" role="button" tabindex="0" aria-label="選擇店家 ${esc(r.name||"")}">
-            <div class="rThumb">
-              <img src="${esc(img)}" alt="${esc(r.name||"")}"
-                onerror="this.onerror=null; this.src='${placeholder}'"/>
-              <div class="rBadge ${closed?'lock':'ok'}">${closed?'已結單':'開單中'}</div>
+          <div class="rCard" data-pick-card="${esc(r.id)}" role="button" tabindex="0">
+            <div class="rTop">
+              <b class="rName">${esc(r.name||"未命名")}</b>
+              <span class="rBadge ${closed?'lock':'ok'}">${closed?'已結單':'開單中'}</span>
             </div>
 
-            <div class="rBody">
-              <div class="rTitleRow">
-                <b class="rName">${esc(r.name||"未命名")}</b>
-              </div>
+            <div class="rMeta">
+              ${(r.address||"").trim() ? `<div class="muted">📍 ${esc(r.address)}</div>` : ``}
+              ${(r.phone||"").trim() ? `<div class="muted">☎ ${esc(r.phone)}</div>` : ``}
+              ${(r.mapUrl||"").trim()
+                ? `<a class="rMap" href="${esc(r.mapUrl)}" target="_blank" rel="noopener noreferrer">🗺 開啟 Google Map</a>`
+                : ``}
+            </div>
 
-              <div class="rMeta">
-                ${(r.address||"").trim() ? `<div class="muted">📍 ${esc(r.address)}</div>` : ``}
-                ${(r.phone||"").trim() ? `<div class="muted">☎ ${esc(r.phone)}</div>` : ``}
-                ${(r.mapUrl||"").trim()
-                  ? `<a class="rMap" href="${esc(r.mapUrl)}" target="_blank" rel="noopener noreferrer">🗺 開啟 Google Map</a>`
-                  : ``}
-              </div>
-
-              <div class="rActions">
-                <button class="btn" data-pick-r="${esc(r.id)}" ${closed?'disabled':''} type="button">
-                  ${closed?'不可選':'選擇'}
-                </button>
-              </div>
+            <div class="rActions">
+              <button class="btn" data-pick-r="${esc(r.id)}" ${closed?'disabled':''} type="button">
+                ${closed?'不可選':'選擇'}
+              </button>
             </div>
           </div>
         `;
@@ -579,7 +523,7 @@
           if(closed) return alert("此店家已結單，無法選擇");
           await pickRestaurant(rid);
           const d = card.closest("details");
-          if(d) d.open = false; // ✅ 選完自動收合
+          if(d) d.open = false;
         };
 
         card.addEventListener("click", go);
@@ -673,7 +617,6 @@
         map.get(cat).push(m);
       }
 
-      // ✅ 類別預設收合（details 不加 open）
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
         <details class="box" style="padding:10px 12px">
           <summary>
