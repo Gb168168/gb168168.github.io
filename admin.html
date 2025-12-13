@@ -1,1046 +1,1278 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>管理者</title>
-
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GoldBricks 呷奔啊~~ </title>
   <style>
     :root{
-      --bg:#0b1220;
-      --panel:#0a1430;
-      --card:#0f1a33;
-      --text:#e8eeff;
-      --muted:#a9b4d6;
-      --line:rgba(255,255,255,.10);
-      --primary:#6ee7ff;
-      --accent:#fb7185;
-      --ok:#34d399;
-      --warn:#fbbf24;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-
-      --selectOptBg:#0b1630;
-      --selectOptText:#e8eeff;
-      --selectOptActive:rgba(110,231,255,.25);
+      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
+      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
+      --shadow:0 10px 30px rgba(15,23,42,.10);
+      --radius:18px;
     }
-
-    /* ✅ 修白底：讓瀏覽器原生表單 UI 走深色 */
-    :root, body{ color-scheme: dark; }
-
     *{box-sizing:border-box}
     body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial;
-      background:
-        radial-gradient(1000px 600px at 15% 0%, rgba(110,231,255,.15), transparent 55%),
-        radial-gradient(900px 600px at 100% 25%, rgba(251,113,133,.14), transparent 55%),
-        var(--bg);
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
+                  var(--bg);
       color:var(--text);
+      min-height:100vh;
     }
-
-    .wrap{display:flex;min-height:100vh}
-    aside{
-      width:260px;
-      padding:16px;
-      border-right:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    .layout{display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px;}
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+    .sidebar,.main{
+      background: rgba(255,255,255,.78);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
-    .brand{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
-    .brand b{font-size:16px}
-    .brand span{font-size:12px;color:var(--muted)}
-
-    .menu{display:grid;gap:10px;margin-top:10px}
-    .menu button{
-      width:100%;
-      text-align:left;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      cursor:pointer;
-      transition:.15s;
+    .sidebar{padding:14px; position:sticky; top:16px; height: fit-content}
+    .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
+    .brand h1{font-size:16px; margin:0}
+    .brand small{color:var(--muted)}
+    .nav{margin-top:10px; display:flex; flex-direction:column; gap:8px}
+    .nav button{
+      text-align:left; padding:11px 12px; border-radius:14px;
+      border:1px solid var(--border); background:#fff; cursor:pointer;
+      font-weight:800;
     }
-    .menu button:hover{transform:translateY(-1px);background:rgba(255,255,255,.07)}
-    .menu button.active{
-      border-color:rgba(110,231,255,.35);
-      background:rgba(110,231,255,.12);
+    .nav button.active{
+      border-color: rgba(251,113,133,.55);
+      background: linear-gradient(90deg, rgba(251,113,133,.18), rgba(255,154,158,.10));
+      box-shadow: 0 10px 22px rgba(251,113,133,.18);
     }
 
-    main{flex:1;padding:18px;max-width:1200px}
-    header{
-      display:flex;gap:10px;align-items:center;justify-content:space-between;
-      padding:14px 16px;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      box-shadow: var(--shadow);
+    .main{padding:14px}
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 6px 12px;}
+    .topbar h2{margin:0; font-size:18px}
+    .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
+    .ghost{
+      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:800;
     }
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .pill{
-      display:inline-flex;gap:8px;align-items:center;
-      padding:7px 10px;border:1px solid var(--line);border-radius:999px;
-      background:rgba(255,255,255,.03); color:var(--muted); font-size:12px;
+    .primary{
+      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
     }
+
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
     .card{
-      margin-top:14px;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow: 0 8px 25px rgba(15,23,42,.07);
       padding:14px;
-      box-shadow: var(--shadow);
     }
-    .hr{height:1px;background:var(--line);margin:12px 0}
-    .hint{font-size:12px;color:var(--muted);line-height:1.5}
-    .hint.ok{color:var(--ok)}
-    .hint.warn{color:var(--warn)}
-    .hint.bad{color:var(--accent)}
-
+    .card h3{margin:0 0 10px; font-size:15px}
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      outline:none;
+      width:100%; padding:11px 12px; border-radius:14px;
+      border:1px solid var(--border); outline:none; background:#fff;
+      font-size:14px;
     }
-    textarea{width:100%;min-height:80px;resize:vertical}
-
-    /* ✅ 修白底：option 深色 */
-    select option{
-      background:var(--selectOptBg);
-      color:var(--selectOptText);
-    }
-    select option[value=""]{ color: rgba(232,238,255,.55); }
-    select option:checked{ background: var(--selectOptActive); color:var(--selectOptText); }
-
-    .btn{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      transition:.15s;
-      user-select:none;
+    textarea{min-height:92px; resize:vertical}
+    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .row3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px}
+    .actions{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
+    .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
+    .hr{height:1px; background: var(--border); margin:12px 0}
+    table{width:100%; border-collapse:collapse; font-size:13.5px}
+    th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
+    th{color:var(--muted); font-weight:900}
+    .tag{display:inline-flex; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
+    .btnSmall{
+      padding:7px 10px; border-radius:12px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:800; font-size:12.5px;
       white-space:nowrap;
     }
-    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.09)}
-    .btn.primary{border-color:rgba(110,231,255,.35);background:rgba(110,231,255,.10)}
-    .btn.danger{border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.10)}
-
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width: 900px){ .grid2{grid-template-columns:1fr} }
-
-    .list{display:grid;gap:10px}
-    .sectionTitle{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .sectionTitle b{font-size:14px}
-    .tag{
-      font-size:12px;color:var(--muted);
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      padding:6px 10px;border-radius:999px;
-    }
-
-    .group{
-      border:1px solid var(--line);
+    .btnDanger{border-color: rgba(239,68,68,.35)}
+    .btnDanger:hover{border-color: rgba(239,68,68,.60)}
+    .btnOk:hover{border-color: rgba(16,185,129,.55)}
+    details summary{cursor:pointer; font-weight:900}
+    .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .imgPrev{width:100%; max-height:220px; object-fit:cover; border-radius:14px; border:1px solid var(--border)}
+    .subcard{
+      background: rgba(15,23,42,.02);
+      border:1px dashed rgba(15,23,42,.18);
       border-radius:16px;
-      background:rgba(255,255,255,.03);
-      overflow:hidden;
+      padding:12px;
     }
-    .groupHead{
-      padding:12px 12px;
-      display:flex;align-items:center;justify-content:space-between;
-      cursor:pointer;
-      user-select:none;
-      background:rgba(255,255,255,.02);
-    }
-    .groupHead:hover{background:rgba(255,255,255,.04)}
-    .groupBody{padding:12px;display:grid;gap:10px}
-    .hidden{display:none !important}
-
-    .itemRow{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px;
-      background:rgba(255,255,255,.02);
-      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
-    }
-    .itemRow b{font-size:13px}
-    .itemRow .meta{font-size:12px;color:var(--muted);line-height:1.5}
-    .itemRow .actions{display:flex;gap:8px;align-items:center}
-
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-
-    .badge{
-      display:inline-flex;align-items:center;gap:6px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      padding:5px 10px;border-radius:999px;
-      font-size:12px;color:var(--muted);
-      margin-left:8px;
-    }
-    .badge.lunch{border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.10); color:#ffd67a;}
-    .badge.dinner{border-color:rgba(110,231,255,.35); background:rgba(110,231,255,.10); color:#b8f3ff;}
+    .kpi{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+    .kpi .tag{font-weight:900}
   </style>
 </head>
-
 <body>
-<div class="wrap">
 
-  <aside>
-    <div class="brand">
-      <b>點餐系統（管理者）</b>
-      <span>人員 / 餐廳 / 訂餐紀錄</span>
-    </div>
-
-    <div class="menu">
-      <button class="active" data-tab="staff">人員管理</button>
-      <button data-tab="restaurants">餐廳管理</button>
-      <button data-tab="orders">訂餐紀錄</button>
-      <button id="btnGoUser">回使用者頁</button>
-    </div>
-
-    <div class="hr"></div>
-    <div class="hint">
-      ✅ 此版本為「不需要 Index」寫法（抓全部 → 前端篩選/排序）
-    </div>
-  </aside>
-
-  <main>
-    <header>
-      <div>
-        <b style="font-size:16px">管理者後台</b>
-        <div class="hint" id="topHint">載入中…</div>
-      </div>
-      <div class="row">
-        <span class="pill" id="statPill">—</span>
-        <button class="btn" id="btnReloadAll">重新載入</button>
-      </div>
-    </header>
-
-    <!-- 人員管理 -->
-    <section id="tab-staff" class="card">
-      <div class="sectionTitle">
-        <b>人員管理</b>
-        <span class="tag">同部門收合</span>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="grid2">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
         <div>
-          <div class="hint">新增人員（部門 + 姓名）</div>
-          <div class="row" style="margin-top:8px">
-            <input id="staffDept" placeholder="部門" style="flex:1;min-width:140px">
-            <input id="staffName" placeholder="姓名" style="flex:1;min-width:140px">
-            <button class="btn primary" id="btnAddStaff">新增</button>
-          </div>
-          <div class="hint" id="staffHint"></div>
+          <h1>管理者後台</h1>
+          <small>GoldBricks Order</small>
         </div>
+        <span class="tag">admin</span>
+      </div>
 
-        <div>
-          <div class="hint">資料表：<span class="mono">staff</span>（欄位：dept、name）</div>
-          <div class="hint">刪除：在清單內點「刪除」</div>
+      <div class="nav">
+        <button class="navBtn" data-view="staff">管理人員</button>
+        <button class="navBtn" data-view="addRestaurant">新增餐廳</button>
+        <button class="navBtn" data-view="restaurants">餐廳管理</button>
+        <button class="navBtn" data-view="orders">訂餐紀錄</button>
+        <div class="hr"></div>
+        <button id="switchUser" class="navBtn">切換使用者模式</button>
+        <button id="logout" class="navBtn">登出</button>
+      </div>
+
+      <p class="muted" style="margin:12px 8px 0;">
+        ✅ Firestore（不使用 Storage）<br/>
+        ✅ 圖片：用「圖片網址」+ 直接開啟
+      </p>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h2 id="pageTitle">新增餐廳</h2>
+        <div class="right">
+          <span class="pill" id="statusPill">連線中…</span>
+          <button class="ghost" id="gotoIndex">🎰</button>
         </div>
       </div>
 
-      <div class="hr"></div>
-      <div id="staffList" class="list"></div>
-    </section>
+      <!-- VIEW: 新增餐廳 -->
+      <section class="view" id="view_addRestaurant">
+        <div class="grid">
+          <div class="card">
+            <h3>餐廳資料（填完後直接新增上）</h3>
 
-    <!-- 餐廳管理 -->
-    <section id="tab-restaurants" class="card hidden">
-      <div class="sectionTitle">
-        <b>餐廳管理</b>
-        <span class="tag">收合顯示＋含餐點/加購</span>
-      </div>
+            <label>餐廳名稱</label>
+            <input id="r_name" name="r_name_no_autofill" autocomplete="off" placeholder="例：金磚便當"/>
 
-      <div class="hr"></div>
-
-      <div class="grid2">
-        <div>
-          <div class="hint">新增餐廳（名稱必填、網址可空）</div>
-          <div class="row" style="margin-top:8px">
-            <input id="restName" placeholder="餐廳名稱" style="flex:1;min-width:180px">
-            <input id="restUrl" placeholder="店家網址（可空）" style="flex:1;min-width:220px">
-            <button class="btn primary" id="btnAddRest">新增</button>
-          </div>
-          <div class="hint" id="restHint"></div>
-        </div>
-
-        <div>
-          <div class="hint">資料表：<span class="mono">restaurants</span></div>
-          <div class="hint">欄位：name、url、img（可空）、menus（陣列）、addons（陣列）</div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
-
-      <!-- 餐點新增 -->
-      <div class="group" style="margin-bottom:12px">
-        <div class="groupHead">
-          <b>新增餐點（先選餐廳）</b>
-          <span class="tag" id="menuAddTag">尚未選餐廳</span>
-        </div>
-        <div class="groupBody">
-          <div class="row">
-            <select id="restSelectForMenu" style="flex:1;min-width:240px">
-              <option value="">請選餐廳</option>
-            </select>
-          </div>
-
-          <div class="grid2">
             <div class="row">
-              <input id="menuCategory" placeholder="餐點類別（例如：飯/麵/飲料）" style="flex:1;min-width:180px">
-              <input id="menuName" placeholder="餐點名稱" style="flex:1;min-width:180px">
-            </div>
-            <div class="row">
-              <input id="menuPrice" placeholder="價格（單份）" type="number" min="0" step="1" style="width:180px">
-              <input id="menuDefaultQty" placeholder="預設數量" type="number" min="0" step="1" style="width:160px">
-            </div>
-          </div>
-
-          <div class="group" style="margin-top:10px">
-            <div class="groupHead">
-              <b>此餐點加購項目</b>
-              <span class="hint">可新增多筆（免費/金額）</span>
-            </div>
-            <div class="groupBody">
-              <div class="row">
-                <input id="addonName" placeholder="加購名稱（例如：加蛋）" style="flex:1;min-width:200px">
-                <input id="addonPrice" placeholder="金額（0=免費）" type="number" min="0" step="1" style="width:180px">
-                <button class="btn" id="btnAddAddon">加入加購</button>
+              <div>
+                <label>電話</label>
+                <input id="r_phone" autocomplete="off" placeholder="例：02-1234-5678"/>
               </div>
-              <div class="hint" id="addonHint"></div>
-              <div id="addonTempList" class="list"></div>
+              <div>
+                <label>地址</label>
+                <input id="r_addr" autocomplete="off" placeholder="例：台北市…"/>
+              </div>
             </div>
+
+            <div class="row">
+              <div>
+                <label>Google map 連結</label>
+                <input id="r_map" autocomplete="off" placeholder="https://maps.google.com/..."/>
+              </div>
+              <div>
+                <label>餐廳圖片網址（可空）</label>
+                <input id="r_imgUrl" autocomplete="off" placeholder="https://...jpg / png"/>
+              </div>
+            </div>
+
+            <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
+
+            <label>備註</label>
+            <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
+
+            <div class="actions">
+              <button class="primary" id="btnSubmitAll">直接新增上（餐廳 + 餐點清單）</button>
+              <button class="ghost" id="btnClearAll" type="button">清空</button>
+            </div>
+
+            <p class="muted">右邊可先把餐點加入清單，再按一次「直接新增上」。</p>
           </div>
 
-          <div class="row" style="justify-content:space-between;margin-top:10px">
-            <div class="hint" id="menuHint"></div>
-            <button class="btn primary" id="btnAddMenu">新增餐點</button>
+          <div class="card">
+            <h3>餐點（先加入清單，可多筆）</h3>
+
+            <div class="row">
+              <div>
+                <label>餐點類別（用輸入）</label>
+                <input id="m_cat" placeholder="例：飯類 / 麵類 / 小菜 / 飲料"/>
+              </div>
+              <div>
+                <label>餐點名稱</label>
+                <input id="m_name" placeholder="例：排骨飯"/>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>價格（單份）</label>
+                <input id="m_price" type="number" min="0" placeholder="70"/>
+              </div>
+              <div>
+                <label>預設數量</label>
+                <input id="m_defaultQty" type="number" min="1" value="1"/>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+            <h3 style="margin-top:0">加購項目（可多筆）</h3>
+
+            <div class="subcard">
+              <div class="row3">
+                <div>
+                  <label>加購名稱</label>
+                  <input id="a_name" placeholder="例：蛋"/>
+                </div>
+                <div>
+                  <label>加購金額</label>
+                  <input id="a_price" type="number" min="0" placeholder="10"/>
+                </div>
+                <div style="display:flex; align-items:end; gap:10px">
+                  <label style="display:flex; align-items:center; gap:8px; margin:0;">
+                    <input id="a_free" type="checkbox" style="width:18px; height:18px;"/>
+                    免費
+                  </label>
+                  <button class="btnSmall btnOk" id="btnAddAddon" type="button">加入加購</button>
+                </div>
+              </div>
+              <div id="addonList" style="margin-top:10px"></div>
+            </div>
+
+            <div class="actions">
+              <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
+              <button class="ghost" id="btnClearMenu" type="button">清空餐點欄位</button>
+            </div>
+
+            <div class="hr"></div>
+            <h3 style="margin-top:0">餐點清單（將一起新增）</h3>
+            <div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div id="restaurantList" class="list"></div>
-    </section>
+      <!-- VIEW: 新增人員 -->
+      <section class="view" id="view_staff" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <h3>新增人員（可新增部門/人員名稱）</h3>
 
-    <!-- 訂餐紀錄 -->
-    <section id="tab-orders" class="card hidden">
-      <div class="sectionTitle">
-        <b>訂餐紀錄（彙整輸出）</b>
-        <span class="tag">可刪除 / 匯出 Excel</span>
-      </div>
+            <label>部門</label>
+            <input id="s_dept" list="deptList" placeholder="例：FAE"/>
+            <datalist id="deptList">
+              <option>管理部</option><option>FAE</option><option>TSE</option><option>新場</option>
+              <option>倉管</option><option>數據分析</option><option>RD</option><option>線上客服</option><option>維運</option>
+            </datalist>
 
-      <div class="hr"></div>
+            <label>人員名稱</label>
+            <input id="s_name" placeholder="例：小明（按 Enter 也可新增）"/>
 
-      <div class="grid2">
-        <div>
-          <div class="hint">篩選（前端篩選，不需要 index）</div>
+            <div class="actions">
+              <button class="primary" id="btnAddStaff" type="button">新增</button>
+              <button class="ghost" id="btnClearStaff" type="button">清空</button>
+            </div>
 
-          <div class="row" style="margin-top:8px">
-            <select id="fDept" style="min-width:180px">
-              <option value="">全部部門</option>
-            </select>
-            <select id="fName" style="min-width:180px">
-              <option value="">全部姓名</option>
-            </select>
-            <select id="fRest" style="min-width:220px">
-              <option value="">全部餐廳</option>
-            </select>
+            <p class="muted">相同部門會自動收合顯示，並可刪除人員。</p>
           </div>
 
-          <div class="row" style="margin-top:8px">
-            <span class="hint">日期範圍</span>
-            <input type="date" id="fDateStart">
-            <span class="hint">～</span>
-            <input type="date" id="fDateEnd">
-
-            <select id="fPeriod" style="min-width:220px">
-              <option value="">全部時段</option>
-              <option value="lunch">中午（12:00 前）</option>
-              <option value="dinner">晚上（12:00(含) 後）</option>
-            </select>
-
-            <button class="btn" id="btnQuickToday">今天</button>
-            <button class="btn" id="btnQuickClearDate">清空日期</button>
-            <button class="btn" id="btnClearFilter">清除所有篩選</button>
+          <div class="card">
+            <h3>人員清單（部門收合）</h3>
+            <div id="staffWrap"></div>
           </div>
-
-          <div class="hint" id="orderHint"></div>
         </div>
+      </section>
 
-        <div class="row" style="justify-content:flex-end;align-items:flex-end">
-          <button class="btn primary" id="btnExportExcel">匯出 Excel</button>
-          <button class="btn" id="btnReloadOrders">重新載入訂單</button>
-        </div>
-      </div>
+      <!-- VIEW: 餐廳管理 -->
+      <section class="view" id="view_restaurants" style="display:none">
 
-      <div class="hr"></div>
-      <div id="orderList" class="list"></div>
-    </section>
-
-  </main>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import {
-    getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  /* ✅ 換成你自己的（要跟 index/user 一樣） */
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const $ = (id)=>document.getElementById(id);
-  const esc = (s)=>String(s??"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
-  const money = (n)=>(Number(n)||0).toLocaleString("zh-TW");
-
-  function setHint(el, text, type=""){
-    el.classList.remove("ok","warn","bad");
-    if(type) el.classList.add(type);
-    el.textContent = text || "";
-  }
-
-  // ========= 管理者密碼 =========
-  (function guard(){
-    const ok = sessionStorage.getItem("isAdmin") === "1";
-    if(ok) return;
-    const pin = prompt("輸入 8520 進入管理者後台");
-    if(pin === "8520"){
-      sessionStorage.setItem("isAdmin","1");
-      return;
-    }
-    alert("管理者密碼錯誤");
-    location.href = "index.html";
-  })();
-
-  // ========= Tabs =========
-  document.querySelectorAll(".menu button[data-tab]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      const tab = btn.dataset.tab;
-      ["staff","restaurants","orders"].forEach(t=> $("tab-"+t).classList.toggle("hidden", t!==tab));
-    });
-  });
-  $("btnGoUser").onclick=()=>location.href="user.html";
-
-  // ========= 時間工具 =========
-  function toDate(createdAt){
-    if(!createdAt?.seconds) return null;
-    return new Date(createdAt.seconds * 1000);
-  }
-  function ymdLocal(d){
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,"0");
-    const dd = String(d.getDate()).padStart(2,"0");
-    return `${y}-${m}-${dd}`;
-  }
-  function nowYMD(){
-    return ymdLocal(new Date());
-  }
-
-  // 規則：12:00 前為中午；12:00(含) 後為晚上
-  function getPeriod(createdAt){
-    const d = toDate(createdAt);
-    if(!d) return "";
-    return d.getHours() < 12 ? "lunch" : "dinner";
-  }
-  function periodLabel(p){
-    if(p==="lunch") return "中午";
-    if(p==="dinner") return "晚上";
-    return "";
-  }
-  function periodBadgeHTML(p){
-    if(p==="lunch") return `<span class="badge lunch">🟡 中午</span>`;
-    if(p==="dinner") return `<span class="badge dinner">🔵 晚上</span>`;
-    return ``;
-  }
-
-  // ========= Data Cache =========
-  let staff = [];        // {id,dept,name}
-  let restaurants = [];  // {id,name,url,img,menus,addons}
-  let orders = [];       // {id,...}
-
-  // ========= 人員管理 =========
-  async function loadStaff(){
-    setHint($("topHint"), "載入人員中…");
-    const snap = await getDocs(collection(db,"staff"));
-    staff = snap.docs.map(d=>({ id:d.id, ...(d.data()||{}) }))
-      .filter(x=>x.dept && x.name);
-
-    staff.sort((a,b)=> String(a.dept).localeCompare(String(b.dept),"zh-Hant") || String(a.name).localeCompare(String(b.name),"zh-Hant"));
-    renderStaff();
-  }
-
-  function renderStaff(){
-    const box = $("staffList");
-    box.innerHTML = "";
-    if(!staff.length){
-      box.innerHTML = `<div class="hint warn">尚無人員</div>`;
-      return;
-    }
-
-    const map = new Map();
-    for(const s of staff){
-      if(!map.has(s.dept)) map.set(s.dept, []);
-      map.get(s.dept).push(s);
-    }
-
-    for(const [dept, people] of map.entries()){
-      const group = document.createElement("div");
-      group.className = "group";
-
-      const head = document.createElement("div");
-      head.className = "groupHead";
-      head.innerHTML = `<b>${esc(dept)}</b><span class="tag">${people.length} 人</span>`;
-
-      const body = document.createElement("div");
-      body.className = "groupBody";
-
-      head.addEventListener("click", ()=> body.classList.toggle("hidden"));
-
-      for(const p of people){
-        const row = document.createElement("div");
-        row.className = "itemRow";
-        row.innerHTML = `
-          <div>
-            <b>${esc(p.name)}</b>
-            <div class="meta">部門：${esc(p.dept)}</div>
+        <div class="card">
+          <h3>餐點管理（依餐廳）</h3>
+          <div class="inline">
+            <label style="margin:0; min-width:120px; color:var(--muted)">選擇餐廳</label>
+            <select id="rm_restaurant" style="min-width:260px"></select>
+            <button class="btnSmall btnOk" id="btnReloadMenus" type="button">重新載入</button>
           </div>
-          <div class="actions">
-            <button class="btn danger">刪除</button>
-          </div>
-        `;
-        row.querySelector("button").onclick = async ()=>{
-          if(!confirm(`刪除人員：${p.dept} / ${p.name}？`)) return;
-          await deleteDoc(doc(db,"staff",p.id));
-          await loadAll();
-        };
-        body.appendChild(row);
-      }
-
-      group.appendChild(head);
-      group.appendChild(body);
-      box.appendChild(group);
-    }
-  }
-
-  $("btnAddStaff").onclick = async ()=>{
-    const dept = ($("staffDept").value||"").trim();
-    const name = ($("staffName").value||"").trim();
-    if(!dept || !name){
-      setHint($("staffHint"), "請輸入部門與姓名", "warn");
-      return;
-    }
-    await addDoc(collection(db,"staff"), { dept, name });
-    $("staffName").value = "";
-    setHint($("staffHint"), "✅ 已新增", "ok");
-    await loadAll();
-  };
-
-  // ========= 餐廳管理 =========
-  async function loadRestaurants(){
-    const snap = await getDocs(collection(db,"restaurants"));
-    restaurants = snap.docs.map(d=>{
-      const v = d.data() || {};
-      return {
-        id:d.id,
-        name:(v.name||"").trim(),
-        url:(v.url||"").trim(),
-        img:(v.img||"").trim(),
-        menus:Array.isArray(v.menus)?v.menus:[],
-        addons:Array.isArray(v.addons)?v.addons:[]
-      };
-    }).filter(r=>r.name);
-
-    restaurants.sort((a,b)=>a.name.localeCompare(b.name,"zh-Hant"));
-
-    $("restSelectForMenu").innerHTML =
-      `<option value="">請選餐廳</option>` +
-      restaurants.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("");
-
-    renderRestaurants();
-  }
-
-  function renderRestaurants(){
-    const box = $("restaurantList");
-    box.innerHTML = "";
-    if(!restaurants.length){
-      box.innerHTML = `<div class="hint warn">尚無餐廳</div>`;
-      return;
-    }
-
-    restaurants.forEach(r=>{
-      const group = document.createElement("div");
-      group.className = "group";
-
-      const head = document.createElement("div");
-      head.className = "groupHead";
-      head.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <b>${esc(r.name)}</b>
-          <span class="hint">${r.url ? "點此可開啟店家網址" : "（無店家網址）"}</span>
+          <div class="hr"></div>
+          <div id="menuManageWrap" class="muted">請先選擇餐廳</div>
         </div>
-        <div class="row">
-          <span class="tag">${(r.menus||[]).length} 道餐點</span>
-          <button class="btn danger" data-del>刪除</button>
+
+        <div class="card" style="margin-top:14px">
+          <h3>餐廳管理（收合顯示 + 內含餐點，可編輯/刪除）</h3>
+          <p class="muted">每間餐廳展開後可直接「新增餐點 + 加購」。餐廳旁不顯示亂碼 ID。</p>
+          <div id="restaurantsWrap"></div>
         </div>
-      `;
+      </section>
 
-      const body = document.createElement("div");
-      body.className = "groupBody hidden";
-
-      head.addEventListener("click", (e)=>{
-        if(e.target?.closest?.("[data-del]")) return;
-        body.classList.toggle("hidden");
-      });
-
-      head.querySelector("[data-del]").onclick = async (e)=>{
-        e.stopPropagation();
-        if(!confirm(`刪除餐廳：${r.name}？`)) return;
-        await deleteDoc(doc(db,"restaurants",r.id));
-        await loadAll();
-      };
-
-      const menus = (r.menus||[]).map(m=>({
-        id: m.id || m.itemId || crypto.randomUUID(),
-        category: (m.category||m.type||"").trim(),
-        name: (m.name||m.title||"").trim(),
-        price: Number(m.price||0),
-        defaultQty: Number(m.defaultQty||m.qty||0),
-        addons: Array.isArray(m.addons)?m.addons:[]
-      })).filter(m=>m.name);
-
-      menus.sort((a,b)=> (a.category||"").localeCompare(b.category||"") || a.name.localeCompare(b.name,"zh-Hant"));
-
-      if(!menus.length){
-        const empty = document.createElement("div");
-        empty.className = "hint warn";
-        empty.textContent = "尚未設定餐點";
-        body.appendChild(empty);
-      }else{
-        menus.forEach(m=>{
-          const row = document.createElement("div");
-          row.className = "itemRow";
-          const addonText = (m.addons||[]).map(a=>{
-            const n = (a?.name||a?.title||"").trim();
-            const p = Number(a?.price||0);
-            return n ? `${n}${p?`(+${p})`:"(免費)"}` : "";
-          }).filter(Boolean).join("、");
-
-          row.innerHTML = `
-            <div>
-              <b>${m.category ? `【${esc(m.category)}】 ` : ""}${esc(m.name)}</b>
-              <div class="meta">價格：$ ${money(m.price)}｜預設數量：${Number.isFinite(m.defaultQty)?m.defaultQty:0}</div>
-              ${addonText ? `<div class="meta">加購：${esc(addonText)}</div>` : `<div class="meta">加購：—</div>`}
+      <!-- VIEW: 訂餐紀錄 -->
+      <section class="view" id="view_orders" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <h3>訂單統計</h3>
+            <div class="row">
+              <div>
+                <label>訂單日期</label>
+                <input id="o_date" type="date"/>
+              </div>
+              <div>
+                <label>統計模式</label>
+                <select id="o_mode">
+                  <option value="summary">同品項彙總</option>
+                  <option value="raw">逐筆顯示</option>
+                </select>
+              </div>
             </div>
             <div class="actions">
-              <button class="btn danger">刪除此餐點</button>
+              <button class="primary" id="btnLoadOrders" type="button">載入</button>
+              <button class="ghost" id="btnToday" type="button">今天</button>
             </div>
-          `;
+            <p class="muted">彙整格式例：排骨飯70+蛋10 數量2；排骨飯70 數量1…</p>
+          </div>
 
-          row.querySelector("button").onclick = async ()=>{
-            if(!confirm(`刪除餐點：${m.name}（${r.name}）？`)) return;
+          <div class="card">
+            <h3>訂餐紀錄（彙整輸出）</h3>
+            <div id="ordersOut" class="muted">請選日期後按「載入」。</div>
+          </div>
+        </div>
+      </section>
 
-            // 以 id 優先刪；若資料沒有 id，退回 name+price 刪
-            const before = Array.isArray(r.menus) ? r.menus : [];
-            const byId = before.filter(x => (x.id||x.itemId) !== m.id);
-            const fallback = (x)=> (String((x.name||x.title||"")).trim()===m.name && Number(x.price||0)===m.price);
-            const filtered = byId.length !== before.length ? byId : before.filter(x=>!fallback(x));
+    </main>
+  </div>
 
-            await updateDoc(doc(db,"restaurants",r.id), { menus: filtered });
-            await loadAll();
-          };
+  <script type="module">
+    const roleKey = "gb_role";
+    if (localStorage.getItem(roleKey) !== "admin") location.href = "./index.html";
 
-          body.appendChild(row);
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs,
+      query, where, orderBy, limit, writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
+      authDomain: "goldbricks-order.firebaseapp.com",
+      projectId: "goldbricks-order",
+      storageBucket: "goldbricks-order.firebasestorage.app",
+      messagingSenderId: "463709758954",
+      appId: "1:463709758954:web:429dc920f2f812d51cbe93",
+      measurementId: "G-YQK8ZCC26R"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const $ = (id)=> document.getElementById(id);
+    const esc = (s)=> (s??"").toString()
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+    const todayISO = ()=>{
+      const d = new Date(); const pad = (n)=> String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+
+    const statusPill = $("statusPill");
+    statusPill.textContent = "已連線 Firestore";
+
+    // ✅ 強制移除「餐廳名稱預設值」（避免瀏覽器記住）
+    window.addEventListener("load", ()=>{
+      const el = $("r_name");
+      if (el) el.value = "";
+    });
+
+    // ====== Views ======
+    const pageTitle = $("pageTitle");
+    const views = {
+      staff: $("view_staff"),
+      addRestaurant: $("view_addRestaurant"),
+      restaurants: $("view_restaurants"),
+      orders: $("view_orders"),
+    };
+    function show(viewKey){
+      Object.entries(views).forEach(([k,el])=> el.style.display = (k===viewKey) ? "" : "none");
+      document.querySelectorAll(".navBtn[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view===viewKey));
+      pageTitle.textContent =
+        viewKey==="staff" ? "新增人員" :
+        viewKey==="addRestaurant" ? "新增餐廳" :
+        viewKey==="restaurants" ? "餐廳管理" :
+        "訂餐紀錄";
+
+      if(viewKey==="staff"){
+        refreshStaffList();
+      }
+      if(viewKey==="restaurants"){
+        refreshRestaurantSelects();
+        refreshRestaurantsManage();
+      }
+    }
+    document.querySelectorAll(".navBtn[data-view]").forEach(btn=>{
+      btn.addEventListener("click", ()=> show(btn.dataset.view));
+    });
+    show("addRestaurant");
+
+    $("logout").onclick = ()=>{ localStorage.removeItem(roleKey); location.href = "./index.html"; };
+    $("switchUser").onclick = ()=>{ localStorage.setItem(roleKey, "user"); location.href = "./user.html"; };
+    $("gotoIndex").onclick = ()=> location.href = "./index.html";
+
+    const colRestaurants = collection(db, "restaurants");
+    const colStaff = collection(db, "staff");
+    const colOrders = collection(db, "orders");
+
+    // ====== 新增餐廳：圖片網址預覽 ======
+    const r_imgUrl = $("r_imgUrl");
+    const r_imgPrev = $("r_imgPrev");
+    r_imgUrl.addEventListener("input", ()=>{
+      const url = r_imgUrl.value.trim();
+      if(!url){ r_imgPrev.style.display="none"; return; }
+      r_imgPrev.src = url;
+      r_imgPrev.style.display="";
+    });
+    r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
+
+    // ====== 新增餐廳：餐點清單（含加購） ======
+    let currentAddons = [];
+    let menuQueue = [];
+
+    function renderAddonList(){
+      const wrap = $("addonList");
+      if(currentAddons.length===0){
+        wrap.innerHTML = '<div class="muted">尚未加入加購</div>';
+        return;
+      }
+      wrap.innerHTML = currentAddons.map((a,i)=>`
+        <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff; margin-top:8px;">
+          <div>
+            <b>${esc(a.name)}</b>
+            <span class="tag" style="margin-left:8px">+${a.price}</span>
+            ${a.free ? '<span class="tag" style="margin-left:6px">免費</span>' : ''}
+          </div>
+          <button class="btnSmall btnDanger" data-del-addon="${i}" type="button">刪除</button>
+        </div>
+      `).join("");
+      wrap.querySelectorAll("button[data-del-addon]").forEach(b=>{
+        b.onclick = ()=>{
+          currentAddons.splice(Number(b.dataset.delAddon), 1);
+          renderAddonList();
+        };
+      });
+    }
+
+    function renderMenuQueue(){
+      const wrap = $("menuQueueWrap");
+      if(menuQueue.length===0){
+        wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
+        return;
+      }
+      wrap.innerHTML = menuQueue.map((m,i)=>{
+        const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
+        return `
+          <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+            <div class="inline" style="justify-content:space-between">
+              <div>
+                <b>${esc(m.name)}</b>
+                <span class="tag" style="margin-left:8px">${esc(m.category||"")}</span>
+                <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
+                <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
+              </div>
+              <button class="btnSmall btnDanger" data-del-menu="${i}" type="button">刪除</button>
+            </div>
+            <div class="muted" style="margin-top:8px">加購：${esc(addons)}</div>
+          </div>
+        `;
+      }).join("");
+      wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
+        b.onclick = ()=>{
+          menuQueue.splice(Number(b.dataset.delMenu), 1);
+          renderMenuQueue();
+        };
+      });
+    }
+
+    renderAddonList(); renderMenuQueue();
+
+    $("btnAddAddon").onclick = ()=>{
+      const name = $("a_name").value.trim();
+      const free = $("a_free").checked;
+      const price = free ? 0 : Number($("a_price").value||0);
+      if(!name) return alert("請輸入加購名稱");
+      if(!free && (isNaN(price) || price<0)) return alert("加購金額不正確");
+      currentAddons.push({ name, price, free });
+      $("a_name").value=""; $("a_price").value=""; $("a_free").checked=false;
+      renderAddonList();
+    };
+
+    $("btnClearMenu").onclick = ()=>{
+      $("m_cat").value=""; $("m_name").value=""; $("m_price").value=""; $("m_defaultQty").value="1";
+      currentAddons = [];
+      $("a_name").value=""; $("a_price").value=""; $("a_free").checked=false;
+      renderAddonList();
+    };
+
+    $("btnAddMenuToQueue").onclick = ()=>{
+      const category = $("m_cat").value.trim();
+      const name = $("m_name").value.trim();
+      const price = Number($("m_price").value||0);
+      const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
+      if(!category) return alert("請輸入餐點類別");
+      if(!name) return alert("請輸入餐點名稱");
+      if(isNaN(price) || price<0) return alert("價格不正確");
+      menuQueue.push({ category, name, price, defaultQty, addons: currentAddons });
+      $("btnClearMenu").click();
+      renderMenuQueue();
+      alert("已加入餐點清單");
+    };
+
+    $("btnClearAll").onclick = ()=>{
+      $("r_name").value=""; $("r_phone").value=""; $("r_addr").value="";
+      $("r_map").value=""; $("r_note").value="";
+      $("r_imgUrl").value=""; r_imgPrev.style.display="none";
+      menuQueue = [];
+      $("btnClearMenu").click();
+      renderMenuQueue();
+    };
+
+    $("btnSubmitAll").onclick = async ()=>{
+      const name = $("r_name").value.trim();
+      if(!name) return alert("請輸入餐廳名稱");
+      statusPill.textContent = "新增餐廳中…";
+
+      try{
+        const restaurantRef = await addDoc(colRestaurants, {
+          name,
+          phone: $("r_phone").value.trim(),
+          address: $("r_addr").value.trim(),
+          mapUrl: $("r_map").value.trim(),
+          note: $("r_note").value.trim(),
+          imageUrl: $("r_imgUrl").value.trim(),
+          createdAt: Date.now()
         });
+
+        if(menuQueue.length>0){
+          statusPill.textContent = "新增餐點清單中…";
+          const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+          for(const m of menuQueue){
+            await addDoc(menuCol, {
+              category: m.category,
+              name: m.name,
+              price: Number(m.price||0),
+              defaultQty: Math.max(1, Number(m.defaultQty||1)),
+              addons: m.addons || [],
+              createdAt: Date.now()
+            });
+          }
+        }
+
+        statusPill.textContent = "新增完成 ✅";
+        alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
+        $("btnClearAll").click();
+        await refreshRestaurantSelects();
+      }catch(err){
+        console.error(err);
+        alert("新增失敗\n\n" + (err?.message || err));
+        statusPill.textContent = "新增失敗（看 console）";
       }
-
-      group.appendChild(head);
-      group.appendChild(body);
-      box.appendChild(group);
-    });
-  }
-
-  $("btnAddRest").onclick = async ()=>{
-    const name = ($("restName").value||"").trim();
-    const url = ($("restUrl").value||"").trim();
-    if(!name){
-      setHint($("restHint"), "餐廳名稱必填", "warn");
-      return;
-    }
-    await addDoc(collection(db,"restaurants"), { name, url, img:"", menus:[], addons:[] });
-    $("restName").value = "";
-    $("restUrl").value = "";
-    setHint($("restHint"), "✅ 已新增", "ok");
-    await loadAll();
-  };
-
-  // ========= 新增餐點：暫存加購 =========
-  let tempAddons = [];
-  function renderTempAddons(){
-    const box = $("addonTempList");
-    box.innerHTML = "";
-    if(!tempAddons.length){
-      setHint($("addonHint"), "尚未加入加購", "");
-      return;
-    }
-    setHint($("addonHint"), `已加入 ${tempAddons.length} 筆加購`, "ok");
-
-    tempAddons.forEach((a, idx)=>{
-      const row = document.createElement("div");
-      row.className = "itemRow";
-      row.innerHTML = `
-        <div>
-          <b>${esc(a.name)}</b>
-          <div class="meta">${a.price ? `+ $ ${money(a.price)}` : "免費"}</div>
-        </div>
-        <div class="actions">
-          <button class="btn danger">移除</button>
-        </div>
-      `;
-      row.querySelector("button").onclick = ()=>{
-        tempAddons.splice(idx,1);
-        renderTempAddons();
-      };
-      box.appendChild(row);
-    });
-  }
-
-  $("btnAddAddon").onclick = ()=>{
-    const name = ($("addonName").value||"").trim();
-    const price = Number(($("addonPrice").value||"0").trim() || 0);
-    if(!name) return setHint($("addonHint"), "請輸入加購名稱", "warn");
-    tempAddons.push({ name, price: Math.max(0, price|0) });
-    $("addonName").value = "";
-    $("addonPrice").value = "";
-    renderTempAddons();
-  };
-
-  $("restSelectForMenu").addEventListener("change", ()=>{
-    const rid = $("restSelectForMenu").value;
-    const r = restaurants.find(x=>x.id===rid);
-    $("menuAddTag").textContent = r ? r.name : "尚未選餐廳";
-  });
-
-  $("btnAddMenu").onclick = async ()=>{
-    const rid = $("restSelectForMenu").value;
-    const r = restaurants.find(x=>x.id===rid);
-    if(!r) return setHint($("menuHint"), "請先選餐廳", "warn");
-
-    const category = ($("menuCategory").value||"").trim();
-    const name = ($("menuName").value||"").trim();
-    const price = Number(($("menuPrice").value||"0").trim() || 0);
-    const defaultQty = Number(($("menuDefaultQty").value||"0").trim() || 0);
-
-    if(!name) return setHint($("menuHint"), "餐點名稱必填", "warn");
-
-    const newItem = {
-      id: crypto.randomUUID(),
-      category,
-      name,
-      price: Math.max(0, price|0),
-      defaultQty: Math.max(0, defaultQty|0),
-      addons: tempAddons.map(a=>({ name:a.name, price:a.price }))
     };
 
-    const before = Array.isArray(r.menus) ? r.menus : [];
-    await updateDoc(doc(db,"restaurants",r.id), { menus: [...before, newItem] });
+    // ====== 人員（✅ 不用 orderBy，避免 Composite Index）======
+    async function refreshStaffList(){
+      const wrap = $("staffWrap");
+      wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
-    $("menuCategory").value = "";
-    $("menuName").value = "";
-    $("menuPrice").value = "";
-    $("menuDefaultQty").value = "";
-    tempAddons = [];
-    renderTempAddons();
-    setHint($("menuHint"), "✅ 已新增餐點", "ok");
+      try{
+        const snap = await getDocs(colStaff); // ✅ 直接讀，不用 index
+        const arr = [];
+        snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
 
-    await loadAll();
-  };
+        // 前端排序：dept -> name
+        arr.sort((a,b)=>{
+          const da = (a.dept||"未分部門").trim();
+          const dbb = (b.dept||"未分部門").trim();
+          if(da === dbb) return (a.name||"").localeCompare((b.name||""), "zh-Hant");
+          return da.localeCompare(dbb, "zh-Hant");
+        });
 
-  // ========= 訂單紀錄 =========
-  async function loadOrders(){
-    const snap = await getDocs(collection(db,"orders")); // 不用 where/orderBy，避免 index
-    orders = snap.docs.map(d=>({ id:d.id, ...(d.data()||{}) }));
+        // 依 dept 分組
+        const map = new Map();
+        for(const v of arr){
+          const dept = (v.dept||"未分部門").trim();
+          if(!map.has(dept)) map.set(dept, []);
+          map.get(dept).push(v);
+        }
 
-    // 前端排序：createdAt desc
-    orders.sort((a,b)=> (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+        if(map.size===0){
+          wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
+          return;
+        }
 
-    buildOrderFilters();
-    renderOrders();
-  }
+        wrap.innerHTML = Array.from(map.entries()).map(([dept, list])=>`
+          <details open style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
+            <summary>${esc(dept)} <span class="tag" style="margin-left:8px">${list.length}人</span></summary>
+            <div style="margin-top:10px">
+              ${list.map(p=>`
+                <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
+                  <div><b>${esc(p.name||"")}</b></div>
+                  <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
+                </div>
+              `).join("")}
+            </div>
+          </details>
+        `).join("");
 
-  function buildOrderFilters(){
-    const depts = new Set();
-    const names = new Set();
-    const rests = new Set();
+        wrap.querySelectorAll("button[data-delstaff]").forEach(b=>{
+          b.onclick = async ()=>{
+            if(!confirm("確定刪除該人員？")) return;
+            try{
+              await deleteDoc(doc(db,"staff", b.dataset.delstaff));
+              await refreshStaffList();
+            }catch(err){
+              console.error(err);
+              alert("刪除人員失敗\n\n" + (err?.message || err));
+            }
+          };
+        });
 
-    orders.forEach(o=>{
-      if(o.dept) depts.add(o.dept);
-      if(o.name) names.add(o.name);
-      if(o.restaurantName) rests.add(o.restaurantName);
-    });
-
-    const setOptions = (sel, items, label)=>{
-      const cur = sel.value;
-      sel.innerHTML = `<option value="">${label}</option>` + [...items].sort((a,b)=>String(a).localeCompare(String(b),"zh-Hant"))
-        .map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
-      sel.value = cur && [...items].includes(cur) ? cur : "";
-    };
-
-    setOptions($("fDept"), depts, "全部部門");
-    setOptions($("fName"), names, "全部姓名");
-    setOptions($("fRest"), rests, "全部餐廳");
-  }
-
-  function getFilteredOrders(){
-    const fd = $("fDept").value;
-    const fn = $("fName").value;
-    const fr = $("fRest").value;
-
-    const ds = $("fDateStart").value;  // YYYY-MM-DD
-    const de = $("fDateEnd").value;    // YYYY-MM-DD
-    const fp = $("fPeriod").value;     // lunch/dinner
-
-    return orders.filter(o=>{
-      if(fd && o.dept !== fd) return false;
-      if(fn && o.name !== fn) return false;
-      if(fr && o.restaurantName !== fr) return false;
-
-      // 日期範圍
-      if(ds || de){
-        const d = toDate(o.createdAt);
-        if(!d) return false;
-        const ymd = ymdLocal(d);
-        if(ds && ymd < ds) return false;
-        if(de && ymd > de) return false;
+      }catch(err){
+        console.error(err);
+        wrap.innerHTML = `
+          <div class="muted">
+            讀取失敗<br/>
+            ${esc(err?.message || err)}
+          </div>
+        `;
       }
-
-      // 時段
-      if(fp){
-        const p = getPeriod(o.createdAt);
-        if(p !== fp) return false;
-      }
-
-      return true;
-    });
-  }
-
-  function renderOrders(){
-    const box = $("orderList");
-    box.innerHTML = "";
-
-    const list = getFilteredOrders();
-
-    let sum = 0;
-    list.forEach(o=> sum += Number(o.total||0));
-
-    // 顯示篩選摘要
-    const fd = $("fDept").value || "全部部門";
-    const fn = $("fName").value || "全部姓名";
-    const fr = $("fRest").value || "全部餐廳";
-    const ds = $("fDateStart").value || "—";
-    const de = $("fDateEnd").value || "—";
-    const fp = $("fPeriod").value ? ( $("fPeriod").value==="lunch" ? "中午" : "晚上" ) : "全部時段";
-
-    setHint($("orderHint"),
-      `共 ${list.length} 筆｜合計 $ ${money(sum)} ｜ ${fd} / ${fn} / ${fr} ｜ 日期：${ds}～${de} ｜ 時段：${fp}`,
-      list.length ? "ok" : "warn"
-    );
-
-    $("statPill").textContent = `訂單 ${list.length}｜$ ${money(sum)}`;
-
-    if(!list.length){
-      box.innerHTML = `<div class="hint warn">目前沒有訂單</div>`;
-      return;
     }
 
-    list.forEach(o=>{
-      const items = Array.isArray(o.items) ? o.items : [];
-      const itemsText = items.map(it=>{
-        const qty = Number(it.qty||0);
-        const price = Number(it.price||0);
-        const addonsSum = (it.addons||[]).reduce((s,a)=>s+(Number(a?.price||0)),0);
-        const lineTotal = (price + addonsSum) * qty;
-
-        const addons = (it.addons||[]).map(a=>{
-          const n = (a?.name||"").trim();
-          const p = Number(a?.price||0);
-          return n ? `${n}${p?`(+${p})`:"(免費)"}` : "";
-        }).filter(Boolean).join("、");
-
-        return `• ${esc(it.name||"")} x${qty} ｜單價$${money(price)}`
-          + (addons ? ` ｜加購：${esc(addons)}` : ``)
-          + ` ｜品項金額：$${money(lineTotal)}`;
-      }).join("<br>");
-
-      const d = toDate(o.createdAt);
-      const createdText = d ? d.toLocaleString("zh-TW") : "";
-      const p = getPeriod(o.createdAt);
-
-      const row = document.createElement("div");
-      row.className = "itemRow";
-      row.innerHTML = `
-        <div>
-          <b>
-            ${esc(o.restaurantName||"（未知餐廳）")}
-            <span class="tag">${esc(o.dept||"")}/${esc(o.name||"")}</span>
-            ${periodBadgeHTML(p)}
-          </b>
-          <div class="meta">時間：${esc(createdText)}｜訂單總額：$ ${money(o.total||0)}</div>
-          <div class="meta" style="margin-top:6px">${itemsText || "（無品項）"}</div>
-          ${o.note ? `<div class="meta" style="margin-top:6px">整單備註：${esc(o.note)}</div>` : ``}
-        </div>
-        <div class="actions">
-          <button class="btn danger">刪除</button>
-        </div>
-      `;
-
-      row.querySelector("button").onclick = async ()=>{
-        if(!confirm(`刪除這筆訂單？\n${o.dept||""}/${o.name||""} - ${o.restaurantName||""}`)) return;
-        await deleteDoc(doc(db,"orders",o.id));
-        await loadAll();
-      };
-
-      box.appendChild(row);
+    $("btnAddStaff").onclick = async ()=>{
+      const dept = $("s_dept").value.trim();
+      const name = $("s_name").value.trim();
+      if(!dept) return alert("請輸入部門");
+      if(!name) return alert("請輸入人員名稱");
+      try{
+        await addDoc(colStaff, { dept, name, createdAt: Date.now() });
+        $("s_name").value="";
+        statusPill.textContent = "已新增人員 ✅";
+        await refreshStaffList();
+      }catch(err){
+        console.error(err);
+        alert("新增人員失敗\n\n" + (err?.message || err));
+      }
+    };
+    $("btnClearStaff").onclick = ()=>{
+      $("s_dept").value="";
+      $("s_name").value="";
+      statusPill.textContent = "已清空輸入";
+    };
+    $("s_name").addEventListener("keydown", (e)=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        $("btnAddStaff").click();
+      }
     });
-  }
 
-  // 篩選事件
-  $("fDept").onchange = renderOrders;
-  $("fName").onchange = renderOrders;
-  $("fRest").onchange = renderOrders;
-  $("fDateStart").onchange = renderOrders;
-  $("fDateEnd").onchange = renderOrders;
-  $("fPeriod").onchange = renderOrders;
+    // ====== 餐廳下拉 ======
+    async function refreshRestaurantSelects(){
+      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(800)));
+      const list = [];
+      snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
+      $("rm_restaurant").innerHTML = list.length
+        ? `<option value="">請選擇</option>` + list.map(r=> `<option value="${r.id}">${esc(r.name||"未命名")}</option>`).join("")
+        : `<option value="">（尚無餐廳）</option>`;
+      $("rm_restaurant").onchange = ()=> refreshMenuManage();
+    }
+    await refreshRestaurantSelects();
 
-  $("btnClearFilter").onclick = ()=>{
-    $("fDept").value = "";
-    $("fName").value = "";
-    $("fRest").value = "";
-    $("fDateStart").value = "";
-    $("fDateEnd").value = "";
-    $("fPeriod").value = "";
-    renderOrders();
-  };
+    $("btnReloadMenus").onclick = ()=>{
+      refreshRestaurantSelects().then(()=> refreshMenuManage());
+      refreshRestaurantsManage();
+    };
 
-  // ✅ 快捷：今天（起日=迄日=今天）
-  $("btnQuickToday").onclick = ()=>{
-    const t = nowYMD();
-    $("fDateStart").value = t;
-    $("fDateEnd").value = t;
-    renderOrders();
-  };
+    // ====== 餐點管理（置頂：依餐廳） ======
+    async function refreshMenuManage(){
+      const rid = $("rm_restaurant").value;
+      const wrap = $("menuManageWrap");
+      if(!rid){ wrap.innerHTML = `<div class="muted">請先選擇餐廳</div>`; return; }
 
-  // ✅ 快捷：清空日期（保留其他篩選）
-  $("btnQuickClearDate").onclick = ()=>{
-    $("fDateStart").value = "";
-    $("fDateEnd").value = "";
-    renderOrders();
-  };
+      try{
+        const menuCol = collection(db, "restaurants", rid, "menu");
+        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
+        const list = [];
+        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
-  $("btnReloadOrders").onclick = async ()=>{ await loadOrders(); };
+        if(list.length===0){ wrap.innerHTML = `<div class="muted">此餐廳尚無餐點</div>`; return; }
 
-  // ========= 匯出 Excel（CSV，Excel 可開｜匯出篩選後） =========
-  $("btnExportExcel").onclick = ()=>{
-    const list = getFilteredOrders();
+        wrap.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>加購項目</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map(m=>{
+                const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
+                return `
+                  <tr>
+                    <td><input data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
+                    <td><input data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+                    <td><input data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
+                    <td><input data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+                    <td class="muted" style="max-width:280px">${esc(addons)}</td>
+                    <td style="white-space:nowrap">
+                      <button class="btnSmall btnOk" data-savem="${m.id}" type="button">儲存</button>
+                      <button class="btnSmall btnDanger" data-delm="${m.id}" type="button">刪除</button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
 
-    const rows = [[
-      "部門","姓名","餐廳","時段","品項","加購","數量","單價","加購金額","品項金額","訂單總額","下單時間","整單備註"
-    ]];
+        wrap.querySelectorAll("button[data-delm]").forEach(b=>{
+          b.onclick = async ()=>{
+            if(!confirm("確定刪除餐點？")) return;
+            try{
+              await deleteDoc(doc(db, "restaurants", rid, "menu", b.dataset.delm));
+              await refreshMenuManage();
+              await refreshRestaurantsManage();
+            }catch(err){
+              console.error(err);
+              alert("刪除餐點失敗\n\n" + (err?.message || err));
+            }
+          };
+        });
 
-    list.forEach(o=>{
-      const d = toDate(o.createdAt);
-      const createdText = d ? d.toLocaleString("zh-TW") : "";
-      const period = periodLabel(getPeriod(o.createdAt)) || "";
+        wrap.querySelectorAll("button[data-savem]").forEach(b=>{
+          b.onclick = async ()=>{
+            const mid = b.dataset.savem;
+            const els = wrap.querySelectorAll(`[data-mid="${mid}"]`);
+            const patch = {};
+            els.forEach(el=>{
+              const k = el.dataset.k;
+              patch[k] = (k==="price" || k==="defaultQty") ? Number(el.value||0) : el.value.trim();
+            });
+            patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
+            patch.price = Math.max(0, Number(patch.price||0));
+            try{
+              await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+              statusPill.textContent = "餐點已儲存 ✅";
+              await refreshRestaurantsManage();
+            }catch(err){
+              console.error(err);
+              alert("儲存餐點失敗\n\n" + (err?.message || err));
+            }
+          };
+        });
 
-      const items = Array.isArray(o.items) ? o.items : [];
-      if(!items.length){
-        rows.push([
-          o.dept||"", o.name||"", o.restaurantName||"", period,
-          "", "", "", "", "", "",
-          Number(o.total||0), createdText, o.note||""
-        ]);
+      }catch(err){
+        console.error(err);
+        wrap.innerHTML = `<div class="muted">無法讀取餐點<br/>${esc(err?.message || err)}</div>`;
+      }
+    }
+
+    // ====== 餐廳管理（收合 + 顯示餐點 + ✅ 可新增餐點含加購） ======
+    async function loadMenusOfRestaurant(rid){
+      try{
+        const menuCol = collection(db, "restaurants", rid, "menu");
+        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
+        const list = [];
+        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
+        return list;
+      }catch(err){
+        console.error(err);
+        return null;
+      }
+    }
+
+    // ✅ 每間餐廳的「新增餐點」加購暫存
+    const draftAddonsByRid = {}; // { [rid]: Array<{name,price,free}> }
+
+    function renderDraftAddons(rid, wrapEl){
+      const box = wrapEl.querySelector(`[data-draft-addon-list="${rid}"]`);
+      if(!box) return;
+      const arr = draftAddonsByRid[rid] || [];
+      if(arr.length===0){
+        box.innerHTML = `<div class="muted">尚未加入加購</div>`;
+        return;
+      }
+      box.innerHTML = arr.map((a,i)=>`
+        <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff; margin-top:8px;">
+          <div>
+            <b>${esc(a.name)}</b>
+            <span class="tag" style="margin-left:8px">+${a.price}</span>
+            ${a.free ? '<span class="tag" style="margin-left:6px">免費</span>' : ''}
+          </div>
+          <button class="btnSmall btnDanger" type="button" data-draft-del="${rid}" data-i="${i}">刪除</button>
+        </div>
+      `).join("");
+
+      box.querySelectorAll(`button[data-draft-del="${rid}"]`).forEach(btn=>{
+        btn.onclick = ()=>{
+          const idx = Number(btn.dataset.i);
+          const list = draftAddonsByRid[rid] || [];
+          list.splice(idx,1);
+          draftAddonsByRid[rid] = list;
+          renderDraftAddons(rid, wrapEl);
+        };
+      });
+    }
+
+    async function refreshRestaurantsManage(){
+      const wrap = $("restaurantsWrap");
+      wrap.innerHTML = `<div class="muted">載入中…</div>`;
+
+      let restaurants = [];
+      try{
+        const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(800)));
+        snap.forEach(d=> restaurants.push({ id:d.id, ...d.data() }));
+      }catch(err){
+        console.error(err);
+        wrap.innerHTML = `<div class="muted">無法讀取餐廳<br/>${esc(err?.message || err)}</div>`;
         return;
       }
 
-      items.forEach(it=>{
-        const qty = Number(it.qty||0);
-        const price = Number(it.price||0);
+      if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
 
-        const addonsArr = (it.addons||[]).map(a=>{
-          const n = (a?.name||"").trim();
-          const p = Number(a?.price||0);
-          return n ? `${n}${p?`(+${p})`:"(免費)"}` : "";
-        }).filter(Boolean);
+      const blocks = [];
+      for(const r of restaurants){
+        const menus = await loadMenusOfRestaurant(r.id);
 
-        const addonsText = addonsArr.join("、");
-        const addonsSum = (it.addons||[]).reduce((s,a)=>s+(Number(a?.price||0)),0);
-        const lineTotal = (price + addonsSum) * qty;
+        const menuRows = (menus === null)
+          ? `<div class="muted" style="margin-top:8px">（無法讀取餐點：${esc("請確認 Rules/索引") }）</div>`
+          : (menus.length===0)
+            ? `<div class="muted" style="margin-top:8px">（此餐廳尚無餐點）</div>`
+            : `
+              <table style="margin-top:10px">
+                <thead>
+                  <tr>
+                    <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>加購</th><th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${menus.map(m=>{
+                    const addons = (m.addons||[]).map(a=> `${a.name}+${a.price}${a.free?"(免費)":""}`).join("；") || "—";
+                    return `
+                      <tr>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
+                        <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+                        <td class="muted" style="max-width:260px">${esc(addons)}</td>
+                        <td style="white-space:nowrap">
+                          <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
+                          <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            `;
 
-        rows.push([
-          o.dept||"", o.name||"", o.restaurantName||"", period,
-          it.name||"", addonsText,
-          qty, price, addonsSum, lineTotal,
-          Number(o.total||0), createdText, o.note||""
-        ]);
+        const addForm = `
+          <div class="hr"></div>
+          <h3 style="margin:0">➕ 直接新增餐點到「${esc(r.name||"未命名")}」</h3>
+
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label>餐點類別（用輸入）</label>
+              <input data-add-rid="${r.id}" data-add-k="category" placeholder="例：飯類 / 麵類 / 小菜 / 飲料">
+            </div>
+            <div>
+              <label>餐點名稱</label>
+              <input data-add-rid="${r.id}" data-add-k="name" placeholder="例：排骨飯">
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>價格（單份）</label>
+              <input data-add-rid="${r.id}" data-add-k="price" type="number" min="0" placeholder="70">
+            </div>
+            <div>
+              <label>預設數量</label>
+              <input data-add-rid="${r.id}" data-add-k="defaultQty" type="number" min="1" value="1">
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <h3 style="margin:0">加購項目（可多筆）</h3>
+          <div class="subcard" style="margin-top:10px">
+            <div class="row3">
+              <div>
+                <label>加購名稱</label>
+                <input data-add-rid="${r.id}" data-addon-k="name" placeholder="例：蛋">
+              </div>
+              <div>
+                <label>加購金額</label>
+                <input data-add-rid="${r.id}" data-addon-k="price" type="number" min="0" placeholder="10">
+              </div>
+              <div style="display:flex; align-items:end; gap:10px">
+                <label style="display:flex; align-items:center; gap:8px; margin:0;">
+                  <input data-add-rid="${r.id}" data-addon-k="free" type="checkbox" style="width:18px; height:18px;"/>
+                  免費
+                </label>
+                <button class="btnSmall btnOk" type="button" data-addaddon="${r.id}">加入加購</button>
+              </div>
+            </div>
+            <div style="margin-top:10px" data-draft-addon-list="${r.id}"></div>
+          </div>
+
+          <div class="actions">
+            <button class="btnSmall btnOk" type="button" data-addmenu="${r.id}">新增餐點</button>
+            <button class="btnSmall" type="button" data-clearadd="${r.id}">清空餐點欄位</button>
+            <button class="btnSmall btnDanger" type="button" data-clearaddons="${r.id}">清空加購</button>
+          </div>
+        `;
+
+        blocks.push(`
+          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:#fff; margin-top:12px;">
+            <summary>
+              <span style="font-size:14.5px">${esc(r.name||"未命名")}</span>
+              <span class="tag" style="margin-left:8px">${menus===null ? "?" : menus.length} 道餐點</span>
+            </summary>
+
+            <div class="kpi">
+              ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
+              ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
+              ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div>
+                <label>電話</label>
+                <input data-r="${r.id}" data-k="phone" value="${esc(r.phone||"")}"/>
+              </div>
+              <div>
+                <label>地址</label>
+                <input data-r="${r.id}" data-k="address" value="${esc(r.address||"")}"/>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Google map 連結</label>
+                <input data-r="${r.id}" data-k="mapUrl" value="${esc(r.mapUrl||"")}"/>
+              </div>
+              <div>
+                <label>圖片網址</label>
+                <div class="inline" style="gap:8px">
+                  <input data-r="${r.id}" data-k="imageUrl" value="${esc(r.imageUrl||"")}"/>
+                  <button class="btnSmall" type="button" data-openimg="${r.id}">開啟</button>
+                </div>
+              </div>
+            </div>
+
+            ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="imgPrev" style="margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
+                        : `<div class="muted" style="margin-top:10px">（尚無圖片網址）</div>`}
+
+            <label>備註</label>
+            <textarea data-r="${r.id}" data-k="note">${esc(r.note||"")}</textarea>
+
+            <div class="actions">
+              <button class="btnSmall btnOk" type="button" data-saver="${r.id}">儲存餐廳資料</button>
+              <button class="btnSmall btnDanger" type="button" data-delr="${r.id}">刪除餐廳</button>
+            </div>
+
+            <div class="hr"></div>
+            <h3 style="margin:0">已設定餐點</h3>
+            ${menuRows}
+            ${addForm}
+          </details>
+        `);
+      }
+
+      wrap.innerHTML = blocks.join("");
+
+      // 初始化每間餐廳的加購暫存 + render
+      wrap.querySelectorAll(`button[data-addmenu]`).forEach(btn=>{
+        const rid = btn.dataset.addmenu;
+        if(!draftAddonsByRid[rid]) draftAddonsByRid[rid] = [];
+        renderDraftAddons(rid, wrap);
       });
-    });
 
-    // CSV（含 BOM，避免 Excel 亂碼）
-    const csv = "\uFEFF" + rows.map(r=>r.map(v=>{
-      const s = String(v ?? "");
-      return /[,"\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
-    }).join(",")).join("\n");
+      // 圖片網址：開啟新分頁（✅ 修好）
+      wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.openimg;
+          const input = wrap.querySelector(`[data-r="${rid}"][data-k="imageUrl"]`);
+          const url = (input?.value || "").trim();
+          if(!url) return alert("目前沒有圖片網址");
+          const finalUrl = url.startsWith("http://") || url.startsWith("https://") ? url : ("https://" + url);
+          window.open(finalUrl, "_blank");
+        };
+      });
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
-    a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-  };
+      // 儲存餐廳資料
+      wrap.querySelectorAll("button[data-saver]").forEach(b=>{
+        b.onclick = async ()=>{
+          const rid = b.dataset.saver;
+          const inputs = wrap.querySelectorAll(`[data-r="${rid}"]`);
+          const patch = {};
+          inputs.forEach(i=> patch[i.dataset.k] = i.value.trim());
+          try{
+            statusPill.textContent = "儲存餐廳中…";
+            await updateDoc(doc(db,"restaurants", rid), patch);
+            statusPill.textContent = "已儲存 ✅";
+            await refreshRestaurantSelects();
+            await refreshRestaurantsManage();
+          }catch(err){
+            console.error(err);
+            alert("儲存失敗\n\n" + (err?.message || err));
+            statusPill.textContent = "儲存失敗（看 console）";
+          }
+        };
+      });
 
-  // ========= Reload =========
-  $("btnReloadAll").onclick = async ()=>{ await loadAll(); };
+      // 刪除餐廳（先刪子集合 menu 再刪本體）
+      wrap.querySelectorAll("button[data-delr]").forEach(b=>{
+        b.onclick = async ()=>{
+          const rid = b.dataset.delr;
+          if(!confirm("確定刪除餐廳？（會連同該餐廳的餐點一起刪除）")) return;
 
-  async function loadAll(){
-    try{
-      setHint($("topHint"), "載入資料中…");
-      await loadStaff();
-      await loadRestaurants();
-      await loadOrders();
-      setHint($("topHint"), "✅ 已更新", "ok");
-    }catch(err){
-      console.error(err);
-      setHint($("topHint"), "讀取失敗：" + String(err?.message||err), "bad");
+          try{
+            statusPill.textContent = "刪除餐廳中…";
+
+            const menuCol = collection(db, "restaurants", rid, "menu");
+            const menuSnap = await getDocs(query(menuCol, limit(2000)));
+
+            let batch = writeBatch(db);
+            let count = 0;
+
+            for (const d of menuSnap.docs){
+              batch.delete(d.ref);
+              count++;
+              if(count % 450 === 0){
+                await batch.commit();
+                batch = writeBatch(db);
+              }
+            }
+            await batch.commit();
+
+            await deleteDoc(doc(db,"restaurants", rid));
+
+            delete draftAddonsByRid[rid];
+            statusPill.textContent = "已刪除 ✅";
+            await refreshRestaurantSelects();
+            await refreshRestaurantsManage();
+            await refreshMenuManage();
+          }catch(err){
+            console.error(err);
+            alert("刪除失敗\n\n" + (err?.message || err));
+            statusPill.textContent = "刪除失敗（看 console）";
+          }
+        };
+      });
+
+      // 餐點儲存/刪除（在餐廳收合內）
+      wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
+        b.onclick = async ()=>{
+          const rid = b.dataset.rid;
+          const mid = b.dataset.mid;
+          const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
+          const patch = {};
+          els.forEach(el=>{
+            const k = el.dataset.k;
+            patch[k] = (k==="price" || k==="defaultQty") ? Number(el.value||0) : el.value.trim();
+          });
+          patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
+          patch.price = Math.max(0, Number(patch.price||0));
+          try{
+            await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+            statusPill.textContent = "餐點已儲存 ✅";
+            await refreshMenuManage();
+          }catch(err){
+            console.error(err);
+            alert("儲存餐點失敗\n\n" + (err?.message || err));
+          }
+        };
+      });
+
+      wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
+        b.onclick = async ()=>{
+          const rid = b.dataset.rid;
+          const mid = b.dataset.mid;
+          if(!confirm("確定刪除餐點？")) return;
+          try{
+            await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
+            await refreshRestaurantsManage();
+            await refreshMenuManage();
+          }catch(err){
+            console.error(err);
+            alert("刪除餐點失敗\n\n" + (err?.message || err));
+          }
+        };
+      });
+
+      // ✅ 加入加購（直接新增餐點表單）
+      wrap.querySelectorAll("button[data-addaddon]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.addaddon;
+
+          const nameEl = wrap.querySelector(`[data-add-rid="${rid}"][data-addon-k="name"]`);
+          const priceEl = wrap.querySelector(`[data-add-rid="${rid}"][data-addon-k="price"]`);
+          const freeEl = wrap.querySelector(`[data-add-rid="${rid}"][data-addon-k="free"]`);
+
+          const name = (nameEl?.value || "").trim();
+          const free = !!freeEl?.checked;
+          const price = free ? 0 : Number(priceEl?.value || 0);
+
+          if(!name) return alert("請輸入加購名稱");
+          if(!free && (isNaN(price) || price<0)) return alert("加購金額不正確");
+
+          if(!draftAddonsByRid[rid]) draftAddonsByRid[rid] = [];
+          draftAddonsByRid[rid].push({ name, price, free });
+
+          if(nameEl) nameEl.value = "";
+          if(priceEl) priceEl.value = "";
+          if(freeEl) freeEl.checked = false;
+
+          renderDraftAddons(rid, wrap);
+        };
+      });
+
+      // ✅ 清空加購
+      wrap.querySelectorAll("button[data-clearaddons]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.clearaddons;
+          draftAddonsByRid[rid] = [];
+          const nameEl = wrap.querySelector(`[data-add-rid="${rid}"][data-addon-k="name"]`);
+          const priceEl = wrap.querySelector(`[data-add-rid="${rid}"][data-addon-k="price"]`);
+          const freeEl = wrap.querySelector(`[data-add-rid="${rid}"][data-addon-k="free"]`);
+          if(nameEl) nameEl.value = "";
+          if(priceEl) priceEl.value = "";
+          if(freeEl) freeEl.checked = false;
+          renderDraftAddons(rid, wrap);
+        };
+      });
+
+      // ✅ 新增餐點（含加購）——（你說「沒辦法再新增餐點」就是修這段）
+      wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
+        btn.onclick = async ()=>{
+          const rid = btn.dataset.addmenu;
+
+          const category = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`)?.value || "").trim();
+          const name = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`)?.value || "").trim();
+          const price = Number(wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`)?.value || 0);
+          const defaultQty = Math.max(1, Number(wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`)?.value || 1));
+
+          if(!category) return alert("請輸入餐點類別");
+          if(!name) return alert("請輸入餐點名稱");
+          if(isNaN(price) || price<0) return alert("價格不正確");
+
+          const addons = (draftAddonsByRid[rid] || []).map(a=> ({
+            name: a.name,
+            price: Number(a.price||0),
+            free: !!a.free
+          }));
+
+          try{
+            statusPill.textContent = "新增餐點中…";
+            const menuCol = collection(db, "restaurants", rid, "menu");
+            await addDoc(menuCol, { category, name, price, defaultQty, addons, createdAt: Date.now() });
+
+            statusPill.textContent = "已新增餐點 ✅";
+
+            // 清空餐點欄位
+            const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
+            const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
+            const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
+            const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+            if(c1) c1.value = "";
+            if(c2) c2.value = "";
+            if(c3) c3.value = "";
+            if(c4) c4.value = "1";
+
+            // 清空加購
+            draftAddonsByRid[rid] = [];
+            renderDraftAddons(rid, wrap);
+
+            // ✅ 刷新列表（讓你立刻看到新增的餐點）
+            await refreshRestaurantsManage();
+            await refreshMenuManage();
+            await refreshRestaurantSelects();
+          }catch(err){
+            console.error(err);
+            alert("新增餐點失敗\n\n" + (err?.message || err));
+            statusPill.textContent = "新增餐點失敗（看 console）";
+          }
+        };
+      });
+
+      // 清空（餐點欄位）
+      wrap.querySelectorAll("button[data-clearadd]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.clearadd;
+          const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
+          const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
+          const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
+          const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+          if(c1) c1.value = "";
+          if(c2) c2.value = "";
+          if(c3) c3.value = "";
+          if(c4) c4.value = "1";
+        };
+      });
     }
-  }
 
-  // init：預設帶今天日期（起日=迄日=今天）
-  (function initFilters(){
-    const t = nowYMD();
-    $("fDateStart").value = t;
-    $("fDateEnd").value = t;
-  })();
+    // ====== 訂餐紀錄 ======
+    $("btnToday").onclick = ()=> $("o_date").value = todayISO();
+    $("o_date").value = todayISO();
 
-  // init
-  renderTempAddons();
-  loadAll();
+    $("btnLoadOrders").onclick = async ()=>{
+      const date = $("o_date").value;
+      if(!date) return alert("請選日期");
+      const mode = $("o_mode").value;
 
-</script>
+      try{
+        const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(3000)));
+        const orders = [];
+        snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
+
+        if(orders.length===0){
+          $("ordersOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+          return;
+        }
+
+        if(mode==="raw"){
+          $("ordersOut").innerHTML = orders.map(o=>`
+            <div style="padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; margin-top:10px; background:#fff">
+              <div><b>${esc(o.userDept||"")}</b> / <b>${esc(o.userName||"")}</b> — <span class="tag">${esc(o.restaurantName||"")}</span></div>
+              <div class="muted" style="margin-top:8px">
+                ${(o.items||[]).map(it=>{
+                  const addonTxt = (it.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
+                  const noteTxt = it.note ? `（備註：${esc(it.note)}）` : "";
+                  return `• ${esc(it.name)} ${it.price} ${addonTxt} × ${it.qty} ${noteTxt}`;
+                }).join("<br/>")}
+              </div>
+            </div>
+          `).join("");
+          return;
+        }
+
+        const agg = new Map();
+        for(const o of orders){
+          for(const it of (o.items||[])){
+            const addonKey = (it.addons||[]).map(a=> `${a.name}:${a.price||0}:${a.free?1:0}`).sort().join("|");
+            const key = `${it.name}__${it.price}__${addonKey}`;
+            if(!agg.has(key)){
+              agg.set(key, { name: it.name, price: it.price, addons: it.addons||[], qty: 0 });
+            }
+            agg.get(key).qty += Number(it.qty||0);
+          }
+        }
+
+        const lines = Array.from(agg.values()).sort((a,b)=> b.qty-a.qty).map(x=>{
+          const addonTxt = (x.addons||[]).map(a=> `+${a.name}${a.price?(" "+a.price):""}${a.free?"(免費)":""}`).join("");
+          return `${x.name}${x.price}${addonTxt} 數量${x.qty}`;
+        });
+
+        $("ordersOut").innerHTML = `
+          <div style="padding:12px 12px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff">
+            ${lines.join("；")}
+          </div>
+        `;
+      }catch(err){
+        console.error(err);
+        $("ordersOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+        alert("讀取訂單失敗\n\n" + (err?.message || err));
+      }
+    };
+  </script>
 </body>
 </html>
