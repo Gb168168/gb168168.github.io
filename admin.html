@@ -104,6 +104,7 @@
     }
     .kpi{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
     .kpi .tag{font-weight:900}
+    a{color:inherit}
   </style>
 </head>
 <body>
@@ -139,7 +140,7 @@
         <h2 id="pageTitle">新增餐廳</h2>
         <div class="right">
           <span class="pill" id="statusPill">連線中…</span>
-          <button class="ghost" id="gotoIndex">回登入頁</button>
+          <button class="ghost" id="gotoIndex" type="button">回登入頁</button>
         </div>
       </div>
 
@@ -180,7 +181,7 @@
             <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
 
             <div class="actions">
-              <button class="primary" id="btnSubmitAll">直接新增上（餐廳 + 餐點清單）</button>
+              <button class="primary" id="btnSubmitAll" type="button">直接新增上（餐廳 + 餐點清單）</button>
               <button class="ghost" id="btnClearAll" type="button">清空</button>
             </div>
 
@@ -267,6 +268,7 @@
             <div class="actions">
               <button class="primary" id="btnAddStaff" type="button">新增</button>
               <button class="ghost" id="btnClearStaff" type="button">清空</button>
+              <button class="ghost" id="btnReloadStaff" type="button">重新載入</button>
             </div>
 
             <p class="muted">相同部門會自動收合顯示，並可刪除人員。</p>
@@ -304,7 +306,7 @@
       <section class="view" id="view_orders" style="display:none">
         <div class="grid">
           <div class="card">
-            <h3>訂單統計（預留版位）</h3>
+            <h3>訂單統計</h3>
             <div class="row">
               <div>
                 <label>訂單日期</label>
@@ -321,6 +323,7 @@
             <div class="actions">
               <button class="primary" id="btnLoadOrders" type="button">載入</button>
               <button class="ghost" id="btnToday" type="button">今天</button>
+              <button class="ghost" id="btnExportExcel" type="button">匯出 Excel</button>
             </div>
             <p class="muted">彙整格式例：排骨飯70+蛋10 數量2；排骨飯70 數量1…</p>
           </div>
@@ -336,6 +339,7 @@
   </div>
 
   <script type="module">
+    // ========= 基本 =========
     const roleKey = "gb_role";
     if (localStorage.getItem(roleKey) !== "admin") location.href = "./index.html";
 
@@ -358,12 +362,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const statusPill = document.getElementById("statusPill");
+    const $ = (id)=> document.getElementById(id);
+    const statusPill = $("statusPill");
     statusPill.textContent = "已連線 Firestore";
 
-    const $ = (id)=> document.getElementById(id);
     const esc = (s)=> (s??"").toString()
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+
     const todayISO = ()=>{
       const d = new Date(); const pad = (n)=> String(n).padStart(2,"0");
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -375,6 +380,7 @@
       if (el) el.value = "";
     });
 
+    // ========= 切頁 =========
     const pageTitle = $("pageTitle");
     const views = {
       staff: $("view_staff"),
@@ -382,7 +388,8 @@
       restaurants: $("view_restaurants"),
       orders: $("view_orders"),
     };
-    function show(viewKey){
+
+    async function show(viewKey){
       Object.entries(views).forEach(([k,el])=> el.style.display = (k===viewKey) ? "" : "none");
       document.querySelectorAll(".navBtn[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view===viewKey));
       pageTitle.textContent =
@@ -391,12 +398,13 @@
         viewKey==="restaurants" ? "餐廳管理" :
         "訂餐紀錄";
 
-      if(viewKey==="restaurants"){
-        refreshRestaurantSelects();
-        refreshRestaurantsManage();
-      }
       if(viewKey==="staff"){
-        refreshStaffList();
+        await refreshStaffList(); // ✅切到人員一定重新載入，避免你看到舊資料或 rules 錯誤卡住
+      }
+      if(viewKey==="restaurants"){
+        await refreshRestaurantSelects();
+        await refreshRestaurantsManage();
+        await refreshMenuManage();
       }
     }
     document.querySelectorAll(".navBtn[data-view]").forEach(btn=>{
@@ -408,11 +416,14 @@
     $("switchUser").onclick = ()=>{ localStorage.setItem(roleKey, "user"); location.href = "./user.html"; };
     $("gotoIndex").onclick = ()=> location.href = "./index.html";
 
+    // ========= collections =========
     const colRestaurants = collection(db, "restaurants");
     const colStaff = collection(db, "staff");
     const colOrders = collection(db, "orders");
 
-    // ====== 新增餐廳：圖片網址預覽 ======
+    // =========================
+    // 新增餐廳：圖片網址預覽
+    // =========================
     const r_imgUrl = $("r_imgUrl");
     const r_imgPrev = $("r_imgPrev");
     r_imgUrl.addEventListener("input", ()=>{
@@ -423,7 +434,9 @@
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
 
-    // ====== 新增餐廳：餐點清單（含加購） ======
+    // =========================
+    // 新增餐廳：餐點清單（含加購）
+    // =========================
     let currentAddons = [];
     let menuQueue = [];
 
@@ -559,36 +572,22 @@
       }
     };
 
-    // ==========================================================
-    // ✅ 人員：修正「讀取失敗（Rules）」——移除複合 orderBy
-    // ==========================================================
+    // =========================
+    // 人員（修好：新增/清空/清單）
+    // =========================
     async function refreshStaffList(){
       const wrap = $("staffWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
       try{
-        // ✅ 不用 orderBy("dept")+orderBy("name")（會卡複合索引/被誤判 Rules）
-        const snap = await getDocs(colStaff);
-
-        const list = [];
-        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
-
-        // ✅ 前端排序：dept -> name
-        list.sort((a,b)=>{
-          const ad = (a.dept||"未分部門").trim();
-          const bd = (b.dept||"未分部門").trim();
-          if(ad !== bd) return ad.localeCompare(bd, "zh-Hant");
-          const an = (a.name||"").trim();
-          const bn = (b.name||"").trim();
-          return an.localeCompare(bn, "zh-Hant");
-        });
-
+        const snap = await getDocs(query(colStaff, orderBy("dept","asc"), orderBy("name","asc"), limit(1200)));
         const map = new Map();
-        for(const v of list){
-          const dept = (v.dept||"未分部門").trim();
+        snap.forEach(d=>{
+          const v = d.data();
+          const dept = (v.dept||"未分部門").trim() || "未分部門";
           if(!map.has(dept)) map.set(dept, []);
-          map.get(dept).push(v);
-        }
+          map.get(dept).push({ id:d.id, ...v });
+        });
 
         if(map.size===0){
           wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
@@ -602,7 +601,7 @@
               ${arr.map(p=>`
                 <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
                   <div><b>${esc(p.name||"")}</b></div>
-                  <button class="btnSmall btnDanger" type="button" data-delstaff="${p.id}">刪除</button>
+                  <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
                 </div>
               `).join("")}
             </div>
@@ -623,11 +622,10 @@
         });
 
       }catch(err){
-        console.error("refreshStaffList failed:", err);
+        console.error(err);
         wrap.innerHTML = `<div class="muted">讀取失敗（Rules）</div>`;
       }
     }
-    await refreshStaffList();
 
     $("btnAddStaff").onclick = async ()=>{
       const dept = $("s_dept").value.trim();
@@ -637,17 +635,22 @@
       try{
         await addDoc(colStaff, { dept, name, createdAt: Date.now() });
         $("s_name").value="";
+        statusPill.textContent = "已新增人員 ✅";
         await refreshStaffList();
       }catch(err){
         console.error(err);
         alert("新增人員失敗（Rules）\n\n" + (err?.message || err));
       }
     };
+
     $("btnClearStaff").onclick = ()=>{
       $("s_dept").value="";
       $("s_name").value="";
       $("s_dept").focus();
     };
+
+    $("btnReloadStaff").onclick = ()=> refreshStaffList();
+
     $("s_name").addEventListener("keydown", (e)=>{
       if(e.key==="Enter"){
         e.preventDefault();
@@ -655,9 +658,14 @@
       }
     });
 
-    // ====== 餐廳下拉 ======
+    // 首次載入也先拉一次（避免你一進來就看到 rules 錯誤殘影）
+    await refreshStaffList();
+
+    // =========================
+    // 餐廳下拉
+    // =========================
     async function refreshRestaurantSelects(){
-      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(800)));
+      const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(1200)));
       const list = [];
       snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
       $("rm_restaurant").innerHTML = list.length
@@ -667,12 +675,15 @@
     }
     await refreshRestaurantSelects();
 
-    $("btnReloadMenus").onclick = ()=>{
-      refreshRestaurantSelects().then(()=> refreshMenuManage());
-      refreshRestaurantsManage();
+    $("btnReloadMenus").onclick = async ()=>{
+      await refreshRestaurantSelects();
+      await refreshRestaurantsManage();
+      await refreshMenuManage();
     };
 
-    // ====== 餐點管理（置頂：依餐廳） ======
+    // =========================
+    // 餐點管理（置頂：依餐廳）
+    // =========================
     async function refreshMenuManage(){
       const rid = $("rm_restaurant").value;
       const wrap = $("menuManageWrap");
@@ -680,7 +691,7 @@
 
       try{
         const menuCol = collection(db, "restaurants", rid, "menu");
-        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
+        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(3000)));
         const list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
 
@@ -704,8 +715,8 @@
                     <td><input data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
                     <td class="muted" style="max-width:280px">${esc(addons)}</td>
                     <td style="white-space:nowrap">
-                      <button class="btnSmall btnOk" type="button" data-savem="${m.id}">儲存</button>
-                      <button class="btnSmall btnDanger" type="button" data-delm="${m.id}">刪除</button>
+                      <button class="btnSmall btnOk" data-savem="${m.id}" type="button">儲存</button>
+                      <button class="btnSmall btnDanger" data-delm="${m.id}" type="button">刪除</button>
                     </td>
                   </tr>
                 `;
@@ -753,16 +764,18 @@
 
       }catch(err){
         console.error("refreshMenuManage failed:", err);
-        wrap.innerHTML = `<div class="muted">無法讀取餐點（多半是 Firestore Rules 擋 /restaurants/{id}/menu）</div>`;
+        wrap.innerHTML = `<div class="muted">無法讀取餐點（Rules 擋 /restaurants/{id}/menu）</div>`;
         statusPill.textContent = "讀取餐點失敗（看 console）";
       }
     }
 
-    // ====== 餐廳管理（收合 + 顯示餐點 + 直接新增餐點含加購） ======
+    // =========================
+    // 餐廳管理（收合 + 顯示餐點 + 直接新增餐點含加購）
+    // =========================
     async function loadMenusOfRestaurant(rid){
       try{
         const menuCol = collection(db, "restaurants", rid, "menu");
-        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(2000)));
+        const snap = await getDocs(query(menuCol, orderBy("createdAt","desc"), limit(3000)));
         const list = [];
         snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
         return list;
@@ -773,6 +786,7 @@
       }
     }
 
+    // ✅ 每間餐廳的「新增餐點」加購暫存
     const draftAddonsByRid = {}; // { [rid]: Array<{name,price,free}> }
 
     function renderDraftAddons(rid, wrapEl){
@@ -790,7 +804,7 @@
             <span class="tag" style="margin-left:8px">+${a.price}</span>
             ${a.free ? '<span class="tag" style="margin-left:6px">免費</span>' : ''}
           </div>
-          <button class="btnSmall btnDanger" type="button" data-draft-del="${rid}" data-i="${i}">刪除</button>
+          <button class="btnSmall btnDanger" data-draft-del="${rid}" data-i="${i}" type="button">刪除</button>
         </div>
       `).join("");
 
@@ -811,7 +825,7 @@
 
       let restaurants = [];
       try{
-        const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(800)));
+        const snap = await getDocs(query(colRestaurants, orderBy("createdAt","desc"), limit(1200)));
         snap.forEach(d=> restaurants.push({ id:d.id, ...d.data() }));
       }catch(err){
         console.error(err);
@@ -924,7 +938,7 @@
             <div class="kpi">
               ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
               ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
-              ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
+              ${r.mapUrl ? `<span class="tag"><a target="_blank" rel="noopener" href="${esc(r.mapUrl)}" style="text-decoration:none">Google Map</a></span>` : ``}
             </div>
 
             <div class="row" style="margin-top:10px">
@@ -952,8 +966,9 @@
               </div>
             </div>
 
-            ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="imgPrev" style="margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
-                        : `<div class="muted" style="margin-top:10px">（尚無圖片網址）</div>`}
+            ${r.imageUrl
+              ? `<img src="${esc(r.imageUrl)}" class="imgPrev" style="margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
+              : `<div class="muted" style="margin-top:10px">（尚無圖片網址）</div>`}
 
             <label>備註</label>
             <textarea data-r="${r.id}" data-k="note">${esc(r.note||"")}</textarea>
@@ -973,14 +988,14 @@
 
       wrap.innerHTML = blocks.join("");
 
-      // init draft
+      // 初始化每間餐廳的加購暫存 + render
       wrap.querySelectorAll(`[data-addmenu]`).forEach(btn=>{
         const rid = btn.dataset.addmenu;
         if(!draftAddonsByRid[rid]) draftAddonsByRid[rid] = [];
         renderDraftAddons(rid, wrap);
       });
 
-      // open image
+      // 圖片網址：開啟新分頁（修好：一定用 rel=noopener + 讀 input 現值）
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.openimg;
@@ -991,7 +1006,7 @@
         };
       });
 
-      // save restaurant
+      // 儲存餐廳資料
       wrap.querySelectorAll("button[data-saver]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.saver;
@@ -1012,7 +1027,7 @@
         };
       });
 
-      // delete restaurant (delete menus first)
+      // ✅ 刪除餐廳：先刪 menu 子集合，再刪 restaurants/{rid}
       wrap.querySelectorAll("button[data-delr]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.delr;
@@ -1022,10 +1037,12 @@
             statusPill.textContent = "刪除餐廳中…";
 
             const menuCol = collection(db, "restaurants", rid, "menu");
-            const menuSnap = await getDocs(query(menuCol, limit(2000)));
+            const menuSnap = await getDocs(query(menuCol, limit(3000)));
 
+            // batch 一次最多 500，保守用 450 分批
             let batch = writeBatch(db);
             let count = 0;
+
             for (const d of menuSnap.docs){
               batch.delete(d.ref);
               count++;
@@ -1051,7 +1068,7 @@
         };
       });
 
-      // save menu in collapse
+      // 餐點儲存/刪除（在餐廳收合內）
       wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.rid;
@@ -1075,7 +1092,6 @@
         };
       });
 
-      // delete menu in collapse
       wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.rid;
@@ -1092,7 +1108,7 @@
         };
       });
 
-      // add addon draft
+      // ✅ 加入加購（直接新增餐點表單）
       wrap.querySelectorAll("button[data-addaddon]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.addaddon;
@@ -1118,7 +1134,7 @@
         };
       });
 
-      // clear addons
+      // ✅ 清空加購
       wrap.querySelectorAll("button[data-clearaddons]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.clearaddons;
@@ -1133,7 +1149,7 @@
         };
       });
 
-      // add menu with addons
+      // ✅ 新增餐點（含加購）——【你說的：收合內要能再新增餐點】
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
           const rid = btn.dataset.addmenu;
@@ -1155,7 +1171,7 @@
 
             statusPill.textContent = "已新增餐點 ✅";
 
-            // clear fields
+            // 清空餐點欄位
             const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
             const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
             const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
@@ -1165,9 +1181,11 @@
             if(c3) c3.value = "";
             if(c4) c4.value = "1";
 
+            // 清空加購
             draftAddonsByRid[rid] = [];
             renderDraftAddons(rid, wrap);
 
+            // 重新載入（兩區同步）
             await refreshRestaurantsManage();
             await refreshMenuManage();
             await refreshRestaurantSelects();
@@ -1178,7 +1196,7 @@
         };
       });
 
-      // clear add fields
+      // 清空（餐點欄位）
       wrap.querySelectorAll("button[data-clearadd]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.clearadd;
@@ -1194,7 +1212,9 @@
       });
     }
 
-    // ====== 訂餐紀錄 ======
+    // =========================
+    // 訂餐紀錄（載入 + 匯出 Excel）
+    // =========================
     $("btnToday").onclick = ()=> $("o_date").value = todayISO();
     $("o_date").value = todayISO();
 
@@ -1204,7 +1224,7 @@
       const mode = $("o_mode").value;
 
       try{
-        const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(3000)));
+        const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(5000)));
         const orders = [];
         snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
 
@@ -1255,6 +1275,68 @@
         console.error(err);
         $("ordersOut").innerHTML = `<div class="muted">讀取訂單失敗（Rules）</div>`;
         alert("讀取訂單失敗（Rules）\n\n" + (err?.message || err));
+      }
+    };
+
+    // ✅ 匯出 Excel（CSV，Excel 可直接開；含品項金額 / 含加購小計）
+    $("btnExportExcel").onclick = async ()=>{
+      const date = $("o_date").value;
+      if(!date) return alert("請先選擇訂單日期");
+
+      try{
+        const snap = await getDocs(query(colOrders, where("orderDate","==", date), limit(8000)));
+        if(snap.empty) return alert("此日期沒有訂單");
+
+        const rows = [];
+        snap.forEach(d=>{
+          const o = d.data();
+          const orderId = d.id;
+
+          (o.items || []).forEach(it=>{
+            const basePrice = Number(it.price || 0);
+            const addonSum = (it.addons || []).reduce((s,a)=> s + Number(a.price||0), 0);
+            const qty = Number(it.qty || 0);
+            const subtotal = (basePrice + addonSum) * qty;
+
+            rows.push({
+              "訂單日期": o.orderDate || "",
+              "部門": o.userDept || "",
+              "姓名": o.userName || "",
+              "店家": o.restaurantName || "",
+              "品項": it.name || "",
+              "品項金額": basePrice,
+              "加購": (it.addons || []).map(a=> a.free ? `${a.name}(免費)` : `${a.name}${a.price}`).join("、"),
+              "單品備註": it.note || "",
+              "數量": qty,
+              "單品含加購小計": subtotal,
+              "整筆備註": o.orderNote || "",
+              "訂單ID": orderId
+            });
+          });
+        });
+
+        if(rows.length===0) return alert("沒有可匯出的品項資料");
+
+        const headers = Object.keys(rows[0]);
+        const csv = [
+          headers.join(","),
+          ...rows.map(r => headers.map(h => `"${String(r[h]).replace(/"/g,'""')}"`).join(","))
+        ].join("\n");
+
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `訂餐紀錄_${date}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+      }catch(err){
+        console.error(err);
+        alert("匯出失敗（Rules / 網路）\n\n" + (err?.message || err));
       }
     };
   </script>
