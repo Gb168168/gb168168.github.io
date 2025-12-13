@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者</title>
+  <title>GoldBricks 呷奔👽~｜管理者</title>
 
   <!-- Drag & Drop -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -466,7 +466,7 @@
                 <option value="night">晚上（12:00後）</option>
               </select>
 
-              <button class="btn" id="btnExportExcel" disabled>匯出 Excel</button>
+              <button class="btn" id="btnExportExcel">匯出 Excel</button>
               <span class="muted" id="xlsxHint"></span>
             </div>
 
@@ -2223,7 +2223,12 @@
       $("qDate").value = todayISO();
       queryOrders();
     };
-    $("btnExportExcel").onclick = exportOrdersExcel;
+   $("btnExportExcel").onclick = async ()=>{
+  const ok = await ensureXLSX();
+  if(!ok) return;
+  await exportOrdersExcel();
+};
+
 
     $("qName").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); queryOrders(); } });
 
@@ -2244,7 +2249,6 @@
     await queryOrders();
 
     // ✅ 先把 XLSX 準備好（避免你點匯出就跳未載入）
-    await ensureXLSX();
 
     document.addEventListener("visibilitychange", async ()=>{
       if(document.visibilityState === "visible"){
