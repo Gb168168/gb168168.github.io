@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚 1｜使用者</title>
+  <title>GoldBricks 呷奔🍚 2｜使用者</title>
 
   <style>
     :root{
@@ -406,6 +406,15 @@
     let menuCache = [];
     let cart = [];
 
+    // ===== ✅ Helpers: group enabled/disabled =====
+    // 支援管理端常見欄位：enabled / isEnabled / use / isUse
+    function groupEnabled(g){
+      if(!g) return false;
+      const v =
+        (g.enabled ?? g.isEnabled ?? g.use ?? g.isUse ?? true);
+      return v !== false; // 只要不是 false 就視為啟用
+    }
+
     // ===== Staff =====
     async function loadStaff(){
       try{
@@ -686,6 +695,7 @@
         </details>
       `).join("");
 
+      // ✅ 加入按鈕
       wrap.querySelectorAll("[data-add-mid]").forEach(btn=>{
         btn.onclick = ()=>{
           const mid = btn.dataset.addMid;
@@ -693,6 +703,7 @@
         };
       });
 
+      // ✅ Enter 直接加入
       wrap.querySelectorAll("[data-mid-note]").forEach(inp=>{
         inp.addEventListener("keydown",(e)=>{
           if(e.key==="Enter"){
@@ -702,11 +713,23 @@
           }
         });
       });
+
+      // ✅ 關鍵修正：避免 details/summary 或其他點擊事件影響 select/checkbox/radio 操作
+      wrap.querySelectorAll("select, input[type='checkbox'], input[type='radio']").forEach(el=>{
+        const stop = (e)=> e.stopPropagation();
+        el.addEventListener("pointerdown", stop, {passive:true});
+        el.addEventListener("mousedown", stop);
+        el.addEventListener("click", stop);
+        el.addEventListener("touchstart", stop, {passive:true});
+      });
     }
 
     function renderMenuItem(m){
-      const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
-      const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
+      // ✅ 只渲染「啟用」的群組（支援 enabled/isEnabled/use/isUse）
+      const ogRaw = Array.isArray(m.optionGroups) ? m.optionGroups : [];
+      const agRaw = Array.isArray(m.addonGroups) ? m.addonGroups : [];
+      const og = ogRaw.filter(groupEnabled);
+      const ag = agRaw.filter(groupEnabled);
 
       const userOK = !!($("deptSelect").value && $("nameSelect").value);
       const closed = !!selectedRestaurant?.isClosed;
@@ -793,7 +816,9 @@
 
     function readChosenOptions(mid){
       const m = menuCache.find(x=> x.id===mid);
-      const og = Array.isArray(m?.optionGroups) ? m.optionGroups : [];
+      const ogRaw = Array.isArray(m?.optionGroups) ? m.optionGroups : [];
+      const og = ogRaw.filter(groupEnabled);
+
       const chosenOptions = {};
       let optSum = 0;
 
@@ -812,7 +837,9 @@
 
     function readChosenAddons(mid){
       const m = menuCache.find(x=> x.id===mid);
-      const ag = Array.isArray(m?.addonGroups) ? m.addonGroups : [];
+      const agRaw = Array.isArray(m?.addonGroups) ? m.addonGroups : [];
+      const ag = agRaw.filter(groupEnabled);
+
       const addons = [];
       let addonSum = 0;
 
@@ -838,7 +865,7 @@
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
 
-      const og = Array.isArray(m.optionGroups)?m.optionGroups:[];
+      const og = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
       for(let gi=0; gi<og.length; gi++){
         const g = og[gi]||{};
         const req = (g.required!==false);
@@ -850,7 +877,7 @@
         if(!opt) return `請先選擇「${g.name||"選項"}」`;
       }
 
-      const ag = Array.isArray(m.addonGroups)?m.addonGroups:[];
+      const ag = (Array.isArray(m.addonGroups)?m.addonGroups:[]).filter(groupEnabled);
       for(let gi=0; gi<ag.length; gi++){
         const g = ag[gi]||{};
         if(g.required!==true) continue;
@@ -895,7 +922,7 @@
         qty,
         note,
         price: base,
-        optionGroups: Array.isArray(m.optionGroups)?m.optionGroups:[],
+        optionGroups: (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled),
         chosenOptions,
         addons,
         unit,
