@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚~｜使用者</title>
+  <title>GoldBricks 呷奔🍚 3｜使用者</title>
 
   <style>
     :root{
@@ -41,7 +41,6 @@
     }
     .wrap{max-width:1300px; margin:0 auto; padding:16px;}
 
-    /* ✅ topbar sticky */
     .topbar{
       position:sticky; top:0; z-index:999;
       background: rgba(255,255,255,.92);
@@ -110,6 +109,20 @@
       box-shadow:0 0 0 4px rgba(251,113,133,.10)
     }
 
+    /* ✅ 關鍵修正：checkbox / radio 不要吃全域 input 的 padding/寬度，否則會變得難點或像壞掉 */
+    input[type="checkbox"], input[type="radio"]{
+      width:18px !important;
+      height:18px !important;
+      padding:0 !important;
+      border-radius:6px;
+      border:1px solid var(--border2);
+      background:#fff;
+      accent-color: var(--accent);
+      cursor:pointer;
+      vertical-align:middle;
+    }
+    input[type="radio"]{ border-radius:999px; }
+
     details > summary{
       cursor:pointer;
       list-style:none;
@@ -146,38 +159,39 @@
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
 
-    /* ===== ✅ Restaurant Cards (無圖片清爽版) ===== */
-    .rGrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      margin-top:10px;
-    }
+    .rGrid{display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px;}
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       background:#fff;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
-      padding:12px;
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 108px 1fr;
+      gap:12px;
+      padding:10px;
       cursor:pointer;
     }
-    .rCard:hover{filter:brightness(.995)}
-
-    .rTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
+    .rCard:hover{ filter:brightness(.995); }
+    .rThumb{
+      position:relative;
+      width:108px;
+      height:92px;
+      border-radius:14px;
+      overflow:hidden;
+      background: linear-gradient(120deg, rgba(251,113,133,.08), rgba(99,102,241,.08));
+      flex:0 0 auto;
     }
-    .rName{font-size:15px}
+    .rThumb img{width:100%; height:100%; object-fit:cover; display:block;}
     .rBadge{
-      padding:5px 10px;
+      position:absolute;
+      left:8px; top:8px;
+      padding:5px 9px;
       border-radius:999px;
       font-size:12px;
       font-weight:900;
       border:1px solid rgba(15,23,42,.12);
       background:#fff;
-      white-space:nowrap;
     }
     .rBadge.ok{
       color:#065f46;
@@ -189,8 +203,11 @@
       background:rgba(245,158,11,.16);
       border-color:rgba(245,158,11,.32);
     }
-    .rMeta{margin-top:8px}
-    .rMeta .muted{margin-top:4px}
+    .rBody{ padding:0; }
+    .rTitleRow{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+    .rName{ font-size:15px; }
+    .rMeta{ margin-top:6px; }
+    .rMeta .muted{ margin-top:4px; }
     .rMap{
       display:inline-block;
       margin-top:6px;
@@ -198,12 +215,11 @@
       color:#334155;
       text-decoration:none;
     }
-    .rMap:hover{text-decoration:underline}
-    .rActions{
-      margin-top:10px;
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
+    .rMap:hover{ text-decoration:underline; }
+    .rActions{ margin-top:8px; display:flex; justify-content:flex-end; gap:8px; }
+    @media (max-width:420px){
+      .rCard{ grid-template-columns: 92px 1fr; }
+      .rThumb{ width:92px; height:84px; }
     }
   </style>
 </head>
@@ -252,9 +268,8 @@
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>2）店家列表（無圖片 / 收合）</h2>
+          <h2>2）店家列表（卡片式 / 收合）</h2>
 
-          <!-- ✅ 預設收合 -->
           <details class="box">
             <summary>
               <b>可點餐店家</b>
@@ -314,7 +329,6 @@
   </div>
 
   <script type="module">
-    // ===== Role Gate =====
     const roleKey = "gb_role";
     if (!localStorage.getItem(roleKey)) localStorage.setItem(roleKey, "user");
     if (localStorage.getItem(roleKey) !== "user") location.href = "./index.html";
@@ -358,12 +372,10 @@
 
     statusPill.textContent = "已連線 Firestore ✅";
 
-    // ===== Collections =====
     const colStaff = collection(db, "staff");
     const colRestaurants = collection(db, "restaurants");
     const colOrders = collection(db, "orders");
 
-    // ===== State =====
     let staffByDept = {};
     let restaurants = [];
     let selectedRestaurantId = "";
@@ -371,7 +383,13 @@
     let menuCache = [];
     let cart = [];
 
-    // ===== Staff =====
+    // 支援常見欄位：enabled / isEnabled / use / isUse（沒有就視為 true）
+    function groupEnabled(g){
+      if(!g) return false;
+      const v = (g.enabled ?? g.isEnabled ?? g.use ?? g.isUse ?? true);
+      return v !== false;
+    }
+
     async function loadStaff(){
       try{
         statusPill.textContent = "載入人員中…";
@@ -434,7 +452,6 @@
       ).join("");
     }
 
-    // ===== Restaurants =====
     async function loadRestaurants(){
       try{
         statusPill.textContent = "載入店家中…";
@@ -468,7 +485,6 @@
       }
     }
 
-    // ✅ 店家卡片（無圖片：整張可點 + 選完自動收合）
     function renderRestaurantCards(){
       const wrap = $("restaurantGrid");
       if(restaurants.length===0){
@@ -476,44 +492,63 @@
         return;
       }
 
+      const placeholder =
+        "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'>
+          <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0' stop-color='#fb7185' stop-opacity='.14'/>
+            <stop offset='1' stop-color='#6366f1' stop-opacity='.10'/>
+          </linearGradient></defs>
+          <rect width='100%' height='100%' fill='url(#g)'/>
+          <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
+            font-family='system-ui' font-size='28' fill='#0f172a' opacity='.55'>No Image</text>
+        </svg>`);
+
       wrap.innerHTML = restaurants.map(r=>{
         const closed = !!r.isClosed;
+        const img = (r.imageUrl||"").trim() || placeholder;
+
         return `
-          <div class="rCard" data-pick-card="${esc(r.id)}" role="button" tabindex="0">
-            <div class="rTop">
-              <b class="rName">${esc(r.name||"未命名")}</b>
-              <span class="rBadge ${closed?'lock':'ok'}">${closed?'已結單':'開單中'}</span>
+          <div class="rCard" data-pick-card="${esc(r.id)}" role="button" tabindex="0" aria-label="選擇店家 ${esc(r.name||"")}">
+            <div class="rThumb">
+              <img src="${esc(img)}" alt="${esc(r.name||"")}"
+                onerror="this.onerror=null; this.src='${placeholder}'"/>
+              <div class="rBadge ${closed?'lock':'ok'}">${closed?'已結單':'開單中'}</div>
             </div>
 
-            <div class="rMeta">
-              ${(r.address||"").trim() ? `<div class="muted">📍 ${esc(r.address)}</div>` : ``}
-              ${(r.phone||"").trim() ? `<div class="muted">☎ ${esc(r.phone)}</div>` : ``}
-              ${(r.mapUrl||"").trim()
-                ? `<a class="rMap" href="${esc(r.mapUrl)}" target="_blank" rel="noopener noreferrer">🗺 開啟 Google Map</a>`
-                : ``}
-            </div>
+            <div class="rBody">
+              <div class="rTitleRow">
+                <b class="rName">${esc(r.name||"未命名")}</b>
+              </div>
 
-            <div class="rActions">
-              <button class="btn" data-pick-r="${esc(r.id)}" ${closed?'disabled':''} type="button">
-                ${closed?'不可選':'選擇'}
-              </button>
+              <div class="rMeta">
+                ${(r.address||"").trim() ? `<div class="muted">📍 ${esc(r.address)}</div>` : ``}
+                ${(r.phone||"").trim() ? `<div class="muted">☎ ${esc(r.phone)}</div>` : ``}
+                ${(r.mapUrl||"").trim()
+                  ? `<a class="rMap" href="${esc(r.mapUrl)}" target="_blank" rel="noopener noreferrer">🗺 開啟 Google Map</a>`
+                  : ``}
+              </div>
+
+              <div class="rActions">
+                <button class="btn" data-pick-r="${esc(r.id)}" ${closed?'disabled':''} type="button">
+                  ${closed?'不可選':'選擇'}
+                </button>
+              </div>
             </div>
           </div>
         `;
       }).join("");
 
-      // ✅ 按鈕點選（避免點整張卡重複觸發）
       wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
         btn.onclick = async (e)=>{
           e.stopPropagation();
           const rid = btn.dataset.pickR;
           await pickRestaurant(rid);
           const d = btn.closest("details");
-          if(d) d.open = false; // ✅ 選完自動收合
+          if(d) d.open = false;
         };
       });
 
-      // ✅ 整張卡可點（結單阻擋）
       wrap.querySelectorAll(".rCard[data-pick-card]").forEach(card=>{
         const rid = card.dataset.pickCard;
         const r = restaurants.find(x=> x.id===rid);
@@ -527,9 +562,7 @@
         };
 
         card.addEventListener("click", go);
-        card.addEventListener("keydown",(e)=>{
-          if(e.key==="Enter") go();
-        });
+        card.addEventListener("keydown",(e)=>{ if(e.key==="Enter") go(); });
       });
     }
 
@@ -567,7 +600,6 @@
       }
     }
 
-    // ===== Menu =====
     async function loadMenu(rid){
       try{
         statusPill.textContent = "載入餐點中…";
@@ -648,8 +680,8 @@
     }
 
     function renderMenuItem(m){
-      const og = Array.isArray(m.optionGroups) ? m.optionGroups : [];
-      const ag = Array.isArray(m.addonGroups) ? m.addonGroups : [];
+      const og = (Array.isArray(m.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
+      const ag = (Array.isArray(m.addonGroups) ? m.addonGroups : []).filter(groupEnabled);
 
       const userOK = !!($("deptSelect").value && $("nameSelect").value);
       const closed = !!selectedRestaurant?.isClosed;
@@ -672,6 +704,7 @@
         `;
       }).join("");
 
+      // ✅ 這裡是「多選/單選」最關鍵修正：checkbox/radio 不要吃全域 input 樣式（上面 CSS 已處理）
       const addonHTML = ag.map((g,gi)=>{
         const opts = Array.isArray(g.options)?g.options:[];
         const isSingle = (g.type==="single");
@@ -688,10 +721,10 @@
                 const type = isSingle ? "radio" : "checkbox";
                 const name = `ag_${m.id}_${gi}`;
                 return `
-                  <label class="inline" style="margin:8px 0; cursor:pointer">
+                  <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
                     <input type="${type}" name="${esc(name)}"
                       data-mid-addon="${esc(m.id)}" data-gi="${gi}" data-oi="${oi}"
-                      style="width:auto" ${lock}/>
+                      ${lock}/>
                     <span>${label}</span>
                   </label>
                 `;
@@ -736,7 +769,7 @@
 
     function readChosenOptions(mid){
       const m = menuCache.find(x=> x.id===mid);
-      const og = Array.isArray(m?.optionGroups) ? m.optionGroups : [];
+      const og = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
       const chosenOptions = {};
       let optSum = 0;
 
@@ -755,7 +788,7 @@
 
     function readChosenAddons(mid){
       const m = menuCache.find(x=> x.id===mid);
-      const ag = Array.isArray(m?.addonGroups) ? m.addonGroups : [];
+      const ag = (Array.isArray(m?.addonGroups) ? m.addonGroups : []).filter(groupEnabled);
       const addons = [];
       let addonSum = 0;
 
@@ -781,7 +814,7 @@
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
 
-      const og = Array.isArray(m.optionGroups)?m.optionGroups:[];
+      const og = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
       for(let gi=0; gi<og.length; gi++){
         const g = og[gi]||{};
         const req = (g.required!==false);
@@ -793,7 +826,7 @@
         if(!opt) return `請先選擇「${g.name||"選項"}」`;
       }
 
-      const ag = Array.isArray(m.addonGroups)?m.addonGroups:[];
+      const ag = (Array.isArray(m.addonGroups)?m.addonGroups:[]).filter(groupEnabled);
       for(let gi=0; gi<ag.length; gi++){
         const g = ag[gi]||{};
         if(g.required!==true) continue;
@@ -838,7 +871,7 @@
         qty,
         note,
         price: base,
-        optionGroups: Array.isArray(m.optionGroups)?m.optionGroups:[],
+        optionGroups: (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled),
         chosenOptions,
         addons,
         unit,
@@ -888,7 +921,6 @@
       });
     }
 
-    // ===== Submit Order =====
     async function submitOrder(){
       if(!isUserReady()) return alert("請先選擇部門 / 姓名 / 店家");
       if(cart.length===0) return alert("購物車是空的");
@@ -936,7 +968,6 @@
       }
     }
 
-    // ===== My Orders =====
     function fmtTime(ms){
       if(!ms) return "";
       const d = new Date(ms);
@@ -1047,7 +1078,6 @@
       });
     }
 
-    // ===== Events =====
     $("deptSelect").onchange = ()=>{
       const dept = $("deptSelect").value || "";
       renderNameSelect(dept);
@@ -1079,7 +1109,6 @@
       renderCart();
     };
 
-    // ✅ Enter on order note => submit
     $("orderNote").addEventListener("keydown",(e)=>{
       if(e.key==="Enter"){
         e.preventDefault();
@@ -1093,7 +1122,6 @@
       loadMyOrders();
     };
 
-    // ===== Switch admin =====
     function goAdmin(){
       const pin = ($("adminPin").value || "").trim();
       if(pin !== "8520") return alert("PIN 不正確");
@@ -1101,16 +1129,13 @@
       location.href = "./admin.html";
     }
     $("btnGoAdmin").onclick = goAdmin;
-    $("adminPin").addEventListener("keydown",(e)=>{
-      if(e.key==="Enter") goAdmin();
-    });
+    $("adminPin").addEventListener("keydown",(e)=>{ if(e.key==="Enter") goAdmin(); });
 
     $("btnLogout").onclick = ()=>{
       localStorage.removeItem(roleKey);
       location.href = "./index.html";
     };
 
-    // ===== Init =====
     $("myDate").value = todayISO();
 
     await loadStaff();
