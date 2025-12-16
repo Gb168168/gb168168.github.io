@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚 1｜使用者</title>
+  <title>GoldBricks 呷奔🍚 2｜使用者</title>
 
   <style>
     :root{
-      /* ✅ 清爽：降低漸層、提高白底層次、減少陰影 */
       --bg:#f3f5f9;
       --panel:#f7f8fc;
       --card:#ffffff;
@@ -40,9 +39,10 @@
       color:var(--text);
       min-height:100vh;
     }
-    .wrap{max-width:1300px; margin:0 auto; padding:16px;}
 
-    /* ✅ topbar sticky */
+    /* ✅ 畫面再寬一點，不要太擠 */
+    .wrap{max-width:1560px; margin:0 auto; padding:16px;}
+
     .topbar{
       position:sticky; top:0; z-index:999;
       background: rgba(255,255,255,.92);
@@ -87,7 +87,7 @@
     .danger{border-color: rgba(239,68,68,.42)}
     .btn:disabled,.primary:disabled{opacity:.55; cursor:not-allowed}
 
-    .grid{display:grid; grid-template-columns: 360px 1fr; gap:14px}
+    .grid{display:grid; grid-template-columns: 400px 1fr; gap:14px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
 
     .card{
@@ -111,7 +111,6 @@
       box-shadow:0 0 0 4px rgba(251,113,133,.10)
     }
 
-    /* ✅ 必要：避免 checkbox/radio 被全域 input 規則搞到「看起來點了沒反應」 */
     input[type="checkbox"], input[type="radio"]{
       width:18px !important;
       height:18px !important;
@@ -144,7 +143,7 @@
     .menuItem{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
-      padding:10px 12px;
+      padding:12px 14px;
       background:#fff;
       margin-top:10px;
     }
@@ -156,56 +155,43 @@
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
 
-    /* ===== ✅ Restaurant Cards (清爽 list style) ===== */
+    /* ✅ 餐點清單內餐點文字再大點 */
+    .menuItem b{font-size:18px; letter-spacing:.2px}
+    .menuItem .tag{font-size:12.5px}
+
+    /* ===== ✅ Restaurant Cards (卡片式 / 收合 / 移除圖片) ===== */
     .rGrid{
       display:grid;
       grid-template-columns: 1fr;
       gap:10px;
       margin-top:10px;
     }
-
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       background:#fff;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       overflow:hidden;
-
-      display:grid;
-      grid-template-columns: 108px 1fr;
-      gap:12px;
-
-      padding:10px;
+      padding:12px 12px;
       cursor:pointer;
     }
     .rCard:hover{ filter:brightness(.995); }
 
-    .rThumb{
-      position:relative;
-      width:108px;
-      height:92px;
-      border-radius:14px;
-      overflow:hidden;
-      background: linear-gradient(120deg, rgba(251,113,133,.08), rgba(99,102,241,.08));
-      flex:0 0 auto;
+    .rHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
-    .rThumb img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    /* ✅ 狀態只顯示一次：只留 badge（不再重複放 tag） */
+    .rName{ font-size:15.5px; font-weight:900; }
     .rBadge{
-      position:absolute;
-      left:8px; top:8px;
-      padding:5px 9px;
+      padding:6px 10px;
       border-radius:999px;
       font-size:12px;
       font-weight:900;
       border:1px solid rgba(15,23,42,.12);
       background:#fff;
+      white-space:nowrap;
     }
     .rBadge.ok{
       color:#065f46;
@@ -217,16 +203,7 @@
       background:rgba(245,158,11,.16);
       border-color:rgba(245,158,11,.32);
     }
-
-    .rBody{ padding:0; }
-    .rTitleRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-    }
-    .rName{ font-size:15px; }
-    .rMeta{ margin-top:6px; }
+    .rMeta{ margin-top:8px; }
     .rMeta .muted{ margin-top:4px; }
 
     .rMap{
@@ -239,15 +216,10 @@
     .rMap:hover{ text-decoration:underline; }
 
     .rActions{
-      margin-top:8px;
+      margin-top:10px;
       display:flex;
       justify-content:flex-end;
       gap:8px;
-    }
-
-    @media (max-width:420px){
-      .rCard{ grid-template-columns: 92px 1fr; }
-      .rThumb{ width:92px; height:84px; }
     }
   </style>
 </head>
@@ -296,9 +268,8 @@
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>2）店家列表</h2>
+          <h2>2）店家列表（收合 / 無圖片）</h2>
 
-          <!-- ✅ 預設收合 -->
           <details class="box">
             <summary>
               <b>可點餐店家</b>
@@ -337,12 +308,12 @@
       <div>
 
         <div class="card">
-          <h2>4）餐點清單</h2>
+          <h2>4）餐點清單（文字放大）</h2>
           <div id="menuWrap" class="muted">請先選擇店家。</div>
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>5）我的訂餐紀錄（可刪：未結單才可）</h2>
+          <h2>5）我的訂餐紀錄（刪除規則：僅今天未截單可刪）</h2>
           <div class="inline">
             <input id="myDate" type="date" style="width:auto; min-width:170px"/>
             <button class="btn" id="btnReloadMy">重新載入</button>
@@ -415,7 +386,7 @@
     let menuCache = [];
     let cart = [];
 
-    // ✅ 群組啟用條件：有 name、有 type、且 choices 至少 1 個
+    // ✅ 群組啟用條件
     function groupEnabled(g){
       if(!g || typeof g !== "object") return false;
       const type = (g.type || "").trim();
@@ -522,7 +493,7 @@
       }
     }
 
-    // ✅ 店家卡片（清爽版：整張可點 + 選完自動收合 + 狀態不重複）
+    // ✅ 店家卡片（無圖片：整張可點 + 選完自動收合）
     function renderRestaurantCards(){
       const wrap = $("restaurantGrid");
       if(restaurants.length===0){
@@ -530,65 +501,42 @@
         return;
       }
 
-      const placeholder =
-        "data:image/svg+xml;charset=UTF-8," +
-        encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'>
-          <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0' stop-color='#fb7185' stop-opacity='.14'/>
-            <stop offset='1' stop-color='#6366f1' stop-opacity='.10'/>
-          </linearGradient></defs>
-          <rect width='100%' height='100%' fill='url(#g)'/>
-          <text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
-            font-family='system-ui' font-size='28' fill='#0f172a' opacity='.55'>No Image</text>
-        </svg>`);
-
       wrap.innerHTML = restaurants.map(r=>{
         const closed = !!r.isClosed;
-        const img = (r.imageUrl||"").trim() || placeholder;
-
         return `
           <div class="rCard" data-pick-card="${esc(r.id)}" role="button" tabindex="0" aria-label="選擇店家 ${esc(r.name||"")}">
-            <div class="rThumb">
-              <img src="${esc(img)}" alt="${esc(r.name||"")}"
-                onerror="this.onerror=null; this.src='${placeholder}'"/>
+            <div class="rHead">
+              <div class="rName">${esc(r.name||"未命名")}</div>
               <div class="rBadge ${closed?'lock':'ok'}">${closed?'已結單':'開單中'}</div>
             </div>
 
-            <div class="rBody">
-              <div class="rTitleRow">
-                <b class="rName">${esc(r.name||"未命名")}</b>
-              </div>
+            <div class="rMeta">
+              ${(r.address||"").trim() ? `<div class="muted">📍 ${esc(r.address)}</div>` : ``}
+              ${(r.phone||"").trim() ? `<div class="muted">☎ ${esc(r.phone)}</div>` : ``}
+              ${(r.mapUrl||"").trim()
+                ? `<a class="rMap" href="${esc(r.mapUrl)}" target="_blank" rel="noopener noreferrer">🗺 開啟 Google Map</a>`
+                : ``}
+            </div>
 
-              <div class="rMeta">
-                ${(r.address||"").trim() ? `<div class="muted">📍 ${esc(r.address)}</div>` : ``}
-                ${(r.phone||"").trim() ? `<div class="muted">☎ ${esc(r.phone)}</div>` : ``}
-                ${(r.mapUrl||"").trim()
-                  ? `<a class="rMap" href="${esc(r.mapUrl)}" target="_blank" rel="noopener noreferrer">🗺 開啟 Google Map</a>`
-                  : ``}
-              </div>
-
-              <div class="rActions">
-                <button class="btn" data-pick-r="${esc(r.id)}" ${closed?'disabled':''} type="button">
-                  ${closed?'不可選':'選擇'}
-                </button>
-              </div>
+            <div class="rActions">
+              <button class="btn" data-pick-r="${esc(r.id)}" ${closed?'disabled':''} type="button">
+                ${closed?'不可選':'選擇'}
+              </button>
             </div>
           </div>
         `;
       }).join("");
 
-      // ✅ 按鈕點選（避免點整張卡重複觸發）
       wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
         btn.onclick = async (e)=>{
           e.stopPropagation();
           const rid = btn.dataset.pickR;
           await pickRestaurant(rid);
           const d = btn.closest("details");
-          if(d) d.open = false; // ✅ 選完自動收合
+          if(d) d.open = false;
         };
       });
 
-      // ✅ 整張卡可點（結單阻擋）
       wrap.querySelectorAll(".rCard[data-pick-card]").forEach(card=>{
         const rid = card.dataset.pickCard;
         const r = restaurants.find(x=> x.id===rid);
@@ -598,13 +546,11 @@
           if(closed) return alert("此店家已結單，無法選擇");
           await pickRestaurant(rid);
           const d = card.closest("details");
-          if(d) d.open = false; // ✅ 選完自動收合
+          if(d) d.open = false;
         };
 
         card.addEventListener("click", go);
-        card.addEventListener("keydown",(e)=>{
-          if(e.key==="Enter") go();
-        });
+        card.addEventListener("keydown",(e)=>{ if(e.key==="Enter") go(); });
       });
     }
 
@@ -632,9 +578,7 @@
         renderMenu();
         renderCart();
 
-        if(!opt.silent){
-          statusPill.textContent = "已選擇店家 ✅";
-        }
+        if(!opt.silent) statusPill.textContent = "已選擇店家 ✅";
       }catch(err){
         console.error(err);
         statusPill.textContent = "讀取店家失敗";
@@ -692,7 +636,6 @@
         map.get(cat).push(m);
       }
 
-      // ✅ 類別預設收合
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
         <details class="box" style="padding:10px 12px">
           <summary>
@@ -723,11 +666,6 @@
       });
     }
 
-    /* ================================
-       ✅ 最關鍵：依你 admin 寫入的結構
-       optionGroups -> choices
-       type: single / addon
-       ================================ */
     function renderMenuItem(m){
       const gs = (Array.isArray(m.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
 
@@ -822,7 +760,7 @@
       const m = menuCache.find(x=> x.id===mid);
       const gs = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
 
-      const chosen = {}; // gi -> oi
+      const chosen = {};
       let optSum = 0;
 
       gs.forEach((g,gi)=>{
@@ -912,7 +850,6 @@
       const { chosenOptions, optSum } = readChosenOptions(mid);
       const { addons, addonSum } = readChosenAddons(mid);
 
-      // ✅ 把 single 的選擇也統一寫進 addons（給你 admin 的統計/匯出吃得懂）
       const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
       Object.entries(chosenOptions).forEach(([giStr, oi])=>{
         const gi = Number(giStr);
@@ -934,7 +871,7 @@
         qty,
         note,
         price: base,
-        addons,          // ✅ choice + addon 都在這裡
+        addons,
         unit,
         lineTotal,
         createdAt: Date.now()
@@ -1017,7 +954,7 @@
           qty: it.qty,
           note: it.note,
           price: it.price,
-          addons: it.addons || []   // ✅ admin 統計/匯出會吃這個
+          addons: it.addons || []
         })),
         total
       };
@@ -1045,6 +982,19 @@
       const d = new Date(ms);
       const pad = (n)=> String(n).padStart(2,"0");
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    // ✅ 刪除規則（你要求的三條）
+    // 今天未截單：可以刪今天的訂單
+    // 今天一截單：今天訂單立刻全部不能刪
+    // 明天以後：昨天/更早的訂單都不是今天了 ⇒ 永遠不能刪
+    function isTodayClosed(){
+      return restaurants.some(r => r && r.isClosed === true);
+    }
+    function canDeleteByOrderDate(orderDate){
+      const t = todayISO();
+      if(String(orderDate||"").trim() !== t) return false;
+      return !isTodayClosed();
     }
 
     async function loadMyOrders(){
@@ -1081,16 +1031,6 @@
       }
     }
 
-    async function canDeleteOrderByRestaurantId(rid){
-      try{
-        const snap = await getDoc(doc(db,"restaurants", rid));
-        const r = snap.exists() ? snap.data() : null;
-        return !(r && r.isClosed);
-      }catch(e){
-        return false;
-      }
-    }
-
     function renderMyOrders(list){
       const wrap = $("myOrdersWrap");
       if(list.length===0){
@@ -1100,16 +1040,23 @@
 
       wrap.innerHTML = list.map(o=>{
         const items = Array.isArray(o.items)?o.items:[];
+        const locked = !canDeleteByOrderDate(o.orderDate);
+
         return `
-          <div class="listLine" data-oid="${esc(o.id)}" data-rid="${esc(o.restaurantId||"")}">
+          <div class="listLine" data-oid="${esc(o.id)}">
             <div class="inline" style="justify-content:space-between">
               <div>
                 <b>${esc(o.restaurantName||"")}</b>
                 <span class="tag" style="margin-left:8px">${esc(o.orderDate||"")}</span>
+                ${locked ? `<span class="tag lockTag" style="margin-left:6px">已截單/非今日（不可刪）</span>` : ``}
               </div>
               <div class="inline">
                 <span class="tag priceTag">總額：${Number(o.total||0)}</span>
-                <button class="btn danger" data-del-order="${esc(o.id)}" type="button">刪除</button>
+                <button class="btn danger"
+                  data-del-order="${esc(o.id)}"
+                  data-order-date="${esc(o.orderDate||"")}"
+                  ${locked?'disabled':''}
+                  type="button">刪除</button>
               </div>
             </div>
 
@@ -1120,7 +1067,6 @@
             </div>
 
             <div class="muted" style="margin-top:8px">建立時間：${esc(fmtTime(Number(o.createdAt||0)))}</div>
-            <div class="muted" style="margin-top:6px" id="lockHint_${esc(o.id)}"></div>
           </div>
         `;
       }).join("");
@@ -1128,18 +1074,15 @@
       wrap.querySelectorAll("button[data-del-order]").forEach(btn=>{
         btn.onclick = async ()=>{
           const oid = btn.dataset.delOrder;
-          const box = wrap.querySelector(`[data-oid="${CSS.escape(oid)}"]`);
-          const rid = box?.dataset.rid || "";
+          const od  = btn.dataset.orderDate || "";
 
-          if(!confirm("確定刪除這筆訂單？\n（結單後將無法刪除）")) return;
+          if(!canDeleteByOrderDate(od)){
+            return alert("此訂單已不可刪（非今日或今日已截單）");
+          }
+
+          if(!confirm("確定刪除這筆訂單？")) return;
 
           try{
-            const ok = await canDeleteOrderByRestaurantId(rid);
-            if(!ok){
-              const hint = document.getElementById(`lockHint_${oid}`);
-              if(hint) hint.innerHTML = `<span class="tag lockTag">此店家已結單，無法刪除</span>`;
-              return alert("此店家已結單，無法刪除這筆訂單");
-            }
             await deleteDoc(doc(db,"orders", oid));
             await loadMyOrders();
           }catch(err){
@@ -1182,7 +1125,6 @@
       renderCart();
     };
 
-    // ✅ Enter on order note => submit
     $("orderNote").addEventListener("keydown",(e)=>{
       if(e.key==="Enter"){
         e.preventDefault();
