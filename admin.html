@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽~1｜管理者</title>
+  <title>GoldBricks 呷奔👽~｜管理者</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -438,7 +438,7 @@
               <button class="btnSmall btnOk" id="btnExportExcel" type="button">匯出 Excel</button>
             </div>
             <p class="muted">
-              Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、數量、單價、加購金額、品項金額、訂單總額、下單時間、整單備註
+              Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、餐點備註、數量、單價、加購金額、品項金額、訂單總額、下單時間、整單備註
             </p>
           </div>
 
@@ -462,7 +462,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs,
-      query, where, limit, writeBatch, setDoc
+      query, where, limit, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -642,7 +642,6 @@
       if(!name) return alert("請輸入分類名稱");
       if(restCats.some(c=> c.name === name)) return alert("此分類已存在");
       try{
-        // 用自動 id 新增，order 放最後
         const newOrder = restCats.length;
         await addDoc(colRestCats, { name, order: newOrder, createdAt: Date.now() });
         if(input) input.value = "";
@@ -693,7 +692,6 @@
     const catSelect = $("m_cat");
 
     function renderCatGroups(){
-      // tag list
       if(catGroups.length === 0){
         catWrap.innerHTML = `<div class="muted mini">尚未建立餐點類別</div>`;
       }else{
@@ -705,13 +703,11 @@
         `).join("");
       }
 
-      // select（順序依 catGroups）
       catSelect.innerHTML = `
         <option value="">請選擇餐點類別</option>
         ${catGroups.map(c=> `<option value="${esc(c)}">${esc(c)}</option>`).join("")}
       `;
 
-      // delete
       catWrap.querySelectorAll("[data-del-cat]").forEach(btn=>{
         btn.onclick = ()=>{
           catGroups.splice(Number(btn.dataset.delCat), 1);
@@ -719,7 +715,6 @@
         };
       });
 
-      // drag sort
       Sortable.create(catWrap, {
         animation: 150,
         onEnd(){
@@ -751,8 +746,8 @@
     renderCatGroups();
 
     // ====== ✅ 餐點「選項群組」：擇一/加購（可選要不要用） ======
-    let draftGroups = []; // 每道餐點的群組清單
-    let activeGroupDraft = null; // 正在編輯的群組
+    let draftGroups = [];
+    let activeGroupDraft = null;
 
     function renderGroups(){
       const wrap = $("menuOptionGroupsList");
@@ -964,7 +959,6 @@
       if(!name) return alert("請輸入餐點名稱");
       if(isNaN(price) || price<0) return alert("價格不正確");
 
-      // 深拷貝群組
       const optionGroups = (draftGroups||[]).map(g=> ({
         name: g.name,
         type: g.type,
@@ -978,7 +972,6 @@
       renderMenuQueue();
     };
 
-    // ✅ Enter 直接加入餐點清單
     ["m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
         if(e.key==="Enter"){
@@ -997,7 +990,6 @@
       $("r_visible").checked = true;
       $("r_closed").checked = false;
 
-      // ✅ 清空餐點類別群組
       catGroups = [];
       if(catInput) catInput.value = "";
       renderCatGroups();
@@ -1017,7 +1009,7 @@
 
       try{
         const restaurantRef = await addDoc(colRestaurants, {
-          category: $("r_category").value.trim(),     // ✅ 餐廳分類
+          category: $("r_category").value.trim(),
           name,
           phone: $("r_phone").value.trim(),
           address: $("r_addr").value.trim(),
@@ -1057,7 +1049,7 @@
       }
     };
 
-    /* ===== 以下（staff / restaurants / orders / excel）保持你原本功能 ===== */
+    /* ===== 以下（staff / restaurants）維持你原本功能 ===== */
     async function refreshStaffList(){
       const wrap = $("staffWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
@@ -1290,71 +1282,6 @@
     const draftGroupsByRid = {};
     let activeGroupDraftByRid = {};
 
-    function renderDraftGroupsForRid(rid, root){
-      const wrap = root.querySelector(`[data-draft-groups="${rid}"]`);
-      if(!wrap) return;
-      const gs = draftGroupsByRid[rid] || [];
-      if(gs.length===0){
-        wrap.innerHTML = `<div class="muted">（尚未加入：可不使用）</div>`;
-        return;
-      }
-      wrap.innerHTML = gs.map((g,gi)=>{
-        const choices = (g.choices||[]).map(c=> `${c.name}${Number(c.price||0)?`(+${Number(c.price||0)})`:``}`).join("、");
-        return `
-          <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff; margin-top:8px;">
-            <div>
-              <b>${esc(g.name)}</b>
-              <span class="tag" style="margin-left:8px">${g.type==="single"?"擇一(下拉)":"加購(多選)"}</span>
-              ${g.type==="single" ? `<span class="tag" style="margin-left:6px">${g.required?"必選":"非必選"}</span>` : ``}
-              <div class="muted mini" style="margin-top:6px">選項：${esc(choices)}</div>
-            </div>
-            <button class="btnSmall btnDanger" type="button" data-del-draftg="${rid}" data-gi="${gi}">刪除</button>
-          </div>
-        `;
-      }).join("");
-
-      wrap.querySelectorAll(`button[data-del-draftg="${rid}"]`).forEach(btn=>{
-        btn.onclick = ()=>{
-          const gi = Number(btn.dataset.gi);
-          (draftGroupsByRid[rid]||[]).splice(gi,1);
-          renderDraftGroupsForRid(rid, root);
-        };
-      });
-    }
-
-    function renderActiveGroupUI(rid, root){
-      const box = root.querySelector(`[data-group-editor="${rid}"]`);
-      if(!box) return;
-      const g = activeGroupDraftByRid[rid] || null;
-      box.style.display = g ? "" : "none";
-      if(!g) return;
-
-      box.querySelector(`[data-ge-title="${rid}"]`).textContent = `群組：${g.name}`;
-      box.querySelector(`[data-ge-desc="${rid}"]`).textContent = g.type==="single"
-        ? `類型：擇一（下拉）｜${g.required ? "必選" : "非必選"}`
-        : `類型：加購（多選）`;
-
-      const listWrap = box.querySelector(`[data-ge-choices="${rid}"]`);
-      if(!listWrap) return;
-      if(!Array.isArray(g.choices) || g.choices.length===0){
-        listWrap.innerHTML = `<div class="muted">尚未加入選項</div>`;
-      }else{
-        listWrap.innerHTML = g.choices.map((c,ci)=>`
-          <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff; margin-top:8px;">
-            <div><b>${esc(c.name)}</b> <span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span></div>
-            <button class="btnSmall btnDanger" type="button" data-ge-delc="${rid}" data-ci="${ci}">刪除</button>
-          </div>
-        `).join("");
-        listWrap.querySelectorAll(`button[data-ge-delc="${rid}"]`).forEach(b=>{
-          b.onclick = ()=>{
-            const ci = Number(b.dataset.ci);
-            g.choices.splice(ci,1);
-            renderActiveGroupUI(rid, root);
-          };
-        });
-      }
-    }
-
     function buildCatDatalistForRestaurant(rid, menus){
       const set = new Set();
       (menus||[]).forEach(m=>{
@@ -1368,7 +1295,6 @@
       return { dlId, html };
     }
 
-    // ✅ 依 restaurantCategories 排序輸出分類區塊；未在清單中的分類，最後以字母排
     function getCategoryOrderKey(cat){
       const idx = restCats.findIndex(c=> c.name === cat);
       return idx >= 0 ? idx : 999999;
@@ -1396,7 +1322,6 @@
 
       if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
 
-      // ✅ 依餐廳 category 分組
       const map = new Map();
       for(const r of restaurants){
         const cat = (r.category||"").trim() || "未分類";
@@ -1415,7 +1340,6 @@
 
       for(const cat of categoryKeys){
         const list = map.get(cat) || [];
-        // 每個分類是一個可展開的 details
         const inner = [];
         for(const r of list){
           const menus = await loadMenusOfRestaurant(r.id);
@@ -1511,72 +1435,9 @@
               </div>
             </div>
 
-            <div class="hr"></div>
-            <h3 style="margin:0">✅ 選項群組（可選要不要用）</h3>
-
-            <div class="subcard" style="margin-top:10px">
-              <div class="row3">
-                <div>
-                  <label>群組名稱</label>
-                  <input data-add-rid="${r.id}" data-og-k="name" placeholder="例：肉類 / 醬料 / 麵體">
-                </div>
-                <div>
-                  <label>類型</label>
-                  <select data-add-rid="${r.id}" data-og-k="type">
-                    <option value="single">擇一（下拉）</option>
-                    <option value="addon">加購（多選）</option>
-                  </select>
-                </div>
-                <div style="display:flex; align-items:end; gap:10px">
-                  <label style="display:flex; align-items:center; gap:8px; margin:0;">
-                    <input data-add-rid="${r.id}" data-og-k="required" type="checkbox" style="width:18px; height:18px;" checked/>
-                    必選（擇一用）
-                  </label>
-                  <button class="btnSmall btnOk" type="button" data-startg="${r.id}">新增群組</button>
-                </div>
-              </div>
-
-              <div style="margin-top:10px; display:none" data-group-editor="${r.id}">
-                <div class="optBox">
-                  <div class="inline" style="justify-content:space-between; align-items:flex-start">
-                    <div>
-                      <b data-ge-title="${r.id}">群組</b>
-                      <div class="muted mini" data-ge-desc="${r.id}"></div>
-                    </div>
-                    <button class="btnSmall btnDanger" type="button" data-cancelg="${r.id}">取消群組</button>
-                  </div>
-
-                  <div class="hr"></div>
-
-                  <div class="optRow">
-                    <div>
-                      <label>選項名稱</label>
-                      <input data-add-rid="${r.id}" data-choice-k="name" placeholder="例：豬肉 / 雞肉 / 加蛋">
-                    </div>
-                    <div>
-                      <label>加價（可為 0）</label>
-                      <input data-add-rid="${r.id}" data-choice-k="price" type="number" min="0" placeholder="0">
-                    </div>
-                    <div style="display:flex; align-items:end; gap:10px">
-                      <button class="btnSmall btnOk" type="button" data-addchoice="${r.id}">加入選項</button>
-                    </div>
-                  </div>
-
-                  <div style="margin-top:10px" data-ge-choices="${r.id}"></div>
-
-                  <div class="actions">
-                    <button class="btnSmall btnOk" type="button" data-commitg="${r.id}">完成此群組（加入到餐點）</button>
-                  </div>
-                </div>
-              </div>
-
-              <div style="margin-top:10px" data-draft-groups="${r.id}"></div>
-            </div>
-
             <div class="actions">
               <button class="btnSmall btnOk" type="button" data-addmenu="${r.id}">新增餐點</button>
               <button class="btnSmall" type="button" data-clearadd="${r.id}">清空餐點欄位</button>
-              <button class="btnSmall btnDanger" type="button" data-cleargroups="${r.id}">清空選項群組</button>
             </div>
           `;
 
@@ -1596,7 +1457,6 @@
                 ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
               </div>
 
-              <!-- ✅ 每家餐廳可直接改「分類」 -->
               <label>餐廳分類（輸入 + 下拉建議）</label>
               <input list="restaurantCatList" data-r="${r.id}" data-k="category" value="${esc((r.category||"").trim())}" placeholder="例：燒臘 / 粥品"/>
 
@@ -1686,15 +1546,6 @@
 
       wrap.innerHTML = blocks.join("");
 
-      // 初始化每個 rid 的草稿狀態
-      wrap.querySelectorAll(`button[data-addmenu]`).forEach(btn=>{
-        const rid = btn.dataset.addmenu;
-        if(!draftGroupsByRid[rid]) draftGroupsByRid[rid] = [];
-        if(!activeGroupDraftByRid[rid]) activeGroupDraftByRid[rid] = null;
-        renderDraftGroupsForRid(rid, wrap);
-        renderActiveGroupUI(rid, wrap);
-      });
-
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.openimg;
@@ -1771,9 +1622,6 @@
 
             await deleteDoc(doc(db,"restaurants", rid));
 
-            delete draftGroupsByRid[rid];
-            delete activeGroupDraftByRid[rid];
-
             statusPill.textContent = "已刪除 ✅";
             await refreshRestaurantSelects();
             await refreshRestaurantsManage();
@@ -1825,89 +1673,6 @@
         };
       });
 
-      wrap.querySelectorAll("button[data-startg]").forEach(btn=>{
-        btn.onclick = ()=>{
-          const rid = btn.dataset.startg;
-          const nameEl = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="name"]`);
-          const typeEl = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="type"]`);
-          const reqEl  = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="required"]`);
-
-          const name = (nameEl?.value || "").trim();
-          const type = (typeEl?.value || "single");
-          const required = !!reqEl?.checked;
-
-          if(!name) return alert("請輸入群組名稱");
-
-          activeGroupDraftByRid[rid] = { name, type, required: (type==="single" ? required : false), choices: [] };
-          renderActiveGroupUI(rid, wrap);
-        };
-      });
-
-      wrap.querySelectorAll("button[data-cancelg]").forEach(btn=>{
-        btn.onclick = ()=>{
-          const rid = btn.dataset.cancelg;
-          activeGroupDraftByRid[rid] = null;
-          renderActiveGroupUI(rid, wrap);
-        };
-      });
-
-      wrap.querySelectorAll("button[data-addchoice]").forEach(btn=>{
-        btn.onclick = ()=>{
-          const rid = btn.dataset.addchoice;
-          const g = activeGroupDraftByRid[rid];
-          if(!g) return alert("請先按「新增群組」");
-
-          const nEl = wrap.querySelector(`[data-add-rid="${rid}"][data-choice-k="name"]`);
-          const pEl = wrap.querySelector(`[data-add-rid="${rid}"][data-choice-k="price"]`);
-
-          const n = (nEl?.value || "").trim();
-          const p = Number(pEl?.value || 0);
-
-          if(!n) return alert("請輸入選項名稱");
-          if(isNaN(p) || p<0) return alert("加價不正確");
-
-          g.choices.push({ name:n, price:p });
-          if(nEl) nEl.value = "";
-          if(pEl) pEl.value = "";
-
-          renderActiveGroupUI(rid, wrap);
-        };
-      });
-
-      wrap.querySelectorAll("button[data-commitg]").forEach(btn=>{
-        btn.onclick = ()=>{
-          const rid = btn.dataset.commitg;
-          const g = activeGroupDraftByRid[rid];
-          if(!g) return;
-          if(!Array.isArray(g.choices) || g.choices.length===0) return alert("請至少加入 1 個選項");
-
-          if(!draftGroupsByRid[rid]) draftGroupsByRid[rid] = [];
-          draftGroupsByRid[rid].push(g);
-
-          activeGroupDraftByRid[rid] = null;
-
-          const nameEl = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="name"]`);
-          const typeEl = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="type"]`);
-          const reqEl  = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="required"]`);
-          if(nameEl) nameEl.value = "";
-          if(typeEl) typeEl.value = "single";
-          if(reqEl) reqEl.checked = true;
-
-          renderDraftGroupsForRid(rid, wrap);
-          renderActiveGroupUI(rid, wrap);
-        };
-      });
-
-      wrap.querySelectorAll("button[data-cleargroups]").forEach(btn=>{
-        btn.onclick = ()=>{
-          const rid = btn.dataset.cleargroups;
-          draftGroupsByRid[rid] = [];
-          activeGroupDraftByRid[rid] = null;
-          renderDraftGroupsForRid(rid, wrap);
-          renderActiveGroupUI(rid, wrap);
-        };
-      });
-
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
           const rid = btn.dataset.addmenu;
@@ -1921,17 +1686,10 @@
           if(!name) return alert("請輸入餐點名稱");
           if(isNaN(price) || price<0) return alert("價格不正確");
 
-          const optionGroups = (draftGroupsByRid[rid] || []).map(g=> ({
-            name: g.name,
-            type: g.type,
-            required: !!g.required,
-            choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
-          }));
-
           try{
             statusPill.textContent = "新增餐點中…";
             const menuCol = collection(db, "restaurants", rid, "menu");
-            await addDoc(menuCol, { category, name, price, defaultQty, optionGroups, createdAt: Date.now() });
+            await addDoc(menuCol, { category, name, price, defaultQty, optionGroups: [], createdAt: Date.now() });
 
             statusPill.textContent = "已新增餐點 ✅";
 
@@ -1943,11 +1701,6 @@
             if(c2) c2.value = "";
             if(c3) c3.value = "";
             if(c4) c4.value = "1";
-
-            draftGroupsByRid[rid] = [];
-            activeGroupDraftByRid[rid] = null;
-            renderDraftGroupsForRid(rid, wrap);
-            renderActiveGroupUI(rid, wrap);
 
             await refreshRestaurantsManage();
             await refreshMenuManage();
@@ -1981,10 +1734,12 @@
 
     let lastLoadedOrders = [];
 
+    // ✅ 餐點備註（兼容多種欄位名）
+    function itemNoteText(it){
+      return (it?.note ?? it?.remark ?? it?.itemNote ?? it?.memo ?? "").toString().trim();
+    }
+
     function addonText(addons){
-function itemNoteText(it){
-  return (it?.note ?? it?.remark ?? it?.itemNote ?? it?.memo ?? "").toString().trim();
-}
       const arr = Array.isArray(addons) ? addons : [];
       if(arr.length===0) return "";
       return arr.map(a=>{
@@ -1995,13 +1750,27 @@ function itemNoteText(it){
         return `+${kindTxt}${group}${a?.name||""}${p?(" "+p):""}`;
       }).join(" ");
     }
+
     function addonUnitSum(addons){
-// ✅ 餐點備註（兼容多種欄位名）
-function itemNoteText(it){
-  return (it?.note ?? it?.remark ?? it?.itemNote ?? it?.memo ?? "").toString().trim();
-}
       const arr = Array.isArray(addons) ? addons : [];
       return arr.reduce((s,a)=> s + Number(a?.price||0), 0);
+    }
+
+    // ✅ 用來做彙總 key（同品項+同加購/擇一 才合併）
+    function addonsKey(addons){
+      const arr = Array.isArray(addons) ? addons : [];
+      const norm = arr.map(a=>({
+        name: (a?.name ?? "").toString(),
+        price: Number(a?.price ?? 0),
+        kind: (a?.kind ?? "").toString(),
+        group: (a?.group ?? "").toString(),
+      }));
+      norm.sort((x,y)=>{
+        const a = `${x.kind}|${x.group}|${x.name}|${x.price}`;
+        const b = `${y.kind}|${y.group}|${y.name}|${y.price}`;
+        return a.localeCompare(b, "zh-Hant");
+      });
+      return JSON.stringify(norm);
     }
 
     async function loadOrdersByDate(date){
@@ -2031,8 +1800,12 @@ function itemNoteText(it){
           const rName = o.restaurantName || "";
           const unit = Number(it.price||0);
           const addons = Array.isArray(it.addons) ? it.addons : [];
+          const aKey = addonsKey(addons);
           const note = itemNoteText(it);
-          const key = `${rName}__${it.name||""}__${unit}__${addonsKey}__note:${note}`;
+
+          // ✅ 同品項彙總：把「餐點備註」也算進 key（不同備註不合併）
+          const key = `${rName}__${it.name||""}__${unit}__${aKey}__note:${note}`;
+
           if(!agg.has(key)){
             agg.set(key, { restaurant: rName, item: it.name||"", unit, addons, note, qty: 0 });
           }
@@ -2050,6 +1823,7 @@ function itemNoteText(it){
             <td>${esc(x.restaurant)}</td>
             <td>${esc(x.item)}</td>
             <td class="muted">${esc(addonText(x.addons))}</td>
+            <td class="muted">${esc(x.note || "")}</td>
             <td>${x.qty}</td>
             <td>${x.unit}</td>
             <td>${addonAmt}</td>
@@ -2067,12 +1841,19 @@ function itemNoteText(it){
         <table>
           <thead>
             <tr>
-              <th>餐廳</th><th>品項</th><th>加購/擇一<td class="muted">${esc(x.note || "")}</td></th><th>數量</th><th>單價</th>
-              <th>加購金額</th><th>品項金額</th><th>小計</th>
+              <th>餐廳</th>
+              <th>品項</th>
+              <th>加購/擇一</th>
+              <th>餐點備註</th>
+              <th>數量</th>
+              <th>單價</th>
+              <th>加購金額</th>
+              <th>品項金額</th>
+              <th>小計</th>
             </tr>
           </thead>
           <tbody>
-            ${rows || `<tr><td colspan="8" class="muted">此日期沒有訂單</td></tr>`}
+            ${rows || `<tr><td colspan="9" class="muted">此日期沒有訂單</td></tr>`}
           </tbody>
         </table>
       `;
@@ -2158,7 +1939,7 @@ function itemNoteText(it){
               "餐廳": restaurant,
               "品項": "",
               "加購/擇一": "",
-              "餐點備註": itemNoteText(it),
+              "餐點備註": "",
               "數量": 0,
               "單價": 0,
               "加購金額": 0,
