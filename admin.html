@@ -141,11 +141,9 @@
       </div>
 
       <p class="muted" style="margin:12px 8px 0;">
-        ✅ Firestore（不使用 Storage）<br/>
         ✅ 餐廳：可顯示/隱藏、可結單/開單<br/>
         ✅ 訂單：支援 Excel 匯出<br/>
         ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項<br/>
-        ✅ 餐廳：支援 Line QR code（連結 + 預覽）
       </p>
     </aside>
 
@@ -162,7 +160,7 @@
       <section class="view" id="view_addRestaurant">
         <div class="grid">
           <div class="card">
-            <h3>餐廳資料（填完後直接新增上）</h3>
+            <h3>餐廳資料（點擊新增）</h3>
 
             <label>餐廳名稱</label>
             <input id="r_name" name="r_name_no_autofill" autocomplete="off" placeholder="例：金磚便當"/>
@@ -174,7 +172,7 @@
               </div>
               <div>
                 <label>地址</label>
-                <input id="r_addr" autocomplete="off" placeholder="例：台北市…"/>
+                <input id="r_addr" autocomplete="off" placeholder="例：台中市…"/>
               </div>
             </div>
 
@@ -196,7 +194,6 @@
                 <input id="r_lineQrUrl" autocomplete="off" placeholder="https://...png（QR code 圖）"/>
               </div>
               <div class="muted" style="display:flex; align-items:end">
-                （不使用 Storage，建議貼圖片連結：imgur / 你自己的圖床 / Google drive 可公開）
               </div>
             </div>
 
@@ -218,7 +215,7 @@
             <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
 
             <div class="actions">
-              <button class="primary" id="btnSubmitAll">直接新增上（餐廳 + 餐點清單）</button>
+              <button class="primary" id="btnSubmitAll">新增（餐廳 + 餐點清單）</button>
               <button class="ghost" id="btnClearAll" type="button">清空</button>
             </div>
 
@@ -229,7 +226,7 @@
             <h3>餐點（先加入清單，可多筆）</h3>
 
             <!-- ✅ 類別：改成 input + datalist（輸入名稱群組方式） -->
-            <label>餐點類別（輸入 + 下拉建議）</label>
+            <label>餐點類別</label>
             <input id="m_cat" list="catList" placeholder="例：飯類 / 麵類 / 小菜 / 飲料"/>
             <datalist id="catList"></datalist>
 
@@ -250,7 +247,6 @@
                 <input id="m_defaultQty" type="number" min="1" value="1"/>
               </div>
               <div class="muted" style="display:flex; align-items:end">
-                類別會用「details 收合」呈現（依類別群組）
               </div>
             </div>
 
@@ -369,7 +365,7 @@
       <section class="view" id="view_restaurants" style="display:none">
 
         <div class="card">
-          <h3>餐點管理（依餐廳）</h3>
+          <h3>餐點管理</h3>
           <div class="inline">
             <label style="margin:0; min-width:120px; color:var(--muted)">選擇餐廳</label>
             <select id="rm_restaurant" style="min-width:260px"></select>
