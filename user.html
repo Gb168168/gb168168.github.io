@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚 3｜使用者</title>
+  <title>GoldBricks 呷奔🍚 1｜使用者</title>
 
   <style>
     :root{
+      /* ✅ 清爽：降低漸層、提高白底層次、減少陰影 */
       --bg:#f3f5f9;
       --panel:#f7f8fc;
       --card:#ffffff;
@@ -41,6 +42,7 @@
     }
     .wrap{max-width:1300px; margin:0 auto; padding:16px;}
 
+    /* ✅ topbar sticky */
     .topbar{
       position:sticky; top:0; z-index:999;
       background: rgba(255,255,255,.92);
@@ -109,19 +111,14 @@
       box-shadow:0 0 0 4px rgba(251,113,133,.10)
     }
 
-    /* ✅ 關鍵修正：checkbox / radio 不要吃全域 input 的 padding/寬度，否則會變得難點或像壞掉 */
+    /* ✅ 必要：避免 checkbox/radio 被全域 input 規則搞到「看起來點了沒反應」 */
     input[type="checkbox"], input[type="radio"]{
       width:18px !important;
       height:18px !important;
       padding:0 !important;
-      border-radius:6px;
-      border:1px solid var(--border2);
-      background:#fff;
-      accent-color: var(--accent);
       cursor:pointer;
-      vertical-align:middle;
+      accent-color: var(--accent);
     }
-    input[type="radio"]{ border-radius:999px; }
 
     details > summary{
       cursor:pointer;
@@ -159,20 +156,30 @@
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
 
-    .rGrid{display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px;}
+    /* ===== ✅ Restaurant Cards (清爽 list style) ===== */
+    .rGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       background:#fff;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       overflow:hidden;
+
       display:grid;
       grid-template-columns: 108px 1fr;
       gap:12px;
+
       padding:10px;
       cursor:pointer;
     }
     .rCard:hover{ filter:brightness(.995); }
+
     .rThumb{
       position:relative;
       width:108px;
@@ -182,7 +189,14 @@
       background: linear-gradient(120deg, rgba(251,113,133,.08), rgba(99,102,241,.08));
       flex:0 0 auto;
     }
-    .rThumb img{width:100%; height:100%; object-fit:cover; display:block;}
+    .rThumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    /* ✅ 狀態只顯示一次：只留 badge（不再重複放 tag） */
     .rBadge{
       position:absolute;
       left:8px; top:8px;
@@ -203,11 +217,18 @@
       background:rgba(245,158,11,.16);
       border-color:rgba(245,158,11,.32);
     }
+
     .rBody{ padding:0; }
-    .rTitleRow{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+    .rTitleRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
     .rName{ font-size:15px; }
     .rMeta{ margin-top:6px; }
     .rMeta .muted{ margin-top:4px; }
+
     .rMap{
       display:inline-block;
       margin-top:6px;
@@ -216,7 +237,14 @@
       text-decoration:none;
     }
     .rMap:hover{ text-decoration:underline; }
-    .rActions{ margin-top:8px; display:flex; justify-content:flex-end; gap:8px; }
+
+    .rActions{
+      margin-top:8px;
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+    }
+
     @media (max-width:420px){
       .rCard{ grid-template-columns: 92px 1fr; }
       .rThumb{ width:92px; height:84px; }
@@ -270,6 +298,7 @@
         <div class="card" style="margin-top:14px">
           <h2>2）店家列表（卡片式 / 收合）</h2>
 
+          <!-- ✅ 預設收合 -->
           <details class="box">
             <summary>
               <b>可點餐店家</b>
@@ -329,6 +358,7 @@
   </div>
 
   <script type="module">
+    // ===== Role Gate =====
     const roleKey = "gb_role";
     if (!localStorage.getItem(roleKey)) localStorage.setItem(roleKey, "user");
     if (localStorage.getItem(roleKey) !== "user") location.href = "./index.html";
@@ -372,10 +402,12 @@
 
     statusPill.textContent = "已連線 Firestore ✅";
 
+    // ===== Collections =====
     const colStaff = collection(db, "staff");
     const colRestaurants = collection(db, "restaurants");
     const colOrders = collection(db, "orders");
 
+    // ===== State =====
     let staffByDept = {};
     let restaurants = [];
     let selectedRestaurantId = "";
@@ -383,13 +415,17 @@
     let menuCache = [];
     let cart = [];
 
-    // 支援常見欄位：enabled / isEnabled / use / isUse（沒有就視為 true）
+    // ✅ 群組啟用條件：有 name、有 type、且 choices 至少 1 個
     function groupEnabled(g){
-      if(!g) return false;
-      const v = (g.enabled ?? g.isEnabled ?? g.use ?? g.isUse ?? true);
-      return v !== false;
+      if(!g || typeof g !== "object") return false;
+      const type = (g.type || "").trim();
+      if(type !== "single" && type !== "addon") return false;
+      const choices = Array.isArray(g.choices) ? g.choices : [];
+      if(choices.length === 0) return false;
+      return true;
     }
 
+    // ===== Staff =====
     async function loadStaff(){
       try{
         statusPill.textContent = "載入人員中…";
@@ -452,6 +488,7 @@
       ).join("");
     }
 
+    // ===== Restaurants =====
     async function loadRestaurants(){
       try{
         statusPill.textContent = "載入店家中…";
@@ -485,6 +522,7 @@
       }
     }
 
+    // ✅ 店家卡片（清爽版：整張可點 + 選完自動收合 + 狀態不重複）
     function renderRestaurantCards(){
       const wrap = $("restaurantGrid");
       if(restaurants.length===0){
@@ -539,16 +577,18 @@
         `;
       }).join("");
 
+      // ✅ 按鈕點選（避免點整張卡重複觸發）
       wrap.querySelectorAll("button[data-pick-r]").forEach(btn=>{
         btn.onclick = async (e)=>{
           e.stopPropagation();
           const rid = btn.dataset.pickR;
           await pickRestaurant(rid);
           const d = btn.closest("details");
-          if(d) d.open = false;
+          if(d) d.open = false; // ✅ 選完自動收合
         };
       });
 
+      // ✅ 整張卡可點（結單阻擋）
       wrap.querySelectorAll(".rCard[data-pick-card]").forEach(card=>{
         const rid = card.dataset.pickCard;
         const r = restaurants.find(x=> x.id===rid);
@@ -558,11 +598,13 @@
           if(closed) return alert("此店家已結單，無法選擇");
           await pickRestaurant(rid);
           const d = card.closest("details");
-          if(d) d.open = false;
+          if(d) d.open = false; // ✅ 選完自動收合
         };
 
         card.addEventListener("click", go);
-        card.addEventListener("keydown",(e)=>{ if(e.key==="Enter") go(); });
+        card.addEventListener("keydown",(e)=>{
+          if(e.key==="Enter") go();
+        });
       });
     }
 
@@ -600,6 +642,7 @@
       }
     }
 
+    // ===== Menu =====
     async function loadMenu(rid){
       try{
         statusPill.textContent = "載入餐點中…";
@@ -649,6 +692,7 @@
         map.get(cat).push(m);
       }
 
+      // ✅ 類別預設收合
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
         <details class="box" style="padding:10px 12px">
           <summary>
@@ -679,59 +723,67 @@
       });
     }
 
+    /* ================================
+       ✅ 最關鍵：依你 admin 寫入的結構
+       optionGroups -> choices
+       type: single / addon
+       ================================ */
     function renderMenuItem(m){
-      const og = (Array.isArray(m.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
-      const ag = (Array.isArray(m.addonGroups) ? m.addonGroups : []).filter(groupEnabled);
+      const gs = (Array.isArray(m.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
 
       const userOK = !!($("deptSelect").value && $("nameSelect").value);
       const closed = !!selectedRestaurant?.isClosed;
       const lock = closed ? "disabled" : "";
       const disabled = (!userOK || closed) ? "disabled" : "";
 
-      const optionHTML = og.map((g,gi)=>{
-        const opts = Array.isArray(g.options)?g.options:[];
-        return `
-          <div class="box" style="margin-top:10px">
-            <div class="inline" style="justify-content:space-between">
-              <b>${esc(g.name||"選項")}</b>
-              <span class="tag">${(g.required!==false)?"必選":"可不選"}</span>
-            </div>
-            <select data-mid-opt="${esc(m.id)}" data-gi="${gi}" ${lock}>
-              ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
-              ${opts.map((o,oi)=>`<option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>`).join("")}
-            </select>
-          </div>
-        `;
-      }).join("");
+      const groupsHTML = gs.map((g,gi)=>{
+        const choices = Array.isArray(g.choices) ? g.choices : [];
+        const isSingle = (g.type === "single");
+        const isAddon  = (g.type === "addon");
 
-      // ✅ 這裡是「多選/單選」最關鍵修正：checkbox/radio 不要吃全域 input 樣式（上面 CSS 已處理）
-      const addonHTML = ag.map((g,gi)=>{
-        const opts = Array.isArray(g.options)?g.options:[];
-        const isSingle = (g.type==="single");
-        return `
-          <div class="box" style="margin-top:10px">
-            <div class="inline" style="justify-content:space-between">
-              <b>${esc(g.name||"加購")}</b>
-              <span class="tag">${isSingle?"單選":"多選"} / ${(g.required===true)?"必選":"可不選"}</span>
+        if(isSingle){
+          return `
+            <div class="box" style="margin-top:10px">
+              <div class="inline" style="justify-content:space-between">
+                <b>${esc(g.name||"選項")}</b>
+                <span class="tag">${(g.required!==false)?"必選":"可不選"}</span>
+              </div>
+              <select data-mid-opt="${esc(m.id)}" data-gi="${gi}" ${lock}>
+                ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
+                ${choices.map((o,oi)=>`
+                  <option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>
+                `).join("")}
+              </select>
             </div>
-            <div style="margin-top:8px">
-              ${opts.map((o,oi)=>{
-                const price = (o.free===true) ? 0 : Number(o.price||0);
-                const label = `${esc(o.name||"")}${(o.free===true)?"（免費）":(price?`（+${price}）`:"")}`;
-                const type = isSingle ? "radio" : "checkbox";
-                const name = `ag_${m.id}_${gi}`;
-                return `
-                  <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
-                    <input type="${type}" name="${esc(name)}"
-                      data-mid-addon="${esc(m.id)}" data-gi="${gi}" data-oi="${oi}"
-                      ${lock}/>
-                    <span>${label}</span>
-                  </label>
-                `;
-              }).join("")}
+          `;
+        }
+
+        if(isAddon){
+          return `
+            <div class="box" style="margin-top:10px">
+              <div class="inline" style="justify-content:space-between">
+                <b>${esc(g.name||"加購")}</b>
+                <span class="tag">多選 / ${(g.required===true)?"必選":"可不選"}</span>
+              </div>
+              <div style="margin-top:8px">
+                ${choices.map((o,oi)=>{
+                  const price = Number(o.price||0);
+                  const label = `${esc(o.name||"")}${price?`（+${price}）`:""}`;
+                  return `
+                    <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
+                      <input type="checkbox"
+                        data-mid-addon="${esc(m.id)}" data-gi="${gi}" data-oi="${oi}"
+                        ${lock}/>
+                      <span>${label}</span>
+                    </label>
+                  `;
+                }).join("")}
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
+
+        return "";
       }).join("");
 
       return `
@@ -761,52 +813,55 @@
             </div>
           </div>
 
-          ${optionHTML}
-          ${addonHTML}
+          ${groupsHTML}
         </div>
       `;
     }
 
     function readChosenOptions(mid){
       const m = menuCache.find(x=> x.id===mid);
-      const og = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
-      const chosenOptions = {};
+      const gs = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
+
+      const chosen = {}; // gi -> oi
       let optSum = 0;
 
-      for(let gi=0; gi<og.length; gi++){
+      gs.forEach((g,gi)=>{
+        if(g.type !== "single") return;
         const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
         const idx = sel ? Number(sel.value) : -1;
-        chosenOptions[gi] = idx;
+        chosen[gi] = idx;
 
         if(Number.isFinite(idx) && idx >= 0){
-          const opt = (Array.isArray(og[gi].options)?og[gi].options:[])[idx];
-          if(opt) optSum += Number(opt.price||0);
+          const o = (Array.isArray(g.choices)?g.choices:[])[idx];
+          if(o) optSum += Number(o.price||0);
         }
-      }
-      return { chosenOptions, optSum };
+      });
+
+      return { chosenOptions: chosen, optSum };
     }
 
     function readChosenAddons(mid){
       const m = menuCache.find(x=> x.id===mid);
-      const ag = (Array.isArray(m?.addonGroups) ? m.addonGroups : []).filter(groupEnabled);
+      const gs = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
+
       const addons = [];
       let addonSum = 0;
 
-      for(let gi=0; gi<ag.length; gi++){
-        const g = ag[gi] || {};
-        const opts = Array.isArray(g.options)?g.options:[];
+      gs.forEach((g,gi)=>{
+        if(g.type !== "addon") return;
+        const choices = Array.isArray(g.choices) ? g.choices : [];
         const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
         els.forEach(el=>{
           if(!el.checked) return;
           const oi = Number(el.dataset.oi);
-          const o = opts[oi];
+          const o = choices[oi];
           if(!o) return;
-          const free = (o.free===true);
-          const price = free ? 0 : Number(o.price||0);
-          addons.push({ name:o.name||"", price: Number.isFinite(price)?price:0, free });
+          const price = Number(o.price||0);
+          addons.push({ kind:"addon", group: g.name||"", name:o.name||"", price });
           addonSum += price;
         });
-      }
+      });
+
       return { addons, addonSum };
     }
 
@@ -814,28 +869,25 @@
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
 
-      const og = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
-      for(let gi=0; gi<og.length; gi++){
-        const g = og[gi]||{};
-        const req = (g.required!==false);
-        if(!req) continue;
-        const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
-        const idx = sel ? Number(sel.value) : -1;
-        if(!Number.isFinite(idx) || idx < 0) return `請先選擇「${g.name||"選項"}」`;
-        const opt = (Array.isArray(g.options)?g.options:[])[idx];
-        if(!opt) return `請先選擇「${g.name||"選項"}」`;
-      }
+      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
 
-      const ag = (Array.isArray(m.addonGroups)?m.addonGroups:[]).filter(groupEnabled);
-      for(let gi=0; gi<ag.length; gi++){
-        const g = ag[gi]||{};
-        if(g.required!==true) continue;
-        const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
-        let any = false;
-        els.forEach(el=>{ if(el.checked) any = true; });
-        if(!any) return `請先選擇「${g.name||"加購"}」`;
-      }
+      for(let gi=0; gi<gs.length; gi++){
+        const g = gs[gi]||{};
+        if(g.type==="single" && g.required!==false){
+          const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
+          const idx = sel ? Number(sel.value) : -1;
+          if(!Number.isFinite(idx) || idx < 0) return `請先選擇「${g.name||"選項"}」`;
+          const o = (Array.isArray(g.choices)?g.choices:[])[idx];
+          if(!o) return `請先選擇「${g.name||"選項"}」`;
+        }
 
+        if(g.type==="addon" && g.required===true){
+          const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
+          let any = false;
+          els.forEach(el=>{ if(el.checked) any = true; });
+          if(!any) return `請先選擇「${g.name||"加購"}」`;
+        }
+      }
       return "";
     }
 
@@ -860,6 +912,18 @@
       const { chosenOptions, optSum } = readChosenOptions(mid);
       const { addons, addonSum } = readChosenAddons(mid);
 
+      // ✅ 把 single 的選擇也統一寫進 addons（給你 admin 的統計/匯出吃得懂）
+      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
+      Object.entries(chosenOptions).forEach(([giStr, oi])=>{
+        const gi = Number(giStr);
+        const g = gs[gi];
+        if(!g || g.type!=="single") return;
+        if(!Number.isFinite(oi) || oi < 0) return;
+        const o = (Array.isArray(g.choices)?g.choices:[])[oi];
+        if(!o) return;
+        addons.push({ kind:"choice", group:g.name||"", name:o.name||"", price:Number(o.price||0) });
+      });
+
       const base = Number(m.price||0);
       const unit = base + optSum + addonSum;
       const lineTotal = unit * qty;
@@ -867,13 +931,10 @@
       cart.push({
         mid: m.id,
         name: m.name || "",
-        category: m.category || "",
         qty,
         note,
         price: base,
-        optionGroups: (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled),
-        chosenOptions,
-        addons,
+        addons,          // ✅ choice + addon 都在這裡
         unit,
         lineTotal,
         createdAt: Date.now()
@@ -883,12 +944,16 @@
       renderCart();
     }
 
+    function isClosedNow(){
+      return !!selectedRestaurant?.isClosed;
+    }
+
     function renderCart(){
       const wrap = $("cartWrap");
       const total = cart.reduce((s,x)=> s + Number(x.lineTotal||0), 0);
       $("cartTotal").textContent = `總額：${total}`;
 
-      const canSubmit = isUserReady() && cart.length>0 && !selectedRestaurant?.isClosed;
+      const canSubmit = isUserReady() && cart.length>0 && !isClosedNow();
       $("btnSubmit").disabled = !canSubmit;
       $("btnClearCart").disabled = cart.length===0;
 
@@ -896,6 +961,13 @@
         wrap.innerHTML = `<div class="muted">尚未加入餐點。</div>`;
         return;
       }
+
+      const fmtAddon = (a)=>{
+        const p = Number(a?.price||0);
+        const kind = a?.kind==="choice" ? "擇一" : (a?.kind==="addon" ? "加購" : "");
+        const group = a?.group ? `(${a.group})` : "";
+        return `${kind?`[${kind}]`:``}${group}${a?.name||""}${p?`(+${p})`:``}`;
+      };
 
       wrap.innerHTML = cart.map((it,idx)=>`
         <div class="listLine">
@@ -908,7 +980,7 @@
             <button class="btn danger" data-del-cart="${idx}" type="button">刪除</button>
           </div>
           ${it.note ? `<div class="muted" style="margin-top:6px">備註：${esc(it.note)}</div>`:``}
-          ${(it.addons && it.addons.length) ? `<div class="muted" style="margin-top:6px">加購：${esc(it.addons.map(a=>a.free?`${a.name}(免費)`: `${a.name}${a.price?`(+${a.price})`:``}`).join("；"))}</div>`:``}
+          ${(it.addons && it.addons.length) ? `<div class="muted" style="margin-top:6px">加購/擇一：${esc(it.addons.map(fmtAddon).join("；"))}</div>`:``}
         </div>
       `).join("");
 
@@ -921,10 +993,11 @@
       });
     }
 
+    // ===== Submit Order =====
     async function submitOrder(){
       if(!isUserReady()) return alert("請先選擇部門 / 姓名 / 店家");
       if(cart.length===0) return alert("購物車是空的");
-      if(selectedRestaurant?.isClosed) return alert("此店家已結單，無法送出");
+      if(isClosedNow()) return alert("此店家已結單，無法送出");
 
       const userDept = $("deptSelect").value;
       const userName = $("nameSelect").value;
@@ -944,9 +1017,7 @@
           qty: it.qty,
           note: it.note,
           price: it.price,
-          optionGroups: it.optionGroups || [],
-          chosenOptions: it.chosenOptions || {},
-          addons: it.addons || []
+          addons: it.addons || []   // ✅ admin 統計/匯出會吃這個
         })),
         total
       };
@@ -968,6 +1039,7 @@
       }
     }
 
+    // ===== My Orders =====
     function fmtTime(ms){
       if(!ms) return "";
       const d = new Date(ms);
@@ -1078,6 +1150,7 @@
       });
     }
 
+    // ===== Events =====
     $("deptSelect").onchange = ()=>{
       const dept = $("deptSelect").value || "";
       renderNameSelect(dept);
@@ -1109,6 +1182,7 @@
       renderCart();
     };
 
+    // ✅ Enter on order note => submit
     $("orderNote").addEventListener("keydown",(e)=>{
       if(e.key==="Enter"){
         e.preventDefault();
@@ -1122,6 +1196,7 @@
       loadMyOrders();
     };
 
+    // ===== Switch admin =====
     function goAdmin(){
       const pin = ($("adminPin").value || "").trim();
       if(pin !== "8520") return alert("PIN 不正確");
@@ -1129,13 +1204,16 @@
       location.href = "./admin.html";
     }
     $("btnGoAdmin").onclick = goAdmin;
-    $("adminPin").addEventListener("keydown",(e)=>{ if(e.key==="Enter") goAdmin(); });
+    $("adminPin").addEventListener("keydown",(e)=>{
+      if(e.key==="Enter") goAdmin();
+    });
 
     $("btnLogout").onclick = ()=>{
       localStorage.removeItem(roleKey);
       location.href = "./index.html";
     };
 
+    // ===== Init =====
     $("myDate").value = todayISO();
 
     await loadStaff();
