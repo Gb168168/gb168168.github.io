@@ -96,6 +96,7 @@
     details summary{cursor:pointer; font-weight:900}
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .imgPrev{width:100%; max-height:220px; object-fit:cover; border-radius:14px; border:1px solid var(--border)}
+    .qrPrev{width:100%; max-height:220px; object-fit:contain; border-radius:14px; border:1px solid var(--border); background:rgba(15,23,42,.02)}
     .subcard{
       background: rgba(15,23,42,.02);
       border:1px dashed rgba(15,23,42,.18);
@@ -143,7 +144,8 @@
         ✅ Firestore（不使用 Storage）<br/>
         ✅ 餐廳：可顯示/隱藏、可結單/開單<br/>
         ✅ 訂單：支援 Excel 匯出<br/>
-        ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項
+        ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項<br/>
+        ✅ 餐廳：支援 Line QR code（連結 + 預覽）
       </p>
     </aside>
 
@@ -187,6 +189,20 @@
               </div>
             </div>
 
+            <!-- ✅ Line QR code（連結框 + 預覽） -->
+            <div class="row">
+              <div>
+                <label>Line QR Code 圖片網址（可空）</label>
+                <input id="r_lineQrUrl" autocomplete="off" placeholder="https://...png（QR code 圖）"/>
+              </div>
+              <div class="muted" style="display:flex; align-items:end">
+                （不使用 Storage，建議貼圖片連結：imgur / 你自己的圖床 / Google drive 可公開）
+              </div>
+            </div>
+
+            <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
+            <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
+
             <div class="row">
               <div class="chkline" style="margin-top:12px">
                 <input id="r_visible" type="checkbox" checked>
@@ -197,8 +213,6 @@
                 <label style="margin:0; color:var(--muted)">結單（使用者不可送單）</label>
               </div>
             </div>
-
-            <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
 
             <label>備註</label>
             <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
@@ -214,25 +228,29 @@
           <div class="card">
             <h3>餐點（先加入清單，可多筆）</h3>
 
-            <div class="row">
-              <div>
-                <label>餐點類別（用輸入）</label>
-                <input id="m_cat" placeholder="例：飯類 / 麵類 / 小菜 / 飲料"/>
-              </div>
+            <!-- ✅ 類別：改成 input + datalist（輸入名稱群組方式） -->
+            <label>餐點類別（輸入 + 下拉建議）</label>
+            <input id="m_cat" list="catList" placeholder="例：飯類 / 麵類 / 小菜 / 飲料"/>
+            <datalist id="catList"></datalist>
+
+            <div class="row" style="margin-top:10px">
               <div>
                 <label>餐點名稱</label>
                 <input id="m_name" placeholder="例：法式炒麵"/>
+              </div>
+              <div>
+                <label>價格（單份）</label>
+                <input id="m_price" type="number" min="0" placeholder="120"/>
               </div>
             </div>
 
             <div class="row">
               <div>
-                <label>價格（單份）</label>
-                <input id="m_price" type="number" min="0" placeholder="120"/>
-              </div>
-              <div>
                 <label>預設數量</label>
                 <input id="m_defaultQty" type="number" min="1" value="1"/>
+              </div>
+              <div class="muted" style="display:flex; align-items:end">
+                類別會用「details 收合」呈現（依類別群組）
               </div>
             </div>
 
@@ -503,6 +521,17 @@
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
 
+    // ✅ 新增餐廳：Line QR 預覽
+    const r_lineQrUrl = $("r_lineQrUrl");
+    const r_lineQrPrev = $("r_lineQrPrev");
+    r_lineQrUrl.addEventListener("input", ()=>{
+      const url = r_lineQrUrl.value.trim();
+      if(!url){ r_lineQrPrev.style.display="none"; return; }
+      r_lineQrPrev.src = url;
+      r_lineQrPrev.style.display="";
+    });
+    r_lineQrPrev.addEventListener("error", ()=>{ r_lineQrPrev.style.display="none"; });
+
     // ====== ✅ 餐點「選項群組」：擇一/加購（可選要不要用） ======
     let draftGroups = []; // 每道餐點的群組清單
     let activeGroupDraft = null; // 正在編輯的群組
@@ -629,6 +658,18 @@
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
 
+    // ✅ 類別 datalist：用輸入名稱群組方式（新增過就會出現建議）
+    function updateCatDatalist(){
+      const dl = $("catList");
+      const set = new Set();
+      for(const m of menuQueue){
+        const c = (m.category||"").trim();
+        if(c) set.add(c);
+      }
+      dl.innerHTML = Array.from(set).sort((a,b)=> a.localeCompare(b,"zh-Hant"))
+        .map(c=> `<option value="${esc(c)}"></option>`).join("");
+    }
+
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
       if(gs.length===0) return "（無）";
@@ -643,6 +684,7 @@
       const wrap = $("menuQueueWrap");
       if(menuQueue.length===0){
         wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
+        updateCatDatalist();
         return;
       }
 
@@ -685,6 +727,8 @@
           renderMenuQueue();
         };
       });
+
+      updateCatDatalist();
     }
     renderMenuQueue();
 
@@ -712,7 +756,7 @@
       if(!name) return alert("請輸入餐點名稱");
       if(isNaN(price) || price<0) return alert("價格不正確");
 
-      // 重要：深拷貝群組（避免下一道餐點修改到同一份參考）
+      // 深拷貝群組
       const optionGroups = (draftGroups||[]).map(g=> ({
         name: g.name,
         type: g.type,
@@ -726,7 +770,7 @@
       renderMenuQueue();
     };
 
-    // ✅ 餐點欄位按 Enter 直接加入餐點清單
+    // ✅ Enter 直接加入餐點清單
     ["m_cat","m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
         if(e.key==="Enter"){
@@ -740,6 +784,7 @@
       $("r_name").value=""; $("r_phone").value=""; $("r_addr").value="";
       $("r_map").value=""; $("r_note").value="";
       $("r_imgUrl").value=""; r_imgPrev.style.display="none";
+      $("r_lineQrUrl").value=""; r_lineQrPrev.style.display="none";
       $("r_visible").checked = true;
       $("r_closed").checked = false;
       menuQueue = [];
@@ -760,6 +805,8 @@
           mapUrl: $("r_map").value.trim(),
           note: $("r_note").value.trim(),
           imageUrl: $("r_imgUrl").value.trim(),
+          // ✅ Line QR
+          lineQrUrl: $("r_lineQrUrl").value.trim(),
           isVisible: $("r_visible").checked,
           isClosed: $("r_closed").checked,
           createdAt: Date.now()
@@ -774,7 +821,6 @@
               name: m.name,
               price: Number(m.price||0),
               defaultQty: Math.max(1, Number(m.defaultQty||1)),
-              // ✅ 新版：選項群組（擇一/加購）
               optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
               createdAt: Date.now()
             });
@@ -793,7 +839,7 @@
       }
     };
 
-    // ====== 人員（不使用 index）======
+    // ====== 人員 ======
     async function refreshStaffList(){
       const wrap = $("staffWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
@@ -887,7 +933,7 @@
       }
     });
 
-    // ====== 餐廳下拉（不使用 orderBy） ======
+    // ====== 餐廳下拉 ======
     async function refreshRestaurantSelects(){
       const snap = await getDocs(query(colRestaurants, limit(1200)));
       const list = [];
@@ -1094,6 +1140,20 @@
       }
     }
 
+    // ✅ 產生「該餐廳」類別 datalist（餐廳管理：直接新增餐點用）
+    function buildCatDatalistForRestaurant(rid, menus){
+      const set = new Set();
+      (menus||[]).forEach(m=>{
+        const c = (m.category||"").trim();
+        if(c) set.add(c);
+      });
+      const dlId = `catList_${rid}`;
+      const html = `<datalist id="${dlId}">${
+        Array.from(set).sort((a,b)=>a.localeCompare(b,"zh-Hant")).map(c=>`<option value="${esc(c)}"></option>`).join("")
+      }</datalist>`;
+      return { dlId, html };
+    }
+
     async function refreshRestaurantsManage(){
       const wrap = $("restaurantsWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
@@ -1173,14 +1233,27 @@
                 }).join("");
               })();
 
+        const visibleTag = isVisible
+          ? `<span class="tag stateGood">使用者顯示</span>`
+          : `<span class="tag stateBad">使用者隱藏</span>`;
+
+        const closedTag = isClosed
+          ? `<span class="tag stateBad">已結單</span>`
+          : `<span class="tag stateGood">開單中</span>`;
+
+        // ✅ 類別 datalist（該餐廳）
+        const catDl = buildCatDatalistForRestaurant(r.id, menus===null?[]:menus);
+
         const addForm = `
           <div class="hr"></div>
           <h3 style="margin:0">➕ 直接新增餐點到「${esc(r.name||"未命名")}」</h3>
 
+          ${catDl.html}
+
           <div class="row" style="margin-top:10px">
             <div>
-              <label>餐點類別（用輸入）</label>
-              <input data-add-rid="${r.id}" data-add-k="category" placeholder="例：飯類 / 麵類 / 小菜 / 飲料">
+              <label>餐點類別（輸入 + 下拉建議）</label>
+              <input list="${catDl.dlId}" data-add-rid="${r.id}" data-add-k="category" placeholder="例：飯類 / 麵類 / 小菜 / 飲料">
             </div>
             <div>
               <label>餐點名稱</label>
@@ -1268,14 +1341,6 @@
           </div>
         `;
 
-        const visibleTag = isVisible
-          ? `<span class="tag stateGood">使用者顯示</span>`
-          : `<span class="tag stateBad">使用者隱藏</span>`;
-
-        const closedTag = isClosed
-          ? `<span class="tag stateBad">已結單</span>`
-          : `<span class="tag stateGood">開單中</span>`;
-
         blocks.push(`
           <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:#fff; margin-top:12px;">
             <summary>
@@ -1289,6 +1354,7 @@
               ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
               ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
               ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
+              ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
             </div>
 
             <div class="row" style="margin-top:10px">
@@ -1316,6 +1382,20 @@
               </div>
             </div>
 
+            <!-- ✅ Line QR 編輯 -->
+            <div class="row">
+              <div>
+                <label>Line QR Code 圖片網址</label>
+                <div class="inline" style="gap:8px">
+                  <input data-r="${r.id}" data-k="lineQrUrl" value="${esc(r.lineQrUrl||"")}"/>
+                  <button class="btnSmall" type="button" data-openqr="${r.id}">開啟</button>
+                </div>
+              </div>
+              <div class="muted" style="display:flex; align-items:end">
+                （貼 QR code 圖片網址即可）
+              </div>
+            </div>
+
             <div class="row" style="margin-top:10px">
               <div class="chkline">
                 <input type="checkbox" data-r="${r.id}" data-k="isVisible" ${isVisible ? "checked":""}/>
@@ -1328,7 +1408,10 @@
             </div>
 
             ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="imgPrev" style="margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
-                        : `<div class="muted" style="margin-top:10px">（尚無圖片網址）</div>`}
+                        : `<div class="muted" style="margin-top:10px">（尚無餐廳圖片網址）</div>`}
+
+            ${r.lineQrUrl ? `<img src="${esc(r.lineQrUrl)}" class="qrPrev" style="margin-top:10px" alt="line-qr" onerror="this.style.display='none'"/>`
+                         : `<div class="muted" style="margin-top:10px">（尚無 Line QR code）</div>`}
 
             <label>備註</label>
             <textarea data-r="${r.id}" data-k="note">${esc(r.note||"")}</textarea>
@@ -1369,7 +1452,19 @@
         };
       });
 
-      // 儲存餐廳資料（含 isVisible / isClosed）
+      // ✅ Line QR：開啟新分頁
+      wrap.querySelectorAll("button[data-openqr]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.openqr;
+          const input = wrap.querySelector(`[data-r="${rid}"][data-k="lineQrUrl"]`);
+          const url = (input?.value || "").trim();
+          if(!url) return alert("目前沒有 Line QR 連結");
+          const finalUrl = url.startsWith("http://") || url.startsWith("https://") ? url : ("https://" + url);
+          window.open(finalUrl, "_blank");
+        };
+      });
+
+      // 儲存餐廳資料（含 isVisible / isClosed / lineQrUrl）
       wrap.querySelectorAll("button[data-saver]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.saver;
@@ -1532,7 +1627,7 @@
         };
       });
 
-      // 完成群組（加入到該餐點草稿）
+      // 完成群組
       wrap.querySelectorAll("button[data-commitg]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.commitg;
@@ -1544,7 +1639,7 @@
           draftGroupsByRid[rid].push(g);
 
           activeGroupDraftByRid[rid] = null;
-          // 清空群組輸入
+
           const nameEl = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="name"]`);
           const typeEl = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="type"]`);
           const reqEl  = wrap.querySelector(`[data-add-rid="${rid}"][data-og-k="required"]`);
@@ -1647,7 +1742,6 @@
     function addonText(addons){
       const arr = Array.isArray(addons) ? addons : [];
       if(arr.length===0) return "";
-      // kind: "choice" / "addon"
       return arr.map(a=>{
         const p = Number(a?.price||0);
         const group = a?.group ? `(${a.group})` : "";
@@ -1691,13 +1785,7 @@
           const addonsKey = addons.map(a=> `${a?.kind||""}:${a?.group||""}:${a?.name||""}:${Number(a?.price||0)}`).sort().join("|");
           const key = `${rName}__${it.name||""}__${unit}__${addonsKey}`;
           if(!agg.has(key)){
-            agg.set(key, {
-              restaurant: rName,
-              item: it.name||"",
-              unit,
-              addons,
-              qty: 0
-            });
+            agg.set(key, { restaurant: rName, item: it.name||"", unit, addons, qty: 0 });
           }
           agg.get(key).qty += Number(it.qty||0);
         }
