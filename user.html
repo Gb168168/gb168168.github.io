@@ -189,14 +189,14 @@
     .rMap:hover{ text-decoration:underline; }
     .rActions{ margin-top:10px; display:flex; justify-content:flex-end; gap:8px; }
 
-   /* ✅ 5）我的訂餐紀錄：訂單在上，明細在下面 */
-.myGrid{
-  display:grid;
-  grid-template-columns: 1fr;        /* 單欄 */
-  grid-template-rows: auto auto;     /* 上：訂單 / 下：明細 */
-  gap:12px;
-  align-items:start;
-}
+    /* ✅ 5）我的訂餐紀錄：訂單在上，明細在下面 */
+    .myGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      gap:12px;
+      align-items:start;
+    }
     @media (max-width:1180px){
       .myGrid{grid-template-columns:1fr}
     }
@@ -209,10 +209,11 @@
       border-color: rgba(251,113,133,.35);
       box-shadow: 0 10px 18px rgba(251,113,133,.10);
     }
-   /* ✅ 明細在下面，不需要 sticky */
-.stickySide{
-  position:static;
-}
+
+    /* ✅ 明細在下面，不需要 sticky */
+    .stickySide{
+      position:static;
+    }
     @media (max-width:1180px){
       .stickySide{position:static}
     }
@@ -287,6 +288,11 @@
             <b id="pickedRestaurantName">尚未選擇</b>
             <span id="pickedRestaurantState" class="tag" style="display:none"></span>
           </div>
+
+          <!-- ✅ 新增：餐廳圖片連結顯示區 -->
+          <div id="pickedRestaurantLinks"
+               class="muted"
+               style="margin-top:6px; display:none"></div>
         </div>
 
         <div class="card" style="margin-top:14px">
@@ -325,7 +331,6 @@
 
           <div class="hr"></div>
 
-          <!-- ✅ 右側明細（像你截圖） -->
           <div class="myGrid">
             <div id="myOrdersWrap" class="muted">尚無資料。</div>
 
@@ -594,6 +599,24 @@
         localStorage.setItem("gb_user_rid", rid);
 
         $("pickedRestaurantName").textContent = selectedRestaurant?.name || "未命名";
+
+        // ✅ 新增：餐廳圖片網址連結（管理者設定 imageUrl 才會顯示）
+        const linkWrap = $("pickedRestaurantLinks");
+        linkWrap.innerHTML = "";
+        linkWrap.style.display = "none";
+        const imgUrl = (selectedRestaurant?.imageUrl || "").trim();
+        if(imgUrl){
+          linkWrap.style.display = "block";
+          linkWrap.innerHTML = `
+            📷 <a href="${esc(imgUrl)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color:#334155; text-decoration:underline">
+                  查看餐廳圖片
+                </a>
+          `;
+        }
+
         const st = $("pickedRestaurantState");
         st.style.display = "inline-flex";
         if(selectedRestaurant?.isClosed){
@@ -960,7 +983,6 @@
       });
     }
 
-    // ===== Submit Order =====
     async function submitOrder(){
       if(!isUserReady()) return alert("請先選擇部門 / 姓名 / 店家");
       if(cart.length===0) return alert("購物車是空的");
@@ -1006,7 +1028,6 @@
       }
     }
 
-    // ===== My Orders =====
     function fmtTime(ms){
       if(!ms) return "";
       const d = new Date(ms);
@@ -1014,7 +1035,6 @@
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    // ✅ 刪除規則（三條）
     function isTodayClosed(){
       return restaurants.some(r => r && r.isClosed === true);
     }
@@ -1105,12 +1125,10 @@
         myOrdersCache = mine;
         renderMyOrders(mine);
 
-        // ✅ 若目前 activeOrderId 還在列表中，就更新明細；不在就清掉
         if(activeOrderId && mine.some(x=>x.id===activeOrderId)){
           setDetail(mine.find(x=>x.id===activeOrderId));
         }else{
           clearDetail();
-          // ✅ 有資料時，預設選第一筆（比較像你截圖：右邊常有明細）
           if(mine.length>0){
             setDetail(mine[0]);
             activeOrderId = mine[0].id;
@@ -1158,7 +1176,6 @@
         `;
       }).join("");
 
-      // ✅ 點選某筆，右側顯示明細
       wrap.querySelectorAll(".orderRow[data-oid]").forEach(row=>{
         const oid = row.dataset.oid;
         const go = ()=>{
@@ -1175,7 +1192,6 @@
       highlightActiveRow();
     }
 
-    // ✅ 明細區刪除（像你截圖右邊那顆）
     $("btnDeleteFromDetail").onclick = async ()=>{
       if(!activeOrderId) return;
       const o = myOrdersCache.find(x=>x.id===activeOrderId);
@@ -1195,7 +1211,6 @@
       }
     };
 
-    // ===== Events =====
     $("deptSelect").onchange = ()=>{
       const dept = $("deptSelect").value || "";
       renderNameSelect(dept);
@@ -1240,7 +1255,6 @@
       loadMyOrders();
     };
 
-    // ===== Switch admin =====
     function goAdmin(){
       const pin = ($("adminPin").value || "").trim();
       if(pin !== "8520") return alert("PIN 不正確");
@@ -1257,7 +1271,6 @@
       location.href = "./index.html";
     };
 
-    // ===== Init =====
     $("myDate").value = todayISO();
 
     await loadStaff();
