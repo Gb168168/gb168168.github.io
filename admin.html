@@ -361,8 +361,16 @@
             <label>部門</label>
             <input id="s_dept" list="deptList" placeholder="例：FAE"/>
             <datalist id="deptList">
-              <option>管理部</option><option>FAE</option><option>TSE</option><option>新場</option>
-              <option>倉管</option><option>數據分析</option><option>RD</option><option>線上客服</option><option>維運</option>
+              <option>管理部</option>
+              <option>新場</option>
+              <option>維運</option>
+              <option>倉管</option>
+              <option>RD</option>
+              <option>FAE</option>
+              <option>TSE</option>
+              <option>數據分析</option>
+              <option>線上客服</option>
+              <option>教育訓練</option>
             </datalist>
 
             <label>人員名稱</label>
@@ -490,6 +498,26 @@
       try{ return new Date(ms).toLocaleString("zh-TW", { hour12:false }); }
       catch{ return String(ms); }
     };
+
+    /* =========================================================
+       ✅ 部門排序：固定順序（訂單明細/Excel/人員清單 共用）
+       ========================================================= */
+    const DEPT_ORDER = [
+      "管理部",
+      "新場",
+      "維運",
+      "倉管",
+      "RD",
+      "FAE",
+      "TSE",
+      "數據分析",
+      "線上客服",
+      "教育訓練"
+    ];
+    const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
+    function deptRank(dept){
+      return DEPT_INDEX.has(dept) ? DEPT_INDEX.get(dept) : 999;
+    }
 
     const statusPill = $("statusPill");
     statusPill.textContent = "已連線 Firestore";
@@ -915,6 +943,8 @@
     };
 
     /* ===== staff / restaurants ===== */
+
+    /* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
     async function refreshStaffList(){
       const wrap = $("staffWrap");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
@@ -924,13 +954,19 @@
         const arr = [];
         snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
 
+        // ✅ 依自訂部門順序 + 人名
         arr.sort((a,b)=>{
-          const da = (a.dept||"未分部門").trim();
-          const dbb = (b.dept||"未分部門").trim();
-          if(da === dbb) return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-          return da.localeCompare(dbb, "zh-Hant");
+          const da = (a.dept||"").trim();
+          const dbb = (b.dept||"").trim();
+
+          const ra = deptRank(da);
+          const rb = deptRank(dbb);
+          if(ra !== rb) return ra - rb;
+
+          return (a.name||"").localeCompare((b.name||""), "zh-Hant");
         });
 
+        // 分組
         const map = new Map();
         for(const v of arr){
           const dept = (v.dept||"未分部門").trim();
@@ -943,19 +979,28 @@
           return;
         }
 
-        wrap.innerHTML = Array.from(map.entries()).map(([dept, list])=>`
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
-            <summary>${esc(dept)} <span class="tag" style="margin-left:8px">${list.length}人</span></summary>
-            <div style="margin-top:10px">
-              ${list.map(p=>`
-                <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
-                  <div><b>${esc(p.name||"")}</b></div>
-                  <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
-                </div>
-              `).join("")}
-            </div>
-          </details>
-        `).join("");
+        // 依 DEPT_ORDER 輸出，未定義的排最後
+        const orderedDepts = [
+          ...DEPT_ORDER.filter(d=>map.has(d)),
+          ...Array.from(map.keys()).filter(d=>!DEPT_INDEX.has(d))
+        ];
+
+        wrap.innerHTML = orderedDepts.map(dept=>{
+          const list = map.get(dept) || [];
+          return `
+            <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
+              <summary>${esc(dept)} <span class="tag" style="margin-left:8px">${list.length}人</span></summary>
+              <div style="margin-top:10px">
+                ${list.map(p=>`
+                  <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
+                    <div><b>${esc(p.name||"")}</b></div>
+                    <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
+                  </div>
+                `).join("")}
+              </div>
+            </details>
+          `;
+        }).join("");
 
         wrap.querySelectorAll("button[data-delstaff]").forEach(b=>{
           b.onclick = async ()=>{
@@ -1572,6 +1617,30 @@
       }, 0);
     }
 
+    // ✅ 訂單排序（畫面與 Excel 共用）：依指定部門順序 + 姓名 + 餐廳 + 時間(新→舊)
+    function sortOrdersForDetails(arr){
+      const orders = Array.isArray(arr) ? [...arr] : [];
+      orders.sort((a,b)=>{
+        const da = (a.userDept || "").trim();
+        const dbb = (b.userDept || "").trim();
+
+        const ra = deptRank(da);
+        const rb = deptRank(dbb);
+        if(ra !== rb) return ra - rb;
+
+        const na = (a.userName || "").trim();
+        const nb = (b.userName || "").trim();
+        if(na !== nb) return na.localeCompare(nb, "zh-Hant");
+
+        const raName = (a.restaurantName || "").trim();
+        const rbName = (b.restaurantName || "").trim();
+        if(raName !== rbName) return raName.localeCompare(rbName, "zh-Hant");
+
+        return toMs(b.createdAt||0) - toMs(a.createdAt||0);
+      });
+      return orders;
+    }
+
     // ✅ 修正：用 createdAt 日期區間查詢（不再用 orderDate）
     async function loadOrdersByDate(dateStr){
       const { start, end } = dayRangeMs(dateStr);
@@ -1680,7 +1749,10 @@
         `;
       }).join("");
 
-      const orderList = orders.map((o)=>{
+      // ✅ 訂單明細：依部門固定順序排序
+      const detailOrders = sortOrdersForDetails(orders);
+
+      const orderList = detailOrders.map((o)=>{
         const dept = o.userDept || "";
         const name = o.userName || "";
         const restaurant = o.restaurantName || "";
@@ -1774,7 +1846,7 @@
 
         <div class="hr"></div>
 
-        <h3 style="margin:0 0 6px">訂單明細（可刪整筆 / 刪一道）</h3>
+        <h3 style="margin:0 0 6px">訂單明細（可刪整筆 / 刪一道｜同部門會排在一起）</h3>
         ${orderList || `<div class="muted">此日期沒有訂單</div>`}
       `;
     }
@@ -1785,7 +1857,6 @@
         btn.onclick = async ()=>{
           const oid = btn.dataset.oid;
           await deleteWholeOrder(oid);
-          // reload current date
           await $("btnLoadOrders").onclick();
         };
       });
@@ -1794,7 +1865,6 @@
           const oid = btn.dataset.oid;
           const idx = Number(btn.dataset.idx);
           await deleteOrderItem(oid, idx);
-          // reload current date
           await $("btnLoadOrders").onclick();
         };
       });
@@ -1840,8 +1910,11 @@
         }
         if(!orders || orders.length===0) return alert("此日期沒有訂單可匯出");
 
+        // ✅ Excel 也用同一套排序（同部門排一起 + 固定部門順序）
+        const ordersForExport = sortOrdersForDetails(orders);
+
         const rows = [];
-        for(const o of orders){
+        for(const o of ordersForExport){
           const dept = o.userDept || "";
           const name = o.userName || "";
           const restaurant = o.restaurantName || "";
