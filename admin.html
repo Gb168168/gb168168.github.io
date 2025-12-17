@@ -1896,93 +1896,174 @@
       }
     };
 
-    $("btnExportExcel").onclick = async ()=>{
-      const date = $("o_date").value;
-      if(!date) return alert("請選日期");
+  $("btnExportExcel").onclick = async ()=>{
+  const date = $("o_date").value;
+  if(!date) return alert("請選日期");
 
-      try{
-        statusPill.textContent = "準備 Excel…";
+  try{
+    statusPill.textContent = "準備 Excel…";
 
-        let orders = lastLoadedOrders;
-        if(!Array.isArray(orders) || orders.length===0){
-          orders = await loadOrdersByDate(date);
-          lastLoadedOrders = orders;
-        }
-        if(!orders || orders.length===0) return alert("此日期沒有訂單可匯出");
+    let orders = lastLoadedOrders;
+    if(!Array.isArray(orders) || orders.length===0){
+      orders = await loadOrdersByDate(date);
+      lastLoadedOrders = orders;
+    }
+    if(!orders || orders.length===0) return alert("此日期沒有訂單可匯出");
 
-        // ✅ Excel 也用同一套排序（同部門排一起 + 固定部門順序）
-        const ordersForExport = sortOrdersForDetails(orders);
+    // ✅ Excel 也用同一套排序（同部門排一起 + 固定部門順序）
+    const ordersForExport = sortOrdersForDetails(orders);
 
-        const rows = [];
-        for(const o of ordersForExport){
-          const dept = o.userDept || "";
-          const name = o.userName || "";
-          const restaurant = o.restaurantName || "";
-          const items = Array.isArray(o.items) ? o.items : [];
-          const total = Number(o.total||0) || calcOrderTotal(items);
-          const time = toTWTime(o.createdAt);
-          const orderNote = (o.orderNote || o.remark || "");
+    const rows = [];
+    const orderTotalMap = new Map(); // ✅ 用訂單 id 記錄一次，避免重複加總
 
-          for(const it of items){
-            const qty = Number(it.qty||0);
-            const unit = Number(it.price||0);
-            const unitAddon = addonUnitSum(it.addons);
-            const addonAmt = unitAddon * qty;
-            const itemAmt = unit * qty;
-            const sub = (unit + unitAddon) * qty;
+    for(const o of ordersForExport){
+      const dept = o.userDept || "";
+      const name = o.userName || "";
+      const restaurant = o.restaurantName || "";
+      const items = Array.isArray(o.items) ? o.items : [];
+      const total = Number(o.total||0) || calcOrderTotal(items);
+      const time = toTWTime(o.createdAt);
+      const orderNote = (o.orderNote || o.remark || "");
 
-            rows.push({
-              "部門": dept,
-              "姓名": name,
-              "餐廳": restaurant,
-              "品項": it.name || "",
-              "加購/擇一": addonText(it.addons),
-              "餐點備註": itemNoteText(it),
-              "數量": qty,
-              "單價": unit,
-              "加購金額": addonAmt,
-              "品項金額": itemAmt,
-              "品項小計": sub,
-              "訂單總額": total,
-              "下單時間": time,
-              "整單備註": orderNote
-            });
-          }
+      // ✅ 記錄訂單總額（每筆訂單只算一次）
+      if(o.id && !orderTotalMap.has(o.id)) orderTotalMap.set(o.id, total);
 
-          if(items.length===0){
-            rows.push({
-              "部門": dept,
-              "姓名": name,
-              "餐廳": restaurant,
-              "品項": "",
-              "加購/擇一": "",
-              "餐點備註": "",
-              "數量": 0,
-              "單價": 0,
-              "加購金額": 0,
-              "品項金額": 0,
-              "品項小計": 0,
-              "訂單總額": total,
-              "下單時間": time,
-              "整單備註": orderNote
-            });
-          }
-        }
+      for(const it of items){
+        const qty = Number(it.qty||0);
+        const unit = Number(it.price||0);
+        const unitAddon = addonUnitSum(it.addons);
+        const addonAmt = unitAddon * qty;
+        const itemAmt = unit * qty;
+        const sub = (unit + unitAddon) * qty;
 
-        const ws = XLSX.utils.json_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Orders");
-
-        const fileName = `GoldBricks_Orders_${date}.xlsx`;
-        XLSX.writeFile(wb, fileName);
-
-        statusPill.textContent = "Excel 已匯出 ✅";
-      }catch(err){
-        console.error(err);
-        alert("匯出失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "匯出失敗（看 console）";
+        rows.push({
+          "部門": dept,
+          "姓名": name,
+          "餐廳": restaurant,
+          "品項": it.name || "",
+          "加購/擇一": addonText(it.addons),
+          "餐點備註": itemNoteText(it),
+          "數量": qty,
+          "單價": unit,
+          "加購金額": addonAmt,
+          "品項金額": itemAmt,
+          "品項小計": sub,
+          "訂單總額": total,
+          "下單時間": time,
+          "整單備註": orderNote
+        });
       }
+
+      // 若某訂單沒有 items，也保留一列
+      if(items.length===0){
+        rows.push({
+          "部門": dept,
+          "姓名": name,
+          "餐廳": restaurant,
+          "品項": "",
+          "加購/擇一": "",
+          "餐點備註": "",
+          "數量": 0,
+          "單價": 0,
+          "加購金額": 0,
+          "品項金額": 0,
+          "品項小計": 0,
+          "訂單總額": total,
+          "下單時間": time,
+          "整單備註": orderNote
+        });
+      }
+    }
+
+    // ✅ 訂單總額加總（每筆訂單算一次）
+    const grandTotal = Array.from(orderTotalMap.values()).reduce((s,v)=> s + Number(v||0), 0);
+
+    // ✅ 加總列（放在最底下，前面先空一列）
+    rows.push({});
+    rows.push({
+      "部門": "",
+      "姓名": "",
+      "餐廳": "",
+      "品項": "",
+      "加購/擇一": "",
+      "餐點備註": "",
+      "數量": "",
+      "單價": "",
+      "加購金額": "",
+      "品項金額": "",
+      "品項小計": "訂單總額加總",
+      "訂單總額": grandTotal,
+      "下單時間": "",
+      "整單備註": ""
+    });
+
+    // ===== 建立工作表 =====
+    const header = [
+      "部門","姓名","餐廳","品項","加購/擇一","餐點備註",
+      "數量","單價","加購金額","品項金額","品項小計","訂單總額",
+      "下單時間","整單備註"
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header });
+
+    // ✅ 凍結表頭 + 自動篩選
+    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r:0, c:0 }, e: { r: range.e.r, c: range.e.c } }) };
+
+    // ✅ 自動欄寬（依內容長度）
+    const colWidths = header.map((h, ci)=>{
+      let maxLen = String(h).length;
+      for(let r=0; r<=range.e.r; r++){
+        const addr = XLSX.utils.encode_cell({ r, c: ci });
+        const cell = ws[addr];
+        if(!cell) continue;
+        const v = cell.v == null ? "" : String(cell.v);
+        // 中文寬度略估：中文算 2，英文算 1
+        const approx = Array.from(v).reduce((s,ch)=> s + (ch.charCodeAt(0) > 255 ? 2 : 1), 0);
+        if(approx > maxLen) maxLen = approx;
+      }
+      // 最小寬度 10，最大寬度 50
+      return { wch: Math.max(10, Math.min(50, maxLen + 2)) };
+    });
+    ws["!cols"] = colWidths;
+
+    // ✅ 置中 + 垂直置中（注意：部分 SheetJS build 可能不會真的輸出樣式）
+    //    若你的 xlsx.full.min 版本支援 styles，這會生效。
+    const centerStyle = {
+      alignment: { horizontal: "center", vertical: "center", wrapText: true }
     };
+
+    // 針對整張表（包含表頭與資料）
+    for(let r=0; r<=range.e.r; r++){
+      for(let c=0; c<=range.e.c; c++){
+        const addr = XLSX.utils.encode_cell({ r, c });
+        if(!ws[addr]) continue;
+        ws[addr].s = Object.assign({}, ws[addr].s || {}, centerStyle);
+
+        // 表頭加粗（若 styles 支援）
+        if(r === 0){
+          ws[addr].s = Object.assign({}, ws[addr].s || {}, {
+            font: { bold: true }
+          });
+        }
+      }
+    }
+
+    // ===== 建立活頁簿 =====
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+    const fileName = `GoldBricks_Orders_${date}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    statusPill.textContent = "Excel 已匯出 ✅";
+  }catch(err){
+    console.error(err);
+    alert("匯出失敗\n\n" + (err?.message || err));
+    statusPill.textContent = "匯出失敗（看 console）";
+  }
+};
   </script>
 </body>
 </html>
