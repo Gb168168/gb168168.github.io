@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽11｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -413,39 +413,42 @@
         </div>
       </section>
 
-      <!-- VIEW: 訂餐紀錄 -->
-      <section class="view" id="view_orders" style="display:none">
-        <div class="grid">
-          <div class="card">
-            <h3>訂單統計</h3>
-            <div class="row">
-              <div>
-                <label>訂單日期</label>
-                <input id="o_date" type="date"/>
-              </div>
-              <div>
-                <label>顯示模式</label>
-                <select id="o_mode" disabled>
-                  <option value="summary">同品項彙總（跨所有人）</option>
-                </select>
-              </div>
-            </div>
-            <div class="actions">
-              <button class="primary" id="btnLoadOrders" type="button">載入</button>
-              <button class="ghost" id="btnToday" type="button">今天</button>
-              <button class="btnSmall btnOk" id="btnExportExcel" type="button">匯出 Excel</button>
-            </div>
-            <p class="muted">
-              Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、餐點備註、數量、單價、加購金額、品項金額、訂單總額、下單時間、整單備註
-            </p>
-          </div>
-
-          <div class="card">
-            <h3>訂餐紀錄（彙整輸出）</h3>
-            <div id="ordersOut" class="muted">請選日期後按「載入」。</div>
-          </div>
+    <!-- VIEW: 訂餐紀錄 -->
+<section class="view" id="view_orders" style="display:none">
+  <div class="grid">
+    <div class="card">
+      <h3>訂單統計</h3>
+      <div class="row">
+        <div>
+          <label>訂單日期</label>
+          <input id="o_date" type="date"/>
         </div>
-      </section>
+        <div class="muted" style="display:flex; align-items:end">
+          （固定：同品項彙總）
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" id="btnLoadOrders" type="button">載入</button>
+        <button class="ghost" id="btnToday" type="button">今天</button>
+        <button class="btnSmall btnOk" id="btnExportExcel" type="button">匯出 Excel</button>
+      </div>
+      <p class="muted">
+        Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、餐點備註、數量、單價、加購金額、品項金額、訂單總額、下單時間、整單備註
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>訂餐紀錄（彙整輸出）</h3>
+      <div id="ordersOut" class="muted">請選日期後按「載入」。</div>
+
+      <div class="hr"></div>
+
+      <h3 style="margin-top:0">原始訂單列表（可刪除：整筆/單品項）</h3>
+      <div class="muted mini">按「載入」後才會顯示。刪除會立即寫回 Firestore。</div>
+      <div id="ordersRaw" class="muted" style="margin-top:10px">尚未載入。</div>
+    </div>
+  </div>
+</section>
 
     </main>
   </div>
