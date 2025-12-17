@@ -189,13 +189,14 @@
     .rMap:hover{ text-decoration:underline; }
     .rActions{ margin-top:10px; display:flex; justify-content:flex-end; gap:8px; }
 
-    /* ===== ✅ 右側：我的訂餐紀錄 + 明細（像截圖右邊那塊） ===== */
-    .myGrid{
-      display:grid;
-      grid-template-columns: 1fr 360px; /* ← 280 → 360 */
-      gap:12px;
-      align-items:start;
-    }
+   /* ✅ 5）我的訂餐紀錄：訂單在上，明細在下面 */
+.myGrid{
+  display:grid;
+  grid-template-columns: 1fr;        /* 單欄 */
+  grid-template-rows: auto auto;     /* 上：訂單 / 下：明細 */
+  gap:12px;
+  align-items:start;
+}
     @media (max-width:1180px){
       .myGrid{grid-template-columns:1fr}
     }
@@ -208,10 +209,10 @@
       border-color: rgba(251,113,133,.35);
       box-shadow: 0 10px 18px rgba(251,113,133,.10);
     }
-    .stickySide{
-      position:sticky;
-      top:86px; /* topbar 高度附近 */
-    }
+   /* ✅ 明細在下面，不需要 sticky */
+.stickySide{
+  position:static;
+}
     @media (max-width:1180px){
       .stickySide{position:static}
     }
