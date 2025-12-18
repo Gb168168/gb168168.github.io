@@ -1762,171 +1762,204 @@
       }
     }
 
-    function renderOrdersSummaryAndList(orders){
-      const agg = new Map();
-      let grandTotal = 0;
+  function renderOrdersSummaryAndList(orders){
+  const agg = new Map();
+  let grandTotal = 0;
 
-      for(const o of orders){
-        const items = Array.isArray(o.items) ? o.items : [];
-        let orderTotal = Number(o.total||0);
-        if(!orderTotal) orderTotal = calcOrderTotal(items);
-        grandTotal += orderTotal;
+  for(const o of orders){
+    const items = Array.isArray(o.items) ? o.items : [];
+    let orderTotal = Number(o.total||0);
+    if(!orderTotal) orderTotal = calcOrderTotal(items);
+    grandTotal += orderTotal;
 
-        for(const it of items){
-          const rName = o.restaurantName || "";
-          const unit = Number(it.price||0);
-          const addons = Array.isArray(it.addons) ? it.addons : [];
-          const aKey = addonsKey(addons);
-          const note = itemNoteText(it);
-          const key = `${rName}__${it.name||""}__${unit}__${aKey}__note:${note}`;
+    for(const it of items){
+      const rName = o.restaurantName || "";
+      const unit = Number(it.price||0);
+      const addons = Array.isArray(it.addons) ? it.addons : [];
+      const aKey = addonsKey(addons);
+      const note = itemNoteText(it);
+      const key = `${rName}__${it.name||""}__${unit}__${aKey}__note:${note}`;
 
-          if(!agg.has(key)){
-            agg.set(key, { restaurant: rName, item: it.name||"", unit, addons, note, qty: 0 });
-          }
-          agg.get(key).qty += Number(it.qty||0);
-        }
+      if(!agg.has(key)){
+        agg.set(key, { restaurant: rName, item: it.name||"", unit, addons, note, qty: 0 });
       }
+      agg.get(key).qty += Number(it.qty||0);
+    }
+  }
 
-      const rows = Array.from(agg.values()).sort((a,b)=> b.qty-a.qty).map(x=>{
-        const unitAddon = addonUnitSum(x.addons);
-        const addonAmt = unitAddon * x.qty;
-        const itemAmt = x.unit * x.qty;
-        const total = (x.unit + unitAddon) * x.qty;
-        return `
-          <tr>
-            <td>${esc(x.restaurant)}</td>
-            <td>${esc(x.item)}</td>
-            <td class="muted">${esc(addonText(x.addons))}</td>
-            <td class="muted">${esc(x.note || "")}</td>
-            <td>${x.qty}</td>
-            <td>${x.unit}</td>
-            <td>${addonAmt}</td>
-            <td>${itemAmt}</td>
-            <td>${total}</td>
-          </tr>
-        `;
-      }).join("");
-
-      // ✅ 訂單明細：依部門固定順序排序
-      const detailOrders = sortOrdersForDetails(orders);
-
-      const orderList = detailOrders.map((o)=>{
-        const dept = o.userDept || "";
-        const name = o.userName || "";
-        const restaurant = o.restaurantName || "";
-        const time = toTWTime(o.createdAt);
-        const orderNote = (o.orderNote || o.remark || "");
-        const items = Array.isArray(o.items) ? o.items : [];
-        const total = Number(o.total||0) || calcOrderTotal(items);
-
-        return `
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
-            <summary>
-              <span style="font-size:14px">${esc(dept)} / ${esc(name)}｜${esc(restaurant)}</span>
-              <span class="tag" style="margin-left:8px">${items.length} 道</span>
-              <span class="tag" style="margin-left:6px">總額 ${total}</span>
-              <span class="tag" style="margin-left:6px">${esc(time)}</span>
-            </summary>
-
-            ${orderNote ? `<div class="muted mini" style="margin-top:8px">整單備註：${esc(orderNote)}</div>` : ``}
-
-            <div class="hr"></div>
-
-            ${items.length===0 ? `<div class="muted">（此訂單沒有餐點）</div>` : `
-              <table>
-                <thead>
-                  <tr>
-                    <th>品項</th>
-                    <th>加購/擇一</th>
-                    <th>餐點備註</th>
-                    <th>數量</th>
-                    <th>單價</th>
-                    <th>小計</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${items.map((it,idx)=>{
-                    const qty = Number(it.qty||0);
-                    const unit = Number(it.price||0);
-                    const unitAddon = addonUnitSum(it.addons);
-                    const sub = (unit + unitAddon) * qty;
-                    return `
-                      <tr>
-                        <td><b>${esc(it.name||"")}</b></td>
-                        <td class="muted">${esc(addonText(it.addons))}</td>
-                        <td class="muted">${esc(itemNoteText(it))}</td>
-                        <td>${qty}</td>
-                        <td>${unit}</td>
-                        <td>${sub}</td>
-                        <td>
-                          <button class="btnSmall btnDanger" type="button" data-del-item="1" data-oid="${o.id}" data-idx="${idx}">刪此一道</button>
-                        </td>
-                      </tr>
-                    `;
-                  }).join("")}
-                </tbody>
-              </table>
-            `}
-
-            <div class="actions">
-              <button class="btnSmall btnDanger" type="button" data-del-order="1" data-oid="${o.id}">刪整筆訂單</button>
-            </div>
-          </details>
-        `;
-      }).join("");
-
+  // ===== 左：同品項彙總 =====
+  const summaryRows = Array.from(agg.values())
+    .sort((a,b)=> b.qty-a.qty)
+    .map(x=>{
+      const unitAddon = addonUnitSum(x.addons);
+      const addonAmt = unitAddon * x.qty;
+      const itemAmt = x.unit * x.qty;
+      const total = (x.unit + unitAddon) * x.qty;
       return `
-        <div class="inline" style="justify-content:space-between; margin-bottom:10px">
-          <span class="tag">共 ${orders.length} 筆訂單</span>
-          <span class="tag">訂單總加總：${grandTotal}</span>
-        </div>
+        <tr>
+          <td>${esc(x.restaurant)}</td>
+          <td>${esc(x.item)}</td>
+          <td class="muted">${esc(addonText(x.addons))}</td>
+          <td class="muted">${esc(x.note || "")}</td>
+          <td>${x.qty}</td>
+          <td>${x.unit}</td>
+          <td>${addonAmt}</td>
+          <td>${itemAmt}</td>
+          <td>${total}</td>
+        </tr>
+      `;
+    }).join("");
 
-        <h3 style="margin:10px 0 6px">同品項彙總（跨所有人）</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>餐廳</th>
-              <th>品項</th>
-              <th>加購/擇一</th>
-              <th>餐點備註</th>
-              <th>數量</th>
-              <th>單價</th>
-              <th>加購金額</th>
-              <th>品項金額</th>
-              <th>小計</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows || `<tr><td colspan="9" class="muted">此日期沒有訂單</td></tr>`}
-          </tbody>
-        </table>
+  const summaryHTML = `
+    <div class="inline" style="justify-content:space-between; margin-bottom:10px">
+      <span class="tag">共 ${orders.length} 筆訂單</span>
+      <span class="tag">訂單總加總：${grandTotal}</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>餐廳</th>
+          <th>品項</th>
+          <th>加購/擇一</th>
+          <th>餐點備註</th>
+          <th>數量</th>
+          <th>單價</th>
+          <th>加購金額</th>
+          <th>品項金額</th>
+          <th>小計</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${summaryRows || `<tr><td colspan="9" class="muted">此日期沒有訂單</td></tr>`}
+      </tbody>
+    </table>
+  `;
+
+  // ===== 右：訂單明細（同部門排一起 + 固定部門順序）=====
+  const detailOrders = sortOrdersForDetails(orders);
+
+  const detailHTML = detailOrders.map((o)=>{
+    const dept = o.userDept || "";
+    const name = o.userName || "";
+    const restaurant = o.restaurantName || "";
+    const time = toTWTime(o.createdAt);
+    const orderNote = (o.orderNote || o.remark || "");
+    const items = Array.isArray(o.items) ? o.items : [];
+    const total = Number(o.total||0) || calcOrderTotal(items);
+
+    return `
+      <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
+        <summary>
+          <span style="font-size:14px">${esc(dept)} / ${esc(name)}｜${esc(restaurant)}</span>
+          <span class="tag" style="margin-left:8px">${items.length} 道</span>
+          <span class="tag" style="margin-left:6px">總額 ${total}</span>
+          <span class="tag" style="margin-left:6px">${esc(time)}</span>
+        </summary>
+
+        ${orderNote ? `<div class="muted mini" style="margin-top:8px">整單備註：${esc(orderNote)}</div>` : ``}
 
         <div class="hr"></div>
 
-        <h3 style="margin:0 0 6px">訂單明細（可刪整筆 / 刪一道｜同部門會排在一起）</h3>
-        ${orderList || `<div class="muted">此日期沒有訂單</div>`}
-      `;
+        ${items.length===0 ? `<div class="muted">（此訂單沒有餐點）</div>` : `
+          <table>
+            <thead>
+              <tr>
+                <th>品項</th>
+                <th>加購/擇一</th>
+                <th>餐點備註</th>
+                <th>數量</th>
+                <th>單價</th>
+                <th>小計</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map((it,idx)=>{
+                const qty = Number(it.qty||0);
+                const unit = Number(it.price||0);
+                const unitAddon = addonUnitSum(it.addons);
+                const sub = (unit + unitAddon) * qty;
+                return `
+                  <tr>
+                    <td><b>${esc(it.name||"")}</b></td>
+                    <td class="muted">${esc(addonText(it.addons))}</td>
+                    <td class="muted">${esc(itemNoteText(it))}</td>
+                    <td>${qty}</td>
+                    <td>${unit}</td>
+                    <td>${sub}</td>
+                    <td>
+                      <button class="btnSmall btnDanger" type="button" data-del-item="1" data-oid="${o.id}" data-idx="${idx}">刪此一道</button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `}
+
+        <div class="actions">
+          <button class="btnSmall btnDanger" type="button" data-del-order="1" data-oid="${o.id}">刪整筆訂單</button>
+        </div>
+      </details>
+    `;
+  }).join("") || `<div class="muted">此日期沒有訂單</div>`;
+
+  return { summaryHTML, detailHTML };
+}
+
+function bindOrderDeleteButtons(){
+  const out = $("ordersDetailOut"); // ✅ 改成右欄容器
+  if(!out) return;
+
+  out.querySelectorAll("[data-del-order]").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const oid = btn.dataset.oid;
+      await deleteWholeOrder(oid);
+      await $("btnLoadOrders").onclick();
+    };
+  });
+
+  out.querySelectorAll("[data-del-item]").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const oid = btn.dataset.oid;
+      const idx = Number(btn.dataset.idx);
+      await deleteOrderItem(oid, idx);
+      await $("btnLoadOrders").onclick();
+    };
+  });
+}
+
+$("btnLoadOrders").onclick = async ()=>{
+  const date = $("o_date").value;
+  if(!date) return alert("請選日期");
+
+  try{
+    statusPill.textContent = "載入訂單中…";
+    const orders = await loadOrdersByDate(date);
+    lastLoadedOrders = orders;
+
+    if(!orders || orders.length===0){
+      $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+      $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+      statusPill.textContent = "已載入 ✅";
+      return;
     }
 
-    function bindOrderDeleteButtons(){
-      const out = $("ordersOut");
-      out.querySelectorAll("[data-del-order]").forEach(btn=>{
-        btn.onclick = async ()=>{
-          const oid = btn.dataset.oid;
-          await deleteWholeOrder(oid);
-          await $("btnLoadOrders").onclick();
-        };
-      });
-      out.querySelectorAll("[data-del-item]").forEach(btn=>{
-        btn.onclick = async ()=>{
-          const oid = btn.dataset.oid;
-          const idx = Number(btn.dataset.idx);
-          await deleteOrderItem(oid, idx);
-          await $("btnLoadOrders").onclick();
-        };
-      });
-    }
+    const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
+    $("ordersSummaryOut").innerHTML = summaryHTML;
+    $("ordersDetailOut").innerHTML = detailHTML;
+
+    bindOrderDeleteButtons();
+    statusPill.textContent = "已載入 ✅";
+  }catch(err){
+    console.error(err);
+    $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+    $("ordersDetailOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+    alert("讀取訂單失敗\n\n" + (err?.message || err));
+    statusPill.textContent = "讀取失敗（看 console）";
+  }
+};
 
     $("btnLoadOrders").onclick = async ()=>{
       const date = $("o_date").value;
