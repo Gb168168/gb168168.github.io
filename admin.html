@@ -1836,11 +1836,27 @@
     </table>
   `;
 
-  // ===== 右：訂單明細（同部門排一起 + 固定部門順序）=====
-  const detailOrders = sortOrdersForDetails(orders);
+ // ✅ 訂單明細：先依部門分組（管理部展開 → 管理部所有人的訂單）
+const detailOrders = sortOrdersForDetails(orders);
 
-  const detailHTML = detailOrders.map((o)=>{
-    const dept = o.userDept || "";
+// 分組：dept -> orders[]
+const deptMap = new Map();
+for (const o of detailOrders) {
+  const dept = (o.userDept || "未分部門").trim() || "未分部門";
+  if (!deptMap.has(dept)) deptMap.set(dept, []);
+  deptMap.get(dept).push(o);
+}
+
+// 部門輸出順序：依 DEPT_ORDER，未定義的放最後
+const orderedDepts = [
+  ...DEPT_ORDER.filter(d => deptMap.has(d)),
+  ...Array.from(deptMap.keys()).filter(d => !DEPT_INDEX.has(d))
+];
+
+const orderList = orderedDepts.map(dept => {
+  const list = deptMap.get(dept) || [];
+
+  const deptInner = list.map((o) => {
     const name = o.userName || "";
     const restaurant = o.restaurantName || "";
     const time = toTWTime(o.createdAt);
@@ -1851,7 +1867,7 @@
     return `
       <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
         <summary>
-          <span style="font-size:14px">${esc(dept)} / ${esc(name)}｜${esc(restaurant)}</span>
+          <span style="font-size:14px">${esc(name)}｜${esc(restaurant)}</span>
           <span class="tag" style="margin-left:8px">${items.length} 道</span>
           <span class="tag" style="margin-left:6px">總額 ${total}</span>
           <span class="tag" style="margin-left:6px">${esc(time)}</span>
@@ -1889,7 +1905,8 @@
                     <td>${unit}</td>
                     <td>${sub}</td>
                     <td>
-                      <button class="btnSmall btnDanger" type="button" data-del-item="1" data-oid="${o.id}" data-idx="${idx}">刪此一道</button>
+                      <button class="btnSmall btnDanger" type="button"
+                        data-del-item="1" data-oid="${o.id}" data-idx="${idx}">刪此一道</button>
                     </td>
                   </tr>
                 `;
@@ -1903,7 +1920,20 @@
         </div>
       </details>
     `;
-  }).join("") || `<div class="muted">此日期沒有訂單</div>`;
+  }).join("");
+
+  return `
+    <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:rgba(255,255,255,.92); margin-top:10px;">
+      <summary>
+        <span style="font-size:14.5px">${esc(dept)}</span>
+        <span class="tag" style="margin-left:8px">${list.length} 筆訂單</span>
+      </summary>
+      <div style="margin-top:10px">
+        ${deptInner}
+      </div>
+    </details>
+  `;
+}).join("");
 
   return { summaryHTML, detailHTML };
 }
