@@ -2006,11 +2006,11 @@ $("btnExportExcel").onclick = async ()=>{
       return alert("此日期沒有訂單可匯出");
     }
 
-    // ✅ 先用你原本的排序（部門順序 + 姓名 + 餐廳）
+    // ✅ 依你原本排序（部門順序 + 姓名 + 餐廳 + 時間）
     const sorted = sortOrdersForDetails(orders);
 
-    // ✅ 分組：同部門 + 同姓名 + 同餐廳
-    const groupMap = new Map(); 
+    // ✅ 分組：同部門 + 同姓名 + 同餐廳（餐廳不輸出，但用來分組扣 140）
+    const groupMap = new Map();
     // key -> { dept, name, restaurant, items:[], totalAmount }
 
     for(const o of sorted){
@@ -2042,7 +2042,7 @@ $("btnExportExcel").onclick = async ()=>{
       }
     }
 
-    // ✅ 依「部門順序 → 姓名 → 餐廳」排序輸出
+    // ✅ 依「部門順序 → 姓名 → 餐廳」排序群組（確保編號 1,2,3…穩定）
     const groups = Array.from(groupMap.values());
     groups.sort((a,b)=>{
       const ra = deptRank(a.dept);
@@ -2059,16 +2059,19 @@ $("btnExportExcel").onclick = async ()=>{
     });
 
     const rows = [];
+    let personNo = 0;
+
     for(const g of groups){
+      personNo += 1;
+
       const receivable = Math.max(g.totalAmount - 140, 0);
 
+      // 若該組沒有品項，也保留一列（可留可不留）
       if(!g.items.length){
-        // 若沒有品項也保留一列（可留可不留）
         rows.push({
-          "人數": 1,
+          "人數": personNo,
           "部門": g.dept,
           "姓名": g.name,
-          "餐廳": g.restaurant,
           "品項": "",
           "加購/擇一": "",
           "餐點備註": "",
@@ -2080,21 +2083,20 @@ $("btnExportExcel").onclick = async ()=>{
 
       g.items.forEach((it, idx)=>{
         rows.push({
-          "人數": 1,
+          "人數": personNo,
           "部門": g.dept,
           "姓名": g.name,
-          "餐廳": g.restaurant,
           "品項": it.itemName,
           "加購/擇一": it.addonText,
           "餐點備註": it.note,
           "金額": it.amount,
-          // ✅ 只在該人該餐廳第一列寫應收，其他列留空
+          // ✅ 只在該人(該餐廳分組)第一列寫應收，其他列留空
           "應收": idx === 0 ? receivable : ""
         });
       });
     }
 
-    const header = ["人數","部門","姓名","餐廳","品項","加購/擇一","餐點備註","金額","應收"];
+    const header = ["人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"];
     const ws = XLSX.utils.json_to_sheet(rows, { header });
 
     ws["!freeze"] = { xSplit: 0, ySplit: 1 };
@@ -2109,7 +2111,6 @@ $("btnExportExcel").onclick = async ()=>{
       { wch: 6 },   // 人數
       { wch: 10 },  // 部門
       { wch: 10 },  // 姓名
-      { wch: 14 },  // 餐廳
       { wch: 24 },  // 品項
       { wch: 28 },  // 加購/擇一
       { wch: 18 },  // 餐點備註
