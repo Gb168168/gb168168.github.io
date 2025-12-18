@@ -2083,7 +2083,7 @@ $("btnExportExcel").onclick = async ()=>{
 
       g.items.forEach((it, idx)=>{
         rows.push({
-          "人數": personNo,
+          "人數": idx === 0 ? personNo : "",
           "部門": g.dept,
           "姓名": g.name,
           "品項": it.itemName,
