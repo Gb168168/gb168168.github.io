@@ -2081,19 +2081,19 @@ $("btnExportExcel").onclick = async ()=>{
         continue;
       }
 
-      g.items.forEach((it, idx)=>{
-        rows.push({
-          "人數": idx === 0 ? personNo : "",
-          "部門": g.dept,
-          "姓名": g.name,
-          "品項": it.itemName,
-          "加購/擇一": it.addonText,
-          "餐點備註": it.note,
-          "金額": it.amount,
-          // ✅ 只在該人(該餐廳分組)第一列寫應收，其他列留空
-          "應收": idx === 0 ? receivable : ""
-        });
-      });
+     g.items.forEach((it, idx)=>{
+  rows.push({
+    "人數": idx === 0 ? personNo : "",     // ✅ 只顯示一次
+    "部門": g.dept,
+    "姓名": idx === 0 ? g.name : "",       // ✅ 只顯示一次
+    "品項": it.itemName,
+    "加購/擇一": it.addonText,
+    "餐點備註": it.note,
+    "金額": it.amount,
+    "應收": idx === 0 ? receivable : ""    // ✅ 只顯示一次
+  });
+});
+
     }
 
     const header = ["人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"];
