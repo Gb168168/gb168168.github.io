@@ -2095,9 +2095,6 @@ for(const g of groups){
     "應收": idx === 0 ? receivable : ""    // ✅ 只顯示一次
   });
 });
-
-    }
-
     const header = ["人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"];
     const ws = XLSX.utils.json_to_sheet(rows, { header });
 
