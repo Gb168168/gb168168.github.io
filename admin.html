@@ -125,6 +125,26 @@
     .optBox{border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff}
     .optRow{display:grid; grid-template-columns: 1fr 140px 120px; gap:10px}
     @media (max-width:980px){.optRow{grid-template-columns:1fr}}
+/* STEP1：訂餐紀錄-上方橫條 */
+#view_orders .ordersTopBar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#view_orders .ordersTopBar .leftCtl{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+}
+#view_orders .ordersTopBar .dateBox{
+  min-width:260px;
+}
+@media (max-width:980px){
+  #view_orders .ordersTopBar .dateBox{ min-width:100%; }
+}    
   </style>
 </head>
 <body>
