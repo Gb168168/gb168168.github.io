@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽~｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2002,16 +2002,14 @@ $("btnExportExcel").onclick = async ()=>{
       orders = await loadOrdersByDate(date);
       lastLoadedOrders = orders;
     }
-    if(!orders || orders.length===0){
-      return alert("此日期沒有訂單可匯出");
-    }
+    if(!orders || orders.length===0) return alert("此日期沒有訂單可匯出");
 
     // ✅ 依你原本排序（部門順序 + 姓名 + 餐廳 + 時間）
     const sorted = sortOrdersForDetails(orders);
 
-    // ✅ 分組：同部門 + 同姓名 + 同餐廳（餐廳不輸出，但用來分組扣 140）
-    const groupMap = new Map();
-    // key -> { dept, name, restaurant, items:[], totalAmount }
+    // ✅ Person Map：key=dept||name
+    // person = { dept, name, restMap(Map<restaurant, { total, items:[] }>), totalAmountAll }
+    const personMap = new Map();
 
     for(const o of sorted){
       const dept = (o.userDept || "未分部門").trim() || "未分部門";
@@ -2019,12 +2017,17 @@ $("btnExportExcel").onclick = async ()=>{
       const restaurant = (o.restaurantName || "").trim();
       if(!name) continue;
 
-      const key = `${dept}||${name}||${restaurant}`;
-      if(!groupMap.has(key)){
-        groupMap.set(key, { dept, name, restaurant, items: [], totalAmount: 0 });
+      const pKey = `${dept}||${name}`;
+      if(!personMap.has(pKey)){
+        personMap.set(pKey, { dept, name, restMap: new Map(), totalAmountAll: 0 });
       }
+      const p = personMap.get(pKey);
 
-      const g = groupMap.get(key);
+      if(!p.restMap.has(restaurant)){
+        p.restMap.set(restaurant, { total: 0, items: [] });
+      }
+      const rObj = p.restMap.get(restaurant);
+
       const items = Array.isArray(o.items) ? o.items : [];
       for(const it of items){
         const qty = Number(it.qty || 0);
@@ -2032,86 +2035,152 @@ $("btnExportExcel").onclick = async ()=>{
         const addonUnit = addonUnitSum(it.addons);
         const amount = (unit + addonUnit) * qty;
 
-        g.items.push({
+        const rowItem = {
           itemName: it.name || "",
           addonText: addonText(it.addons),
           note: itemNoteText(it),
-          amount
-        });
-        g.totalAmount += amount;
+          amount,
+        };
+
+        rObj.items.push(rowItem);
+        rObj.total += amount;
+
+        p.totalAmountAll += amount;
       }
     }
 
-    // ✅ 依「部門順序 → 姓名 → 餐廳」排序群組（確保編號 1,2,3…穩定）
-    const groups = Array.from(groupMap.values());
-    groups.sort((a,b)=>{
-      const ra = deptRank(a.dept);
-      const rb = deptRank(b.dept);
+    // ✅ 排序人員：部門順序 → 姓名
+    const persons = Array.from(personMap.values());
+    persons.sort((a,b)=>{
+      const ra = deptRank(a.dept), rb = deptRank(b.dept);
       if(ra !== rb) return ra - rb;
-
-      const na = a.name || "";
-      const nb = b.name || "";
-      if(na !== nb) return na.localeCompare(nb, "zh-Hant");
-
-      const rA = a.restaurant || "";
-      const rB = b.restaurant || "";
-      return rA.localeCompare(rB, "zh-Hant");
+      return (a.name||"").localeCompare((b.name||""), "zh-Hant");
     });
 
-    const rows = [];
+    // ========= Sheet 1：總表（每人一列） =========
+    const summaryRows = [];
     let personNo = 0;
+    let lastDeptSummary = null;
 
-  let lastDept = null;
+    for(const p of persons){
+      personNo += 1;
 
-for(const g of groups){
-  personNo += 1;
-  const receivable = Math.max(g.totalAmount - 140, 0);
-  const showDept = g.dept !== lastDept;
+      // ✅ 應收：每家餐廳各扣一次 140
+      let receivableAll = 0;
+      for(const [rest, rObj] of p.restMap.entries()){
+        receivableAll += Math.max(Number(rObj.total || 0) - 140, 0);
+      }
 
-  g.items.forEach((it, idx)=>{
-    rows.push({
-      "人數": idx === 0 ? personNo : "",
-      "部門": (idx === 0 && showDept) ? g.dept : "",  // ✅ 同部門只顯示一次
-      "姓名": idx === 0 ? g.name : "",
-      "品項": it.itemName,
-      "加購/擇一": it.addonText,
-      "餐點備註": it.note,
-      "金額": it.amount,
-      "應收": idx === 0 ? receivable : ""
-    });
-  });
+      const showDept = p.dept !== lastDeptSummary;
 
-  lastDept = g.dept; // ✅ 記住目前部門
-}
-    
-    const header = ["人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"];
-    const ws = XLSX.utils.json_to_sheet(rows, { header });
+      summaryRows.push({
+        "人數": personNo,
+        "部門": showDept ? p.dept : "",
+        "姓名": p.name,
+        "總金額": Number(p.totalAmountAll || 0),
+        "總應收": Number(receivableAll || 0),
+      });
 
-    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+      lastDeptSummary = p.dept;
+    }
 
-    const range = XLSX.utils.decode_range(ws["!ref"]);
-    ws["!autofilter"] = {
-      ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:range.e.r, c:range.e.c} })
-    };
-
-    // 欄寬（固定好用）
-    ws["!cols"] = [
+    const summaryHeader = ["人數","部門","姓名","總金額","總應收"];
+    const wsSummary = XLSX.utils.json_to_sheet(summaryRows, { header: summaryHeader });
+    wsSummary["!freeze"] = { xSplit: 0, ySplit: 1 };
+    const rangeS = XLSX.utils.decode_range(wsSummary["!ref"]);
+    wsSummary["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rangeS.e.r,c:rangeS.e.c} }) };
+    wsSummary["!cols"] = [
       { wch: 6 },   // 人數
       { wch: 10 },  // 部門
-      { wch: 10 },  // 姓名
+      { wch: 12 },  // 姓名
+      { wch: 10 },  // 總金額
+      { wch: 10 },  // 總應收
+    ];
+
+    // ========= Sheet 2：明細（逐品項） =========
+    // 欄位：人數、部門、姓名、品項、加購/擇一、餐點備註、金額、應收
+    // ✅ 應收：同一人同餐廳「餐廳總金額 - 140」只顯示在該餐廳第一列
+    const detailRows = [];
+    personNo = 0;
+    let lastDeptDetail = null;
+
+    for(const p of persons){
+      personNo += 1;
+
+      const showDept = p.dept !== lastDeptDetail;
+
+      // 餐廳順序（只用來計算與分段，不輸出餐廳名稱）
+      const rests = Array.from(p.restMap.entries()).sort((a,b)=>{
+        const ra = (a[0]||"").localeCompare((b[0]||""), "zh-Hant");
+        return ra;
+      });
+
+      let firstLineOfPerson = true;
+
+      for(const [restName, rObj] of rests){
+        const receivableThisRest = Math.max(Number(rObj.total || 0) - 140, 0);
+        const list = Array.isArray(rObj.items) ? rObj.items : [];
+
+        // 若某餐廳沒有 items，也保留一列（可選）
+        if(list.length === 0){
+          detailRows.push({
+            "人數": firstLineOfPerson ? personNo : "",
+            "部門": (firstLineOfPerson && showDept) ? p.dept : "",
+            "姓名": firstLineOfPerson ? p.name : "",
+            "品項": "",
+            "加購/擇一": "",
+            "餐點備註": "",
+            "金額": 0,
+            "應收": receivableThisRest
+          });
+          firstLineOfPerson = false;
+          continue;
+        }
+
+        list.forEach((it, idx)=>{
+          detailRows.push({
+            "人數": (firstLineOfPerson && idx===0) ? personNo : "",
+            "部門": (firstLineOfPerson && idx===0 && showDept) ? p.dept : "",
+            "姓名": (firstLineOfPerson && idx===0) ? p.name : "",
+            "品項": it.itemName,
+            "加購/擇一": it.addonText,
+            "餐點備註": it.note,
+            "金額": it.amount,
+            // ✅ 同一人同餐廳扣 140 一次（只在該餐廳第一列顯示）
+            "應收": idx === 0 ? receivableThisRest : ""
+          });
+        });
+
+        firstLineOfPerson = false;
+      }
+
+      lastDeptDetail = p.dept;
+    }
+
+    const detailHeader = ["人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"];
+    const wsDetail = XLSX.utils.json_to_sheet(detailRows, { header: detailHeader });
+    wsDetail["!freeze"] = { xSplit: 0, ySplit: 1 };
+    const rangeD = XLSX.utils.decode_range(wsDetail["!ref"]);
+    wsDetail["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rangeD.e.r,c:rangeD.e.c} }) };
+    wsDetail["!cols"] = [
+      { wch: 6 },   // 人數
+      { wch: 10 },  // 部門
+      { wch: 12 },  // 姓名
       { wch: 24 },  // 品項
       { wch: 28 },  // 加購/擇一
       { wch: 18 },  // 餐點備註
       { wch: 10 },  // 金額
-      { wch: 10 }   // 應收
+      { wch: 10 },  // 應收
     ];
 
+    // ✅ 產出 Excel（兩張 sheet）
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "應收明細");
+    XLSX.utils.book_append_sheet(wb, wsSummary, "總表(每人一列)");
+    XLSX.utils.book_append_sheet(wb, wsDetail, "明細(逐品項)");
 
     XLSX.writeFile(wb, `GoldBricks_應收_${date}.xlsx`);
-
     statusPill.textContent = "Excel 已匯出 ✅";
+
   }catch(err){
     console.error(err);
     alert("匯出失敗\n\n" + (err?.message || err));
