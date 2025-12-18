@@ -432,38 +432,76 @@
       </section>
 
       <!-- VIEW: 訂餐紀錄 -->
-      <section class="view" id="view_orders" style="display:none">
-        <div class="grid">
-          <div class="card">
-            <h3>訂單統計</h3>
-            <div class="row">
-              <div>
-                <label>訂單日期</label>
-                <input id="o_date" type="date"/>
-              </div>
-              <div>
-                <label>顯示模式</label>
-                <select id="o_mode" disabled>
-                  <option value="summary">同品項彙總（跨所有人）</option>
-                </select>
-              </div>
+<!-- VIEW: 訂餐紀錄 -->
+<section class="view" id="view_orders" style="display:none">
+  <!-- ✅ 上：控制橫條 ；下：左右兩欄 -->
+  <div style="display:grid; gap:14px">
+
+    <!-- ✅ 上方橫條：訂單統計（控制列） -->
+    <div class="card">
+      <h3>訂單統計</h3>
+
+      <div class="ordersTopBar">
+        <div class="leftCtl">
+          <div class="dateBox">
+            <label>訂單日期</label>
+            <input id="o_date" type="date"/>
+          </div>
+
+          <div>
+            <label>顯示模式</label>
+            <div class="pill" style="height:42px; display:flex; align-items:center;">
+              同品項彙總（跨所有人）
             </div>
-            <div class="actions">
+          </div>
+
+          <div>
+            <label>操作</label>
+            <div class="inline">
               <button class="primary" id="btnLoadOrders" type="button">載入</button>
               <button class="ghost" id="btnToday" type="button">今天</button>
               <button class="btnSmall btnOk" id="btnExportExcel" type="button">匯出 Excel</button>
             </div>
-            <p class="muted">
-              Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、餐點備註、數量、單價、加購金額、品項金額、品項小計、訂單總額、下單時間、整單備註
-            </p>
-          </div>
-
-          <div class="card">
-            <h3>訂餐紀錄（彙整輸出 + 可刪單）</h3>
-            <div id="ordersOut" class="muted">請選日期後按「載入」。</div>
           </div>
         </div>
-      </section>
+      </div>
+
+      <p class="muted" style="margin-top:10px">
+        Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、餐點備註、數量、單價、加購金額、品項金額、品項小計、訂單總額、下單時間、整單備註
+      </p>
+    </div>
+
+    <!-- ✅ 下方左右：左統計表 / 右訂單明細 -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px" id="ordersTwoCol">
+      <!-- 左：同品項彙總 -->
+      <div class="card">
+        <h3>訂單統計（同品項彙總）</h3>
+        <div id="ordersSummaryOut" class="muted">請選日期後按「載入」。</div>
+      </div>
+
+      <!-- 右：訂單明細 -->
+      <div class="card">
+        <h3>訂單明細（可刪整筆 / 刪一道）</h3>
+        <div id="ordersDetailOut" class="muted">請選日期後按「載入」。</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  // ✅ 小螢幕自動改成單欄（不影響你原本全域 @media）
+  (function(){
+    const mq = window.matchMedia("(max-width:980px)");
+    const apply = ()=>{
+      const el = document.getElementById("ordersTwoCol");
+      if(!el) return;
+      el.style.gridTemplateColumns = mq.matches ? "1fr" : "1fr 1fr";
+    };
+    apply();
+    mq.addEventListener?.("change", apply);
+  })();
+</script>
 
     </main>
   </div>
