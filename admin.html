@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1960,32 +1960,6 @@ $("btnLoadOrders").onclick = async ()=>{
     statusPill.textContent = "讀取失敗（看 console）";
   }
 };
-
-    $("btnLoadOrders").onclick = async ()=>{
-      const date = $("o_date").value;
-      if(!date) return alert("請選日期");
-
-      try{
-        statusPill.textContent = "載入訂單中…";
-        const orders = await loadOrdersByDate(date);
-        lastLoadedOrders = orders;
-
-        if(orders.length===0){
-          $("ordersOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-          statusPill.textContent = "已載入 ✅";
-          return;
-        }
-
-        $("ordersOut").innerHTML = renderOrdersSummaryAndList(orders);
-        bindOrderDeleteButtons();
-        statusPill.textContent = "已載入 ✅";
-      }catch(err){
-        console.error(err);
-        $("ordersOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
-        alert("讀取訂單失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "讀取失敗（看 console）";
-      }
-    };
 
   $("btnExportExcel").onclick = async ()=>{
   const date = $("o_date").value;
