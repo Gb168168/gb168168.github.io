@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽~｜管理者</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1854,6 +1854,7 @@ const orderedDepts = [
 ];
 
 const orderList = orderedDepts.map(dept => {
+
   const list = deptMap.get(dept) || [];
 
   const deptInner = list.map((o) => {
@@ -1921,20 +1922,7 @@ const orderList = orderedDepts.map(dept => {
       </details>
     `;
   }).join("");
-
-  return `
-    <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:rgba(255,255,255,.92); margin-top:10px;">
-      <summary>
-        <span style="font-size:14.5px">${esc(dept)}</span>
-        <span class="tag" style="margin-left:8px">${list.length} 筆訂單</span>
-      </summary>
-      <div style="margin-top:10px">
-        ${deptInner || `<div class="muted">此部門沒有訂單</div>`}
-      </div>
-    </details>
-  `;
-}).join("");
-
+  const detailHTML = orderList;
 return { summaryHTML, detailHTML };
 }
 
