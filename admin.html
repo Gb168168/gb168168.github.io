@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽~｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2006,43 +2006,95 @@ $("btnExportExcel").onclick = async ()=>{
       return alert("此日期沒有訂單可匯出");
     }
 
-    // ✅ 依部門順序 + 姓名排序（沿用你現有 sortOrdersForDetails）
+    // ✅ 先用你原本的排序（部門順序 + 姓名 + 餐廳）
     const sorted = sortOrdersForDetails(orders);
 
-    const rows = [];
-    for(const o of sorted){
-      const dept = o.userDept || "";
-      const name = o.userName || "";
-      const items = Array.isArray(o.items) ? o.items : [];
+    // ✅ 分組：同部門 + 同姓名 + 同餐廳
+    const groupMap = new Map(); 
+    // key -> { dept, name, restaurant, items:[], totalAmount }
 
+    for(const o of sorted){
+      const dept = (o.userDept || "未分部門").trim() || "未分部門";
+      const name = (o.userName || "").trim();
+      const restaurant = (o.restaurantName || "").trim();
+      if(!name) continue;
+
+      const key = `${dept}||${name}||${restaurant}`;
+      if(!groupMap.has(key)){
+        groupMap.set(key, { dept, name, restaurant, items: [], totalAmount: 0 });
+      }
+
+      const g = groupMap.get(key);
+      const items = Array.isArray(o.items) ? o.items : [];
       for(const it of items){
         const qty = Number(it.qty || 0);
         const unit = Number(it.price || 0);
         const addonUnit = addonUnitSum(it.addons);
-
-        // 金額 = (單價+加購) * 數量
         const amount = (unit + addonUnit) * qty;
 
-        // 應收 = 餐點加總限制金額 140（= max(金額-140,0)）
-        const receivable = Math.max(amount - 140, 0);
-
-        rows.push({
-          "人數": 1,
-          "部門": dept,
-          "姓名": name,
-          "品項": it.name || "",
-          "加購/擇一": addonText(it.addons),
-          "餐點備註": itemNoteText(it),
-          "金額": amount,
-          "應收": receivable
+        g.items.push({
+          itemName: it.name || "",
+          addonText: addonText(it.addons),
+          note: itemNoteText(it),
+          amount
         });
+        g.totalAmount += amount;
       }
     }
 
-    const header = [
-      "人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"
-    ];
+    // ✅ 依「部門順序 → 姓名 → 餐廳」排序輸出
+    const groups = Array.from(groupMap.values());
+    groups.sort((a,b)=>{
+      const ra = deptRank(a.dept);
+      const rb = deptRank(b.dept);
+      if(ra !== rb) return ra - rb;
 
+      const na = a.name || "";
+      const nb = b.name || "";
+      if(na !== nb) return na.localeCompare(nb, "zh-Hant");
+
+      const rA = a.restaurant || "";
+      const rB = b.restaurant || "";
+      return rA.localeCompare(rB, "zh-Hant");
+    });
+
+    const rows = [];
+    for(const g of groups){
+      const receivable = Math.max(g.totalAmount - 140, 0);
+
+      if(!g.items.length){
+        // 若沒有品項也保留一列（可留可不留）
+        rows.push({
+          "人數": 1,
+          "部門": g.dept,
+          "姓名": g.name,
+          "餐廳": g.restaurant,
+          "品項": "",
+          "加購/擇一": "",
+          "餐點備註": "",
+          "金額": 0,
+          "應收": receivable
+        });
+        continue;
+      }
+
+      g.items.forEach((it, idx)=>{
+        rows.push({
+          "人數": 1,
+          "部門": g.dept,
+          "姓名": g.name,
+          "餐廳": g.restaurant,
+          "品項": it.itemName,
+          "加購/擇一": it.addonText,
+          "餐點備註": it.note,
+          "金額": it.amount,
+          // ✅ 只在該人該餐廳第一列寫應收，其他列留空
+          "應收": idx === 0 ? receivable : ""
+        });
+      });
+    }
+
+    const header = ["人數","部門","姓名","餐廳","品項","加購/擇一","餐點備註","金額","應收"];
     const ws = XLSX.utils.json_to_sheet(rows, { header });
 
     ws["!freeze"] = { xSplit: 0, ySplit: 1 };
@@ -2052,11 +2104,12 @@ $("btnExportExcel").onclick = async ()=>{
       ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:range.e.r, c:range.e.c} })
     };
 
-    // 欄寬（簡單好用）
+    // 欄寬（固定好用）
     ws["!cols"] = [
       { wch: 6 },   // 人數
       { wch: 10 },  // 部門
       { wch: 10 },  // 姓名
+      { wch: 14 },  // 餐廳
       { wch: 24 },  // 品項
       { wch: 28 },  // 加購/擇一
       { wch: 18 },  // 餐點備註
