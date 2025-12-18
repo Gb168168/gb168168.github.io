@@ -2061,26 +2061,28 @@ $("btnExportExcel").onclick = async ()=>{
     const rows = [];
     let personNo = 0;
 
-    for(const g of groups){
-      personNo += 1;
+  let lastDept = null;
 
-      const receivable = Math.max(g.totalAmount - 140, 0);
+for(const g of groups){
+  personNo += 1;
+  const receivable = Math.max(g.totalAmount - 140, 0);
+  const showDept = g.dept !== lastDept;
 
-      // 若該組沒有品項，也保留一列（可留可不留）
-      if(!g.items.length){
-        rows.push({
-          "人數": personNo,
-          "部門": g.dept,
-          "姓名": g.name,
-          "品項": "",
-          "加購/擇一": "",
-          "餐點備註": "",
-          "金額": 0,
-          "應收": receivable
-        });
-        continue;
-      }
+  g.items.forEach((it, idx)=>{
+    rows.push({
+      "人數": idx === 0 ? personNo : "",
+      "部門": (idx === 0 && showDept) ? g.dept : "",  // ✅ 同部門只顯示一次
+      "姓名": idx === 0 ? g.name : "",
+      "品項": it.itemName,
+      "加購/擇一": it.addonText,
+      "餐點備註": it.note,
+      "金額": it.amount,
+      "應收": idx === 0 ? receivable : ""
+    });
+  });
 
+  lastDept = g.dept; // ✅ 記住目前部門
+}
      g.items.forEach((it, idx)=>{
   rows.push({
     "人數": idx === 0 ? personNo : "",     // ✅ 只顯示一次
