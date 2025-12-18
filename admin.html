@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者</title>
+  <title>GoldBricks 呷奔👽~｜管理者</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1836,7 +1836,7 @@
     </table>
   `;
 
- // ✅ 訂單明細：先依部門分組（管理部展開 → 管理部所有人的訂單）
+// ✅ 訂單明細：先依部門分組（管理部展開 → 管理部所有人的訂單）
 const detailOrders = sortOrdersForDetails(orders);
 
 // 分組：dept -> orders[]
@@ -1929,17 +1929,17 @@ const orderList = orderedDepts.map(dept => {
         <span class="tag" style="margin-left:8px">${list.length} 筆訂單</span>
       </summary>
       <div style="margin-top:10px">
-        ${deptInner}
+        ${deptInner || `<div class="muted">此部門沒有訂單</div>`}
       </div>
     </details>
   `;
 }).join("");
 
-  return { summaryHTML, detailHTML };
+return { summaryHTML, detailHTML };
 }
 
 function bindOrderDeleteButtons(){
-  const out = $("ordersDetailOut"); // ✅ 改成右欄容器
+  const out = $("ordersDetailOut"); // ✅ 右欄容器
   if(!out) return;
 
   out.querySelectorAll("[data-del-order]").forEach(btn=>{
@@ -1991,7 +1991,7 @@ $("btnLoadOrders").onclick = async ()=>{
   }
 };
 
-  $("btnExportExcel").onclick = async ()=>{
+$("btnExportExcel").onclick = async ()=>{
   const date = $("o_date").value;
   if(!date) return alert("請選日期");
 
@@ -2092,7 +2092,6 @@ $("btnLoadOrders").onclick = async ()=>{
       "整單備註": ""
     });
 
-    // ===== 建立工作表 =====
     const header = [
       "部門","姓名","餐廳","品項","加購/擇一","餐點備註",
       "數量","單價","加購金額","品項金額","品項小計","訂單總額",
@@ -2101,12 +2100,10 @@ $("btnLoadOrders").onclick = async ()=>{
 
     const ws = XLSX.utils.json_to_sheet(rows, { header });
 
-    // ✅ 凍結表頭 + 自動篩選
     ws["!freeze"] = { xSplit: 0, ySplit: 1 };
     const range = XLSX.utils.decode_range(ws["!ref"]);
     ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r:0, c:0 }, e: { r: range.e.r, c: range.e.c } }) };
 
-    // ✅ 自動欄寬（依內容長度）
     const colWidths = header.map((h, ci)=>{
       let maxLen = String(h).length;
       for(let r=0; r<=range.e.r; r++){
@@ -2114,38 +2111,25 @@ $("btnLoadOrders").onclick = async ()=>{
         const cell = ws[addr];
         if(!cell) continue;
         const v = cell.v == null ? "" : String(cell.v);
-        // 中文寬度略估：中文算 2，英文算 1
         const approx = Array.from(v).reduce((s,ch)=> s + (ch.charCodeAt(0) > 255 ? 2 : 1), 0);
         if(approx > maxLen) maxLen = approx;
       }
-      // 最小寬度 10，最大寬度 50
       return { wch: Math.max(10, Math.min(50, maxLen + 2)) };
     });
     ws["!cols"] = colWidths;
 
-    // ✅ 置中 + 垂直置中（注意：部分 SheetJS build 可能不會真的輸出樣式）
-    //    若你的 xlsx.full.min 版本支援 styles，這會生效。
-    const centerStyle = {
-      alignment: { horizontal: "center", vertical: "center", wrapText: true }
-    };
-
-    // 針對整張表（包含表頭與資料）
+    const centerStyle = { alignment: { horizontal: "center", vertical: "center", wrapText: true } };
     for(let r=0; r<=range.e.r; r++){
       for(let c=0; c<=range.e.c; c++){
         const addr = XLSX.utils.encode_cell({ r, c });
         if(!ws[addr]) continue;
         ws[addr].s = Object.assign({}, ws[addr].s || {}, centerStyle);
-
-        // 表頭加粗（若 styles 支援）
         if(r === 0){
-          ws[addr].s = Object.assign({}, ws[addr].s || {}, {
-            font: { bold: true }
-          });
+          ws[addr].s = Object.assign({}, ws[addr].s || {}, { font: { bold: true } });
         }
       }
     }
 
-    // ===== 建立活頁簿 =====
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Orders");
 
