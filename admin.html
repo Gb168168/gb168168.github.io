@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽~｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -171,7 +171,7 @@
       </div>
 
       <p class="muted" style="margin:12px 8px 0;">
-        ✅ 餐廳：可顯示/隱藏、可結單/開單、可設定營業時間 / 公休<br/>
+        ✅ 餐廳：可顯示/隱藏、可結單/開單、可設定營業時間與公休日<br/>
         ✅ 訂單：支援 Excel 匯出、支援刪整筆/刪單一道<br/>
         ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項<br/>
         ✅ 新增餐點：餐點類別支援「群組新增 + 拖曳排序」<br/>
@@ -221,44 +221,6 @@
               </div>
             </div>
 
-            <!-- ✅ 新增：上午 / 下午營業時間 -->
-            <div class="row">
-              <div>
-                <label>上午營業時間</label>
-                <input id="r_am" autocomplete="off" placeholder="例：09:00-14:00"/>
-              </div>
-              <div>
-                <label>下午/晚間營業時間（可空）</label>
-                <input id="r_pm" autocomplete="off" placeholder="例：17:00-21:00"/>
-              </div>
-            </div>
-
-            <!-- ✅ 新增：週一～週日 公休日（可多選） -->
-            <label style="margin-top:4px">公休日（可多選）</label>
-            <div class="inline mini">
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="1"> 週一
-              </label>
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="2"> 週二
-              </label>
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="3"> 週三
-              </label>
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="4"> 週四
-              </label>
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="5"> 週五
-              </label>
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="6"> 週六
-              </label>
-              <label class="chkline mini">
-                <input type="checkbox" class="r_closedDay" value="7"> 週日
-              </label>
-            </div>
-
             <div class="row">
               <div>
                 <label>Line QR Code 圖片網址（可空）</label>
@@ -269,6 +231,30 @@
 
             <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
             <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
+
+            <!-- ✅ 新增：上午 / 下午營業時間 -->
+            <div class="row" style="margin-top:10px">
+              <div>
+                <label>上午營業時間</label>
+                <input id="r_morningHours" autocomplete="off" placeholder="例：11:00~14:30"/>
+              </div>
+              <div>
+                <label>下午/晚間營業時間</label>
+                <input id="r_eveningHours" autocomplete="off" placeholder="例：16:30~19:30"/>
+              </div>
+            </div>
+
+            <!-- ✅ 新增：公休日（可多選） -->
+            <label style="margin-top:10px">公休日（可多選）</label>
+            <div class="chkline mini">
+              <label><input type="checkbox" id="r_closedMon" style="width:16px;height:16px"> 週一</label>
+              <label><input type="checkbox" id="r_closedTue" style="width:16px;height:16px"> 週二</label>
+              <label><input type="checkbox" id="r_closedWed" style="width:16px;height:16px"> 週三</label>
+              <label><input type="checkbox" id="r_closedThu" style="width:16px;height:16px"> 週四</label>
+              <label><input type="checkbox" id="r_closedFri" style="width:16px;height:16px"> 週五</label>
+              <label><input type="checkbox" id="r_closedSat" style="width:16px;height:16px"> 週六</label>
+              <label><input type="checkbox" id="r_closedSun" style="width:16px;height:16px"> 週日</label>
+            </div>
 
             <div class="row">
               <div class="chkline" style="margin-top:12px">
@@ -282,7 +268,7 @@
             </div>
 
             <label>備註</label>
-            <textarea id="r_note" autocomplete="off" placeholder="可填營業時間補充、付款方式…"></textarea>
+            <textarea id="r_note" autocomplete="off" placeholder="可填營業時間、付款方式…"></textarea>
 
             <div class="actions">
               <button class="primary" id="btnSubmitAll">新增（餐廳 + 餐點清單）</button>
@@ -453,13 +439,13 @@
       <!-- VIEW: 餐廳管理 -->
       <section class="view" id="view_restaurants" style="display:none">
         <div class="card" style="margin-top:14px">
-          <h3>餐廳管理（依分類收合顯示 + 可顯示/隱藏 + 可結單/開單）</h3>
+          <h3>餐廳管理（依分類收合顯示 + 可顯示/隱藏 + 可結單/開單 + 公休設定）</h3>
 
           <!-- ✅ 搜尋：Enter 才展開定位（不敏感） -->
           <div class="inline" style="margin-top:10px">
             <label style="margin:0; min-width:120px; color:var(--muted)">搜尋餐廳</label>
             <input id="restSearchOpen"
-                   placeholder="輸入關鍵字後按 Enter（可搜尋分類/店名/營業時間/公休）"
+                   placeholder="輸入關鍵字後按 Enter（可搜店名、公休，例如：週一公休）"
                    style="min-width:340px"/>
             <button class="btnSmall" type="button" id="btnRestSearchClear">清除</button>
           </div>
@@ -468,7 +454,7 @@
           <p class="muted">
             ✅「使用者顯示」關閉後：使用者頁看不到該店<br/>
             ✅「結單」開啟後：使用者不能送單<br/>
-            ✅ 搜尋例如：<b>粥品</b>、<b>週一公休</b>、<b>09:00</b> 都會幫你展開匹配的店家
+            ✅「公休日」：在 summary 上會顯示「週一公休、週日公休」，可用上方搜尋找到
           </p>
           <div id="restaurantsWrap"></div>
         </div>
@@ -619,21 +605,37 @@
       return DEPT_INDEX.has(dept) ? DEPT_INDEX.get(dept) : 999;
     }
 
-    /* ✅ 週一～週日常數，公休日用 */
-    const WEEK_DAYS = [
-      { value: 1, label: "週一" },
-      { value: 2, label: "週二" },
-      { value: 3, label: "週三" },
-      { value: 4, label: "週四" },
-      { value: 5, label: "週五" },
-      { value: 6, label: "週六" },
-      { value: 7, label: "週日" },
-    ];
-    function closedDaysText(days){
-      const arr = Array.isArray(days) ? days.map(Number).filter(Boolean) : [];
-      if(!arr.length) return "";
-      const map = {1:"一",2:"二",3:"三",4:"四",5:"五",6:"六",7:"日"};
-      return "週" + arr.map(d=>map[d]||d).join("、") + "公休";
+    // ✅ 週一～週日輔助
+    const WEEK_LABELS = ["一","二","三","四","五","六","日"];
+
+    function getClosedDaysFromAddForm(){
+      const map = [
+        ["r_closedMon",1],
+        ["r_closedTue",2],
+        ["r_closedWed",3],
+        ["r_closedThu",4],
+        ["r_closedFri",5],
+        ["r_closedSat",6],
+        ["r_closedSun",7],
+      ];
+      const out = [];
+      for(const [id,val] of map){
+        const el = $(id);
+        if(el && el.checked) out.push(val);
+      }
+      return out;
+    }
+
+    function closedDaysToText(days){
+      const arr = Array.isArray(days) ? days.map(d=>Number(d)) : [];
+      const parts = [];
+      for(const d of arr){
+        const idx = d-1;
+        if(idx>=0 && idx<WEEK_LABELS.length){
+          parts.push(`週${WEEK_LABELS[idx]}公休`);
+        }
+      }
+      return parts.join("、");
     }
 
     const statusPill = $("statusPill");
@@ -1003,10 +1005,12 @@
       $("r_lineQrUrl").value=""; r_lineQrPrev.style.display="none";
       $("r_visible").checked = true;
       $("r_closed").checked = false;
-      // ✅ 新增欄位也一起清空
-      $("r_am").value = "";
-      $("r_pm").value = "";
-      document.querySelectorAll(".r_closedDay").forEach(ch=> ch.checked = false);
+      $("r_morningHours").value="";
+      $("r_eveningHours").value="";
+      // 清空公休日
+      ["r_closedMon","r_closedTue","r_closedWed","r_closedThu","r_closedFri","r_closedSat","r_closedSun"].forEach(id=>{
+        const el = $(id); if(el) el.checked = false;
+      });
 
       catGroups = [];
       if(catInput) catInput.value = "";
@@ -1023,9 +1027,6 @@
       statusPill.textContent = "新增餐廳中…";
 
       try{
-        const closedDaysArr = Array.from(document.querySelectorAll(".r_closedDay:checked"))
-          .map(ch => Number(ch.value));
-
         const restaurantRef = await addDoc(colRestaurants, {
           category: $("r_category").value.trim(),
           name,
@@ -1035,11 +1036,11 @@
           note: $("r_note").value.trim(),
           imageUrl: $("r_imgUrl").value.trim(),
           lineQrUrl: $("r_lineQrUrl").value.trim(),
+          morningHours: $("r_morningHours").value.trim(),
+          eveningHours: $("r_eveningHours").value.trim(),
+          closedDays: getClosedDaysFromAddForm(), // ✅ 公休日
           isVisible: $("r_visible").checked,
           isClosed: $("r_closed").checked,
-          businessTimeAm: $("r_am").value.trim(),
-          businessTimePm: $("r_pm").value.trim(),
-          closedDays: closedDaysArr,
           createdAt: Date.now()
         });
 
@@ -1190,11 +1191,13 @@
       const wrap = $("restaurantsWrap");
       if(!wrap) return false;
 
-      // ✅ 改為搜尋整個 details 文字（分類 / 店名 / 營業時間 / 公休 都會被搜到）
-      const allDetails = Array.from(wrap.querySelectorAll("details"));
+      const allDetails = Array.from(wrap.querySelectorAll(`details`)).filter(d=>{
+        const s = d.querySelector("summary");
+        return s && (s.textContent||"").trim();
+      });
 
       const hit = allDetails.find(d=>{
-        const t = (d.textContent || "").toLowerCase();
+        const t = (d.querySelector("summary")?.textContent || "").toLowerCase();
         return t.includes(kw);
       });
 
@@ -1285,7 +1288,7 @@
 
       if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
 
-      // ✅ 依餐廳的 category 欄位分組（不再有「餐廳分類管理功能」那套）
+      // ✅ 依餐廳的 category 欄位分組
       const map = new Map();
       for(const r of restaurants){
         const cat = (r.category||"").trim() || "未分類";
@@ -1310,7 +1313,8 @@
 
           const isVisible = (r.isVisible !== false);
           const isClosed = !!r.isClosed;
-          const closedDays = Array.isArray(r.closedDays) ? r.closedDays.map(Number).filter(Boolean) : [];
+
+          const closedText = closedDaysToText(r.closedDays);
 
           const menuRows = (menus === null)
             ? `<div class="muted" style="margin-top:8px">（無法讀取餐點：請確認 Rules/網路）</div>`
@@ -1370,26 +1374,13 @@
             ? `<span class="tag stateBad">已結單</span>`
             : `<span class="tag stateGood">開單中</span>`;
 
-          const bizText = (r.businessTimeAm || r.businessTimePm)
-            ? `${r.businessTimeAm || ""}${r.businessTimePm ? (r.businessTimeAm ? " / " : "") + r.businessTimePm : ""}`
-            : "";
-          const closedLabel = closedDaysText(closedDays);
-
-          const closedDaysCheckboxes = WEEK_DAYS.map(d=>{
-            const checked = closedDays.includes(d.value) ? "checked" : "";
-            return `
-              <label class="chkline mini">
-                <input type="checkbox"
-                       data-r="${r.id}"
-                       data-k="closedDays"
-                       data-day="${d.value}"
-                       ${checked}/>
-                ${d.label}
-              </label>
-            `;
-          }).join("");
-
           const catDl = buildCatDatalistForRestaurant(r.id, menus===null?[]:menus);
+
+          const closedSet = new Set((Array.isArray(r.closedDays)? r.closedDays:[]).map(d=>Number(d)));
+          const closedChk = (day,label)=>{
+            const checked = closedSet.has(day) ? "checked" : "";
+            return `<label><input type="checkbox" data-r="${r.id}" data-closed-day="${day}" style="width:16px;height:16px" ${checked}/> 週${label}</label>`;
+          };
 
           const addForm = `
             <div class="hr"></div>
@@ -1432,15 +1423,15 @@
                 <span class="tag" style="margin-left:8px">${menus===null ? "?" : menus.length} 道餐點</span>
                 <span style="margin-left:10px">${visibleTag}</span>
                 <span style="margin-left:6px">${closedTag}</span>
+                ${closedText ? `<span class="tag stateBad" style="margin-left:6px">${esc(closedText)}</span>` : ""}
               </summary>
 
               <div class="kpi">
                 ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
                 ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
                 ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
+                ${r.morningHours || r.eveningHours ? `<span class="tag">⏰ ${(esc(r.morningHours||""))}${(r.morningHours && r.eveningHours) ? " / " : ""}${esc(r.eveningHours||"")}</span>` : ``}
                 ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
-                ${bizText ? `<span class="tag">🕒 ${esc(bizText)}</span>` : ``}
-                ${closedLabel ? `<span class="tag">🚫 ${esc(closedLabel)}</span>` : ``}
               </div>
 
               <label>餐廳分類（手動輸入，用於分類收合）</label>
@@ -1471,24 +1462,6 @@
                 </div>
               </div>
 
-              <!-- ✅ 編輯 上午 / 下午營業時間 -->
-              <div class="row">
-                <div>
-                  <label>上午營業時間</label>
-                  <input data-r="${r.id}" data-k="businessTimeAm" value="${esc(r.businessTimeAm||"")}" placeholder="例：09:00-14:00"/>
-                </div>
-                <div>
-                  <label>下午/晚間營業時間</label>
-                  <input data-r="${r.id}" data-k="businessTimePm" value="${esc(r.businessTimePm||"")}" placeholder="例：17:00-21:00"/>
-                </div>
-              </div>
-
-              <!-- ✅ 編輯 公休日 -->
-              <label>公休日（可多選）</label>
-              <div class="inline mini">
-                ${closedDaysCheckboxes}
-              </div>
-
               <div class="row">
                 <div>
                   <label>Line QR Code 圖片網址</label>
@@ -1511,6 +1484,30 @@
                   <input type="checkbox" data-r="${r.id}" data-k="isClosed" ${!!r.isClosed ? "checked":""}/>
                   <span class="muted">結單（使用者不可送單）</span>
                 </div>
+              </div>
+
+              <!-- ✅ 營業時間編輯 -->
+              <div class="row" style="margin-top:10px">
+                <div>
+                  <label>上午營業時間</label>
+                  <input data-r="${r.id}" data-k="morningHours" value="${esc(r.morningHours||"")}"/>
+                </div>
+                <div>
+                  <label>下午/晚間營業時間</label>
+                  <input data-r="${r.id}" data-k="eveningHours" value="${esc(r.eveningHours||"")}"/>
+                </div>
+              </div>
+
+              <!-- ✅ 公休日編輯 -->
+              <label style="margin-top:10px">公休日（可多選）</label>
+              <div class="chkline mini">
+                ${closedChk(1,"一")}
+                ${closedChk(2,"二")}
+                ${closedChk(3,"三")}
+                ${closedChk(4,"四")}
+                ${closedChk(5,"五")}
+                ${closedChk(6,"六")}
+                ${closedChk(7,"日")}
               </div>
 
               ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="imgPrev" style="margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
@@ -1576,21 +1573,20 @@
         b.onclick = async ()=>{
           const rid = b.dataset.saver;
           const inputs = wrap.querySelectorAll(`[data-r="${rid}"][data-k]`);
-          // ✅ closedDays 需要自己整理成陣列
-          const patch = { closedDays: [] };
+          const patch = {};
           inputs.forEach(i=>{
             const k = i.dataset.k;
-            if(k === "closedDays"){
-              if(i.checked){
-                const dayVal = Number(i.dataset.day || 0);
-                if(dayVal) patch.closedDays.push(dayVal);
-              }
-            }else if(i.type === "checkbox"){
-              patch[k] = !!i.checked;
-            }else{
-              patch[k] = i.value.trim();
-            }
+            if(i.type === "checkbox") patch[k] = !!i.checked;
+            else patch[k] = i.value.trim();
           });
+
+          // ✅ 公休日一併存入
+          const closedChecks = wrap.querySelectorAll(`[data-r="${rid}"][data-closed-day]`);
+          const closedDays = [];
+          closedChecks.forEach(ch=>{
+            if(ch.checked) closedDays.push(Number(ch.dataset.closedDay));
+          });
+          patch.closedDays = closedDays;
 
           if(typeof patch.isVisible !== "boolean") patch.isVisible = true;
           if(typeof patch.isClosed !== "boolean") patch.isClosed = false;
@@ -1791,7 +1787,7 @@
       }, 0);
     }
 
-    // ✅ 訂單排序（畫面與 Excel 共用）：依指定部門順序 + 姓名 + 餐廳 + 時間(新→舊)
+    // ✅ 訂單排序（畫面與 Excel 共用）
     function sortOrdersForDetails(arr){
       const orders = Array.isArray(arr) ? [...arr] : [];
       orders.sort((a,b)=>{
@@ -1815,7 +1811,7 @@
       return orders;
     }
 
-    // ✅ 修正：用 createdAt 日期區間查詢（不再用 orderDate）
+    // ✅ createdAt 日期區間查詢
     async function loadOrdersByDate(dateStr){
       const { start, end } = dayRangeMs(dateStr);
 
@@ -2053,7 +2049,7 @@
     }
 
     function bindOrderDeleteButtons(){
-      const out = $("ordersDetailOut"); // ✅ 右欄容器
+      const out = $("ordersDetailOut");
       if(!out) return;
 
       out.querySelectorAll("[data-del-order]").forEach(btn=>{
@@ -2119,11 +2115,10 @@
         }
         if(!orders || orders.length===0) return alert("此日期沒有訂單可匯出");
 
-        // ✅ 依你原本排序（部門順序 + 姓名 + 餐廳 + 時間）
+        // ✅ 依原排序
         const sorted = sortOrdersForDetails(orders);
 
-        // ✅ Person Map：key=dept||name
-        // person = { dept, name, restMap(Map<restaurant, { total, items:[] }>), totalAmountAll }
+        // ✅ Person Map
         const personMap = new Map();
 
         for(const o of sorted){
@@ -2205,16 +2200,14 @@
         const rangeS = XLSX.utils.decode_range(wsSummary["!ref"]);
         wsSummary["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rangeS.e.r,c:rangeS.e.c} }) };
         wsSummary["!cols"] = [
-          { wch: 6 },   // 人數
-          { wch: 10 },  // 部門
-          { wch: 12 },  // 姓名
-          { wch: 10 },  // 總金額
-          { wch: 10 },  // 總應收
+          { wch: 6 },
+          { wch: 10 },
+          { wch: 12 },
+          { wch: 10 },
+          { wch: 10 },
         ];
 
         // ========= Sheet 2：明細（逐品項） =========
-        // 欄位：人數、部門、姓名、品項、加購/擇一、餐點備註、金額、應收
-        // ✅ 應收：同一人同餐廳「餐廳總金額 - 140」只顯示在該餐廳第一列
         const detailRows = [];
         personNo = 0;
         let lastDeptDetail = null;
@@ -2224,7 +2217,6 @@
 
           const showDept = p.dept !== lastDeptDetail;
 
-          // 餐廳順序（只用來計算與分段，不輸出餐廳名稱）
           const rests = Array.from(p.restMap.entries()).sort((a,b)=>{
             const ra = (a[0]||"").localeCompare((b[0]||""), "zh-Hant");
             return ra;
@@ -2236,7 +2228,6 @@
             const receivableThisRest = Math.max(Number(rObj.total || 0) - 140, 0);
             const list = Array.isArray(rObj.items) ? rObj.items : [];
 
-            // 若某餐廳沒有 items，也保留一列（可選）
             if(list.length === 0){
               detailRows.push({
                 "人數": firstLineOfPerson ? personNo : "",
@@ -2261,7 +2252,6 @@
                 "加購/擇一": it.addonText,
                 "餐點備註": it.note,
                 "金額": it.amount,
-                // ✅ 同一人同餐廳扣 140 一次（只在該餐廳第一列顯示）
                 "應收": idx === 0 ? receivableThisRest : ""
               });
             });
@@ -2278,17 +2268,16 @@
         const rangeD = XLSX.utils.decode_range(wsDetail["!ref"]);
         wsDetail["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rangeD.e.r,c:rangeD.e.c} }) };
         wsDetail["!cols"] = [
-          { wch: 6 },   // 人數
-          { wch: 10 },  // 部門
-          { wch: 12 },  // 姓名
-          { wch: 24 },  // 品項
-          { wch: 28 },  // 加購/擇一
-          { wch: 18 },  // 餐點備註
-          { wch: 10 },  // 金額
-          { wch: 10 },  // 應收
+          { wch: 6 },
+          { wch: 10 },
+          { wch: 12 },
+          { wch: 24 },
+          { wch: 28 },
+          { wch: 18 },
+          { wch: 10 },
+          { wch: 10 },
         ];
 
-        // ✅ 產出 Excel（兩張 sheet）
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, wsSummary, "總表(每人一列)");
         XLSX.utils.book_append_sheet(wb, wsDetail, "明細(逐品項)");
