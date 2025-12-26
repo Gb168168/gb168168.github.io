@@ -146,6 +146,96 @@
     @media (max-width:980px){
       #view_orders .ordersTopBar .dateBox{ min-width:100%; }
     }
+
+    /* 🔔 未點餐提醒條 */
+    .alertBar{
+      margin-top:8px;
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:13px;
+      line-height:1.5;
+    }
+    .alertWarn{
+      background:rgba(248,113,113,.06);
+      border:1px solid rgba(248,113,113,.45);
+      color:#7f1d1d;
+    }
+    .alertOk{
+      background:rgba(16,185,129,.06);
+      border:1px solid rgba(16,185,129,.45);
+      color:#064e3b;
+    }
+
+    /* 🔔 未點餐彈跳視窗 */
+    .modalMask{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:50;
+    }
+    .modalBox{
+      background:#fff;
+      border-radius:18px;
+      padding:18px 18px 14px;
+      max-width:420px;
+      width:90%;
+      box-shadow:0 20px 40px rgba(15,23,42,.35);
+    }
+
+    /* 📅 班表樣式 */
+    .schDayBlock{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+      margin-top:10px;
+    }
+    .schDayBlock > details{
+      padding:8px 10px 10px;
+    }
+    .schDaySummary{
+      list-style:none;
+      font-size:14px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .schDaySummary::-webkit-details-marker{display:none;}
+    .schDayInner{
+      margin-top:8px;
+    }
+    .schDeptBlock{
+      padding:8px 4px;
+      border-top:1px dashed rgba(15,23,42,.12);
+    }
+    .schDeptBlock:first-of-type{
+      border-top:none;
+    }
+    .schDeptTitle{
+      font-size:12.5px;
+      font-weight:800;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+    .schStaffGrid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px 14px;
+    }
+    .schStaff{
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .tag.miniTag{
+      font-size:11px;
+      padding:3px 7px;
+    }
   </style>
 </head>
 <body>
@@ -162,11 +252,10 @@
 
       <div class="nav">
         <button class="navBtn" data-view="staff">管理人員</button>
+        <button class="navBtn" data-view="schedule">班表管理</button>
         <button class="navBtn" data-view="addRestaurant">新增餐廳</button>
         <button class="navBtn" data-view="restaurants">餐廳管理</button>
         <button class="navBtn" data-view="orders">訂餐紀錄</button>
-        <!-- ✅ 新增：班表管理 -->
-        <button class="navBtn" data-view="schedule">班表管理</button>
         <div class="hr"></div>
         <button id="switchUser" class="navBtn">切換使用者模式</button>
         <button id="logout" class="navBtn">登出</button>
@@ -177,7 +266,7 @@
         ✅ 訂單：支援 Excel 匯出、支援刪整筆/刪單一道<br/>
         ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項<br/>
         ✅ 新增餐點：餐點類別支援「群組新增 + 拖曳排序」<br/>
-        ✅ 班表：可設定每月排班，訂單頁提醒「今日誰還沒點餐」<br/>
+        ✅ 班表：每月可勾選上班人員，訂餐頁會提醒未點餐名單<br/>
       </p>
     </aside>
 
@@ -443,6 +532,32 @@
         </div>
       </section>
 
+      <!-- VIEW: 班表管理 -->
+      <section class="view" id="view_schedule" style="display:none">
+        <div class="card">
+          <h3>班表管理（每月上班人員勾選）</h3>
+
+          <div class="inline" style="margin-top:4px; align-items:flex-end;">
+            <div>
+              <label>月份</label>
+              <input id="sch_month" type="month"/>
+            </div>
+            <div>
+              <button class="primary" id="btnLoadSchedule" type="button">載入班表</button>
+              <button class="ghost" id="btnScheduleToday" type="button">跳到今天</button>
+            </div>
+          </div>
+
+          <p class="muted mini" style="margin-top:8px">
+            ✔ 勾選代表「當日上班人員」；依【部門】分段排列。<br/>
+            ✔ 日期列預設收合，點一下可展開／收合。<br/>
+            ✔ 勾／取消勾會自動儲存到 Firestore「schedules」集合。<br/>
+          </p>
+
+          <div id="scheduleWrap" style="margin-top:10px"></div>
+        </div>
+      </section>
+
       <!-- VIEW: 餐廳管理 -->
       <section class="view" id="view_restaurants" style="display:none">
         <div class="card" style="margin-top:14px">
@@ -476,6 +591,9 @@
           <div class="card">
             <h3>訂單統計</h3>
 
+            <!-- 🔔 未點餐提醒條 -->
+            <div id="noOrderBanner" class="alertBar" style="display:none"></div>
+
             <div class="ordersTopBar">
               <div class="leftCtl">
                 <div class="dateBox">
@@ -506,12 +624,6 @@
             </p>
           </div>
 
-          <!-- ✅ 新增：今日未點餐提醒 -->
-          <div id="missingOrdersNotice" class="card" style="border:1px solid rgba(234,179,8,.7); background:#fffbeb; display:none;">
-            <h3 style="margin-top:0;">今日/當日未點餐提醒</h3>
-            <div id="missingOrdersText" class="muted"></div>
-          </div>
-
           <!-- ✅ 下方左右：左統計表 / 右訂單明細 -->
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px" id="ordersTwoCol">
             <!-- 左：同品項彙總 -->
@@ -527,38 +639,6 @@
             </div>
           </div>
 
-        </div>
-      </section>
-
-      <!-- VIEW: 班表管理 -->
-      <section class="view" id="view_schedule" style="display:none">
-        <div class="card">
-          <h3>班表管理（每月排班）</h3>
-
-          <div class="row">
-            <div>
-              <label>年份（西元）</label>
-              <input id="sch_year" type="number" min="2024" placeholder="例：2025"/>
-            </div>
-            <div>
-              <label>月份</label>
-              <input id="sch_month" type="number" min="1" max="12" placeholder="1~12"/>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="primary" id="btnLoadSchedule" type="button">載入當月班表</button>
-            <button class="ghost" id="btnScheduleThisMonth" type="button">填入本月</button>
-          </div>
-
-          <div class="hr"></div>
-          <div id="scheduleTableWrap" class="muted">
-            請先輸入「年份 / 月份」，再按「載入當月班表」。
-          </div>
-
-          <div class="actions" style="margin-top:12px">
-            <button class="primary" id="btnSaveSchedule" type="button">儲存當月班表</button>
-          </div>
         </div>
       </section>
 
@@ -579,6 +659,19 @@
     </main>
   </div>
 
+  <!-- 🔔 未點餐彈跳視窗 -->
+  <div id="noOrderModal" class="modalMask" style="display:none">
+    <div class="modalBox">
+      <h3 style="margin-top:0; margin-bottom:8px;">今日未點餐人員</h3>
+      <div id="noOrderList" class="muted mini">
+        （尚無資料）
+      </div>
+      <div class="actions" style="margin-top:12px; justify-content:flex-end;">
+        <button class="ghost" type="button" id="btnCloseNoOrder">關閉</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ✅ Excel 匯出用（SheetJS） -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -588,8 +681,8 @@
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs,
-      getDoc, setDoc, query, where, limit, writeBatch, orderBy
+      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc,
+      query, where, limit, writeBatch, orderBy, setDoc, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -614,6 +707,7 @@
       const d = new Date();
       return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
     };
+    const WEEKDAY_LABEL = ["日","一","二","三","四","五","六"];
 
     // ✅ 相容：createdAt 可能是 number(ms) 或 Firestore Timestamp
     const toMs = (v)=>{
@@ -657,45 +751,31 @@
     window.addEventListener("load", ()=>{
       const el = $("r_name");
       if (el) el.value = "";
+      const m = $("sch_month");
+      if(m) m.value = todayISO().slice(0,7);
     });
-
-    const missingNoticeBox = $("missingOrdersNotice");
-    const missingNoticeText = $("missingOrdersText");
-
-    function buildStaffKey(dept, name){
-      return `${(dept||"").trim()}||${(name||"").trim()}`;
-    }
 
     // ====== Views ======
     const pageTitle = $("pageTitle");
     const views = {
       staff: $("view_staff"),
+      schedule: $("view_schedule"),
       addRestaurant: $("view_addRestaurant"),
       restaurants: $("view_restaurants"),
       orders: $("view_orders"),
-      schedule: $("view_schedule"),
     };
     function show(viewKey){
       Object.entries(views).forEach(([k,el])=> el.style.display = (k===viewKey) ? "" : "none");
       document.querySelectorAll(".navBtn[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view===viewKey));
       pageTitle.textContent =
         viewKey==="staff" ? "新增人員" :
+        viewKey==="schedule" ? "班表管理" :
         viewKey==="addRestaurant" ? "新增餐廳" :
         viewKey==="restaurants" ? "餐廳管理" :
-        viewKey==="schedule" ? "班表管理" :
         "訂餐紀錄";
 
       if(viewKey==="staff") refreshStaffList();
       if(viewKey==="restaurants") refreshRestaurantsManage();
-      if(viewKey==="schedule"){
-        const y = $("sch_year");
-        const m = $("sch_month");
-        if(y && !y.value){
-          const d = new Date();
-          y.value = d.getFullYear();
-          if(m) m.value = d.getMonth()+1;
-        }
-      }
     }
     document.querySelectorAll(".navBtn[data-view]").forEach(btn=>{
       btn.addEventListener("click", ()=> show(btn.dataset.view));
@@ -1110,7 +1190,27 @@
       }
     };
 
-    /* ===== staff / restaurants ===== */
+    /* ===== staff / restaurants / 班表 ===== */
+
+    // 供班表/未點餐使用的全域人員快取
+    let allStaffBase = [];
+    let allStaffLoaded = false;
+    async function loadAllStaffOnce(){
+      if(allStaffLoaded && allStaffBase.length) return;
+      const snap = await getDocs(colStaff);
+      const arr = [];
+      snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+      // 依部門順序 + 人名排序
+      arr.sort((a,b)=>{
+        const da = (a.dept||"").trim();
+        const dbb = (b.dept||"").trim();
+        const ra = deptRank(da), rb = deptRank(dbb);
+        if(ra !== rb) return ra - rb;
+        return (a.name||"").localeCompare((b.name||""), "zh-Hant");
+      });
+      allStaffBase = arr;
+      allStaffLoaded = true;
+    }
 
     /* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
     async function refreshStaffList(){
@@ -1133,6 +1233,9 @@
 
           return (a.name||"").localeCompare((b.name||""), "zh-Hant");
         });
+
+        allStaffBase = arr;
+        allStaffLoaded = true;
 
         // 分組
         const map = new Map();
@@ -1222,158 +1325,165 @@
     });
 
     /* ===============================
-       ✅ 班表管理（每月）
+       ✅ 班表管理：每月上班人員勾選（依部門分段，日期可收合）
        =============================== */
 
-    function daysInMonth(year, month){
-      // month: 1~12
-      return new Date(year, month, 0).getDate();
+    async function loadScheduleDocsForMonth(ym){
+      try{
+        const qSch = query(colSchedules, where("month","==", ym), limit(1000));
+        const snap = await getDocs(qSch);
+        const map = new Map();
+        snap.forEach(d=>{
+          const data = d.data()||{};
+          const date = data.date || d.id;
+          const arr = Array.isArray(data.workerKeys) ? data.workerKeys : [];
+          map.set(date, arr);
+        });
+        return map;
+      }catch(err){
+        console.error(err);
+        return new Map();
+      }
     }
 
-    async function loadStaffForSchedule(){
-      const snap = await getDocs(colStaff);
-      const arr = [];
-      snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
-      arr.sort((a,b)=>{
-        const da = (a.dept||"").trim();
-        const dbb = (b.dept||"").trim();
-        const ra = deptRank(da);
-        const rb = deptRank(dbb);
-        if(ra !== rb) return ra - rb;
-        return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-      });
-      return arr;
+    async function saveScheduleForDate(dateStr){
+      try{
+        const wrap = $("scheduleWrap");
+        if(!wrap) return;
+        const checks = wrap.querySelectorAll(`input[data-sch-date="${dateStr}"]`);
+        const workerKeys = [];
+        checks.forEach(ch=>{
+          if(ch.checked) workerKeys.push(ch.dataset.schKey);
+        });
+        const ref = doc(db,"schedules", dateStr);
+        await setDoc(ref, {
+          date: dateStr,
+          month: dateStr.slice(0,7),
+          workerKeys,
+          updatedAt: Date.now()
+        }, { merge:true });
+        statusPill.textContent = "班表已儲存 ✅";
+      }catch(err){
+        console.error(err);
+        alert("儲存班表失敗\n\n" + (err?.message || err));
+        statusPill.textContent = "班表儲存失敗（看 console）";
+      }
     }
 
-    $("btnScheduleThisMonth").onclick = ()=>{
-      const d = new Date();
-      $("sch_year").value = d.getFullYear();
-      $("sch_month").value = d.getMonth()+1;
-    };
+    async function renderScheduleMonth(){
+      const wrap = $("scheduleWrap");
+      if(!wrap) return;
+      const ym = $("sch_month")?.value;
+      if(!ym){
+        wrap.innerHTML = `<div class="muted">請先選擇月份</div>`;
+        return;
+      }
 
-    $("btnLoadSchedule").onclick = async ()=>{
-      const wrap = $("scheduleTableWrap");
-      const y = Number($("sch_year").value);
-      const m = Number($("sch_month").value);
-      if(!y || !m || m<1 || m>12) return alert("請輸入正確的年份與月份");
       wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
       try{
-        const staff = await loadStaffForSchedule();
-        if(staff.length===0){
-          wrap.innerHTML = `<div class="muted">目前尚未新增人員，無法設定班表</div>`;
+        await loadAllStaffOnce();
+        if(allStaffBase.length===0){
+          wrap.innerHTML = `<div class="muted">尚未新增任何人員，無法建立班表。</div>`;
           return;
         }
 
-        const ymId = `${y}-${pad2(m)}`;
-        const schSnap = await getDoc(doc(db,"schedules", ymId));
-        let daysData = {};
-        if(schSnap.exists()){
-          const data = schSnap.data() || {};
-          daysData = data.days || {};
+        const schMap = await loadScheduleDocsForMonth(ym);
+        const [yy,mm] = ym.split("-").map(Number);
+        const days = new Date(yy, mm, 0).getDate();
+
+        // 人員依部門分組
+        const deptMap = new Map();
+        for(const s of allStaffBase){
+          const dept = (s.dept||"未分部門").trim() || "未分部門";
+          if(!deptMap.has(dept)) deptMap.set(dept, []);
+          deptMap.get(dept).push(s);
         }
+        const orderedDepts = [
+          ...DEPT_ORDER.filter(d=>deptMap.has(d)),
+          ...Array.from(deptMap.keys()).filter(d=>!DEPT_INDEX.has(d))
+        ];
 
-        const totalDays = daysInMonth(y,m);
-        const weekdayNames = ["日","一","二","三","四","五","六"];
+        const blocks = [];
+        for(let d=1; d<=days; d++){
+          const dd = pad2(d);
+          const dateStr = `${ym}-${dd}`;
+          const weekday = WEEKDAY_LABEL[new Date(yy, mm-1, d).getDay()];
+          const workerKeys = schMap.get(dateStr) || [];
+          const workerSet = new Set(workerKeys);
 
-        const rowsHtml = [];
-        for(let d=1; d<=totalDays; d++){
-          const dayKey = String(d);
-          const scheduledList = Array.isArray(daysData[dayKey]) ? daysData[dayKey] : [];
-          const scheduledKeySet = new Set(
-            scheduledList.map(p=> buildStaffKey(p.dept, p.name))
-          );
-          const dt = new Date(y, m-1, d);
-          const w = weekdayNames[dt.getDay()];
+          const deptHtml = orderedDepts.map(dept=>{
+            const list = deptMap.get(dept) || [];
+            const people = list.map(p=>{
+              const key = `${(p.dept||"").trim()}||${(p.name||"").trim()}`;
+              const checked = workerSet.has(key) ? "checked" : "";
+              return `
+                <label class="schStaff">
+                  <input type="checkbox" data-sch-date="${dateStr}" data-sch-key="${esc(key)}" ${checked}/>
+                  <span>${esc(p.name||"")}</span>
+                </label>
+              `;
+            }).join("") || `<div class="muted mini">（本部門尚無人員）</div>`;
 
-          const staffChecks = staff.map(st=>{
-            const key = buildStaffKey(st.dept, st.name);
-            const checked = scheduledKeySet.has(key) ? "checked" : "";
             return `
-              <label style="margin:0 10px 4px 0; display:inline-flex; align-items:center; gap:6px; font-size:12.5px;">
-                <input type="checkbox"
-                       data-sch-day="${d}"
-                       data-sch-staff-id="${esc(st.id)}"
-                       data-sch-dept="${esc(st.dept||"")}"
-                       data-sch-name="${esc(st.name||"")}"
-                       ${checked}/>
-                <span>${esc(st.name||"")}</span>
-                <span class="muted mini">(${esc(st.dept||"未分部門")})</span>
-              </label>
+              <div class="schDeptBlock">
+                <div class="schDeptTitle">${esc(dept)}</div>
+                <div class="schStaffGrid">${people}</div>
+              </div>
             `;
           }).join("");
 
-          rowsHtml.push(`
-            <tr>
-              <td style="white-space:nowrap">${m}/${d}（${w}）</td>
-              <td>${staffChecks}</td>
-            </tr>
+          blocks.push(`
+            <div class="schDayBlock">
+              <details>
+                <summary class="schDaySummary">
+                  <span>${mm}/${d}（${weekday}）</span>
+                  <span class="tag miniTag">已勾選 ${workerSet.size} 人</span>
+                </summary>
+                <div class="schDayInner" data-sch-day="${dateStr}">
+                  ${deptHtml}
+                </div>
+              </details>
+            </div>
           `);
         }
 
-        wrap.innerHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th style="width:120px">日期</th>
-                <th>上班人員（勾選）</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml.join("")}
-            </tbody>
-          </table>
-          <p class="muted mini" style="margin-top:8px">
-            ✅ 勾選後請按下方「儲存當月班表」，系統才會記住此月份的排班。<br/>
-            ✅ 「未點餐提醒」會依照這裡的排班 + 訂單紀錄自動比對。
-          </p>
-        `;
+        wrap.innerHTML = blocks.join("");
 
-      }catch(err){
-        console.error(err);
-        wrap.innerHTML = `<div class="muted">讀取班表失敗<br/>${esc(err?.message || err)}</div>`;
-      }
-    };
-
-    $("btnSaveSchedule").onclick = async ()=>{
-      const y = Number($("sch_year").value);
-      const m = Number($("sch_month").value);
-      if(!y || !m || m<1 || m>12) return alert("請輸入正確的年份與月份");
-
-      const wrap = $("scheduleTableWrap");
-      const all = wrap.querySelectorAll("input[data-sch-day]");
-      if(!all.length) return alert("請先載入當月班表");
-
-      const days = {};
-      all.forEach(ch=>{
-        const dayKey = ch.dataset.schDay;
-        if(!dayKey) return;
-        if(!ch.checked) return;
-        if(!days[dayKey]) days[dayKey] = [];
-        days[dayKey].push({
-          staffId: ch.dataset.schStaffId || "",
-          dept: ch.dataset.schDept || "",
-          name: ch.dataset.schName || ""
+        // 預設全部收合（details 不加 open 屬性即可）
+        wrap.querySelectorAll("input[data-sch-date]").forEach(ch=>{
+          ch.addEventListener("change", ()=>{
+            const dateStr = ch.dataset.schDate;
+            saveScheduleForDate(dateStr);
+          });
         });
-      });
 
-      const ymId = `${y}-${pad2(m)}`;
-      try{
-        statusPill.textContent = "儲存班表中…";
-        await setDoc(doc(db,"schedules", ymId), {
-          year: y,
-          month: m,
-          days,
-          updatedAt: Date.now()
-        }, { merge: true });
-        statusPill.textContent = "班表已儲存 ✅";
-        alert("班表已儲存！");
       }catch(err){
         console.error(err);
-        statusPill.textContent = "班表儲存失敗（看 console）";
-        alert("班表儲存失敗\n\n" + (err?.message || err));
+        wrap.innerHTML = `<div class="muted">班表載入失敗<br/>${esc(err?.message || err)}</div>`;
       }
-    };
+    }
+
+    $("btnLoadSchedule")?.addEventListener("click", ()=>{
+      renderScheduleMonth();
+    });
+
+    $("btnScheduleToday")?.addEventListener("click", ()=>{
+      const today = todayISO();
+      const ym = today.slice(0,7);
+      const inp = $("sch_month");
+      if(inp) inp.value = ym;
+      renderScheduleMonth().then(()=>{
+        const inner = document.querySelector(`[data-sch-day="${today}"]`);
+        if(inner){
+          const det = inner.closest("details");
+          if(det){
+            det.open = true;
+            det.scrollIntoView({ behavior:"smooth", block:"start" });
+          }
+        }
+      });
+    });
 
     /* ===============================
        ✅ 餐廳管理：搜尋 Enter 才展開定位（分類收合也找得到）
@@ -1928,11 +2038,12 @@
       });
     }
 
-    // ====== 訂餐紀錄（彙整輸出 + Excel + 刪單/刪一道 + 未點餐提醒） ======
+    // ====== 訂餐紀錄（彙總輸出 + Excel + 刪單/刪一道 + 未點餐提醒） ======
     $("btnToday").onclick = ()=> $("o_date").value = todayISO();
     $("o_date").value = todayISO();
 
     let lastLoadedOrders = [];
+    let ordersUnsub = null;
 
     function dayRangeMs(dateStr){
       const start = new Date(dateStr + "T00:00:00").getTime();
@@ -2009,7 +2120,7 @@
       return orders;
     }
 
-    // ✅ 修正：用 createdAt 日期區間查詢（不再用 orderDate）
+    // ✅ createdAt 日期區間查詢（給 getDocs 用）
     async function loadOrdersByDate(dateStr){
       const { start, end } = dayRangeMs(dateStr);
 
@@ -2069,72 +2180,6 @@
       }catch(err){
         console.error(err);
         alert("刪除餐點失敗（更新訂單失敗）\n\n" + (err?.message || err));
-      }
-    }
-
-    async function checkMissingOrdersForDate(dateStr, orders){
-      if(!missingNoticeBox || !missingNoticeText) return;
-      missingNoticeBox.style.display = "none";
-      missingNoticeText.textContent = "";
-
-      if(!dateStr) return;
-
-      const parts = dateStr.split("-");
-      if(parts.length !== 3) return;
-      const y = Number(parts[0]);
-      const m = Number(parts[1]);
-      const d = Number(parts[2]);
-      if(!y || !m || !d) return;
-
-      try{
-        const ymId = `${y}-${pad2(m)}`;
-        const schSnap = await getDoc(doc(db, "schedules", ymId));
-        if(!schSnap.exists()) return;
-
-        const data = schSnap.data() || {};
-        const daysData = data.days || {};
-        const dayList = Array.isArray(daysData[String(d)]) ? daysData[String(d)] : [];
-        if(dayList.length === 0) return;
-
-        const orderedKeys = new Set();
-        (Array.isArray(orders) ? orders : []).forEach(o=>{
-          const key = buildStaffKey(o.userDept, o.userName);
-          if(key !== "||") orderedKeys.add(key);
-        });
-
-        const missing = [];
-        dayList.forEach(p=>{
-          const key = buildStaffKey(p.dept, p.name);
-          if(key === "||") return;
-          if(!orderedKeys.has(key)){
-            missing.push({
-              dept: (p.dept || "未分部門"),
-              name: (p.name || "")
-            });
-          }
-        });
-
-        const isToday = (dateStr === todayISO());
-
-        if(missing.length === 0){
-          missingNoticeBox.style.display = "";
-          missingNoticeText.innerHTML = isToday
-            ? "✅ 今日排班人員皆已完成點餐。"
-            : `✅ ${esc(dateStr)} 當日排班人員皆已完成點餐。`;
-          return;
-        }
-
-        const namesText = missing
-          .map(p=> `${esc(p.dept)}-${esc(p.name)}`)
-          .join("、");
-
-        missingNoticeBox.style.display = "";
-        missingNoticeText.innerHTML = isToday
-          ? `⚠ 今日排班尚有未點餐人員：<b>${namesText}</b>`
-          : `⚠ ${esc(dateStr)} 當日排班尚有未點餐人員：<b>${namesText}</b>`;
-
-      }catch(err){
-        console.error(err);
       }
     }
 
@@ -2320,7 +2365,6 @@
         btn.onclick = async ()=>{
           const oid = btn.dataset.oid;
           await deleteWholeOrder(oid);
-          await $("btnLoadOrders").onclick();
         };
       });
 
@@ -2329,8 +2373,153 @@
           const oid = btn.dataset.oid;
           const idx = Number(btn.dataset.idx);
           await deleteOrderItem(oid, idx);
-          await $("btnLoadOrders").onclick();
         };
+      });
+    }
+
+    const noOrderBanner = $("noOrderBanner");
+    const noOrderModal = $("noOrderModal");
+    const noOrderList = $("noOrderList");
+
+    async function checkNotOrderedForDate(dateStr, orders, showModal){
+      try{
+        if(!Array.isArray(orders)){
+          orders = await loadOrdersByDate(dateStr);
+        }
+        await loadAllStaffOnce();
+
+        if(!noOrderBanner) return;
+
+        const schSnap = await getDoc(doc(db,"schedules", dateStr));
+        if(!schSnap.exists()){
+          noOrderBanner.className = "alertBar alertWarn";
+          noOrderBanner.textContent = "⚠ 今日尚未設定班表，無法判斷誰未點餐（請到「班表管理」設定）。";
+          noOrderBanner.style.display = "";
+          if(showModal && noOrderModal && noOrderList){
+            noOrderList.textContent = "尚未設定今日班表。請先到「班表管理」為此日期勾選上班人員。";
+            noOrderModal.style.display = "flex";
+          }
+          return;
+        }
+
+        const data = schSnap.data()||{};
+        const workerKeys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
+        if(workerKeys.length===0){
+          noOrderBanner.className = "alertBar alertWarn";
+          noOrderBanner.textContent = "⚠ 今日班表沒有任何上班人員（未勾選）。";
+          noOrderBanner.style.display = "";
+          return;
+        }
+
+        const workingSet = new Set(workerKeys);
+
+        const orderedSet = new Set();
+        for(const o of orders){
+          const dept = (o.userDept || "").trim();
+          const name = (o.userName || "").trim();
+          if(!name) continue;
+          orderedSet.add(`${dept}||${name}`);
+        }
+
+        const missingKeys = [];
+        workingSet.forEach(k=>{
+          if(!orderedSet.has(k)) missingKeys.push(k);
+        });
+
+        if(missingKeys.length===0){
+          noOrderBanner.className = "alertBar alertOk";
+          noOrderBanner.textContent = "✅ 今日所有應上班人員皆已點餐";
+          noOrderBanner.style.display = "";
+          if(showModal && noOrderModal && noOrderList){
+            noOrderList.textContent = "今日所有應上班人員皆已點餐。";
+            noOrderModal.style.display = "flex";
+          }
+          return;
+        }
+
+        const byDept = new Map();
+        missingKeys.forEach(k=>{
+          const [dept,name] = k.split("||");
+          const d = (dept || "未分部門");
+          if(!byDept.has(d)) byDept.set(d,[]);
+          byDept.get(d).push(name || "");
+        });
+        const lines = Array.from(byDept.entries()).map(([dept,names])=>`${dept}：${names.join("、")}`);
+
+        noOrderBanner.className = "alertBar alertWarn";
+        noOrderBanner.textContent = `🔔 今日尚有 ${missingKeys.length} 人未點餐：` + lines.join("；");
+        noOrderBanner.style.display = "";
+
+        if(showModal && noOrderModal && noOrderList){
+          noOrderList.innerHTML = `
+            <p class="muted">今日尚有 <b>${missingKeys.length}</b> 人未點餐：</p>
+            <ul class="mini">
+              ${lines.map(line=>`<li>${esc(line)}</li>`).join("")}
+            </ul>
+            <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人。</p>
+          `;
+          noOrderModal.style.display = "flex";
+        }
+      }catch(err){
+        console.error(err);
+        if(noOrderBanner){
+          noOrderBanner.className = "alertBar alertWarn";
+          noOrderBanner.textContent = "無法取得班表或訂單資料（請查看 console）。";
+          noOrderBanner.style.display = "";
+        }
+      }
+    }
+
+    $("btnCloseNoOrder")?.addEventListener("click", ()=>{
+      if(noOrderModal) noOrderModal.style.display = "none";
+    });
+    noOrderModal?.addEventListener("click", (e)=>{
+      if(e.target.id === "noOrderModal"){
+        noOrderModal.style.display = "none";
+      }
+    });
+
+    async function setupOrdersLive(dateStr){
+      const { start, end } = dayRangeMs(dateStr);
+      if(ordersUnsub){
+        ordersUnsub();
+        ordersUnsub = null;
+      }
+
+      const qOrders = query(
+        colOrders,
+        where("createdAt", ">=", start),
+        where("createdAt", "<=", end),
+        orderBy("createdAt", "desc"),
+        limit(5000)
+      );
+
+      ordersUnsub = onSnapshot(qOrders, (snap)=>{
+        (async ()=>{
+          const orders = [];
+          snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
+          lastLoadedOrders = orders;
+
+          if(!orders.length){
+            $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+            $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+            statusPill.textContent = "已載入（目前無訂單）";
+          }else{
+            const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
+            $("ordersSummaryOut").innerHTML = summaryHTML;
+            $("ordersDetailOut").innerHTML = detailHTML;
+            bindOrderDeleteButtons();
+            statusPill.textContent = "已載入 ✅（即時更新中）";
+          }
+
+          await checkNotOrderedForDate(dateStr, orders, false);
+        })().catch(console.error);
+      }, err=>{
+        console.error(err);
+        $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
+        $("ordersDetailOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
+        alert("讀取訂單失敗\n\n" + (err?.message || err));
+        statusPill.textContent = "讀取失敗（看 console）";
       });
     }
 
@@ -2340,24 +2529,8 @@
 
       try{
         statusPill.textContent = "載入訂單中…";
-        const orders = await loadOrdersByDate(date);
-        lastLoadedOrders = orders;
-
-        if(!orders || orders.length===0){
-          $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-          $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-          await checkMissingOrdersForDate(date, orders);
-          statusPill.textContent = "已載入 ✅";
-          return;
-        }
-
-        const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
-        $("ordersSummaryOut").innerHTML = summaryHTML;
-        $("ordersDetailOut").innerHTML = detailHTML;
-
-        bindOrderDeleteButtons();
-        await checkMissingOrdersForDate(date, orders);
-        statusPill.textContent = "已載入 ✅";
+        await loadAllStaffOnce(); // 讓未點餐提示有 staff 名單
+        await setupOrdersLive(date); // 會自動更新畫面 + 未點餐提醒（B）
       }catch(err){
         console.error(err);
         $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
@@ -2372,6 +2545,10 @@
       if(!date) return alert("請選日期");
 
       try{
+        await loadAllStaffOnce();
+        // 匯出前先做一次強提醒（A）
+        await checkNotOrderedForDate(date, lastLoadedOrders, true);
+
         statusPill.textContent = "準備 Excel…";
 
         let orders = lastLoadedOrders;
