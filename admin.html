@@ -425,6 +425,31 @@
             <label>人員名稱</label>
             <input id="s_name" placeholder="例：小明（按 Enter 也可新增）"/>
 
+            <label>預設上班日（可多選）</label>
+<div class="chkline mini" id="s_workDaysWrap">
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="1"> 週一
+  </label>
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="2"> 週二
+  </label>
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="3"> 週三
+  </label>
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="4"> 週四
+  </label>
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="5"> 週五
+  </label>
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="6"> 週六
+  </label>
+  <label style="margin:0; display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" data-wd="0"> 週日
+  </label>
+</div>
+
             <div class="actions">
               <button class="primary" id="btnAddStaff" type="button">新增</button>
               <button class="ghost" id="btnClearStaff" type="button">清空</button>
