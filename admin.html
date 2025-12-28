@@ -502,16 +502,15 @@
             <label>部門</label>
             <input id="s_dept" list="deptList" placeholder="例：FAE"/>
             <datalist id="deptList">
-              <option>管理部</option>
-              <option>新場</option>
-              <option>維運</option>
-              <option>倉管</option>
-              <option>RD</option>
-              <option>FAE</option>
-              <option>TSE</option>
-              <option>數據分析</option>
-              <option>線上客服</option>
-              <option>教育訓練</option>
+             <option>管理部</option>
+             <option>FAE</option>
+             <option>TSE</option>
+             <option>新場</option>
+             <option>倉管</option>
+             <option>工程師</option>
+             <option>教育訓練</option>
+             <option>線上客服</option>
+
             </datalist>
 
             <label>人員名稱</label>
@@ -729,15 +728,13 @@
        ========================================================= */
     const DEPT_ORDER = [
       "管理部",
-      "新場",
-      "維運",
-      "倉管",
-      "RD",
       "FAE",
       "TSE",
-      "數據分析",
-      "線上客服",
+      "新場",
+      "倉管",
+      "工程師",
       "教育訓練"
+      "線上客服",
     ];
     const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
     function deptRank(dept){
