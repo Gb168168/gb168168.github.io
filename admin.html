@@ -1879,6 +1879,16 @@ if (r_closed) {
 
       wrap.innerHTML = visibleHTML + blocks.join("");
 
+            // ⚠️ 餐廳管理：結單勾選時提醒
+      wrap.querySelectorAll('input[type="checkbox"][data-k="isClosed"]').forEach(ch => {
+        ch.addEventListener("change", () => {
+          if (ch.checked && !confirm("⚠️ 確定人員是否已點完餐？⚠️")) {
+            ch.checked = false;
+          }
+        });
+      });
+
+
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.openimg;
