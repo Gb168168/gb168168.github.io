@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者1</title>
+  <title>GoldBricks 呷奔👽｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -341,19 +341,16 @@
               </label>
             </div>
 
-           <div class="row">
-  <div>
-    <label>店家點餐連結（可空，僅管理端使用）</label>
-    <input id="r_lineQrUrl" autocomplete="off"
-           placeholder="https://...（例如 Google 表單 / 其他點餐頁）"/>
-  </div>
-  <div class="muted" style="display:flex; align-items:end">
-    （此連結不會顯示在使用者訂餐頁）
-  </div>
-</div>
+            <div class="row">
+              <div>
+                <label>Line QR Code 圖片網址（可空）</label>
+                <input id="r_lineQrUrl" autocomplete="off" placeholder="https://...png（QR code 圖）"/>
+              </div>
+              <div class="muted" style="display:flex; align-items:end"></div>
+            </div>
 
-<img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
-<!-- 不再需要 r_lineQrPrev，整個刪掉 -->
+            <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
+            <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
 
             <div class="row">
               <div class="chkline" style="margin-top:12px">
@@ -805,15 +802,16 @@
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
 
-    // ⚠️ 新增餐廳：結單勾選時提醒
-const r_closed = $("r_closed");
-if (r_closed) {
-  r_closed.addEventListener("change", () => {
-    if (r_closed.checked && !confirm("⚠️ 確定人員是否已點完餐？⚠️")) {
-      r_closed.checked = false;
-    }
-  });
-}
+    // ✅ 新增餐廳：Line QR 預覽
+    const r_lineQrUrl = $("r_lineQrUrl");
+    const r_lineQrPrev = $("r_lineQrPrev");
+    r_lineQrUrl.addEventListener("input", ()=>{
+      const url = r_lineQrUrl.value.trim();
+      if(!url){ r_lineQrPrev.style.display="none"; return; }
+      r_lineQrPrev.src = url;
+      r_lineQrPrev.style.display="";
+    });
+    r_lineQrPrev.addEventListener("error", ()=>{ r_lineQrPrev.style.display="none"; });
 
     // ✅ 公休日：新增餐廳表單收集/清空
     function getWeeklyOffFromCreateForm(){
@@ -893,39 +891,10 @@ if (r_closed) {
     renderCatGroups();
 
     // ====== ✅ 餐點「選項群組」：擇一/加購（可選要不要用） ======
-    let draftGroups = [];          // 現在編輯中的群組（上方編輯器）
+    let draftGroups = [];
     let activeGroupDraft = null;
 
-    let editingMenuTarget = null;  // { rid, mid }：目前在編輯哪一道（餐廳管理那邊點進來）
-
-    let menuOptionCache = new Map();       // key: `${rid}__${mid}` -> optionGroups 陣列
-
-// ✅ 把某道餐點的 optionGroups 載入到上方「選項群組」編輯器
-function loadOptionGroupsToEditor(groups){
-  draftGroups = (Array.isArray(groups) ? groups : []).map(g=>({
-    name: (g.name || "").toString(),
-    type: g.type === "addon" ? "addon" : "single",
-    required: !!g.required,
-    choices: Array.isArray(g.choices) ? g.choices.map(c=>({
-      name: (c.name || "").toString(),
-      price: Number(c.price || 0)
-    })) : []
-  }));
-
-  activeGroupDraft = null;
-  showGroupDraftUI(false);
-  renderGroups();
-  renderChoiceDraft();
-
-  const anchor = $("menuOptionGroupsList");
-  if(anchor){
-    anchor.scrollIntoView({ behavior:"smooth", block:"start" });
-  }
-}
-
-// ⬆⬆⬆ 貼到這裡，然後下面原本的 renderGroups() 保留 ⬆⬆⬆
-
-function renderGroups(){
+    function renderGroups(){
       const wrap = $("menuOptionGroupsList");
       if(draftGroups.length===0){
         wrap.innerHTML = `<div class="muted">（尚未加入任何選項群組：可不使用）</div>`;
@@ -1163,7 +1132,7 @@ function renderGroups(){
       $("r_map").value=""; $("r_note").value="";
       $("r_hours").value="";
       $("r_imgUrl").value=""; r_imgPrev.style.display="none";
-      $("r_lineQrUrl").value="";
+      $("r_lineQrUrl").value=""; r_lineQrPrev.style.display="none";
       $("r_visible").checked = true;
       $("r_closed").checked = false;
       clearWeeklyOffCreateForm();
@@ -1483,7 +1452,7 @@ function renderGroups(){
           `);
         }
 
-        wrap.innerHTML = visibleHTML + blocks.join("");
+        wrap.innerHTML = blocks.join("");
 
         // 預設全部收合（details 不加 open 屬性即可）
         wrap.querySelectorAll("input[data-sch-date]").forEach(ch=>{
@@ -1625,25 +1594,7 @@ function renderGroups(){
         return;
       }
 
-        if(restaurants.length===0){
-    wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`;
-    return;
-  }
-
-  // ✅ 目前有顯示在使用者頁面的餐廳（isVisible !== false）
-  const visibleList = restaurants
-    .filter(r => r.isVisible !== false)
-    .map(r => (r.name || "").trim())
-    .filter(Boolean)
-    .sort((a,b) => a.localeCompare(b, "zh-Hant"));
-
-  const visibleHTML = visibleList.length
-    ? `<div class="alertBar alertOk" style="margin-bottom:8px;">
-         目前使用者看得到的餐廳（${visibleList.length} 家）：${visibleList.map(esc).join("、")}
-       </div>`
-    : `<div class="alertBar alertWarn" style="margin-bottom:8px;">
-         目前沒有任何餐廳顯示在使用者頁面
-       </div>`;
+      if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
 
       // ✅ 依餐廳的 category 欄位分組
       const map = new Map();
@@ -1712,103 +1663,25 @@ function renderGroups(){
                           </tr>
                         </thead>
                         <tbody>
-                       ${mlist.map(m=>{
-  const optText = optionGroupsSummary(m.optionGroups);
-  // JSON 字串，之後點「編輯」時會帶回上方編輯器
-  const optJson = JSON.stringify(Array.isArray(m.optionGroups) ? m.optionGroups : []);
-
-  return `
-    <tr>
-      <!-- 餐點類別 -->
-      <td>
-        <input
-          data-rid="${r.id}"
-          data-mid="${m.id}"
-          data-k="category"
-          value="${esc(m.category || "")}"
-        >
-      </td>
-
-      <!-- 餐點名稱 -->
-      <td>
-        <input
-          data-rid="${r.id}"
-          data-mid="${m.id}"
-          data-k="name"
-          value="${esc(m.name || "")}"
-        >
-      </td>
-
-      <!-- 價格 -->
-      <td>
-        <input
-          data-rid="${r.id}"
-          data-mid="${m.id}"
-          data-k="price"
-          type="number"
-          min="0"
-          value="${Number(m.price || 0)}"
-        >
-      </td>
-
-      <!-- 預設數量 -->
-      <td>
-        <input
-          data-rid="${r.id}"
-          data-mid="${m.id}"
-          data-k="defaultQty"
-          type="number"
-          min="1"
-          value="${Number(m.defaultQty || 1)}"
-        >
-      </td>
-
-      <!-- ✅ 選項群組：文字 + 編輯按鈕 -->
-      <td style="max-width:340px;">
-        <div class="muted" data-opt-json="${esc(optJson)}">
-          ${esc(optText || "（尚未設定選項群組）")}
-        </div>
-        <div style="margin-top:6px">
-          <button
-            class="btnSmall"
-            type="button"
-            data-edit-opt="1"
-            data-rid="${r.id}"
-            data-mid="${m.id}"
-          >
-            編輯選項群組
-          </button>
-        </div>
-      </td>
-
-      <!-- 操作：儲存 / 刪除 -->
-      <td style="white-space:nowrap">
-        <button
-          class="btnSmall btnOk"
-          type="button"
-          data-savem2="1"
-          data-rid="${r.id}"
-          data-mid="${m.id}"
-        >
-          儲存
-        </button>
-        <button
-          class="btnSmall btnDanger"
-          type="button"
-          data-delm2="1"
-          data-rid="${r.id}"
-          data-mid="${m.id}"
-        >
-          刪除
-        </button>
-      </td>
-          </tr>
-      `;
-    }).join("")}
-    </tbody>
-  </table>
-`;
-
+                          ${mlist.map(m=>{
+                            const optText = optionGroupsSummary(m.optionGroups);
+                            return `
+                              <tr>
+                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
+                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
+                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+                                <td class="muted" style="max-width:340px">${esc(optText)}</td>
+                                <td style="white-space:nowrap">
+                                  <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
+                                  <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
+                                </td>
+                              </tr>
+                            `;
+                          }).join("")}
+                        </tbody>
+                      </table>
+                    `;
 
                     return `
                       <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:rgba(15,23,42,.02); margin-top:10px;">
@@ -1984,51 +1857,7 @@ function renderGroups(){
         `);
       }
 
-     wrap.innerHTML = visibleHTML + blocks.join("");
-
-// !!! 就在 wrap.innerHTML 下面這一段 !!!
-wrap.querySelectorAll("button[data-edit-opt]").forEach(btn=>{
-  btn.onclick = () => {
-    const rid = btn.dataset.rid;
-    const mid = btn.dataset.mid;
-
-    const row    = btn.closest("tr");
-    const holder = row ? row.querySelector("[data-opt-json]") : null;
-    let groups = [];
-
-    if(holder && holder.dataset.optJson){
-      try{
-        groups = JSON.parse(holder.dataset.optJson || "[]");
-      }catch(e){
-        console.error("解析 optionGroups 失敗", e);
-        groups = [];
-      }
-    }
-
-    // 🔸按下「編輯選項群組」時，直接切到「新增餐廳」頁面
-    show("addRestaurant");
-
-    editingMenuTarget = { rid, mid };
-    loadOptionGroupsToEditor(groups);
-
-    statusPill.textContent =
-      "已載入此餐點的選項群組；請在上方編輯後按下該列的「儲存」。";
-  };
-});
-
-// ⚠️ 餐廳管理：結單勾選時提醒
-wrap.querySelectorAll("input[type='checkbox'][data-k='isClosed']").forEach(ch=>{
-});
-
-            // ⚠️ 餐廳管理：結單勾選時提醒
-      wrap.querySelectorAll('input[type="checkbox"][data-k="isClosed"]').forEach(ch => {
-        ch.addEventListener("change", () => {
-          if (ch.checked && !confirm("⚠️ 確定人員是否已點完餐？⚠️")) {
-            ch.checked = false;
-          }
-        });
-      });
-
+      wrap.innerHTML = blocks.join("");
 
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
@@ -2123,123 +1952,42 @@ wrap.querySelectorAll("input[type='checkbox'][data-k='isClosed']").forEach(ch=>{
         };
       });
 
-wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
-  b.onclick = async ()=>{
-    const rid = b.dataset.rid;
-    const mid = b.dataset.mid;
+      wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
+        b.onclick = async ()=>{
+          const rid = b.dataset.rid;
+          const mid = b.dataset.mid;
+          const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
+          const patch = {};
+          els.forEach(el=>{
+            const k = el.dataset.k;
+            patch[k] = (k==="price" || k==="defaultQty") ? Number(el.value||0) : el.value.trim();
+          });
+          patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
+          patch.price = Math.max(0, Number(patch.price||0));
+          try{
+            await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+            statusPill.textContent = "餐點已儲存 ✅";
+          }catch(err){
+            console.error(err);
+            alert("儲存餐點失敗\n\n" + (err?.message || err));
+          }
+        };
+      });
 
-    // 1. 先收集輸入框（類別 / 名稱 / 價格 / 預設數量）
-    const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
-    const patch = {};
-    els.forEach(el=>{
-      const k = el.dataset.k;
-      if(k === "price" || k === "defaultQty"){
-        patch[k] = Number(el.value || 0);
-      }else{
-        patch[k] = el.value.trim();
-      }
-    });
-    patch.defaultQty = Math.max(1, Number(patch.defaultQty || 1));
-    patch.price      = Math.max(0, Number(patch.price || 0));
-
-    // 2. 先拿「原本」的 optionGroups（避免沒改時被清空）
-    let optGroups = [];
-    const row    = b.closest("tr");
-    const holder = row ? row.querySelector("[data-opt-json]") : null;
-    if(holder && holder.dataset.optJson){
-      try{
-        optGroups = JSON.parse(holder.dataset.optJson || "[]");
-      }catch(e){
-        console.error("解析原本 optionGroups 失敗", e);
-        optGroups = [];
-      }
-    }
-
-    // 3. 如果這一列就是「剛才按 編輯選項群組 的那一道」，
-    //    就改用上方編輯器裡的 draftGroups 當最新值
-    if(
-      editingMenuTarget &&
-      editingMenuTarget.rid === rid &&
-      editingMenuTarget.mid === mid
-    ){
-      optGroups = (draftGroups || []).map(g=>({
-        name     : g.name,
-        type     : g.type,
-        required : !!g.required,
-        choices  : Array.isArray(g.choices)
-          ? g.choices.map(c=>({
-              name  : c.name,
-              price : Number(c.price || 0)
-            }))
-          : []
-      }));
-    }
-
-    patch.optionGroups = optGroups;
-
-    // 4. 寫回 Firestore
-    try{
-      statusPill.textContent = "餐點儲存中…";
-      await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
-      statusPill.textContent = "餐點已儲存 ✅";
-
-      // 儲存成功後，重新載入餐廳管理，畫面會顯示更新後的選項群組摘要
-      editingMenuTarget = null;
-      await refreshRestaurantsManage();
-    }catch(err){
-      console.error(err);
-      alert("儲存餐點失敗\n\n" + (err?.message || err));
-      statusPill.textContent = "儲存失敗（看 console）";
-    }
-  };
-});
-
-        // ✅ 編輯「已設定餐點」的選項群組（JSON 版）
-  wrap.querySelectorAll("button[data-editopt]").forEach(btn=>{
-    btn.onclick = async ()=>{
-      const rid = btn.dataset.rid;
-      const mid = btn.dataset.mid;
-
-      // 目前的 optionGroups
-      let raw = btn.dataset.opt || "[]";
-      try{
-        raw = JSON.stringify(JSON.parse(raw), null, 2); // 美化一下
-      }catch(e){
-        // 解析失敗就維持原樣
-      }
-
-      const input = prompt(
-        "請輸入此餐點的選項群組（JSON 陣列）：\n\n" +
-        "提示：可以參考「新增餐廳」那邊建立好的結構複製過來。",
-        raw
-      );
-
-      if(input == null) return; // 取消
-
-      let parsed;
-      try{
-        parsed = JSON.parse(input);
-        if(!Array.isArray(parsed)) throw new Error("最外層必須是陣列，例如 [ ... ]");
-      }catch(err){
-        alert("JSON 格式不正確：\n" + err.message);
-        return;
-      }
-
-      try{
-        statusPill.textContent = "更新選項群組中…";
-        await updateDoc(doc(db, "restaurants", rid, "menu", mid), {
-          optionGroups: parsed
-        });
-        statusPill.textContent = "選項群組已更新 ✅";
-        await refreshRestaurantsManage();   // 重新刷新畫面讓文字更新
-      }catch(err){
-        console.error(err);
-        alert("更新選項群組失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "更新失敗（看 console）";
-      }
-    };
-  });
-
+      wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
+        b.onclick = async ()=>{
+          const rid = b.dataset.rid;
+          const mid = b.dataset.mid;
+          if(!confirm("確定刪除餐點？")) return;
+          try{
+            await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
+            await refreshRestaurantsManage();
+          }catch(err){
+            console.error(err);
+            alert("刪除餐點失敗\n\n" + (err?.message || err));
+          }
+        };
+      });
 
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
