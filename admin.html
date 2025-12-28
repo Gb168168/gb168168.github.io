@@ -805,6 +805,16 @@
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
 
+    // ⚠️ 新增餐廳：結單勾選時提醒
+const r_closed = $("r_closed");
+if (r_closed) {
+  r_closed.addEventListener("change", () => {
+    if (r_closed.checked && !confirm("⚠️ 確定人員是否已點完餐？⚠️")) {
+      r_closed.checked = false;
+    }
+  });
+}
+
     // ✅ 公休日：新增餐廳表單收集/清空
     function getWeeklyOffFromCreateForm(){
       const arr = [];
