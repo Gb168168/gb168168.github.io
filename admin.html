@@ -1454,7 +1454,7 @@ if (r_closed) {
           `);
         }
 
-        wrap.innerHTML = blocks.join("");
+        wrap.innerHTML = visibleHTML + blocks.join("");
 
         // 預設全部收合（details 不加 open 屬性即可）
         wrap.querySelectorAll("input[data-sch-date]").forEach(ch=>{
