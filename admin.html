@@ -1596,7 +1596,25 @@ if (r_closed) {
         return;
       }
 
-      if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
+        if(restaurants.length===0){
+    wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`;
+    return;
+  }
+
+  // ✅ 目前有顯示在使用者頁面的餐廳（isVisible !== false）
+  const visibleList = restaurants
+    .filter(r => r.isVisible !== false)
+    .map(r => (r.name || "").trim())
+    .filter(Boolean)
+    .sort((a,b) => a.localeCompare(b, "zh-Hant"));
+
+  const visibleHTML = visibleList.length
+    ? `<div class="alertBar alertOk" style="margin-bottom:8px;">
+         目前使用者看得到的餐廳（${visibleList.length} 家）：${visibleList.map(esc).join("、")}
+       </div>`
+    : `<div class="alertBar alertWarn" style="margin-bottom:8px;">
+         目前沒有任何餐廳顯示在使用者頁面
+       </div>`;
 
       // ✅ 依餐廳的 category 欄位分組
       const map = new Map();
