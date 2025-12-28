@@ -2018,20 +2018,52 @@ if (r_closed) {
         };
       });
 
-      wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
-        b.onclick = async ()=>{
-          const rid = b.dataset.rid;
-          const mid = b.dataset.mid;
-          if(!confirm("確定刪除餐點？")) return;
-          try{
-            await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
-            await refreshRestaurantsManage();
-          }catch(err){
-            console.error(err);
-            alert("刪除餐點失敗\n\n" + (err?.message || err));
-          }
-        };
-      });
+        // ✅ 編輯「已設定餐點」的選項群組（JSON 版）
+  wrap.querySelectorAll("button[data-editopt]").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const rid = btn.dataset.rid;
+      const mid = btn.dataset.mid;
+
+      // 目前的 optionGroups
+      let raw = btn.dataset.opt || "[]";
+      try{
+        raw = JSON.stringify(JSON.parse(raw), null, 2); // 美化一下
+      }catch(e){
+        // 解析失敗就維持原樣
+      }
+
+      const input = prompt(
+        "請輸入此餐點的選項群組（JSON 陣列）：\n\n" +
+        "提示：可以參考「新增餐廳」那邊建立好的結構複製過來。",
+        raw
+      );
+
+      if(input == null) return; // 取消
+
+      let parsed;
+      try{
+        parsed = JSON.parse(input);
+        if(!Array.isArray(parsed)) throw new Error("最外層必須是陣列，例如 [ ... ]");
+      }catch(err){
+        alert("JSON 格式不正確：\n" + err.message);
+        return;
+      }
+
+      try{
+        statusPill.textContent = "更新選項群組中…";
+        await updateDoc(doc(db, "restaurants", rid, "menu", mid), {
+          optionGroups: parsed
+        });
+        statusPill.textContent = "選項群組已更新 ✅";
+        await refreshRestaurantsManage();   // 重新刷新畫面讓文字更新
+      }catch(err){
+        console.error(err);
+        alert("更新選項群組失敗\n\n" + (err?.message || err));
+        statusPill.textContent = "更新失敗（看 console）";
+      }
+    };
+  });
+
 
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
