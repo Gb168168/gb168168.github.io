@@ -1714,39 +1714,103 @@ function renderGroups(){
                           </tr>
                         </thead>
                         <tbody>
-                          ${mlist.map(m=>{
-                            const optText = optionGroupsSummary(m.optionGroups);
-                            const optAttr = esc(JSON.stringify(m.optionGroups || []));   // 🔸新增這行
-                            return `
-                              <tr>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+                       ${mlist.map(m=>{
+  const optText = optionGroupsSummary(m.optionGroups);
+  // JSON 字串，之後點「編輯」時會帶回上方編輯器
+  const optJson = JSON.stringify(Array.isArray(m.optionGroups) ? m.optionGroups : []);
 
-                                <!-- 🔻 修改這一格：顯示文字 + 編輯按鈕 -->
-    <td class="muted" style="max-width:340px">
-      <div>${esc(optText)}</div>
-      <button class="btnSmall" type="button"
-              data-editopt="1"
-              data-rid="${r.id}"
-              data-mid="${m.id}"
-              data-opt="${optAttr}"
-              style="margin-top:6px;">
-        編輯選項群組
-      </button>
-    </td>
+  return `
+    <tr>
+      <!-- 餐點類別 -->
+      <td>
+        <input
+          data-rid="${r.id}"
+          data-mid="${m.id}"
+          data-k="category"
+          value="${esc(m.category || "")}"
+        >
+      </td>
 
-    <td style="white-space:nowrap">
-      <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
-      <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
-    </td>
-  </tr>
+      <!-- 餐點名稱 -->
+      <td>
+        <input
+          data-rid="${r.id}"
+          data-mid="${m.id}"
+          data-k="name"
+          value="${esc(m.name || "")}"
+        >
+      </td>
+
+      <!-- 價格 -->
+      <td>
+        <input
+          data-rid="${r.id}"
+          data-mid="${m.id}"
+          data-k="price"
+          type="number"
+          min="0"
+          value="${Number(m.price || 0)}"
+        >
+      </td>
+
+      <!-- 預設數量 -->
+      <td>
+        <input
+          data-rid="${r.id}"
+          data-mid="${m.id}"
+          data-k="defaultQty"
+          type="number"
+          min="1"
+          value="${Number(m.defaultQty || 1)}"
+        >
+      </td>
+
+      <!-- ✅ 選項群組：文字 + 編輯按鈕 -->
+      <td style="max-width:340px;">
+        <div class="muted" data-opt-json="${esc(optJson)}">
+          ${esc(optText || "（尚未設定選項群組）")}
+        </div>
+        <div style="margin-top:6px">
+          <button
+            class="btnSmall"
+            type="button"
+            data-edit-opt="1"
+            data-rid="${r.id}"
+            data-mid="${m.id}"
+          >
+            編輯選項群組
+          </button>
+        </div>
+      </td>
+
+      <!-- 操作：儲存 / 刪除 -->
+      <td style="white-space:nowrap">
+        <button
+          class="btnSmall btnOk"
+          type="button"
+          data-savem2="1"
+          data-rid="${r.id}"
+          data-mid="${m.id}"
+        >
+          儲存
+        </button>
+        <button
+          class="btnSmall btnDanger"
+          type="button"
+          data-delm2="1"
+          data-rid="${r.id}"
+          data-mid="${m.id}"
+        >
+          刪除
+        </button>
+      </td>
+          </tr>
+      `;
+    }).join("")}
+    </tbody>
+  </table>
 `;
-                          }).join("")}
-                        </tbody>
-                      </table>
-                    `;
+
 
                     return `
                       <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:rgba(15,23,42,.02); margin-top:10px;">
