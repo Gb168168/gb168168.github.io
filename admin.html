@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GoldBricks 呷奔👽｜管理者</title>
+  <title>GoldBricks 呷奔👽｜管理者~~</title>
 
   <!-- SortableJS（拖曳） -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -17,120 +17,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
-  <!--（CSS 會在 B/5 提供）-->
   <style>
-    /* B/5 提供完整深灰 C3 + 柔粉 A 主題 */
-  </style>
-</head>
-
-<body>
-
-  <!-- ====================================================== -->
-  <!-- 🟦 Sidebar 側欄 -->
-  <!-- ====================================================== -->
-  <aside id="sidebar">
-    <div class="logo">GoldBricks 呷奔👽｜管理者</div>
-
-    <nav>
-      <button data-target="view_restaurants">餐廳管理</button>
-      <button data-target="view_menu">餐點管理</button>
-      <button data-target="view_staff">人員清單</button>
-      <button data-target="view_orders">訂單紀錄</button>
-      <button data-target="view_stats">訂單統計</button>
-    </nav>
-  </aside>
-
-  <!-- ====================================================== -->
-  <!-- 🟩 Main 主內容 -->
-  <!-- ====================================================== -->
-  <main id="main">
-
-    <!-- ============================== -->
-    <!-- 📌 1. 餐廳管理 -->
-    <!-- ============================== -->
-    <section id="view_restaurants" class="page">
-      <h2>餐廳管理</h2>
-
-      <!-- 🔍 搜尋 -->
-      <input id="search_restaurant" placeholder="搜尋餐廳…">
-
-      <!-- ➕ 新增餐廳 -->
-      <button id="btnAddRestaurant" class="primary">新增餐廳</button>
-
-      <!-- 餐廳列表 -->
-      <div id="restaurantList"></div>
-    </section>
-
-    <!-- ============================== -->
-    <!-- 📌 2. 餐點管理 -->
-    <!-- ============================== -->
-    <section id="view_menu" class="page">
-      <h2>餐點管理</h2>
-
-      <!-- 🔍 搜尋 -->
-      <input id="search_menu" placeholder="搜尋餐點…">
-
-      <!-- ➕ 新增餐點 -->
-      <button id="btnAddDish" class="primary">新增餐點</button>
-
-      <!-- 餐點列表 -->
-      <div id="menuList"></div>
-    </section>
-
-    <!-- ============================== -->
-    <!-- 📌 3. 人員清單 -->
-    <!-- ============================== -->
-    <section id="view_staff" class="page">
-      <h2>人員清單</h2>
-
-      <button id="btnAddStaff" class="primary">新增人員</button>
-
-      <div id="staffDeptList"></div>
-    </section>
-
-    <!-- ============================== -->
-    <!-- 📌 4. 訂單紀錄 -->
-    <!-- ============================== -->
-    <section id="view_orders" class="page">
-      <h2>訂單紀錄（彙整輸出）</h2>
-
-      <input type="date" id="o_date">
-      <button id="btnLoadOrders" class="primary">載入訂單</button>
-
-      <div id="orderList"></div>
-    </section>
-
-    <!-- ============================== -->
-    <!-- 📌 5. 訂單統計 -->
-    <!-- ============================== -->
-    <section id="view_stats" class="page">
-      <h2>訂單統計</h2>
-
-      <input type="date" id="s_date">
-      <button id="btnLoadStats" class="primary">載入統計</button>
-
-      <div id="statsTable"></div>
-    </section>
-
-  </main>
-
-  <!-- ====================================================== -->
-  <!-- 🟧 Drawer（右側操作面板） -->
-  <!-- ====================================================== -->
-  <div id="drawer">
-    <div id="drawerContent">
-      <!-- 動態插入 -->
-    </div>
-  </div>
-
-  <!-- JS（C/5～E/5 會依序補上） -->
-  <script>
-    /* C/5 開始補 JS */
-  </script>
-
-</body>
-</html>
-<style>
 /* =========================================================
    🎨 C3 深灰主題 + 柔粉 A
    ========================================================= */
@@ -427,18 +314,119 @@ table tr:hover td{
 ::-webkit-scrollbar-thumb:hover{
   background:#777;
 }
-</style>
+  </style>
+</head>
+
+<body>
+  <!-- ====================================================== -->
+  <!-- 🟦 Sidebar 側欄 -->
+  <!-- ====================================================== -->
+  <aside id="sidebar">
+    <div class="logo">GoldBricks 呷奔👽｜管理者</div>
+
+    <nav>
+      <button data-target="view_restaurants">餐廳管理</button>
+      <button data-target="view_menu">餐點管理</button>
+      <button data-target="view_staff">人員清單</button>
+      <button data-target="view_orders">訂單紀錄</button>
+      <button data-target="view_stats">訂單統計</button>
+    </nav>
+  </aside>
+
+  <!-- ====================================================== -->
+  <!-- 🟩 Main 主內容 -->
+  <!-- ====================================================== -->
+  <main id="main">
+
+    <!-- ============================== -->
+    <!-- 📌 1. 餐廳管理 -->
+    <!-- ============================== -->
+    <section id="view_restaurants" class="page">
+      <h2>餐廳管理</h2>
+
+      <!-- 🔍 搜尋 -->
+      <input id="search_restaurant" placeholder="搜尋餐廳…">
+
+      <!-- ➕ 新增餐廳 -->
+      <button id="btnAddRestaurant" class="primary">新增餐廳</button>
+
+      <!-- 餐廳列表 -->
+      <div id="restaurantList"></div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 📌 2. 餐點管理 -->
+    <!-- ============================== -->
+    <section id="view_menu" class="page">
+      <h2>餐點管理</h2>
+
+      <!-- 🔍 搜尋 -->
+      <input id="search_menu" placeholder="搜尋餐點…">
+
+      <!-- ➕ 新增餐點 -->
+      <button id="btnAddDish" class="primary">新增餐點</button>
+
+      <!-- 餐點列表 -->
+      <div id="menuList"></div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 📌 3. 人員清單 -->
+    <!-- ============================== -->
+    <section id="view_staff" class="page">
+      <h2>人員清單</h2>
+
+      <button id="btnAddStaff" class="primary">新增人員</button>
+
+      <div id="staffDeptList"></div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 📌 4. 訂單紀錄 -->
+    <!-- ============================== -->
+    <section id="view_orders" class="page">
+      <h2>訂單紀錄（彙整輸出）</h2>
+
+      <input type="date" id="o_date">
+      <button id="btnLoadOrders" class="primary">載入訂單</button>
+
+      <div id="orderList"></div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 📌 5. 訂單統計 -->
+    <!-- ============================== -->
+    <section id="view_stats" class="page">
+      <h2>訂單統計</h2>
+
+      <input type="date" id="s_date">
+      <button id="btnLoadStats" class="primary">載入統計</button>
+
+      <div id="statsTable"></div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================== -->
+  <!-- 🟧 Drawer（右側操作面板） -->
+  <!-- ====================================================== -->
+  <div id="drawer">
+    <div id="drawerContent">
+      <!-- 動態插入 -->
+    </div>
+  </div>
 <script>
 // ======================================================
-// Firebase 初始化（請替換你的設定）
+// Firebase 初始化（⚠️請放你的設定）
 // ======================================================
 const firebaseConfig = {
   apiKey: "YOUR-API-KEY",
   authDomain: "YOUR-DOMAIN",
-  projectId: "YOUR-PROJECT",
+  projectId: "YOUR-PROJECT-ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
 
 // ======================================================
 // 頁面切換（Sidebar）
@@ -476,7 +464,7 @@ function closeDrawer(){
   drawer.classList.remove("open");
 }
 
-// ESC key 關閉 drawer
+// ESC 關閉 Drawer
 document.addEventListener("keydown", e=>{
   if(e.key==="Escape") closeDrawer();
 });
@@ -487,14 +475,15 @@ document.addEventListener("keydown", e=>{
 // ======================================================
 let currentGroups = [];
 
-function createOptionGroup(){
-  return {
+function addGroup(){
+  currentGroups.push({
     id: "grp_"+Date.now(),
     name: "",
-    type: "single",   // single 擇一 / multi 加購
+    type: "single",
     required: false,
     options: []
-  };
+  });
+  renderGroups();
 }
 
 
@@ -509,12 +498,12 @@ function renderGroups(){
   currentGroups.forEach(group=>{
     const div = document.createElement("div");
     div.className = "option-group";
-
     div.innerHTML = `
       <div class="option-group-title">選項群組</div>
 
       <label class="user-visible-label">👁️ 群組名稱（使用者可見）</label>
-      <input data-id="${group.id}" data-field="name" value="${group.name}" placeholder="例如：辣度 / 加購飲料">
+      <input data-id="${group.id}" data-field="name"
+             value="${group.name}" placeholder="例如：辣度 / 加購飲料">
 
       <label>群組類型</label>
       <select data-id="${group.id}" data-field="type">
@@ -523,7 +512,8 @@ function renderGroups(){
       </select>
 
       <label>
-        <input type="checkbox" data-id="${group.id}" data-field="required" ${group.required?"checked":""}>
+        <input type="checkbox" data-id="${group.id}" data-field="required"
+               ${group.required?"checked":""}>
         必選（僅擇一有效）
       </label>
 
@@ -532,15 +522,16 @@ function renderGroups(){
       <div id="opt_${group.id}">
         ${group.options.map((opt,i)=>`
           <div class="option-item">
-            <input data-id="${group.id}" data-opt-index="${i}" data-opt-field="name" value="${opt.name}" placeholder="選項名稱（使用者可見）">
-            <input data-id="${group.id}" data-opt-index="${i}" data-opt-field="price" value="${opt.price}" type="number" placeholder="+多少元">
+            <input data-id="${group.id}" data-opt-index="${i}" data-opt-field="name"
+                   value="${opt.name}" placeholder="選項名稱（使用者可見）">
+            <input data-id="${group.id}" data-opt-index="${i}" data-opt-field="price"
+                   value="${opt.price}" type="number" placeholder="+多少元">
             <button class="delete-btn" data-id="${group.id}" data-opt-index="${i}">刪</button>
           </div>
         `).join("")}
       </div>
 
       <button class="secondary" data-add-option="${group.id}">新增選項</button>
-
       <button class="delete-btn" data-del-group="${group.id}" style="margin-top:10px">刪除此群組</button>
     `;
 
@@ -555,7 +546,7 @@ function renderGroups(){
 // 綁定群組內部事件
 // ======================================================
 function attachGroupEvents(){
-  // 群組欄位變更
+  // ⇢ 群組欄位變更
   document.querySelectorAll("[data-field]").forEach(input=>{
     input.oninput = ()=>{
       const id = input.dataset.id;
@@ -570,7 +561,7 @@ function attachGroupEvents(){
     };
   });
 
-  // 新增選項
+  // ⇢ 新增選項
   document.querySelectorAll("[data-add-option]").forEach(btn=>{
     btn.onclick = ()=>{
       const id = btn.dataset.addOption;
@@ -580,7 +571,7 @@ function attachGroupEvents(){
     };
   });
 
-  // 刪除選項
+  // ⇢ 刪除選項
   document.querySelectorAll(".delete-btn[data-opt-index]").forEach(btn=>{
     btn.onclick = ()=>{
       const id = btn.dataset.id;
@@ -591,7 +582,7 @@ function attachGroupEvents(){
     };
   });
 
-  // 刪整個群組
+  // ⇢ 刪除整組
   document.querySelectorAll("[data-del-group]").forEach(btn=>{
     btn.onclick = ()=>{
       const id = btn.dataset.delGroup;
@@ -603,11 +594,19 @@ function attachGroupEvents(){
 
 
 // ======================================================
-// 「新增餐點」Drawer（含：使用者可見欄位標示）
+// 儲存前警告（你選 B 強調版）
+// ======================================================
+function confirmSave(){
+  return confirm("⚠️ 真的要儲存嗎？使用者頁面會馬上看到這些變更。");
+}
+
+
+// ======================================================
+// 新增餐點 Drawer（含 👁️ 使用者可見標示）
 // ======================================================
 function showAddDishForm(restId=null){
-  currentGroups = [];
-  
+  currentGroups = [];  // reset
+
   openDrawer(`
     <h3>新增餐點</h3>
 
@@ -640,24 +639,18 @@ function showAddDishForm(restId=null){
 
   document.getElementById("btnSaveDish").onclick = ()=>saveDish(restId);
 }
-
-
-// ======================================================
-// 儲存前警告（你選 B）
-// ======================================================
-function confirmSave(){
-  return confirm("⚠️ 真的要儲存嗎？使用者頁面會馬上看到這些變更。");
-}
 </script>
 <script>
 /* ======================================================
-   🏪 餐廳管理（載入列表）
+   🏪 餐廳管理：載入
    ====================================================== */
 async function loadRestaurants(){
   const list = document.getElementById("restaurantList");
   list.innerHTML = `<div class="card">載入中…</div>`;
 
-  const snap = await db.collection("restaurants").orderBy("name").get();
+  const snap = await db.collection("restaurants")
+                       .orderBy("name")
+                       .get();
 
   let html = "";
   snap.forEach(doc=>{
@@ -666,9 +659,8 @@ async function loadRestaurants(){
     html += `
       <details>
         <summary>${d.name}</summary>
-
         <div class="card" style="margin-top:10px;">
-          
+
           <div class="user-visible-block">
             <label class="user-visible-label">👁️ 店名（使用者可見）</label>
             <input value="${d.name}" data-rest-id="${doc.id}" data-rest-field="name">
@@ -687,7 +679,6 @@ async function loadRestaurants(){
   });
 
   list.innerHTML = html;
-
   generateRestaurantCategoryList();
 }
 
@@ -696,24 +687,22 @@ async function loadRestaurants(){
    🏪 儲存餐廳
    ====================================================== */
 async function saveRestaurant(id){
-  if(!confirmSave()) return;  // 🔥 你選 B 的強調版警告
+  if(!confirmSave()) return;
 
   const inputs = document.querySelectorAll(`[data-rest-id="${id}"]`);
-
   let data = {};
+
   inputs.forEach(inp=>{
-    const field = inp.dataset.restField;
-    data[field] = inp.value;
+    data[inp.dataset.restField] = inp.value;
   });
 
   await db.collection("restaurants").doc(id).update(data);
-
   alert("已儲存");
 }
 
 
 /* ======================================================
-   ➕ 新增餐廳 Drawer
+   🏪 新增餐廳 Drawer
    ====================================================== */
 document.getElementById("btnAddRestaurant").onclick = ()=>{
   openDrawer(`
@@ -734,23 +723,20 @@ document.getElementById("btnAddRestaurant").onclick = ()=>{
     <button class="secondary" onclick="closeDrawer()">取消</button>
   `);
 
-  document.getElementById("btnCreateRestaurant").onclick = createRestaurant;
-};
+  document.getElementById("btnCreateRestaurant").onclick = async ()=>{
+    if(!confirmSave()) return;
 
-async function createRestaurant(){
-  if(!confirmSave()) return;
+    await db.collection("restaurants").add({
+      name: document.getElementById("r_name").value,
+      category: document.getElementById("r_category").value,
+      orderLink: document.getElementById("r_orderLink").value,
+      createdAt: Date.now()
+    });
 
-  const data = {
-    name: document.getElementById("r_name").value,
-    category: document.getElementById("r_category").value,
-    orderLink: document.getElementById("r_orderLink").value,
-    createdAt: Date.now()
+    closeDrawer();
+    loadRestaurants();
   };
-
-  await db.collection("restaurants").add(data);
-  closeDrawer();
-  loadRestaurants();
-}
+};
 
 
 /* ======================================================
@@ -760,7 +746,9 @@ async function loadMenu(){
   const list = document.getElementById("menuList");
   list.innerHTML = `<div class="card">載入中…</div>`;
 
-  const snap = await db.collection("menu").orderBy("category").get();
+  const snap = await db.collection("menu")
+                       .orderBy("category")
+                       .get();
 
   let html="";
   snap.forEach(doc=>{
@@ -769,21 +757,22 @@ async function loadMenu(){
     html += `
       <details>
         <summary>${d.name}（${d.price} 元）</summary>
-
         <div class="card" style="margin-top:10px;">
-
           <div class="user-visible-block">
             <label class="user-visible-label">👁️ 餐點名稱（使用者可見）</label>
             <input value="${d.name}" data-dish-id="${doc.id}" data-dish-field="name">
 
             <label class="user-visible-label">👁️ 分類（使用者可見）</label>
-            <input value="${d.category}" list="dishCategoryList" data-dish-id="${doc.id}" data-dish-field="category">
+            <input value="${d.category}" list="dishCategoryList"
+                   data-dish-id="${doc.id}" data-dish-field="category">
 
             <label class="user-visible-label">👁️ 價格（使用者可見）</label>
-            <input type="number" value="${d.price}" data-dish-id="${doc.id}" data-dish-field="price">
+            <input type="number" value="${d.price}" 
+                   data-dish-id="${doc.id}" data-dish-field="price">
 
             <label class="user-visible-label">👁️ 預設數量（使用者可見）</label>
-            <input type="number" value="${d.qty||1}" data-dish-id="${doc.id}" data-dish-field="qty">
+            <input type="number" value="${d.qty||1}" 
+                   data-dish-id="${doc.id}" data-dish-field="qty">
           </div>
 
           <button class="primary" onclick="saveDishOnly('${doc.id}')">儲存</button>
@@ -793,7 +782,6 @@ async function loadMenu(){
   });
 
   list.innerHTML = html;
-
   generateDishCategoryList();
 }
 
@@ -808,8 +796,10 @@ async function saveDishOnly(id){
   let data = {};
 
   inputs.forEach(inp=>{
-    const f = inp.dataset.dishField;
-    data[f] = (inp.type==="number") ? Number(inp.value) : inp.value;
+    if(inp.type==="number")
+      data[inp.dataset.dishField] = Number(inp.value);
+    else
+      data[inp.dataset.dishField] = inp.value;
   });
 
   await db.collection("menu").doc(id).update(data);
@@ -818,28 +808,22 @@ async function saveDishOnly(id){
 
 
 /* ======================================================
-   ➕ 新增餐點（含選項群組）
+   🍱 新增餐點（含選項群組）
    ====================================================== */
-document.getElementById("btnAddDish").onclick = ()=>showAddDishForm();
-
-async function saveDish(){
+async function saveDish(restId=null){
   if(!confirmSave()) return;
 
-  const name = document.getElementById("d_name").value;
-  const cat = document.getElementById("d_category").value;
-  const price = Number(document.getElementById("d_price").value);
-  const qty = Number(document.getElementById("d_qty").value);
-
   const data = {
-    name,
-    category: cat,
-    price,
-    qty,
-    groups: currentGroups,  // ⭐ 群組
+    name: document.getElementById("d_name").value,
+    category: document.getElementById("d_category").value,
+    price: Number(document.getElementById("d_price").value),
+    qty: Number(document.getElementById("d_qty").value),
+    groups: currentGroups,
     createdAt: Date.now()
   };
 
   await db.collection("menu").add(data);
+
   closeDrawer();
   loadMenu();
 }
@@ -890,22 +874,14 @@ async function generateDishCategoryList(){
 
 
 /* ======================================================
-   初始化
-   ====================================================== */
-loadRestaurants();
-loadMenu();
-</script>
-<script>
-/* ======================================================
-   👥 人員清單（部門→收合）
+   👥 人員管理
    ====================================================== */
 async function loadStaff(){
   const box = document.getElementById("staffDeptList");
-  box.innerHTML = `<div class="card">載入中…</div>`;
+  box.innerHTML = `<div class="card">載入中...</div>`;
 
   const snap = await db.collection("staff").orderBy("dept").get();
 
-  // 依部門分組
   const deptMap = new Map();
   snap.forEach(doc=>{
     const d = doc.data();
@@ -918,7 +894,6 @@ async function loadStaff(){
     html += `
       <details>
         <summary>${dept}</summary>
-
         <div class="card" style="margin-top:10px;">
           ${arr.map(st=>`
             <div style="display:flex; gap:10px; margin-bottom:12px;">
@@ -939,7 +914,7 @@ async function saveStaff(id){
   if(!confirmSave()) return;
 
   const inputs = document.querySelectorAll(`[data-stf-id="${id}"]`);
-  let data = {};
+  let data={};
 
   inputs.forEach(inp=>{
     data[inp.dataset.stfField] = inp.value;
@@ -988,9 +963,9 @@ async function loadOrdersByDate(){
   if(!date) return alert("請選日期");
 
   const snap = await db.collection("orders")
-    .where("date","==",date)
-    .orderBy("createdAt")
-    .get();
+                       .where("date","==",date)
+                       .orderBy("createdAt")
+                       .get();
 
   const box = document.getElementById("orderList");
 
@@ -999,7 +974,7 @@ async function loadOrdersByDate(){
     return;
   }
 
-  let html = `
+  let html=`
     <div class="card">
       <table>
         <tr>
@@ -1012,7 +987,7 @@ async function loadOrdersByDate(){
 
   snap.forEach(doc=>{
     const o = doc.data();
-    html += `
+    html+=`
       <tr>
         <td>${o.userName}</td>
         <td>${o.itemName}</td>
@@ -1022,13 +997,13 @@ async function loadOrdersByDate(){
     `;
   });
 
-  html += `</table></div>`;
+  html+=`</table></div>`;
   box.innerHTML = html;
 }
 
 
 /* ======================================================
-   📊 訂單統計（依店家彙整）
+   📊 訂單統計
    ====================================================== */
 document.getElementById("btnLoadStats").onclick = loadStatsByDate;
 
@@ -1037,8 +1012,8 @@ async function loadStatsByDate(){
   if(!date) return alert("請選日期");
 
   const snap = await db.collection("orders")
-    .where("date","==",date)
-    .get();
+                       .where("date","==",date)
+                       .get();
 
   const box = document.getElementById("statsTable");
 
@@ -1055,7 +1030,7 @@ async function loadStatsByDate(){
     map.set(o.restaurant, map.get(o.restaurant) + o.price);
   });
 
-  let html = `
+  let html=`
     <div class="card">
       <table>
         <tr>
@@ -1064,17 +1039,17 @@ async function loadStatsByDate(){
         </tr>
   `;
 
-  map.forEach((amt, name)=>{
-    html += `<tr><td>${name}</td><td>${amt}</td></tr>`;
+  map.forEach((amt,name)=>{
+    html+=`<tr><td>${name}</td><td>${amt}</td></tr>`;
   });
 
-  html += `</table></div>`;
+  html+=`</table></div>`;
   box.innerHTML = html;
 }
 
 
 /* ======================================================
-   🔍 搜尋功能（餐廳 / 餐點）
+   🔍 搜尋（餐廳 / 餐點）
    ====================================================== */
 document.getElementById("search_restaurant").oninput = function(){
   const q = this.value.trim();
@@ -1094,10 +1069,13 @@ document.getElementById("search_menu").oninput = function(){
 
 
 /* ======================================================
-   🚀 全部初始化
+   🚀 初始化全部功能
    ====================================================== */
 loadRestaurants();
 loadMenu();
 loadStaff();
 
 </script>
+
+</body>
+</html>
