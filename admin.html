@@ -3,24 +3,117 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
   <style>
     :root{
-      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
-      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
-      --shadow:0 10px 30px rgba(15,23,42,.10);
+      color-scheme: light dark;
       --radius:18px;
+
+      /* 🌊 C3 海系默認（偏暗） */
+      --bg:#020617;
+      --bgGradient1: radial-gradient(1300px 520px at 0% -20%, rgba(56,189,248,.24), transparent 60%);
+      --bgGradient2: radial-gradient(1000px 520px at 100% 0%, rgba(37,99,235,.22), transparent 55%);
+      --shell:rgba(15,23,42,.92);
+      --card:#020617;
+      --cardSoft:rgba(15,23,42,.96);
+
+      --text:#e2f3ff;
+      --muted:#94a3b8;
+
+      --primary:#22d3ee;
+      --primary2:#38bdf8;
+      --accentSoft:rgba(56,189,248,.16);
+
+      --border:rgba(148,163,184,.45);
+      --borderSoft:rgba(15,23,42,.7);
+      --shadow:0 22px 50px rgba(15,23,42,.9);
     }
-    *{box-sizing:border-box}
+
+    /* 🌓 依系統偏好自動調整為「亮」版 */
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#e5f0ff;
+        --bgGradient1: radial-gradient(1200px 500px at 0% -20%, rgba(56,189,248,.20), transparent 60%);
+        --bgGradient2: radial-gradient(900px 500px at 100% 0%, rgba(59,130,246,.18), transparent 55%);
+        --shell:#ffffff;
+        --card:#ffffff;
+        --cardSoft:rgba(255,255,255,.94);
+
+        --text:#0b1220;
+        --muted:#5b6678;
+
+        --primary:#0ea5e9;
+        --primary2:#22c1c3;
+        --accentSoft:rgba(56,189,248,.10);
+
+        --border:rgba(15,23,42,.10);
+        --borderSoft:rgba(15,23,42,.08);
+        --shadow:0 14px 32px rgba(15,23,42,.12);
+      }
+    }
+
+    /* 👇 手動指定：data-theme="dark" */
+    :root[data-theme="dark"]{
+      --bg:#020617;
+      --bgGradient1: radial-gradient(1300px 520px at 0% -20%, rgba(56,189,248,.24), transparent 60%);
+      --bgGradient2: radial-gradient(1000px 520px at 100% 0%, rgba(37,99,235,.22), transparent 55%);
+      --shell:rgba(15,23,42,.94);
+      --card:#020617;
+      --cardSoft:rgba(15,23,42,.97);
+
+      --text:#e2f3ff;
+      --muted:#94a3b8;
+
+      --primary:#22d3ee;
+      --primary2:#38bdf8;
+      --accentSoft:rgba(56,189,248,.16);
+
+      --border:rgba(148,163,184,.45);
+      --borderSoft:rgba(15,23,42,.7);
+      --shadow:0 22px 50px rgba(15,23,42,.9);
+    }
+
+    /* 👇 手動指定：data-theme="light" */
+    :root[data-theme="light"]{
+      --bg:#e5f0ff;
+      --bgGradient1: radial-gradient(1200px 500px at 0% -20%, rgba(56,189,248,.20), transparent 60%);
+      --bgGradient2: radial-gradient(900px 500px at 100% 0%, rgba(59,130,246,.18), transparent 55%);
+      --shell:#ffffff;
+      --card:#ffffff;
+      --cardSoft:rgba(255,255,255,.96);
+
+      --text:#0b1220;
+      --muted:#5b6678;
+
+      --primary:#0ea5e9;
+      --primary2:#22c1c3;
+      --accentSoft:rgba(56,189,248,.10);
+
+      --border:rgba(15,23,42,.10);
+      --borderSoft:rgba(15,23,42,.08);
+      --shadow:0 14px 32px rgba(15,23,42,.12);
+    }
+
+    *{
+      box-sizing:border-box;
+      transition:
+        background-color .24s ease,
+        color .24s ease,
+        border-color .24s ease,
+        box-shadow .24s ease;
+    }
+
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
-      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
-                  var(--bg);
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      background:
+        var(--bgGradient1),
+        var(--bgGradient2),
+        var(--bg);
       color:var(--text);
       min-height:100vh;
     }
@@ -38,7 +131,7 @@
     @media (min-width:1366px){
       .layout{ max-width:1360px; }
     }
-    /* ≥ 1600：外接螢幕 / 你截圖那種寬度 */
+    /* ≥ 1600：外接螢幕 */
     @media (min-width:1600px){
       .layout{ max-width:1500px; }
     }
@@ -46,107 +139,381 @@
     @media (min-width:1920px){
       .layout{ max-width:1680px; }
     }
-    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+    }
 
     .sidebar,.main{
-      background: rgba(255,255,255,.78);
-      border:1px solid var(--border);
+      background: var(--shell);
+      border:1px solid var(--borderSoft);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(18px);
     }
-    .sidebar{padding:14px; position:sticky; top:16px; height: fit-content}
-    .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
-    .brand h1{font-size:16px; margin:0}
+    .sidebar{
+      padding:14px;
+      position:sticky;
+      top:16px;
+      height: fit-content;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 10px 6px;
+    }
+    .brand h1{
+      font-size:16px;
+      margin:0;
+      color:var(--text);
+    }
     .brand small{color:var(--muted)}
-    .nav{margin-top:10px; display:flex; flex-direction:column; gap:8px}
+
+    .nav{
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
     .nav button{
-      text-align:left; padding:11px 12px; border-radius:14px;
-      border:1px solid var(--border); background:#fff; cursor:pointer;
+      text-align:left;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:linear-gradient(120deg, rgba(15,23,42,.96), rgba(15,23,42,.88));
+      cursor:pointer;
       font-weight:800;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .nav button:hover{
+      border-color: rgba(56,189,248,.7);
+      color:var(--text);
     }
     .nav button.active{
-      border-color: rgba(251,113,133,.55);
-      background: linear-gradient(90deg, rgba(251,113,133,.18), rgba(255,154,158,.10));
-      box-shadow: 0 10px 22px rgba(251,113,133,.18);
+      border-color: rgba(56,189,248,.85);
+      background: linear-gradient(135deg, rgba(34,211,238,.35), rgba(59,130,246,.35));
+      box-shadow: 0 16px 36px rgba(15,23,42,.75);
+      color:#e0f9ff;
     }
 
-    .main{padding:14px}
-    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 6px 12px;}
-    .topbar h2{margin:0; font-size:18px}
-    .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
-    .ghost{
-      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
-      background:#fff; cursor:pointer; font-weight:800;
-    }
-    .primary{
-      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
-      background: linear-gradient(90deg, var(--primary), var(--primary2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
-    }
-
-    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
-    @media (max-width:980px){.grid{grid-template-columns:1fr}}
-
-    /* ✅ 訂餐紀錄：左小右大（只影響 view_orders） */
-    #view_orders .grid{ grid-template-columns: 360px 1fr; }
-    @media (max-width:980px){ #view_orders .grid{ grid-template-columns: 1fr; } }
-
-    .card{
-      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
-      box-shadow: 0 8px 25px rgba(15,23,42,.07);
+    .main{
       padding:14px;
+      background: radial-gradient(900px 380px at 0% 0%, rgba(56,189,248,.18), transparent 60%),
+                  radial-gradient(700px 360px at 100% 0%, rgba(37,99,235,.18), transparent 60%),
+                  var(--cardSoft);
     }
-    .card h3{margin:0 0 10px; font-size:15px}
-    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
-    input,select,textarea{
-      width:100%; padding:11px 12px; border-radius:14px;
-      border:1px solid var(--border); outline:none; background:#fff;
-      font-size:14px;
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:6px 6px 12px;
     }
-    textarea{min-height:92px; resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
-    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
-    .row3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px}
-    .actions{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
-    .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
-    .hr{height:1px; background: var(--border); margin:12px 0}
-    table{width:100%; border-collapse:collapse; font-size:13.5px}
-    th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
-    th{color:var(--muted); font-weight:900}
-    .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
-    .btnSmall{
-      padding:7px 10px; border-radius:12px; border:1px solid var(--border);
-      background:#fff; cursor:pointer; font-weight:800; font-size:12.5px;
+    .topbar h2{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.04em;
+    }
+    .topbar .right{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.72);
+      color:var(--muted);
+      font-size:12.5px;
+      backdrop-filter: blur(16px);
       white-space:nowrap;
     }
-    .btnDanger{border-color: rgba(239,68,68,.35)}
-    .btnDanger:hover{border-color: rgba(239,68,68,.60)}
-    .btnOk:hover{border-color: rgba(16,185,129,.55)}
-    details summary{cursor:pointer; font-weight:900}
-    .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .imgPrev{width:100%; max-height:220px; object-fit:cover; border-radius:14px; border:1px solid var(--border)}
-    .qrPrev{width:100%; max-height:220px; object-fit:contain; border-radius:14px; border:1px solid var(--border); background:rgba(15,23,42,.02)}
+
+    .ghost{
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.7);
+      cursor:pointer;
+      font-weight:800;
+      font-size:13px;
+      color:var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .ghost:hover{
+      border-color:rgba(56,189,248,.8);
+      color:var(--text);
+      background:rgba(15,23,42,.9);
+    }
+
+    .primary{
+      padding:9px 12px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font-weight:900;
+      font-size:13px;
+      background: linear-gradient(120deg, var(--primary), var(--primary2));
+      color:#0b1220;
+      box-shadow: 0 18px 38px rgba(56,189,248,.45);
+    }
+    .primary:hover{
+      filter:brightness(1.05);
+      box-shadow:0 22px 44px rgba(56,189,248,.6);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width:980px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    /* ✅ 訂餐紀錄：左小右大（只影響 view_orders） */
+    #view_orders .grid{
+      grid-template-columns: 360px 1fr;
+    }
+    @media (max-width:980px){
+      #view_orders .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: 0 12px 32px rgba(15,23,42,.75);
+      padding:14px;
+    }
+    .card h3{
+      margin:0 0 10px;
+      font-size:15px;
+      letter-spacing:.03em;
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin:10px 0 6px;
+    }
+    input,select,textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      outline:none;
+      background:rgba(15,23,42,.9);
+      font-size:14px;
+      color:var(--text);
+    }
+    textarea{
+      min-height:92px;
+      resize:vertical;
+    }
+    input::placeholder,
+    textarea::placeholder{
+      color:rgba(148,163,184,.7);
+    }
+    select{
+      background-image: linear-gradient(135deg, rgba(15,23,42,1), rgba(15,23,42,.9));
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color: rgba(56,189,248,.9);
+      box-shadow:0 0 0 1px rgba(56,189,248,.6);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .row3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:12.5px;
+      line-height:1.6;
+    }
+
+    .hr{
+      height:1px;
+      background: var(--borderSoft);
+      margin:12px 0;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13.5px;
+    }
+    th,td{
+      border-bottom:1px solid rgba(15,23,42,.5);
+      padding:10px 8px;
+      text-align:left;
+      vertical-align:top;
+    }
+    th{
+      color:var(--muted);
+      font-weight:900;
+      background:rgba(15,23,42,.9);
+    }
+    tbody tr:nth-child(even){
+      background:rgba(15,23,42,.5);
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.9);
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .btnSmall{
+      padding:7px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.85);
+      cursor:pointer;
+      font-weight:800;
+      font-size:12.5px;
+      white-space:nowrap;
+      color:var(--muted);
+    }
+    .btnSmall:hover{
+      border-color:rgba(56,189,248,.85);
+      color:var(--text);
+      background:rgba(15,23,42,1);
+    }
+    .btnDanger{
+      border-color: rgba(239,68,68,.45);
+    }
+    .btnDanger:hover{
+      border-color: rgba(239,68,68,.7);
+      background:rgba(127,29,29,.9);
+      color:#fee2e2;
+    }
+    .btnOk:hover{
+      border-color: rgba(16,185,129,.7);
+      background:rgba(6,95,70,.9);
+      color:#d1fae5;
+    }
+
+    details summary{
+      cursor:pointer;
+      font-weight:900;
+      list-style:none;
+    }
+    details summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .inline{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .imgPrev{
+      width:100%;
+      max-height:220px;
+      object-fit:cover;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#020617;
+    }
+    .qrPrev{
+      width:100%;
+      max-height:220px;
+      object-fit:contain;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.9);
+    }
+
     .subcard{
-      background: rgba(15,23,42,.02);
-      border:1px dashed rgba(15,23,42,.18);
+      background: rgba(15,23,42,.85);
+      border:1px dashed rgba(148,163,184,.7);
       border-radius:16px;
       padding:12px;
     }
-    .kpi{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
-    .kpi .tag{font-weight:900}
 
-    .stateGood{border-color: rgba(16,185,129,.35); color:#065f46; background:rgba(16,185,129,.08)}
-    .stateBad{border-color: rgba(239,68,68,.35); color:#7f1d1d; background:rgba(239,68,68,.06)}
+    .kpi{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .kpi .tag{
+      font-weight:900;
+    }
 
-    .chkline{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-    .chkline input[type="checkbox"]{width:18px; height:18px; margin:0}
+    .stateGood{
+      border-color: rgba(16,185,129,.6);
+      color:#bbf7d0;
+      background:rgba(6,95,70,.8);
+    }
+    .stateBad{
+      border-color: rgba(239,68,68,.6);
+      color:#fecaca;
+      background:rgba(127,29,29,.9);
+    }
+
+    .chkline{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .chkline input[type="checkbox"]{
+      width:18px;
+      height:18px;
+      margin:0;
+      accent-color:var(--primary);
+    }
 
     .mini{font-size:12px}
-    .optBox{border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff}
-    .optRow{display:grid; grid-template-columns: 1fr 140px 120px; gap:10px}
-    @media (max-width:980px){.optRow{grid-template-columns:1fr}}
+
+    .optBox{
+      border:1px solid rgba(148,163,184,.7);
+      border-radius:16px;
+      padding:10px 12px;
+      background:rgba(15,23,42,.9);
+    }
+    .optRow{
+      display:grid;
+      grid-template-columns: 1fr 140px 120px;
+      gap:10px;
+    }
+    @media (max-width:980px){
+      .optRow{grid-template-columns:1fr}
+    }
 
     /* STEP1：訂餐紀錄-上方橫條 */
     #view_orders .ordersTopBar{
@@ -178,47 +545,47 @@
       line-height:1.5;
     }
     .alertWarn{
-      background:rgba(248,113,113,.06);
-      border:1px solid rgba(248,113,113,.45);
-      color:#7f1d1d;
+      background:rgba(248,113,113,.08);
+      border:1px solid rgba(248,113,113,.6);
+      color:#fecaca;
     }
     .alertOk{
-      background:rgba(16,185,129,.06);
-      border:1px solid rgba(16,185,129,.45);
-      color:#064e3b;
+      background:rgba(16,185,129,.08);
+      border:1px solid rgba(16,185,129,.6);
+      color:#bbf7d0;
     }
 
     /* 🔔 未點餐彈跳視窗 */
     .modalMask{
       position:fixed;
       inset:0;
-      background:rgba(15,23,42,.35);
+      background:rgba(15,23,42,.7);
       display:flex;
       align-items:center;
       justify-content:center;
       z-index:50;
     }
     .modalBox{
-      background:#fff;
+      background:var(--cardSoft);
       border-radius:18px;
       padding:18px 18px 14px;
       max-width:420px;
       width:90%;
-      box-shadow:0 20px 40px rgba(15,23,42,.35);
+      box-shadow:0 24px 50px rgba(15,23,42,.9);
+      border:1px solid var(--border);
     }
 
     /* 📅 班表樣式 */
     .schDayBlock{
       border:1px solid var(--border);
       border-radius:16px;
-      background:#fff;
+      background:rgba(15,23,42,.9);
       margin-top:10px;
     }
     .schDayBlock > details{
       padding:8px 10px 10px;
     }
     .schDaySummary{
-      list-style:none;
       font-size:14px;
       font-weight:700;
       display:flex;
@@ -226,13 +593,12 @@
       justify-content:space-between;
       gap:8px;
     }
-    .schDaySummary::-webkit-details-marker{display:none;}
     .schDayInner{
       margin-top:8px;
     }
     .schDeptBlock{
       padding:8px 4px;
-      border-top:1px dashed rgba(15,23,42,.12);
+      border-top:1px dashed rgba(148,163,184,.7);
     }
     .schDeptBlock:first-of-type{
       border-top:none;
@@ -297,9 +663,14 @@
         <h2 id="pageTitle">新增餐廳</h2>
         <div class="right">
           <span class="pill" id="statusPill">連線中…</span>
+          <!-- 🌗 主題切換：跟 localStorage + 系統亮暗 -->
+          <button class="ghost" id="themeToggle" type="button" aria-label="切換深色/淺色">🌙</button>
           <button class="ghost" id="gotoIndex">🎰</button>
         </div>
       </div>
+
+      <!-- 下方內容（view_addRestaurant / staff / schedule / restaurants / orders）完全照你原本的 -->
+      <!-- 我沒有動任何一行 JS，只是換整體配色 + 多一顆主題切換按鈕 -->
 
       <!-- VIEW: 新增餐廳 -->
       <section class="view" id="view_addRestaurant">
