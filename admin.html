@@ -893,14 +893,12 @@ if (r_closed) {
     renderCatGroups();
 
     // ====== ✅ 餐點「選項群組」：擇一/加購（可選要不要用） ======
-    let draftGroups = [];
+    let draftGroups = [];          // 現在編輯中的群組（上方編輯器）
     let activeGroupDraft = null;
 
-// ⬇⬇⬇ 就從這裡開始貼我給你的那一段 ⬇⬇⬇
+    let editingMenuTarget = null;  // { rid, mid }：目前在編輯哪一道（餐廳管理那邊點進來）
 
-// ✅ 目前正在編輯哪一道「已設定餐點」的選項群組
-let editingMenuTarget = null;          // { rid, mid }
-let menuOptionCache = new Map();       // key: `${rid}__${mid}` -> optionGroups 陣列
+    let menuOptionCache = new Map();       // key: `${rid}__${mid}` -> optionGroups 陣列
 
 // ✅ 把某道餐點的 optionGroups 載入到上方「選項群組」編輯器
 function loadOptionGroupsToEditor(groups){
