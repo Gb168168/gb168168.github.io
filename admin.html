@@ -895,8 +895,41 @@ if (r_closed) {
     // ====== ✅ 餐點「選項群組」：擇一/加購（可選要不要用） ======
     let draftGroups = [];
     let activeGroupDraft = null;
+let draftGroups = [];
+let activeGroupDraft = null;
 
-    function renderGroups(){
+// ⬇⬇⬇ 就從這裡開始貼我給你的那一段 ⬇⬇⬇
+
+// ✅ 目前正在編輯哪一道「已設定餐點」的選項群組
+let editingMenuTarget = null;          // { rid, mid }
+let menuOptionCache = new Map();       // key: `${rid}__${mid}` -> optionGroups 陣列
+
+// ✅ 把某道餐點的 optionGroups 載入到上方「選項群組」編輯器
+function loadOptionGroupsToEditor(groups){
+  draftGroups = (Array.isArray(groups) ? groups : []).map(g=>({
+    name: (g.name || "").toString(),
+    type: g.type === "addon" ? "addon" : "single",
+    required: !!g.required,
+    choices: Array.isArray(g.choices) ? g.choices.map(c=>({
+      name: (c.name || "").toString(),
+      price: Number(c.price || 0)
+    })) : []
+  }));
+
+  activeGroupDraft = null;
+  showGroupDraftUI(false);
+  renderGroups();
+  renderChoiceDraft();
+
+  const anchor = $("menuOptionGroupsList");
+  if(anchor){
+    anchor.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+}
+
+// ⬆⬆⬆ 貼到這裡，然後下面原本的 renderGroups() 保留 ⬆⬆⬆
+
+function renderGroups(){
       const wrap = $("menuOptionGroupsList");
       if(draftGroups.length===0){
         wrap.innerHTML = `<div class="muted">（尚未加入任何選項群組：可不使用）</div>`;
