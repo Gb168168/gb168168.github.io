@@ -2123,75 +2123,76 @@ wrap.querySelectorAll("input[type='checkbox'][data-k='isClosed']").forEach(ch=>{
         };
       });
 
-  // ✅ 編輯後儲存餐點（含選項群組）
-  wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
-    b.onclick = async ()=>{
-      const rid = b.dataset.rid;
-      const mid = b.dataset.mid;
+wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
+  b.onclick = async ()=>{
+    const rid = b.dataset.rid;
+    const mid = b.dataset.mid;
 
-      // 先收集基本欄位（類別 / 名稱 / 價格 / 預設數量）
-      const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
-      const patch = {};
-      els.forEach(el=>{
-        const k = el.dataset.k;
-        patch[k] = (k==="price" || k==="defaultQty")
-          ? Number(el.value || 0)
-          : el.value.trim();
-      });
-      patch.defaultQty = Math.max(1, Number(patch.defaultQty || 1));
-      patch.price      = Math.max(0, Number(patch.price || 0));
-
-      // 這一列的 <tr> & 顯示選項群組的 div（有 data-opt-json）
-      const row    = b.closest("tr");
-      const holder = row ? row.querySelector("[data-opt-json]") : null;
-
-      // ✅ 把「上方選項群組編輯器」現在的內容一起存回去
-      let optGroupsToSave = [];
-
-      // 如果目前編輯器鎖定的就是這一道餐點，就用 draftGroups 覆蓋
-      if (
-        editingMenuTarget &&
-        editingMenuTarget.rid === rid &&
-        editingMenuTarget.mid === mid
-      ){
-        optGroupsToSave = (draftGroups || []).map(g=>({
-          name: g.name,
-          type: g.type,
-          required: !!g.required,
-          choices: (Array.isArray(g.choices) ? g.choices : []).map(c=>({
-            name: (c.name || "").toString(),
-            price: Number(c.price || 0)
-          }))
-        }));
-      } else if (holder && holder.dataset.optJson){
-        // 沒有正在編輯就沿用畫面上原本的 JSON
-        try{
-          optGroupsToSave = JSON.parse(holder.dataset.optJson || "[]");
-        }catch(e){
-          console.error("解析原本 optionGroups 失敗", e);
-          optGroupsToSave = [];
-        }
+    // 1. 先收集輸入框（類別 / 名稱 / 價格 / 預設數量）
+    const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
+    const patch = {};
+    els.forEach(el=>{
+      const k = el.dataset.k;
+      if(k === "price" || k === "defaultQty"){
+        patch[k] = Number(el.value || 0);
+      }else{
+        patch[k] = el.value.trim();
       }
+    });
+    patch.defaultQty = Math.max(1, Number(patch.defaultQty || 1));
+    patch.price      = Math.max(0, Number(patch.price || 0));
 
-      patch.optionGroups = optGroupsToSave;
-
+    // 2. 先拿「原本」的 optionGroups（避免沒改時被清空）
+    let optGroups = [];
+    const row    = b.closest("tr");
+    const holder = row ? row.querySelector("[data-opt-json]") : null;
+    if(holder && holder.dataset.optJson){
       try{
-        await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
-        statusPill.textContent = "餐點已儲存 ✅";
-
-        // 同步更新畫面上的文字 & data-opt-json
-        if(holder){
-          holder.dataset.optJson = JSON.stringify(optGroupsToSave || []);
-          const text = optionGroupsSummary(optGroupsToSave);
-          holder.textContent = text || "（尚未設定選項群組）";
-        }
-
-      }catch(err){
-        console.error(err);
-        alert("儲存餐點失敗\n\n" + (err?.message || err));
+        optGroups = JSON.parse(holder.dataset.optJson || "[]");
+      }catch(e){
+        console.error("解析原本 optionGroups 失敗", e);
+        optGroups = [];
       }
-    };
-  });
+    }
+
+    // 3. 如果這一列就是「剛才按 編輯選項群組 的那一道」，
+    //    就改用上方編輯器裡的 draftGroups 當最新值
+    if(
+      editingMenuTarget &&
+      editingMenuTarget.rid === rid &&
+      editingMenuTarget.mid === mid
+    ){
+      optGroups = (draftGroups || []).map(g=>({
+        name     : g.name,
+        type     : g.type,
+        required : !!g.required,
+        choices  : Array.isArray(g.choices)
+          ? g.choices.map(c=>({
+              name  : c.name,
+              price : Number(c.price || 0)
+            }))
+          : []
+      }));
+    }
+
+    patch.optionGroups = optGroups;
+
+    // 4. 寫回 Firestore
+    try{
+      statusPill.textContent = "餐點儲存中…";
+      await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+      statusPill.textContent = "餐點已儲存 ✅";
+
+      // 儲存成功後，重新載入餐廳管理，畫面會顯示更新後的選項群組摘要
+      editingMenuTarget = null;
+      await refreshRestaurantsManage();
+    }catch(err){
+      console.error(err);
+      alert("儲存餐點失敗\n\n" + (err?.message || err));
+      statusPill.textContent = "儲存失敗（看 console）";
+    }
+  };
+});
 
         // ✅ 編輯「已設定餐點」的選項群組（JSON 版）
   wrap.querySelectorAll("button[data-editopt]").forEach(btn=>{
