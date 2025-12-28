@@ -1988,6 +1988,37 @@ function renderGroups(){
 
       wrap.innerHTML = visibleHTML + blocks.join("");
 
+// ⬇⬇⬇ 就貼在這裡！！！（1990 行下一行）
+wrap.querySelectorAll("button[data-edit-opt]").forEach(btn=>{
+  btn.onclick = () => {
+    const rid = btn.dataset.rid;
+    const mid = btn.dataset.mid;
+
+    const row = btn.closest("tr");
+    const holder = row ? row.querySelector("[data-opt-json]") : null;
+    let groups = [];
+
+    if(holder && holder.dataset.optJson){
+      try{
+        groups = JSON.parse(holder.dataset.optJson || "[]");
+      }catch(e){
+        console.error("解析 optionGroups 失敗", e);
+        groups = [];
+      }
+    }
+
+    editingMenuTarget = { rid, mid };
+    loadOptionGroupsToEditor(groups);
+
+    statusPill.textContent = "已載入此餐點的選項群組，請在上方編輯後按下該列的「儲存」。";
+  };
+});
+
+// ⚠️ 餐廳管理：結單勾選時提醒
+wrap.querySelectorAll("input[type='checkbox'][data-k='isClosed']").forEach(ch=>{
+   ...
+});
+
             // ⚠️ 餐廳管理：結單勾選時提醒
       wrap.querySelectorAll('input[type="checkbox"][data-k="isClosed"]').forEach(ch => {
         ch.addEventListener("change", () => {
