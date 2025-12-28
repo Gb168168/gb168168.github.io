@@ -1685,19 +1685,33 @@ if (r_closed) {
                         <tbody>
                           ${mlist.map(m=>{
                             const optText = optionGroupsSummary(m.optionGroups);
+                            const optAttr = esc(JSON.stringify(m.optionGroups || []));   // 🔸新增這行
                             return `
                               <tr>
                                 <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
                                 <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
                                 <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
                                 <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
-                                <td class="muted" style="max-width:340px">${esc(optText)}</td>
-                                <td style="white-space:nowrap">
-                                  <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
-                                  <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
-                                </td>
-                              </tr>
-                            `;
+
+                                <!-- 🔻 修改這一格：顯示文字 + 編輯按鈕 -->
+    <td class="muted" style="max-width:340px">
+      <div>${esc(optText)}</div>
+      <button class="btnSmall" type="button"
+              data-editopt="1"
+              data-rid="${r.id}"
+              data-mid="${m.id}"
+              data-opt="${optAttr}"
+              style="margin-top:6px;">
+        編輯選項群組
+      </button>
+    </td>
+
+    <td style="white-space:nowrap">
+      <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
+      <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
+    </td>
+  </tr>
+`;
                           }).join("")}
                         </tbody>
                       </table>
