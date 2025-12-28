@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理12</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1197,24 +1197,31 @@
     /* ===== staff / restaurants / 班表 ===== */
 
     // 供班表/未點餐使用的全域人員快取
-    let allStaffBase = [];
-    let allStaffLoaded = false;
-    async function loadAllStaffOnce(){
-      if(allStaffLoaded && allStaffBase.length) return;
-      const snap = await getDocs(colStaff);
-      const arr = [];
-      snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
-      // 依部門順序 + 人名排序
-      arr.sort((a,b)=>{
-        const da = (a.dept||"").trim();
-        const dbb = (b.dept||"").trim();
-        const ra = deptRank(da), rb = deptRank(dbb);
-        if(ra !== rb) return ra - rb;
-        return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-      });
-      allStaffBase = arr;
-      allStaffLoaded = true;
-    }
+  let allStaffBase = [];
+let allStaffLoaded = false;
+
+async function loadAllStaffOnce(){
+  if(allStaffLoaded && allStaffBase.length) return;
+  const snap = await getDocs(colStaff);
+  const arr = [];
+  snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+
+  // 🆕 部門依 DEPT_ORDER，部門內照新增順序(createdAt)
+  arr.sort((a,b)=>{
+    const da = (a.dept || "").trim();
+    const db = (b.dept || "").trim();
+
+    const ra = deptRank(da);
+    const rb = deptRank(db);
+    if (ra !== rb) return ra - rb;             // 先比部門順位
+
+    return Number(a.createdAt || 0) - Number(b.createdAt || 0); // 同部門照新增順序
+  });
+
+  allStaffBase = arr;
+  allStaffLoaded = true;
+}
+
 
     /* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
     async function refreshStaffList(){
@@ -1226,17 +1233,17 @@
         const arr = [];
         snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
 
-        // ✅ 依自訂部門順序 + 人名
-        arr.sort((a,b)=>{
-          const da = (a.dept||"").trim();
-          const dbb = (b.dept||"").trim();
+       // 🆕 部門依 DEPT_ORDER，部門內照新增順序(createdAt)
+arr.sort((a,b)=>{
+  const da = (a.dept || "").trim();
+  const db = (b.dept || "").trim();
 
-          const ra = deptRank(da);
-          const rb = deptRank(dbb);
-          if(ra !== rb) return ra - rb;
+  const ra = deptRank(da);
+  const rb = deptRank(db);
+  if (ra !== rb) return ra - rb;             // 部門順位一樣的邏輯
 
-          return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-        });
+  return Number(a.createdAt || 0) - Number(b.createdAt || 0); // 同部門就照新增時間
+});
 
         allStaffBase = arr;
         allStaffLoaded = true;
