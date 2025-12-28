@@ -3,437 +3,150 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者</title>
+  <title>GoldBricks 呷奔👽｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
   <style>
     :root{
-      /* 🎨 C3 暗一點的管理端配色 */
-      --bg:#070b14;
-      --card:#0b1120;
-      --panel:#020617;
-
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-
-      --primary:#fb7185;
-      --primary2:#ff9a9e;
-
-      --accentSoft:rgba(251,113,133,.12);
-
-      --border:rgba(148,163,184,.35);
-      --border2:rgba(30,64,175,.65);
-
-      --shadow:0 18px 45px rgba(15,23,42,.85);
+      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
+      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
+      --shadow:0 10px 30px rgba(15,23,42,.10);
       --radius:18px;
     }
-
     *{box-sizing:border-box}
     body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
-      background:
-        radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.32), transparent 60%),
-        radial-gradient(900px 500px at 100% 0%, rgba(56,189,248,.25), transparent 55%),
-        radial-gradient(1200px 600px at 0% 100%, rgba(79,70,229,.35), transparent 60%),
-        var(--bg);
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
+                  var(--bg);
       color:var(--text);
       min-height:100vh;
     }
 
+    /* ✅ 自動依螢幕大小切換 max-width（像 Webflow breakpoint） */
     .layout{
       display:grid;
       grid-template-columns: 300px 1fr;
       gap:16px;
       padding:16px;
-      max-width:1280px;
-      margin:0 auto;
+      max-width:1200px;   /* 基礎寬度（一般筆電） */
+      margin:0 auto;      /* 置中 */
     }
-    @media (max-width:980px){
-      .layout{grid-template-columns:1fr; padding:12px}
+    /* ≥ 1366：稍微變寬一點 */
+    @media (min-width:1366px){
+      .layout{ max-width:1360px; }
     }
+    /* ≥ 1600：外接螢幕 / 你截圖那種寬度 */
+    @media (min-width:1600px){
+      .layout{ max-width:1500px; }
+    }
+    /* ≥ 1920：更大的桌機螢幕 */
+    @media (min-width:1920px){
+      .layout{ max-width:1680px; }
+    }
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
 
     .sidebar,.main{
-      background: radial-gradient(circle at top left, rgba(15,23,42,.72), rgba(15,23,42,.94));
-      border:1px solid rgba(148,163,184,.45);
+      background: rgba(255,255,255,.78);
+      border:1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+      backdrop-filter: blur(10px);
     }
-    .sidebar{
-      padding:14px;
-      position:sticky;
-      top:16px;
-      height: fit-content;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 10px 6px;
-    }
-    .brand h1{
-      font-size:16px;
-      margin:0;
-      letter-spacing:.04em;
-    }
-    .brand small{
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .nav{
-      margin-top:10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
+    .sidebar{padding:14px; position:sticky; top:16px; height: fit-content}
+    .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
+    .brand h1{font-size:16px; margin:0}
+    .brand small{color:var(--muted)}
+    .nav{margin-top:10px; display:flex; flex-direction:column; gap:8px}
     .nav button{
-      text-align:left;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid rgba(148,163,184,.45);
-      background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(15,23,42,.88));
-      cursor:pointer;
+      text-align:left; padding:11px 12px; border-radius:14px;
+      border:1px solid var(--border); background:#fff; cursor:pointer;
       font-weight:800;
-      font-size:13px;
-      color:var(--text);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .nav button span{
-      font-size:11px;
-      color:var(--muted);
-      font-weight:600;
     }
     .nav button.active{
-      border-color: var(--border2);
-      background:
-        linear-gradient(120deg, rgba(251,113,133,.32), rgba(56,189,248,.22), rgba(15,23,42,.98));
-      box-shadow: 0 14px 32px rgba(15,23,42,.8);
-      color:#f9fafb;
-    }
-    .nav button:hover{
-      border-color:rgba(129,140,248,.8);
+      border-color: rgba(251,113,133,.55);
+      background: linear-gradient(90deg, rgba(251,113,133,.18), rgba(255,154,158,.10));
+      box-shadow: 0 10px 22px rgba(251,113,133,.18);
     }
 
-    .main{
-      padding:14px 14px 18px;
-      background:radial-gradient(circle at top, rgba(30,64,175,.35), transparent 55%), rgba(15,23,42,.96);
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:6px 6px 12px;
-    }
-    .topbar h2{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.06em;
-    }
-    .topbar .right{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .pill{
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
-      background:radial-gradient(circle at top left, rgba(15,23,42,.95), rgba(15,23,42,.9));
-      color:var(--muted);
-      font-size:12.5px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
+    .main{padding:14px}
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 6px 12px;}
+    .topbar h2{margin:0; font-size:18px}
+    .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
     .ghost{
-      padding:9px 12px;
-      border-radius:14px;
-      border:1px solid rgba(148,163,184,.6);
-      background:radial-gradient(circle at top, rgba(15,23,42,.92), rgba(15,23,42,.96));
-      cursor:pointer;
-      font-weight:800;
-      color:var(--text);
-      font-size:13px;
+      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:800;
     }
-    .ghost:hover{
-      border-color:rgba(129,140,248,.9);
-    }
-
     .primary{
-      padding:9px 12px;
-      border-radius:14px;
-      border:none;
-      cursor:pointer;
-      font-weight:900;
-      font-size:13px;
-      background: linear-gradient(120deg, var(--primary), var(--primary2));
-      color:#fee2e2;
-      box-shadow:
-        0 12px 30px rgba(251,113,133,.5),
-        0 0 0 1px rgba(248,113,113,.25);
-    }
-    .primary:hover{
-      filter:brightness(1.05);
-      box-shadow:
-        0 16px 40px rgba(251,113,133,.65),
-        0 0 0 1px rgba(248,113,113,.35);
+      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-    }
-    @media (max-width:980px){
-      .grid{grid-template-columns:1fr}
-    }
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
 
     /* ✅ 訂餐紀錄：左小右大（只影響 view_orders） */
-    #view_orders .grid{
-      grid-template-columns: 360px 1fr;
-    }
-    @media (max-width:980px){
-      #view_orders .grid{grid-template-columns:1fr}
-    }
+    #view_orders .grid{ grid-template-columns: 360px 1fr; }
+    @media (max-width:980px){ #view_orders .grid{ grid-template-columns: 1fr; } }
 
     .card{
-      background: radial-gradient(circle at top left, rgba(15,23,42,.96), rgba(15,23,42,.98));
-      border:1px solid rgba(30,64,175,.7);
-      border-radius:var(--radius);
-      box-shadow: 0 10px 32px rgba(15,23,42,.85);
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow: 0 8px 25px rgba(15,23,42,.07);
       padding:14px;
     }
-    .card h3{
-      margin:0 0 10px;
-      font-size:15px;
-      letter-spacing:.04em;
-    }
-
-    label{
-      display:block;
-      font-size:13px;
-      color:var(--muted);
-      margin:10px 0 6px;
-    }
-
+    .card h3{margin:0 0 10px; font-size:15px}
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
-      width:100%;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid rgba(51,65,85,.85);
-      outline:none;
-      background: radial-gradient(circle at top, #020617, #020617);
+      width:100%; padding:11px 12px; border-radius:14px;
+      border:1px solid var(--border); outline:none; background:#fff;
       font-size:14px;
-      color:var(--text);
     }
     textarea{min-height:92px; resize:vertical}
-    input::placeholder,textarea::placeholder{
-      color:rgba(148,163,184,.75);
-    }
-    input:focus,select:focus,textarea:focus{
-      border-color: rgba(129,140,248,1);
-      box-shadow:0 0 0 1px rgba(129,140,248,.9);
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    .row3{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width:980px){
-      .row3{grid-template-columns:1fr}
-    }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
-      flex-wrap:wrap;
-    }
-    .muted{
-      color:var(--muted);
-      font-size:12.5px;
-      line-height:1.6;
-    }
-    .hr{
-      height:1px;
-      background: radial-gradient(to right, rgba(30,64,175,.0), rgba(148,163,184,.5), rgba(30,64,175,.0));
-      margin:12px 0;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:13.5px;
-    }
-    th,td{
-      border-bottom:1px solid rgba(51,65,85,.85);
-      padding:10px 8px;
-      text-align:left;
-      vertical-align:top;
-    }
-    th{
-      color:rgba(148,163,184,.98);
-      font-weight:900;
-      font-size:12.5px;
-      background:radial-gradient(circle at top, rgba(15,23,42,.98), rgba(15,23,42,1));
-      position:sticky;
-      top:0;
-      z-index:1;
-    }
-
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
-      background:radial-gradient(circle at top left, rgba(15,23,42,.98), rgba(15,23,42,.94));
-      color:var(--muted);
-      font-size:12px;
-    }
-
+    input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .row3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px}
+    .actions{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
+    .muted{color:var(--muted); font-size:12.5px; line-height:1.6}
+    .hr{height:1px; background: var(--border); margin:12px 0}
+    table{width:100%; border-collapse:collapse; font-size:13.5px}
+    th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
+    th{color:var(--muted); font-weight:900}
+    .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
     .btnSmall{
-      padding:7px 10px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.7);
-      background:radial-gradient(circle at top, rgba(15,23,42,.96), rgba(15,23,42,.98));
-      cursor:pointer;
-      font-weight:800;
-      font-size:12.5px;
+      padding:7px 10px; border-radius:12px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:800; font-size:12.5px;
       white-space:nowrap;
-      color:var(--text);
     }
-    .btnSmall:hover{
-      border-color:rgba(129,140,248,.9);
-    }
-
-    .btnDanger{
-      border-color: rgba(239,68,68,.7);
-      color:#fecaca;
-    }
-    .btnDanger:hover{
-      border-color: rgba(248,113,113,1);
-      box-shadow:0 0 0 1px rgba(248,113,113,.65);
-    }
-    .btnOk{
-      border-color: rgba(34,197,94,.75);
-      color:#bbf7d0;
-    }
-    .btnOk:hover{
-      border-color: rgba(34,197,94,1);
-      box-shadow:0 0 0 1px rgba(34,197,94,.7);
-    }
-
-    details summary{
-      cursor:pointer;
-      font-weight:900;
-      list-style:none;
-    }
-    details summary::-webkit-details-marker{display:none;}
-
-    .inline{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .imgPrev{
-      width:100%;
-      max-height:220px;
-      object-fit:cover;
-      border-radius:14px;
-      border:1px solid rgba(30,64,175,.8);
-      box-shadow:0 10px 28px rgba(15,23,42,.9);
-    }
-    .qrPrev{
-      width:100%;
-      max-height:220px;
-      object-fit:contain;
-      border-radius:14px;
-      border:1px solid rgba(148,163,184,.8);
-      background:rgba(15,23,42,.9);
-      box-shadow:0 10px 28px rgba(15,23,42,.9);
-    }
-
+    .btnDanger{border-color: rgba(239,68,68,.35)}
+    .btnDanger:hover{border-color: rgba(239,68,68,.60)}
+    .btnOk:hover{border-color: rgba(16,185,129,.55)}
+    details summary{cursor:pointer; font-weight:900}
+    .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .imgPrev{width:100%; max-height:220px; object-fit:cover; border-radius:14px; border:1px solid var(--border)}
+    .qrPrev{width:100%; max-height:220px; object-fit:contain; border-radius:14px; border:1px solid var(--border); background:rgba(15,23,42,.02)}
     .subcard{
-      background: radial-gradient(circle at top left, rgba(15,23,42,.98), rgba(15,23,42,.96));
-      border:1px dashed rgba(148,163,184,.8);
+      background: rgba(15,23,42,.02);
+      border:1px dashed rgba(15,23,42,.18);
       border-radius:16px;
       padding:12px;
     }
+    .kpi{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+    .kpi .tag{font-weight:900}
 
-    .kpi{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-    .kpi .tag{
-      font-weight:900;
-    }
+    .stateGood{border-color: rgba(16,185,129,.35); color:#065f46; background:rgba(16,185,129,.08)}
+    .stateBad{border-color: rgba(239,68,68,.35); color:#7f1d1d; background:rgba(239,68,68,.06)}
 
-    .stateGood{
-      border-color: rgba(34,197,94,.75);
-      color:#bbf7d0;
-      background:rgba(21,128,61,.35);
-    }
-    .stateBad{
-      border-color: rgba(248,113,113,.8);
-      color:#fecaca;
-      background:rgba(127,29,29,.5);
-    }
-
-    .chkline{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .chkline input[type="checkbox"]{
-      width:18px;
-      height:18px;
-      margin:0;
-      accent-color:var(--primary);
-    }
+    .chkline{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    .chkline input[type="checkbox"]{width:18px; height:18px; margin:0}
 
     .mini{font-size:12px}
-
-    .optBox{
-      border:1px solid rgba(51,65,85,.9);
-      border-radius:16px;
-      padding:10px 12px;
-      background:radial-gradient(circle at top, #020617, #020617);
-    }
-
-    .optRow{
-      display:grid;
-      grid-template-columns: 1fr 140px 120px;
-      gap:10px;
-    }
-    @media (max-width:980px){
-      .optRow{grid-template-columns:1fr}
-    }
+    .optBox{border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff}
+    .optRow{display:grid; grid-template-columns: 1fr 140px 120px; gap:10px}
+    @media (max-width:980px){.optRow{grid-template-columns:1fr}}
 
     /* STEP1：訂餐紀錄-上方橫條 */
     #view_orders .ordersTopBar{
@@ -465,47 +178,47 @@
       line-height:1.5;
     }
     .alertWarn{
-      background:rgba(127,29,29,.75);
-      border:1px solid rgba(248,113,113,.9);
-      color:#fee2e2;
+      background:rgba(248,113,113,.06);
+      border:1px solid rgba(248,113,113,.45);
+      color:#7f1d1d;
     }
     .alertOk{
-      background:rgba(22,101,52,.8);
-      border:1px solid rgba(34,197,94,1);
-      color:#dcfce7;
+      background:rgba(16,185,129,.06);
+      border:1px solid rgba(16,185,129,.45);
+      color:#064e3b;
     }
 
     /* 🔔 未點餐彈跳視窗 */
     .modalMask{
       position:fixed;
       inset:0;
-      background:rgba(15,23,42,.75);
+      background:rgba(15,23,42,.35);
       display:flex;
       align-items:center;
       justify-content:center;
       z-index:50;
     }
     .modalBox{
-      background:radial-gradient(circle at top left, rgba(15,23,42,.98), rgba(15,23,42,1));
+      background:#fff;
       border-radius:18px;
       padding:18px 18px 14px;
       max-width:420px;
       width:90%;
-      box-shadow:0 20px 40px rgba(0,0,0,.95);
-      border:1px solid rgba(148,163,184,.85);
+      box-shadow:0 20px 40px rgba(15,23,42,.35);
     }
 
     /* 📅 班表樣式 */
     .schDayBlock{
-      border:1px solid rgba(51,65,85,.9);
+      border:1px solid var(--border);
       border-radius:16px;
-      background:radial-gradient(circle at top, #020617, #020617);
+      background:#fff;
       margin-top:10px;
     }
     .schDayBlock > details{
       padding:8px 10px 10px;
     }
     .schDaySummary{
+      list-style:none;
       font-size:14px;
       font-weight:700;
       display:flex;
@@ -513,12 +226,13 @@
       justify-content:space-between;
       gap:8px;
     }
+    .schDaySummary::-webkit-details-marker{display:none;}
     .schDayInner{
       margin-top:8px;
     }
     .schDeptBlock{
       padding:8px 4px;
-      border-top:1px dashed rgba(51,65,85,.9);
+      border-top:1px dashed rgba(15,23,42,.12);
     }
     .schDeptBlock:first-of-type{
       border-top:none;
@@ -547,16 +261,6 @@
   </style>
 </head>
 <body>
-
-  <!-- ！！！！以下從這裡到 </html> 都是你剛貼的原始內容（JS / HTML 結構沒改），只上面 style 換成 C3 ！！！！ -->
-  <!-- 我完整保留，不再重貼一遍，避免編輯時太難找差異。
-       實際使用時你只要：把原本檔案 <style> 替換成上面這整段 C3 style 即可。 -->
-
-  <!-- ✅ 這裡開始貼回你原本的 <body> 內容（從 <div class="layout"> 一直到最後 </script></body></html>）
-       你可以直接把整份檔案中 <style> 區塊替換掉即可，其餘維持不動。 -->
-
-</body>
-</html>
 
   <div class="layout">
     <aside class="sidebar">
@@ -1072,6 +776,9 @@
       const m = $("sch_month");
       if(m) m.value = todayISO().slice(0,7);
     });
+
+    // ====== Views ======
+
 
     // ====== Views ======
     const pageTitle = $("pageTitle");
