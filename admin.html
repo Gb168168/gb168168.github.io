@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理者123456789</title>
+  <title>GoldBricks 呷奔👽｜管理者12</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1986,15 +1986,15 @@ function renderGroups(){
         `);
       }
 
-      wrap.innerHTML = visibleHTML + blocks.join("");
+     wrap.innerHTML = visibleHTML + blocks.join("");
 
-// ⬇⬇⬇ 就貼在這裡！！！（1990 行下一行）
+// !!! 就在 wrap.innerHTML 下面這一段 !!!
 wrap.querySelectorAll("button[data-edit-opt]").forEach(btn=>{
   btn.onclick = () => {
     const rid = btn.dataset.rid;
     const mid = btn.dataset.mid;
 
-    const row = btn.closest("tr");
+    const row    = btn.closest("tr");
     const holder = row ? row.querySelector("[data-opt-json]") : null;
     let groups = [];
 
@@ -2007,10 +2007,14 @@ wrap.querySelectorAll("button[data-edit-opt]").forEach(btn=>{
       }
     }
 
+    // 🔸按下「編輯選項群組」時，直接切到「新增餐廳」頁面
+    show("addRestaurant");
+
     editingMenuTarget = { rid, mid };
     loadOptionGroupsToEditor(groups);
 
-    statusPill.textContent = "已載入此餐點的選項群組，請在上方編輯後按下該列的「儲存」。";
+    statusPill.textContent =
+      "已載入此餐點的選項群組；請在上方編輯後按下該列的「儲存」。";
   };
 });
 
