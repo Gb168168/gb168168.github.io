@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GoldBricks 呷奔👽｜管理者~~</title>
+  <title>GoldBricks 呷奔👽｜管理者</title>
 
   <!-- SortableJS（拖曳） -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -19,7 +19,7 @@
 
   <style>
 /* =========================================================
-   🎨 C3 深灰主題 + 柔粉 A
+   🎨 深灰 C3 + 粉色 A 主題
    ========================================================= */
 :root{
   --bg:#1e1e1e;
@@ -27,7 +27,7 @@
   --text:#f3f4f6;
   --muted:#a1a1aa;
 
-  --primary:#fb7185;
+  --primary:#fb7185;  /* 粉色 A */
   --primary-light:#fda4af;
 
   --border:rgba(255,255,255,.08);
@@ -51,9 +51,9 @@ body{
   overflow:hidden;
 }
 
-/* ======================
-   🟦 Sidebar
-   ====================== */
+/* ======================================================
+   Sidebar
+   ====================================================== */
 #sidebar{
   width:240px;
   background:#151515;
@@ -95,9 +95,9 @@ body{
   font-weight:700;
 }
 
-/* ======================
-   🟩 Main
-   ====================== */
+/* ======================================================
+   Main
+   ====================================================== */
 #main{
   flex:1;
   overflow-y:auto;
@@ -108,12 +108,11 @@ h2{
   margin:0 0 20px;
   font-size:24px;
   font-weight:600;
-  letter-spacing:.5px;
 }
 
-/* ======================
+/* ======================================================
    Input / Select / Button
-   ====================== */
+   ====================================================== */
 input, select, textarea{
   width:100%;
   padding:12px 14px;
@@ -123,10 +122,6 @@ input, select, textarea{
   color:var(--text);
   margin-bottom:12px;
   font-size:15px;
-}
-
-input::placeholder{
-  color:#777;
 }
 
 button{
@@ -158,9 +153,6 @@ button.secondary:hover{
   background:#444;
 }
 
-/* ======================
-   card
-   ====================== */
 .card{
   background:var(--card);
   padding:20px;
@@ -170,9 +162,6 @@ button.secondary:hover{
   margin-bottom:18px;
 }
 
-/* ======================
-   details
-   ====================== */
 details{
   background:var(--card);
   padding:16px;
@@ -188,38 +177,9 @@ details summary{
   color:var(--primary-light);
 }
 
-/* ======================
-   table
-   ====================== */
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:var(--card);
-  border-radius:var(--radius);
-  overflow:hidden;
-}
-
-table th{
-  background:#383838;
-  color:var(--primary-light);
-  padding:12px 10px;
-  text-align:left;
-  border-bottom:1px solid var(--border2);
-}
-
-table td{
-  padding:12px 10px;
-  border-bottom:1px solid var(--border);
-  color:var(--text);
-}
-
-table tr:hover td{
-  background:#333;
-}
-
-/* ======================
+/* ======================================================
    Drawer
-   ====================== */
+   ====================================================== */
 #drawer{
   position:fixed;
   top:0;
@@ -239,71 +199,9 @@ table tr:hover td{
   right:0;
 }
 
-#drawer h3{
-  margin-top:0;
-  margin-bottom:16px;
-  color:var(--primary-light);
-}
-
-/* ======================
-   選項群組模組
-   ====================== */
-.option-group{
-  background:#262626;
-  padding:16px;
-  border-radius:14px;
-  border:1px solid var(--border2);
-  margin-bottom:14px;
-}
-
-.option-group-title{
-  color:var(--primary-light);
-  font-weight:600;
-  margin-bottom:10px;
-}
-
-.option-item{
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-.option-item input{
-  flex:1;
-}
-
-.delete-btn{
-  background:#3b3b3b;
-  color:#f87171;
-  border:1px solid #f87171;
-}
-
-.delete-btn:hover{
-  background:#4b4b4b;
-}
-
-/* ======================
-   「👁️ 使用者可見」強調區塊
-   ====================== */
-.user-visible-label{
-  display:block;
-  margin-top:8px;
-  margin-bottom:3px;
-  font-weight:600;
-  color:var(--primary-light);
-}
-
-.user-visible-block{
-  background:#2a2a2a;
-  border-left:4px solid var(--primary);
-  padding:10px 12px;
-  border-radius:10px;
-  margin-bottom:18px;
-}
-
-/* ======================
-   scrollbar
-   ====================== */
+/* ======================================================
+   Scrollbar
+   ====================================================== */
 ::-webkit-scrollbar{
   width:8px;
 }
@@ -416,21 +314,21 @@ table tr:hover td{
     </div>
   </div>
 <script>
-// ======================================================
-// Firebase 初始化（⚠️請放你的設定）
-// ======================================================
+/* ======================================================
+   Firebase 初始化（請填入你的专案設定）
+   ====================================================== */
 const firebaseConfig = {
   apiKey: "YOUR-API-KEY",
   authDomain: "YOUR-DOMAIN",
-  projectId: "YOUR-PROJECT-ID"
+  projectId: "YOUR-PROJECT"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 
-// ======================================================
-// 頁面切換（Sidebar）
-// ======================================================
+/* ======================================================
+   Sidebar 切換
+   ====================================================== */
 const pages = document.querySelectorAll(".page");
 const navBtns = document.querySelectorAll("#sidebar nav button");
 
@@ -449,9 +347,9 @@ navBtns.forEach(btn=>{
 document.querySelector("#sidebar nav button").click();
 
 
-// ======================================================
-// Drawer 控制
-// ======================================================
+/* ======================================================
+   Drawer 控制
+   ====================================================== */
 const drawer = document.getElementById("drawer");
 const drawerContent = document.getElementById("drawerContent");
 
@@ -464,32 +362,35 @@ function closeDrawer(){
   drawer.classList.remove("open");
 }
 
-// ESC 關閉 Drawer
 document.addEventListener("keydown", e=>{
   if(e.key==="Escape") closeDrawer();
 });
 
 
-// ======================================================
-// 全域：選項群組暫存
-// ======================================================
+/* ======================================================
+   儲存前提示（你指定的 B 強提醒）
+   ====================================================== */
+function confirmSave(){
+  return confirm("⚠️ 真的要儲存嗎？使用者頁面會馬上看到這些變更。");
+}
+
+
+/* ======================================================
+   選項群組模組
+   ====================================================== */
 let currentGroups = [];
 
 function addGroup(){
   currentGroups.push({
-    id: "grp_"+Date.now(),
-    name: "",
-    type: "single",
-    required: false,
-    options: []
+    id:"grp_"+Date.now(),
+    name:"",
+    type:"single",
+    required:false,
+    options:[]
   });
   renderGroups();
 }
 
-
-// ======================================================
-// 渲染選項群組
-// ======================================================
 function renderGroups(){
   const box = document.getElementById("dishGroupsBox");
   if(!box) return;
@@ -498,12 +399,12 @@ function renderGroups(){
   currentGroups.forEach(group=>{
     const div = document.createElement("div");
     div.className = "option-group";
+
     div.innerHTML = `
       <div class="option-group-title">選項群組</div>
 
-      <label class="user-visible-label">👁️ 群組名稱（使用者可見）</label>
-      <input data-id="${group.id}" data-field="name"
-             value="${group.name}" placeholder="例如：辣度 / 加購飲料">
+      <label class="user-visible-label">群組名稱（使用者可見）</label>
+      <input data-id="${group.id}" data-field="name" value="${group.name}">
 
       <label>群組類型</label>
       <select data-id="${group.id}" data-field="type">
@@ -513,19 +414,18 @@ function renderGroups(){
 
       <label>
         <input type="checkbox" data-id="${group.id}" data-field="required"
-               ${group.required?"checked":""}>
-        必選（僅擇一有效）
+          ${group.required?"checked":""}>
+        必選（僅擇一）
       </label>
 
       <div class="option-group-title" style="margin-top:12px;">選項內容</div>
-
       <div id="opt_${group.id}">
         ${group.options.map((opt,i)=>`
           <div class="option-item">
             <input data-id="${group.id}" data-opt-index="${i}" data-opt-field="name"
-                   value="${opt.name}" placeholder="選項名稱（使用者可見）">
+                   value="${opt.name}" placeholder="選項名稱">
             <input data-id="${group.id}" data-opt-index="${i}" data-opt-field="price"
-                   value="${opt.price}" type="number" placeholder="+多少元">
+                   value="${opt.price}" type="number" placeholder="價格">
             <button class="delete-btn" data-id="${group.id}" data-opt-index="${i}">刪</button>
           </div>
         `).join("")}
@@ -541,93 +441,65 @@ function renderGroups(){
   attachGroupEvents();
 }
 
-
-// ======================================================
-// 綁定群組內部事件
-// ======================================================
 function attachGroupEvents(){
-  // ⇢ 群組欄位變更
-  document.querySelectorAll("[data-field]").forEach(input=>{
-    input.oninput = ()=>{
-      const id = input.dataset.id;
-      const field = input.dataset.field;
-      const grp = currentGroups.find(g=>g.id===id);
-
-      if(input.type==="checkbox"){
-        grp[field] = input.checked;
-      } else {
-        grp[field] = input.value;
-      }
+  document.querySelectorAll("[data-field]").forEach(inp=>{
+    inp.oninput = ()=>{
+      const g = currentGroups.find(x=>x.id===inp.dataset.id);
+      g[inp.dataset.field] = inp.type==="checkbox" ? inp.checked : inp.value;
     };
   });
 
-  // ⇢ 新增選項
   document.querySelectorAll("[data-add-option]").forEach(btn=>{
     btn.onclick = ()=>{
-      const id = btn.dataset.addOption;
-      const grp = currentGroups.find(g=>g.id===id);
-      grp.options.push({name:"", price:0});
+      const g = currentGroups.find(x=>x.id===btn.dataset.addOption);
+      g.options.push({name:"",price:0});
       renderGroups();
     };
   });
 
-  // ⇢ 刪除選項
   document.querySelectorAll(".delete-btn[data-opt-index]").forEach(btn=>{
     btn.onclick = ()=>{
-      const id = btn.dataset.id;
-      const idx = btn.dataset.optIndex;
-      const grp = currentGroups.find(g=>g.id===id);
-      grp.options.splice(idx,1);
+      const g = currentGroups.find(x=>x.id===btn.dataset.id);
+      g.options.splice(btn.dataset.optIndex,1);
       renderGroups();
     };
   });
 
-  // ⇢ 刪除整組
   document.querySelectorAll("[data-del-group]").forEach(btn=>{
     btn.onclick = ()=>{
-      const id = btn.dataset.delGroup;
-      currentGroups = currentGroups.filter(g=>g.id!==id);
+      currentGroups = currentGroups.filter(x=>x.id!==btn.dataset.delGroup);
       renderGroups();
     };
   });
 }
 
 
-// ======================================================
-// 儲存前警告（你選 B 強調版）
-// ======================================================
-function confirmSave(){
-  return confirm("⚠️ 真的要儲存嗎？使用者頁面會馬上看到這些變更。");
-}
-
-
-// ======================================================
-// 新增餐點 Drawer（含 👁️ 使用者可見標示）
-// ======================================================
-function showAddDishForm(restId=null){
-  currentGroups = [];  // reset
+/* ======================================================
+   ➕ 新增餐點 Drawer
+   ====================================================== */
+function showAddDishForm(){
+  currentGroups = [];
 
   openDrawer(`
     <h3>新增餐點</h3>
 
     <div class="user-visible-block">
-      <label class="user-visible-label">👁️ 餐點名稱（使用者可見）</label>
-      <input id="d_name" placeholder="例如：雞腿飯">
+      <label class="user-visible-label">餐點名稱（使用者可見）</label>
+      <input id="d_name">
 
-      <label class="user-visible-label">👁️ 餐點分類（使用者可見）</label>
+      <label class="user-visible-label">分類（使用者可見）</label>
       <input id="d_category" list="dishCategoryList">
 
-      <label class="user-visible-label">👁️ 價格（使用者可見）</label>
-      <input id="d_price" type="number" placeholder="價格">
+      <label class="user-visible-label">價格（使用者可見）</label>
+      <input id="d_price" type="number">
 
-      <label class="user-visible-label">👁️ 預設數量（使用者可見）</label>
+      <label class="user-visible-label">預設數量（使用者可見）</label>
       <input id="d_qty" type="number" value="1">
     </div>
 
-    <h3>選項群組（使用者可見）</h3>
+    <h3>選項群組</h3>
     <div id="dishGroupsBox"></div>
-
-    <button class="secondary" onclick="addGroup()">新增選項群組</button>
+    <button class="secondary" onclick="addGroup()">新增群組</button>
 
     <hr style="margin:20px 0; border:1px solid var(--border2);">
 
@@ -637,60 +509,136 @@ function showAddDishForm(restId=null){
 
   renderGroups();
 
-  document.getElementById("btnSaveDish").onclick = ()=>saveDish(restId);
+  document.getElementById("btnSaveDish").onclick = saveDish;
 }
-</script>
-<script>
+
+
 /* ======================================================
-   🏪 餐廳管理：載入
+   🍱 餐點 CRUD
    ====================================================== */
-async function loadRestaurants(){
-  const list = document.getElementById("restaurantList");
-  list.innerHTML = `<div class="card">載入中…</div>`;
+document.getElementById("btnAddDish").onclick = showAddDishForm;
 
-  const snap = await db.collection("restaurants")
-                       .orderBy("name")
-                       .get();
+async function saveDish(){
+  if(!confirmSave()) return;
 
-  let html = "";
+  await db.collection("menu").add({
+    name:document.getElementById("d_name").value,
+    category:document.getElementById("d_category").value,
+    price:Number(document.getElementById("d_price").value),
+    qty:Number(document.getElementById("d_qty").value),
+    groups:currentGroups,
+    createdAt:Date.now()
+  });
+
+  closeDrawer();
+  loadMenu();
+}
+
+async function saveDishOnly(id){
+  if(!confirmSave()) return;
+
+  const inputs = document.querySelectorAll(`[data-dish-id="${id}"]`);
+  let data={};
+
+  inputs.forEach(inp=>{
+    data[inp.dataset.dishField] = inp.type==="number" ? Number(inp.value) : inp.value;
+  });
+
+  await db.collection("menu").doc(id).update(data);
+  alert("已儲存");
+}
+
+
+/* ======================================================
+   🍱 餐點列表載入
+   ====================================================== */
+async function loadMenu(){
+  const box = document.getElementById("menuList");
+  box.innerHTML = `<div class="card">載入中…</div>`;
+
+  const snap = await db.collection("menu").orderBy("category").get();
+  let html="";
+
   snap.forEach(doc=>{
     const d = doc.data();
 
     html += `
       <details>
-        <summary>${d.name}</summary>
+        <summary>${d.name}（${d.price} 元）</summary>
         <div class="card" style="margin-top:10px;">
 
           <div class="user-visible-block">
-            <label class="user-visible-label">👁️ 店名（使用者可見）</label>
-            <input value="${d.name}" data-rest-id="${doc.id}" data-rest-field="name">
+            <label class="user-visible-label">餐點名稱</label>
+            <input value="${d.name}" data-dish-id="${doc.id}" data-dish-field="name">
 
-            <label class="user-visible-label">👁️ 分類（使用者可見）</label>
-            <input value="${d.category||""}" list="restCategoryList" data-rest-id="${doc.id}" data-rest-field="category">
+            <label class="user-visible-label">分類</label>
+            <input value="${d.category}" list="dishCategoryList"
+                   data-dish-id="${doc.id}" data-dish-field="category">
 
-            <label class="user-visible-label">👁️ 點餐連結 orderLink（使用者可見）</label>
-            <input value="${d.orderLink||""}" data-rest-id="${doc.id}" data-rest-field="orderLink" placeholder="https://...">
+            <label class="user-visible-label">價格</label>
+            <input type="number" value="${d.price}"
+                   data-dish-id="${doc.id}" data-dish-field="price">
+
+            <label class="user-visible-label">預設數量</label>
+            <input type="number" value="${d.qty||1}"
+                   data-dish-id="${doc.id}" data-dish-field="qty">
           </div>
 
-          <button class="primary" onclick="saveRestaurant('${doc.id}')">儲存</button>
+          <button class="primary" onclick="saveDishOnly('${doc.id}')">儲存</button>
         </div>
       </details>
     `;
   });
 
-  list.innerHTML = html;
-  generateRestaurantCategoryList();
+  box.innerHTML = html;
+  generateDishCategoryList();
 }
 
 
 /* ======================================================
-   🏪 儲存餐廳
+   🏪 餐廳 CRUD
    ====================================================== */
+document.getElementById("btnAddRestaurant").onclick = ()=>{
+  openDrawer(`
+    <h3>新增餐廳</h3>
+
+    <div class="user-visible-block">
+      <label class="user-visible-label">店名</label>
+      <input id="r_name">
+
+      <label class="user-visible-label">分類</label>
+      <input id="r_category" list="restCategoryList">
+
+      <label class="user-visible-label">點餐連結</label>
+      <input id="r_orderLink">
+    </div>
+
+    <button class="primary" id="btnCreateRestaurant">新增</button>
+    <button class="secondary" onclick="closeDrawer()">取消</button>
+  `);
+
+  document.getElementById("btnCreateRestaurant").onclick = createRestaurant;
+};
+
+async function createRestaurant(){
+  if(!confirmSave()) return;
+
+  await db.collection("restaurants").add({
+    name:document.getElementById("r_name").value,
+    category:document.getElementById("r_category").value,
+    orderLink:document.getElementById("r_orderLink").value,
+    createdAt:Date.now()
+  });
+
+  closeDrawer();
+  loadRestaurants();
+}
+
 async function saveRestaurant(id){
   if(!confirmSave()) return;
 
   const inputs = document.querySelectorAll(`[data-rest-id="${id}"]`);
-  let data = {};
+  let data={};
 
   inputs.forEach(inp=>{
     data[inp.dataset.restField] = inp.value;
@@ -702,53 +650,13 @@ async function saveRestaurant(id){
 
 
 /* ======================================================
-   🏪 新增餐廳 Drawer
+   🏪 餐廳列表載入
    ====================================================== */
-document.getElementById("btnAddRestaurant").onclick = ()=>{
-  openDrawer(`
-    <h3>新增餐廳</h3>
+async function loadRestaurants(){
+  const box = document.getElementById("restaurantList");
+  box.innerHTML = `<div class="card">載入中…</div>`;
 
-    <div class="user-visible-block">
-      <label class="user-visible-label">👁️ 店名（使用者可見）</label>
-      <input id="r_name">
-
-      <label class="user-visible-label">👁️ 分類（使用者可見）</label>
-      <input id="r_category" list="restCategoryList">
-
-      <label class="user-visible-label">👁️ 點餐連結 orderLink（使用者可見）</label>
-      <input id="r_orderLink" placeholder="https://...">
-    </div>
-
-    <button class="primary" id="btnCreateRestaurant">新增</button>
-    <button class="secondary" onclick="closeDrawer()">取消</button>
-  `);
-
-  document.getElementById("btnCreateRestaurant").onclick = async ()=>{
-    if(!confirmSave()) return;
-
-    await db.collection("restaurants").add({
-      name: document.getElementById("r_name").value,
-      category: document.getElementById("r_category").value,
-      orderLink: document.getElementById("r_orderLink").value,
-      createdAt: Date.now()
-    });
-
-    closeDrawer();
-    loadRestaurants();
-  };
-};
-
-
-/* ======================================================
-   🍱 餐點管理（載入）
-   ====================================================== */
-async function loadMenu(){
-  const list = document.getElementById("menuList");
-  list.innerHTML = `<div class="card">載入中…</div>`;
-
-  const snap = await db.collection("menu")
-                       .orderBy("category")
-                       .get();
+  const snap = await db.collection("restaurants").orderBy("name").get();
 
   let html="";
   snap.forEach(doc=>{
@@ -756,119 +664,56 @@ async function loadMenu(){
 
     html += `
       <details>
-        <summary>${d.name}（${d.price} 元）</summary>
+        <summary>${d.name}</summary>
         <div class="card" style="margin-top:10px;">
+
           <div class="user-visible-block">
-            <label class="user-visible-label">👁️ 餐點名稱（使用者可見）</label>
-            <input value="${d.name}" data-dish-id="${doc.id}" data-dish-field="name">
+            <label class="user-visible-label">店名</label>
+            <input value="${d.name}" data-rest-id="${doc.id}" data-rest-field="name">
 
-            <label class="user-visible-label">👁️ 分類（使用者可見）</label>
-            <input value="${d.category}" list="dishCategoryList"
-                   data-dish-id="${doc.id}" data-dish-field="category">
+            <label class="user-visible-label">分類</label>
+            <input value="${d.category||""}" list="restCategoryList"
+                   data-rest-id="${doc.id}" data-rest-field="category">
 
-            <label class="user-visible-label">👁️ 價格（使用者可見）</label>
-            <input type="number" value="${d.price}" 
-                   data-dish-id="${doc.id}" data-dish-field="price">
-
-            <label class="user-visible-label">👁️ 預設數量（使用者可見）</label>
-            <input type="number" value="${d.qty||1}" 
-                   data-dish-id="${doc.id}" data-dish-field="qty">
+            <label class="user-visible-label">點餐連結</label>
+            <input value="${d.orderLink||""}" data-rest-id="${doc.id}" data-rest-field="orderLink">
           </div>
 
-          <button class="primary" onclick="saveDishOnly('${doc.id}')">儲存</button>
+          <button class="primary" onclick="saveRestaurant('${doc.id}')">儲存</button>
         </div>
       </details>
     `;
   });
 
-  list.innerHTML = html;
-  generateDishCategoryList();
+  box.innerHTML = html;
+  generateRestaurantCategoryList();
 }
 
 
 /* ======================================================
-   🍱 儲存餐點（基本欄位）
-   ====================================================== */
-async function saveDishOnly(id){
-  if(!confirmSave()) return;
-
-  const inputs = document.querySelectorAll(`[data-dish-id="${id}"]`);
-  let data = {};
-
-  inputs.forEach(inp=>{
-    if(inp.type==="number")
-      data[inp.dataset.dishField] = Number(inp.value);
-    else
-      data[inp.dataset.dishField] = inp.value;
-  });
-
-  await db.collection("menu").doc(id).update(data);
-  alert("已儲存");
-}
-
-
-/* ======================================================
-   🍱 新增餐點（含選項群組）
-   ====================================================== */
-async function saveDish(restId=null){
-  if(!confirmSave()) return;
-
-  const data = {
-    name: document.getElementById("d_name").value,
-    category: document.getElementById("d_category").value,
-    price: Number(document.getElementById("d_price").value),
-    qty: Number(document.getElementById("d_qty").value),
-    groups: currentGroups,
-    createdAt: Date.now()
-  };
-
-  await db.collection("menu").add(data);
-
-  closeDrawer();
-  loadMenu();
-}
-
-
-/* ======================================================
-   📋 餐廳分類 datalist
+   datalist 自動生成
    ====================================================== */
 async function generateRestaurantCategoryList(){
   const snap = await db.collection("restaurants").get();
   const set = new Set();
-
-  snap.forEach(doc=>{
-    const d = doc.data();
-    if(d.category) set.add(d.category);
-  });
+  snap.forEach(doc=>{ if(doc.data().category) set.add(doc.data().category); });
 
   const dl = document.getElementById("restCategoryList");
   if(dl){
     dl.innerHTML = "";
-    set.forEach(c=>{
-      dl.innerHTML += `<option value="${c}">`;
-    });
+    set.forEach(c=> dl.innerHTML += `<option value="${c}">`);
   }
 }
 
-
-/* ======================================================
-   📋 餐點分類 datalist
-   ====================================================== */
 async function generateDishCategoryList(){
   const snap = await db.collection("menu").get();
   const set = new Set();
-
-  snap.forEach(doc=>{
-    const d = doc.data();
-    if(d.category) set.add(d.category);
-  });
+  snap.forEach(doc=>{ if(doc.data().category) set.add(doc.data().category); });
 
   const dl = document.getElementById("dishCategoryList");
   if(dl){
     dl.innerHTML = "";
-    set.forEach(c=>{
-      dl.innerHTML += `<option value="${c}">`;
-    });
+    set.forEach(c=> dl.innerHTML += `<option value="${c}">`);
   }
 }
 
@@ -878,19 +723,19 @@ async function generateDishCategoryList(){
    ====================================================== */
 async function loadStaff(){
   const box = document.getElementById("staffDeptList");
-  box.innerHTML = `<div class="card">載入中...</div>`;
+  box.innerHTML = `<div class="card">載入中…</div>`;
 
   const snap = await db.collection("staff").orderBy("dept").get();
+  const map = new Map();
 
-  const deptMap = new Map();
   snap.forEach(doc=>{
     const d = doc.data();
-    if(!deptMap.has(d.dept)) deptMap.set(d.dept, []);
-    deptMap.get(d.dept).push({ id:doc.id, ...d });
+    if(!map.has(d.dept)) map.set(d.dept, []);
+    map.get(d.dept).push({id:doc.id,...d});
   });
 
-  let html = "";
-  deptMap.forEach((arr, dept)=>{
+  let html="";
+  map.forEach((arr,dept)=>{
     html += `
       <details>
         <summary>${dept}</summary>
@@ -915,10 +760,7 @@ async function saveStaff(id){
 
   const inputs = document.querySelectorAll(`[data-stf-id="${id}"]`);
   let data={};
-
-  inputs.forEach(inp=>{
-    data[inp.dataset.stfField] = inp.value;
-  });
+  inputs.forEach(inp=> data[inp.dataset.stfField] = inp.value );
 
   await db.collection("staff").doc(id).update(data);
   alert("已儲存");
@@ -942,9 +784,9 @@ document.getElementById("btnAddStaff").onclick = ()=>{
     if(!confirmSave()) return;
 
     await db.collection("staff").add({
-      name: document.getElementById("s_name").value,
-      dept: document.getElementById("s_dept").value,
-      createdAt: Date.now()
+      name:document.getElementById("s_name").value,
+      dept:document.getElementById("s_dept").value,
+      createdAt:Date.now()
     });
 
     closeDrawer();
@@ -954,7 +796,7 @@ document.getElementById("btnAddStaff").onclick = ()=>{
 
 
 /* ======================================================
-   🧾 訂單紀錄（彙整輸出）
+   🧾 訂單紀錄
    ====================================================== */
 document.getElementById("btnLoadOrders").onclick = loadOrdersByDate;
 
@@ -963,18 +805,18 @@ async function loadOrdersByDate(){
   if(!date) return alert("請選日期");
 
   const snap = await db.collection("orders")
-                       .where("date","==",date)
-                       .orderBy("createdAt")
-                       .get();
+    .where("date","==",date)
+    .orderBy("createdAt")
+    .get();
 
   const box = document.getElementById("orderList");
 
   if(snap.empty){
-    box.innerHTML = `<div class="card">此日期沒有訂單</div>`;
+    box.innerHTML = `<div class="card">沒有訂單</div>`;
     return;
   }
 
-  let html=`
+  let html = `
     <div class="card">
       <table>
         <tr>
@@ -987,7 +829,7 @@ async function loadOrdersByDate(){
 
   snap.forEach(doc=>{
     const o = doc.data();
-    html+=`
+    html += `
       <tr>
         <td>${o.userName}</td>
         <td>${o.itemName}</td>
@@ -997,7 +839,7 @@ async function loadOrdersByDate(){
     `;
   });
 
-  html+=`</table></div>`;
+  html += `</table></div>`;
   box.innerHTML = html;
 }
 
@@ -1012,25 +854,24 @@ async function loadStatsByDate(){
   if(!date) return alert("請選日期");
 
   const snap = await db.collection("orders")
-                       .where("date","==",date)
-                       .get();
+    .where("date","==",date)
+    .get();
 
   const box = document.getElementById("statsTable");
 
   if(snap.empty){
-    box.innerHTML = `<div class="card">此日期沒有訂單</div>`;
+    box.innerHTML = `<div class="card">沒有訂單</div>`;
     return;
   }
 
   const map = new Map();
-
   snap.forEach(doc=>{
     const o = doc.data();
     if(!map.has(o.restaurant)) map.set(o.restaurant, 0);
     map.set(o.restaurant, map.get(o.restaurant) + o.price);
   });
 
-  let html=`
+  let html = `
     <div class="card">
       <table>
         <tr>
@@ -1039,43 +880,39 @@ async function loadStatsByDate(){
         </tr>
   `;
 
-  map.forEach((amt,name)=>{
-    html+=`<tr><td>${name}</td><td>${amt}</td></tr>`;
+  map.forEach((amt, name)=>{
+    html += `<tr><td>${name}</td><td>${amt}</td></tr>`;
   });
 
-  html+=`</table></div>`;
+  html += `</table></div>`;
   box.innerHTML = html;
 }
 
 
 /* ======================================================
-   🔍 搜尋（餐廳 / 餐點）
+   搜尋
    ====================================================== */
 document.getElementById("search_restaurant").oninput = function(){
   const q = this.value.trim();
-  const items = document.querySelectorAll("#restaurantList details");
-  items.forEach(it=>{
-    it.style.display = it.querySelector("summary").innerText.includes(q) ? "" : "none";
-  });
+  document.querySelectorAll("#restaurantList details")
+    .forEach(it => it.style.display = it.querySelector("summary").innerText.includes(q) ? "" : "none");
 };
 
 document.getElementById("search_menu").oninput = function(){
   const q = this.value.trim();
-  const items = document.querySelectorAll("#menuList details");
-  items.forEach(it=>{
-    it.style.display = it.querySelector("summary").innerText.includes(q) ? "" : "none";
-  });
+  document.querySelectorAll("#menuList details")
+    .forEach(it => it.style.display = it.querySelector("summary").innerText.includes(q) ? "" : "none");
 };
 
 
 /* ======================================================
-   🚀 初始化全部功能
+   🚀 初始化
    ====================================================== */
 loadRestaurants();
 loadMenu();
 loadStaff();
-
 </script>
 
 </body>
 </html>
+
