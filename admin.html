@@ -1877,7 +1877,7 @@ if (r_closed) {
         `);
       }
 
-      wrap.innerHTML = blocks.join("");
+      wrap.innerHTML = visibleHTML + blocks.join("");
 
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
