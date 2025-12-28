@@ -341,16 +341,19 @@
               </label>
             </div>
 
-            <div class="row">
-              <div>
-                <label>Line QR Code 圖片網址（可空）</label>
-                <input id="r_lineQrUrl" autocomplete="off" placeholder="https://...png（QR code 圖）"/>
-              </div>
-              <div class="muted" style="display:flex; align-items:end"></div>
-            </div>
+           <div class="row">
+  <div>
+    <label>店家點餐連結（可空，僅管理端使用）</label>
+    <input id="r_lineQrUrl" autocomplete="off"
+           placeholder="https://...（例如 Google 表單 / 其他點餐頁）"/>
+  </div>
+  <div class="muted" style="display:flex; align-items:end">
+    （此連結不會顯示在使用者訂餐頁）
+  </div>
+</div>
 
-            <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
-            <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
+<img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
+<!-- 不再需要 r_lineQrPrev，整個刪掉 -->
 
             <div class="row">
               <div class="chkline" style="margin-top:12px">
