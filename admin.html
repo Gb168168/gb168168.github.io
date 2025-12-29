@@ -1522,23 +1522,6 @@ arr.sort((a,b)=>{
     // 🧾 重畫畫面
     wrap.innerHTML = blocks.join("");
 
-        // 🔚 每個分類外層 blocks
-        blocks.push(`
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:rgba(255,255,255,.9); margin-top:12px;">
-            <summary>
-              <span style="font-size:15px">${esc(cat)}</span>
-              <span class="tag" style="margin-left:8px">${list.length} 家</span>
-            </summary>
-            <div style="margin-top:10px">
-              ${inner.join("")}
-            </div>
-          </details>
-        `);
-      } // 🔚 for (const cat of categoryKeys)
-
-      // 寫回畫面
-      wrap.innerHTML = blocks.join("");
-
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
           const rid = btn.dataset.openimg;
