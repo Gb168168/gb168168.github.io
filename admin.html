@@ -1584,60 +1584,105 @@ arr.sort((a,b)=>{
     }
 
     async function refreshRestaurantsManage(){
-      const wrap = $("restaurantsWrap");
-      wrap.innerHTML = `<div class="muted">載入中…</div>`;
+     const wrap = $("restaurantsWrap");
+     const bar  = $("visibleRestBar");   // 🆕 上面那條顯示用
+  wrap.innerHTML = `<div class="muted">載入中…</div>`;
+  if (bar){
+    bar.style.display = "none";
+    bar.textContent   = "";
+  }
 
-      let restaurants = [];
-      try{
-        const snap = await getDocs(query(colRestaurants, limit(1200)));
-        snap.forEach(d=> restaurants.push({ id:d.id, ...d.data() }));
+  let restaurants = [];
+  try{
+    const snap = await getDocs(query(colRestaurants, limit(1200)));
+    snap.forEach(d=> restaurants.push({ id:d.id, ...(d.data()||{}) }));
 
-        restaurants.sort((a,b)=>{
-          const aa = toMs(a.createdAt||0), bb = toMs(b.createdAt||0);
-          if(bb !== aa) return bb - aa;
-          return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-        });
-      }catch(err){
-        console.error(err);
-        wrap.innerHTML = `<div class="muted">無法讀取餐廳<br/>${esc(err?.message || err)}</div>`;
-        return;
-      }
+    // 原本的排序：新→舊，再依店名
+    restaurants.sort((a,b)=>{
+      const aa = toMs(a.createdAt||0), bb = toMs(b.createdAt||0);
+      if(bb !== aa) return bb - aa;
+      return (a.name||"").localeCompare((b.name||""),"zh-Hant");
+    });
+  }catch(err){
+    console.error(err);
+    wrap.innerHTML = `<div class="muted">無法讀取餐廳<br/>${esc(err?.message || err)}</div>`;
+    return;
+  }
 
-      if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
+  if(restaurants.length===0){
+    wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`;
+    if (bar){
+      bar.style.display = "";
+      bar.className = "alertBar alertWarn";
+      bar.textContent = "目前尚未新增任何餐廳。";
+    }
+    return;
+  }
 
-      // ✅ 依餐廳的 category 欄位分組
-      const map = new Map();
-      for(const r of restaurants){
-        const cat = (r.category||"").trim() || "未分類";
-        if(!map.has(cat)) map.set(cat, []);
-        map.get(cat).push(r);
-      }
+  /* 🆕 顯示「目前使用者顯示中的餐廳」 */
+  const visibleList = restaurants.filter(r => r.isVisible !== false);
+  if (bar){
+    if (visibleList.length === 0){
+      bar.style.display = "";
+      bar.className = "alertBar alertWarn";
+      bar.innerHTML = `目前 <b>沒有</b> 任何餐廳對使用者顯示。`;
+    }else{
+      const names = visibleList.map(r => esc(r.name || "")).join("、");
+      bar.style.display = "";
+      bar.className = "alertBar alertOk";
+      bar.innerHTML = `
+        目前共有 <b>${visibleList.length}</b> 家餐廳對使用者顯示：<br>
+        ${names}
+      `;
+    }
+  }
 
-      const categoryKeys = Array.from(map.keys()).sort((a,b)=>{
-        if(a==="未分類" && b!=="未分類") return 1;
-        if(b==="未分類" && a!=="未分類") return -1;
-        return a.localeCompare(b,"zh-Hant");
-      });
+  // ✅ 以下維持你原本的分類收合邏輯
+  const map = new Map();
+  for(const r of restaurants){
+    const cat = (r.category||"").trim() || "未分類";
+    if(!map.has(cat)) map.set(cat, []);
+    map.get(cat).push(r);
+  }
 
-      const blocks = [];
+  const categoryKeys = Array.from(map.keys()).sort((a,b)=>{
+    if(a==="未分類" && b!=="未分類") return 1;
+    if(b==="未分類" && a!=="未分類") return -1;
+    return a.localeCompare(b,"zh-Hant");
+  });
 
-      for(const cat of categoryKeys){
-        const list = map.get(cat) || [];
-        const inner = [];
+  const blocks = [];
 
-        for(const r of list){
-          const menus = await loadMenusOfRestaurant(r.id);
+  for(const cat of categoryKeys){
+    const list = map.get(cat) || [];
+    const inner = [];
 
-          const isVisible = (r.isVisible !== false);
-          const isClosed = !!r.isClosed;
+    for(const r of list){
+      const menus = await loadMenusOfRestaurant(r.id);
 
-          const visibleTag = isVisible
-            ? `<span class="tag stateGood" style="margin-left:10px">使用者顯示</span>`
-            : `<span class="tag stateBad" style="margin-left:10px">使用者隱藏</span>`;
+      const isVisible = (r.isVisible !== false);
+      const isClosed  = !!r.isClosed;
 
-          const closedTag = isClosed
-            ? `<span class="tag stateBad" style="margin-left:6px">已結單</span>`
-            : `<span class="tag stateGood" style="margin-left:6px">開單中</span>`;
+      const visibleTag = isVisible
+        ? `<span class="tag stateGood" style="margin-left:10px">使用者顯示</span>`
+        : `<span class="tag stateBad"  style="margin-left:10px">使用者隱藏</span>`;
+
+      const closedTag = isClosed
+        ? `<span class="tag stateBad"  style="margin-left:6px">已結單</span>`
+        : `<span class="tag stateGood" style="margin-left:6px">開單中</span>`;
+
+      // ...（下面 menuRows、整個 blocks.push(...) 保持你原本的內容）
+      // 這一段你只要把原本 function 裡後半段貼回來就好
+    }
+
+    // blocks.push(...) 那坨也照原本的
+  }
+
+  wrap.innerHTML = blocks.join("");
+
+  // 原本你對 input / checkbox 綁事件的那部分一樣放在這裡
+}
+
 
           // ✅ weeklyOff + 營業時間：summary 直接顯示
           const weeklyOffArr = Array.isArray(r.weeklyOff) ? r.weeklyOff : [];
