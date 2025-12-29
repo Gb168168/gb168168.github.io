@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理1</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1691,7 +1691,7 @@ arr.sort((a,b)=>{
 }
 
 
-          // ✅ weeklyOff + 營業時間：summary 直接顯示
+                // ✅ weeklyOff + 營業時間：summary 直接顯示
           const weeklyOffArr = Array.isArray(r.weeklyOff) ? r.weeklyOff : [];
           const weeklyOffLabel = weeklyOffArr.length ? weeklyOffArr.join("・") : "";
           const weeklyOffTag = weeklyOffLabel
@@ -1903,7 +1903,9 @@ arr.sort((a,b)=>{
               ${addForm}
             </details>
           `);
-        
+        } // 🔚 for (const r of list)
+
+        // 🔚 每個分類外層 blocks
         blocks.push(`
           <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:rgba(255,255,255,.9); margin-top:12px;">
             <summary>
@@ -1915,8 +1917,9 @@ arr.sort((a,b)=>{
             </div>
           </details>
         `);
-     
+      } // 🔚 for (const cat of categoryKeys)
 
+      // 寫回畫面
       wrap.innerHTML = blocks.join("");
 
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
