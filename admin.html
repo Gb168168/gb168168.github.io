@@ -560,30 +560,30 @@
       <!-- VIEW: 餐廳管理 -->
       <section class="view" id="view_restaurants" style="display:none">
         <div class="card" style="margin-top:14px">
-       <h3>餐廳管理（依分類收合顯示 + 可顯示/隱藏 + 可結單/開單）</h3>
+          <h3>餐廳管理（依分類收合顯示 + 可顯示/隱藏 + 可結單/開單）</h3>
 
-<!-- 🔵 🔵 🔵 在這裡插入「總覽卡片」 🔵 🔵 🔵 -->
-<div class="subcard" style="margin-top:10px; margin-bottom:10px;">
-  <div class="inline" style="justify-content:space-between; align-items:center;">
-    <div>
-      <div style="font-size:13px; font-weight:800;">顯示 & 開單中的餐廳</div>
-      <div class="muted mini">＝使用者端「看得到」且「可以送單」的店家</div>
-    </div>
-    <span class="tag" id="restActiveCount">0 家</span>
-  </div>
+          <!-- 🔵 🔵 🔵 顯示 & 開單中的餐廳：總覽卡片 🔵 🔵 🔵 -->
+          <div class="subcard" style="margin-top:10px; margin-bottom:10px;">
+            <div class="inline" style="justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:13px; font-weight:800;">顯示 & 開單中的餐廳</div>
+                <div class="muted mini">＝使用者端「看得到」且「可以送單」的店家</div>
+              </div>
+              <span class="tag" id="restActiveCount">0 家</span>
+            </div>
 
-  <div id="restActiveList" class="kpi" style="margin-top:8px">
-    <div class="muted mini">載入中…</div>
-  </div>
-</div>
-<!-- 🔵 🔵 🔵 插入結束 🔵 🔵 🔵 -->
+            <div id="restActiveList" class="kpi" style="margin-top:8px">
+              <div class="muted mini">載入中…</div>
+            </div>
+          </div>
+          <!-- 🔵 🔵 🔵 總覽卡片結束 🔵 🔵 🔵 -->
 
-<!-- 🔸 搜尋區塊（維持原位） -->
-<div class="inline" style="margin-top:10px">
-  <label style="margin:0; min-width:120px; color:var(--muted)">搜尋餐廳</label>
-  <input id="restSearchOpen" placeholder="輸入關鍵字後按 Enter (可搜店名/分類/公休日/營業時間)" style="min-width:340px">
-  <button class="btnSmall" type="button" id="btnRestSearchClear">清除</button>
-</div>
+          <!-- 🔸 搜尋區塊 -->
+          <div class="inline" style="margin-top:10px">
+            <label style="margin:0; min-width:120px; color:var(--muted)">搜尋餐廳</label>
+            <input id="restSearchOpen" placeholder="輸入關鍵字後按 Enter (可搜店名/分類/公休日/營業時間)" style="min-width:340px">
+            <button class="btnSmall" type="button" id="btnRestSearchClear">清除</button>
+          </div>
 
           <div class="hr"></div>
           <p class="muted">
@@ -750,7 +750,6 @@
       "工程師",
       "教育訓練",
       "線上客服"
-
     ];
     const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
     function deptRank(dept){
@@ -769,6 +768,9 @@
     });
 
     // ====== Views ======
+
+
+
     const pageTitle = $("pageTitle");
     const views = {
       staff: $("view_staff"),
@@ -805,6 +807,8 @@
     const colSchedules = collection(db, "schedules");
 
     // ====== 新增餐廳：圖片網址預覽 ======
+
+
     const r_imgUrl = $("r_imgUrl");
     const r_imgPrev = $("r_imgPrev");
     r_imgUrl.addEventListener("input", ()=>{
@@ -1210,71 +1214,71 @@
     /* ===== staff / restaurants / 班表 ===== */
 
     // 供班表/未點餐使用的全域人員快取
-let allStaffBase = [];
-let allStaffLoaded = false;
+    let allStaffBase = [];
+    let allStaffLoaded = false;
 
-// ✅ 只抓一次 staff，並照「部門順序 + 新增順序」排好
-async function loadAllStaffOnce(){
-  if(allStaffLoaded && allStaffBase.length) return;
+    // ✅ 只抓一次 staff，並照「部門順序 + 新增順序」排好
+    async function loadAllStaffOnce(){
+      if(allStaffLoaded && allStaffBase.length) return;
 
-  const snap = await getDocs(colStaff);
-  const arr = [];
-  snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+      const snap = await getDocs(colStaff);
+      const arr = [];
+      snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
 
-  // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
-  arr.sort((a,b)=>{
-    const da = (a.dept||"").trim();
-    const dbb = (b.dept||"").trim();
+      // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
+      arr.sort((a,b)=>{
+        const da = (a.dept||"").trim();
+        const dbb = (b.dept||"").trim();
 
-    const ra = deptRank(da);
-    const rb = deptRank(dbb);
-    if(ra !== rb) return ra - rb;
+        const ra = deptRank(da);
+        const rb = deptRank(dbb);
+        if(ra !== rb) return ra - rb;
 
-    // 同部門時，用 createdAt 由舊到新（你先加的排前面）
-    const ta = toMs(a.createdAt || 0);
-    const tb = toMs(b.createdAt || 0);
-    if(ta !== tb) return ta - tb;
+        // 同部門時，用 createdAt 由舊到新（你先加的排前面）
+        const ta = toMs(a.createdAt || 0);
+        const tb = toMs(b.createdAt || 0);
+        if(ta !== tb) return ta - tb;
 
-    // 舊資料沒有 createdAt，就退而求其次用姓名排
-    return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-  });
+        // 舊資料沒有 createdAt，就退而求其次用姓名排
+        return (a.name||"").localeCompare((b.name||""), "zh-Hant");
+      });
 
-  allStaffBase = arr;
-  allStaffLoaded = true;
-}
-
-/* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
-async function refreshStaffList(){
-  const wrap = $("staffWrap");
-  wrap.innerHTML = `<div class="muted">載入中…</div>`;
-
-  try{
-    // 用共用的快取 + 排序
-    await loadAllStaffOnce();
-    const arr = allStaffBase;
-
-    // 分組
-    const map = new Map();
-    for(const v of arr){
-      const dept = (v.dept||"未分部門").trim();
-      if(!map.has(dept)) map.set(dept, []);
-      map.get(dept).push(v);
+      allStaffBase = arr;
+      allStaffLoaded = true;
     }
 
-    if(map.size===0){
-      wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
-      return;
-    }
+    /* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
+    async function refreshStaffList(){
+      const wrap = $("staffWrap");
+      wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
-    // 依 DEPT_ORDER 輸出，未定義的排最後
-    const orderedDepts = [
-      ...DEPT_ORDER.filter(d=>map.has(d)),
-      ...Array.from(map.keys()).filter(d=>!DEPT_INDEX.has(d))
-    ];
+      try{
+        // 用共用的快取 + 排序
+        await loadAllStaffOnce();
+        const arr = allStaffBase;
 
-    wrap.innerHTML = orderedDepts.map(dept=>{
-      const list = map.get(dept) || [];
-      return `
+        // 分組
+        const map = new Map();
+        for(const v of arr){
+          const dept = (v.dept||"未分部門").trim();
+          if(!map.has(dept)) map.set(dept, []);
+          map.get(dept).push(v);
+        }
+
+        if(map.size===0){
+          wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
+          return;
+        }
+
+        // 依 DEPT_ORDER 輸出，未定義的排最後
+        const orderedDepts = [
+          ...DEPT_ORDER.filter(d=>map.has(d)),
+          ...Array.from(map.keys()).filter(d=>!DEPT_INDEX.has(d))
+        ];
+
+        wrap.innerHTML = orderedDepts.map(dept=>{
+          const list = map.get(dept) || [];
+          return `
         <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
           <summary>${esc(dept)} <span class="tag" style="margin-left:8px">${list.length}人</span></summary>
           <div style="margin-top:10px">
@@ -1287,34 +1291,34 @@ async function refreshStaffList(){
           </div>
         </details>
       `;
-    }).join("");
+        }).join("");
 
-    // 刪除人員
-    wrap.querySelectorAll("[data-delstaff]").forEach(b=>{
-      b.onclick = async ()=>{
-        if(!confirm("確定刪除該人員？")) return;
-        try{
-          await deleteDoc(doc(db,"staff", b.dataset.delstaff));
-          // 讓快取失效，下次重抓
-          allStaffLoaded = false;
-          await refreshStaffList();
-        }catch(err){
-          console.error(err);
-          alert("刪除人員失敗\n\n" + (err?.message || err));
-        }
-      };
-    });
+        // 刪除人員
+        wrap.querySelectorAll("[data-delstaff]").forEach(b=>{
+          b.onclick = async ()=>{
+            if(!confirm("確定刪除該人員？")) return;
+            try{
+              await deleteDoc(doc(db,"staff", b.dataset.delstaff));
+              // 讓快取失效，下次重抓
+              allStaffLoaded = false;
+              await refreshStaffList();
+            }catch(err){
+              console.error(err);
+              alert("刪除人員失敗\n\n" + (err?.message || err));
+            }
+          };
+        });
 
-  }catch(err){
-    console.error(err);
-    wrap.innerHTML = `
+      }catch(err){
+        console.error(err);
+        wrap.innerHTML = `
       <div class="muted">
         讀取失敗<br/>
         ${esc(err?.message || err)}
       </div>
     `;
-  }
-}
+      }
+    }
 
     $("btnAddStaff").onclick = async ()=>{
       const dept = $("s_dept").value.trim();
@@ -1322,11 +1326,11 @@ async function refreshStaffList(){
       if(!dept) return alert("請輸入部門");
       if(!name) return alert("請輸入人員名稱");
       try{
-       await addDoc(colStaff, { dept, name, createdAt: Date.now() });
-$("s_name").value="";
-statusPill.textContent = "已新增人員 ✅";
-allStaffLoaded = false;          // 👈 讓快取下次重抓
-await refreshStaffList();
+        await addDoc(colStaff, { dept, name, createdAt: Date.now() });
+        $("s_name").value="";
+        statusPill.textContent = "已新增人員 ✅";
+        allStaffLoaded = false;          // 👈 讓快取下次重抓
+        await refreshStaffList();
       }catch(err){
         console.error(err);
         alert("新增人員失敗\n\n" + (err?.message || err));
@@ -1454,6 +1458,8 @@ await refreshStaffList();
           }).join("");
 
           blocks.push(`
+
+
             <div class="schDayBlock">
               <details>
                 <summary class="schDaySummary">
@@ -1604,11 +1610,72 @@ await refreshStaffList();
           if(bb !== aa) return bb - aa;
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
+
       }catch(err){
         console.error(err);
         wrap.innerHTML = `<div class="muted">無法讀取餐廳<br/>${esc(err?.message || err)}</div>`;
         return;
       }
+
+      /* 🔵 在這裡更新「顯示 & 開單中的餐廳」總覽卡片 */
+      const activeCountEl = $("restActiveCount");
+      const activeListEl  = $("restActiveList");
+
+      if (activeCountEl && activeListEl) {
+        if (restaurants.length === 0) {
+          activeCountEl.textContent = "0 家";
+          activeListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
+        } else {
+          // 同時「使用者顯示」+「未結單」的餐廳
+          const active = restaurants.filter(r => (r.isVisible !== false) && !r.isClosed);
+
+          activeCountEl.textContent = `${active.length} 家`;
+
+          if (active.length === 0) {
+            activeListEl.innerHTML = `<div class="muted mini">
+              目前沒有「同時 顯示 + 開單」中的餐廳。
+            </div>`;
+          } else {
+            // 讓顯示順序好看點：先分類、再餐廳名稱
+            active.sort((a,b)=>{
+              const ca = (a.category || "").trim();
+              const cb = (b.category || "").trim();
+              const c = ca.localeCompare(cb, "zh-Hant");
+              if (c !== 0) return c;
+              return (a.name||"").localeCompare((b.name||""), "zh-Hant");
+            });
+
+            activeListEl.innerHTML = active.map(r => `
+              <span class="tag mini" style="cursor:pointer" data-goto-rid="${r.id}">
+                ${esc(r.name || "未命名")}
+                <span class="muted mini">｜${esc((r.category||"").trim() || "未分類")}</span>
+              </span>
+            `).join("");
+          }
+
+          // 點總覽裡的 tag 可以直接捲到該餐廳的詳細區塊
+          activeListEl.querySelectorAll("[data-goto-rid]").forEach(el => {
+            el.onclick = () => {
+              const rid = el.dataset.gotoRid;
+              const wrap = $("restaurantsWrap");
+              if (!wrap) return;
+              const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
+              const detail = btn?.closest("details");
+              if (detail) {
+                detail.open = true;
+                // 若外面還包在分類 details 裡，一併展開
+                let p = detail.parentElement;
+                while (p) {
+                  if (p.tagName === "DETAILS") p.open = true;
+                  p = p.parentElement;
+                }
+                detail.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            };
+          });
+        }
+      }
+      /* 🔵 總覽卡片更新結束 */
 
       if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
 
@@ -1663,6 +1730,7 @@ await refreshStaffList();
             : (menus.length===0)
               ? `<div class="muted" style="margin-top:8px">（此餐廳尚無餐點）</div>`
               : (()=>{
+
                   const byCat = new Map();
                   for(const m of menus){
                     const mc = (m.category||"未分類").trim() || "未分類";
