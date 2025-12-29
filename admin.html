@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理1234</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1961,6 +1961,17 @@ if (showCountEl && showListEl && openCountEl && openListEl) {
       }
 
       wrap.innerHTML = blocks.join("");
+// ⚠️ 勾選「結單」時跳出警告確認
+wrap.querySelectorAll('input[data-k="isClosed"]').forEach(ch=>{
+  ch.addEventListener("change", ()=>{
+    if (ch.checked) {
+      const ok = confirm("⚠️ 確定人員是否已點完餐？\n\n結單後使用者將無法再送單。");
+      if (!ok) {
+        ch.checked = false;   // 使用者取消 → 收回勾勾
+      }
+    }
+  });
+});
 
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
