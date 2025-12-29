@@ -2186,21 +2186,22 @@ arr.sort((a,b)=>{
     }
 
     // ✅ createdAt 日期區間查詢（給 getDocs 用）
-    async function loadOrdersByDate(dateStr){
-      const { start, end } = dayRangeMs(dateStr);
+async function loadOrdersByDate(dateStr){
+  const { start, end } = dayRangeMS(dateStr);
 
-      const snap = await getDocs(query(
-        colOrders,
-        where("createdAt", ">=", start),
-        where("createdAt", "<=", end),
-        orderBy("createdAt", "desc"),
-        limit(5000)
-      ));
+  const snap = await getDocs(query(
+    colorders,
+    where("createdAt", ">=", start),
+    where("createdAt", "<=", end),
+    orderBy("createdAt", "desc"),
+    limit(5000)
+  ));
 
-      const orders = [];
-      snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
-      return orders;
-    }
+  const orders = [];
+  snap.forEach(d => orders.push({ id: d.id, ...(d.data() || {}) }));
+
+  return orders;
+}
 
     async function deleteWholeOrder(orderId){
       if(!confirm("確定刪除整筆訂單？")) return;
