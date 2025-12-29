@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1234</title>
+  <title>GoldBricks 呷奔👽｜管理123</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -818,6 +818,24 @@
     const colOrders = collection(db, "orders");
     const colSchedules = collection(db, "schedules");
 
+   // ✅ 餐廳管理：快取每個餐點的 optionGroups，給 inline 編輯用
+let menuOptionCache = new Map();
+
+// 深拷貝成乾淨的 optionGroups 結構（寫回 Firestore 用）
+function cloneOptionGroups(src){
+  const arr = Array.isArray(src) ? src : [];
+  return arr.map(g => ({
+    name: g.name || "",
+    type: g.type === "addon" ? "addon" : "single",
+    required: !!g.required,
+    choices: Array.isArray(g.choices)
+      ? g.choices.map(c => ({
+          name: c.name || "",
+          price: Number(c.price || 0)
+        }))
+      : []
+  }));
+}
     // ====== 新增餐廳：圖片網址預覽 ======
 
 
