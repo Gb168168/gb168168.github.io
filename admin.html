@@ -1602,7 +1602,7 @@ arr.sort((a,b)=>{
   let restaurants = [];
   try{
     const snap = await getDocs(query(colRestaurants, limit(1200)));
-    snap.forEach(d=> restaurants.push({ id:d.id, ...(d.data()||{}) }));
+    snap.forEach(d=> restaurants.push({ id:d.id, ...(d.data() || {}) }));
 
     // 原本的排序：新→舊，再依店名
     restaurants.sort((a,b)=>{
