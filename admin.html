@@ -2595,21 +2595,32 @@ async function setupOrdersLive(dateStr){
     }
 
     $("btnLoadOrders").onclick = async ()=>{
-      const date = $("o_date").value;
-      if(!date) return alert("請選日期");
+  const date = $("o_date").value;
+  if(!date) return alert("請選日期");
 
-      try{
-        statusPill.textContent = "載入訂單中…";
-        await loadAllStaffOnce(); // 讓未點餐提示有 staff 名單
-        await setupOrdersLive(date); // 會自動更新畫面 + 未點餐提醒（B）
-      }catch(err){
-        console.error(err);
-        $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
-        $("ordersDetailOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
-        alert("讀取訂單失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "讀取失敗（看 console）";
-      }
-    };
+  try{
+    statusPill.textContent = "載入訂單中…";
+
+    // ⭐ 這一句非常重要：未點餐提示需要 staff 名單
+    await loadAllStaffOnce();
+
+    // ⭐ 啟動即時監聽 + 更新畫面
+    await setupOrdersLive(date);
+
+  }catch(err){
+    console.error(err);
+
+    $("ordersSummaryOut").innerHTML = 
+      `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+
+    $("ordersDetailOut").innerHTML = 
+      `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+
+    alert("讀取訂單失敗\n\n" + (err?.message || err));
+
+    statusPill.textContent = "讀取失敗（看 console）";
+  }
+};
 
     $("btnExportExcel").onclick = async ()=>{
       const date = $("o_date").value;
