@@ -2002,13 +2002,16 @@ if (showCountEl && showListEl && openCountEl && openListEl) {
         <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
       </td>
     </tr>
-    <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
-      <td colspan="6">
-        <div class="muted mini">
-          可在這裡編輯「擇一 / 加購」選項群組，編輯完成後請按上方「儲存」。
-        </div>
-      </td>
-    </tr>
+   <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
+  <td colspan="6">
+    <div class="muted mini" style="margin-bottom:6px">
+      可在這裡編輯「擇一 / 加購」選項群組，編輯完成後請按上方「儲存」。
+    </div>
+    <!-- ✅ 真正渲染選項群組編輯 UI 的容器 -->
+    <div class="optEditorBox" data-opt-editor="${r.id}__${m.id}"></div>
+  </td>
+</tr>
+
   `;
 }).join("")}
                         </tbody>
@@ -2295,7 +2298,33 @@ wrap.querySelectorAll('input[data-k="isClosed"]').forEach(ch=>{
         };
       });
 
-      wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
+      // ✅ 「選項群組」按鈕：展開 / 收合 + 呼叫 inline 編輯器
+      wrap.querySelectorAll("button[data-editopt]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.rid;
+          const mid = btn.dataset.mid;
+          const key = `${rid}__${mid}`;
+
+          // 找到對應那一行「編輯區」
+          const row = wrap.querySelector(`.menuOptEditorRow[data-opt-row="${key}"]`);
+          if(!row) return;
+          const box = row.querySelector('[data-opt-editor]');
+          if(!box) return;
+
+          const isOpen = row.style.display !== "none";
+          if(isOpen){
+            // 已經展開 → 再按一次就收合
+            row.style.display = "none";
+            return;
+          }
+
+          // 原本是收合 → 展開並渲染 UI
+          row.style.display = "";
+          renderMenuOptionEditor(rid, mid, box);
+        };
+      });
+
+            wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.rid;
           const mid = b.dataset.mid;
@@ -2303,10 +2332,20 @@ wrap.querySelectorAll('input[data-k="isClosed"]').forEach(ch=>{
           const patch = {};
           els.forEach(el=>{
             const k = el.dataset.k;
-            patch[k] = (k==="price" || k==="defaultQty") ? Number(el.value||0) : el.value.trim();
+            patch[k] = (k==="price" || k==="defaultQty")
+              ? Number(el.value||0)
+              : el.value.trim();
           });
           patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
           patch.price = Math.max(0, Number(patch.price||0));
+
+          // ✅ 把目前快取的選項群組一起寫回去（可選要不要用）
+          const ogKey = `${rid}__${mid}`;
+          const og = menuOptionCache.get(ogKey);
+          if(Array.isArray(og)){
+            patch.optionGroups = cloneOptionGroups(og);
+          }
+
           try{
             await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
             statusPill.textContent = "餐點已儲存 ✅";
