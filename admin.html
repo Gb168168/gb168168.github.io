@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1</title>
+  <title>GoldBricks 呷奔👽｜管理12</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1545,19 +1545,26 @@ arr.sort((a,b)=>{
       if(inp) inp.value = "";
     });
 
+    // ✅ 讀取某餐廳的餐點清單
     async function loadMenusOfRestaurant(rid){
-      try{
-        const menuCol = collection(db, "restaurants", rid, "menu");
-        const snap = await getDocs(query(menuCol, limit(2500)));
-        const list = [];
-        snap.forEach(d=> list.push({ id:d.id, ...d.data() }));
-        list.sort((a,b)=> Number(toMs(b.createdAt||0)) - Number(toMs(a.createdAt||0)));
-        return list;
-      }catch(err){
-        console.error(err);
-        return null;
-      }
-    }
+     try{
+    const menuCol = collection(db, "restaurants", rid, "menu");
+    const snap = await getDocs(
+      query(menuCol, orderBy("createdAt","desc"), limit(2500))
+    );
+    const list = [];
+    // 這裡原本是 push({ id:d.id, .d.data() })
+    snap.forEach(d=> list.push({ id:d.id, ...(d.data() || {}) }));
+
+    list.sort(
+      (a,b)=> Number(toMs(b.createdAt||0)) - Number(toMs(a.createdAt||0))
+    );
+    return list;
+  }catch(err){
+    console.error(err);
+    return null;
+  }
+}
 
     function optionGroupsSummary(groups){
       const gs = Array.isArray(groups) ? groups : [];
