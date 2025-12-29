@@ -2185,12 +2185,12 @@ arr.sort((a,b)=>{
       return orders;
     }
 
-    // ✅ createdAt 日期區間查詢（給 getDocs 用）
+   // ✅ createdAt 日期區間查詢（給 getDocs 用）
 async function loadOrdersByDate(dateStr){
-  const { start, end } = dayRangeMS(dateStr);
+  const { start, end } = dayRangeMs(dateStr);
 
   const snap = await getDocs(query(
-    colorders,
+    colOrders,
     where("createdAt", ">=", start),
     where("createdAt", "<=", end),
     orderBy("createdAt", "desc"),
@@ -2198,7 +2198,7 @@ async function loadOrdersByDate(dateStr){
   ));
 
   const orders = [];
-  snap.forEach(d => orders.push({ id: d.id, ...(d.data() || {}) }));
+  snap.forEach(d => orders.push({ id:d.id, ...(d.data() || {}) }));
 
   return orders;
 }
