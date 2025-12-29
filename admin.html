@@ -929,7 +929,8 @@ $("btnSubmitAll").onclick = async ()=>{
    ========================================================= */
 let allStaffBase   = [];
 let allStaffLoaded = false;
-
+let staffOpenDepts = new Set();   // 記住目前有展開的部門
+    
 async function loadAllStaffOnce(){
   if (allStaffLoaded && allStaffBase.length) return allStaffBase;
 
