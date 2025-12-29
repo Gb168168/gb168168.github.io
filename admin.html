@@ -2545,28 +2545,30 @@ async function loadOrdersByDate(dateStr){
       }
     });
 
-    async function setupOrdersLive(dateStr){
-      const { start, end } = dayRangeMs(dateStr);
-      if(ordersUnsub){
-        ordersUnsub();
-        ordersUnsub = null;
-      }
+   // ✅ 建立即時訂單監聽（訂餐紀錄右半邊）
+async function setupOrdersLive(dateStr){
+  const { start, end } = dayRangeMs(dateStr);
 
- const qOrders = query(
-  colorders,
-  where("createdAt", ">=", start),
-  where("createdAt", "<=", end),
-  orderBy("createdAt", "desc"),
-  limit(5000)
-);
+  // 先關閉舊監聽
+  if(ordersUnsub){
+    ordersUnsub();
+    ordersUnsub = null;
+  }
 
-ordersUnsub = onSnapshot(qOrders, (snap)=>{
-  (async ()=>{
+  const qOrders = query(
+    colOrders,
+    where("createdAt", ">=", start),
+    where("createdAt", "<=", end),
+    orderBy("createdAt", "desc"),
+    limit(5000)
+  );
+
+  ordersUnsub = onSnapshot(qOrders, (snap)=>{
     const orders = [];
-    snap.forEach(d => orders.push({ id: d.id, ...(d.data() || {}) }));
+    snap.forEach(d => orders.push({ id:d.id, ...(d.data() || {}) }));
     lastLoadedOrders = orders;
 
-    if(orders.length){
+    if(!orders.length){
       $("ordersSummaryOut").innerHTML = '<div class="muted">此日期沒有訂單</div>';
       $("ordersDetailOut").innerHTML  = '<div class="muted">此日期沒有訂單</div>';
       statusPill.textContent = "已載入（目前無訂單）";
@@ -2574,13 +2576,16 @@ ordersUnsub = onSnapshot(qOrders, (snap)=>{
       const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
       $("ordersSummaryOut").innerHTML = summaryHTML;
       $("ordersDetailOut").innerHTML  = detailHTML;
+
       bindOrderDeleteButtons();
       statusPill.textContent = "已載入 ✓（即時更新中）";
     }
 
-    await checkNotOrderedForDate(dateStr, orders, false);
-  })();
-});
+    // 未點餐提醒（這裡 catch 不會打斷監聽）
+    checkNotOrderedForDate(dateStr, orders, false).catch(console.error);
+  });
+}
+
         console.error(err);
         $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
         $("ordersDetailOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
