@@ -1199,22 +1199,23 @@
     // 供班表/未點餐使用的全域人員快取
     let allStaffBase = [];
     let allStaffLoaded = false;
-    async function loadAllStaffOnce(){
-      if(allStaffLoaded && allStaffBase.length) return;
-      const snap = await getDocs(colStaff);
-      const arr = [];
-      snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
-      // 依部門順序 + 人名排序
-      arr.sort((a,b)=>{
-        const da = (a.dept||"").trim();
-        const dbb = (b.dept||"").trim();
-        const ra = deptRank(da), rb = deptRank(dbb);
-        if(ra !== rb) return ra - rb;
-        return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-      });
-      allStaffBase = arr;
-      allStaffLoaded = true;
-    }
+      // ✅ 依部門順序 +「新增順序」排序（同部門內照你新增順序）
+   arr.sort((a,b)=>{
+    const da = (a.dept||"").trim();
+    const dbb = (b.dept||"").trim();
+
+    const ra = deptRank(da);
+    const rb = deptRank(dbb);
+    if(ra !== rb) return ra - rb;
+
+    // 同部門時，用 createdAt 由舊到新（你先加的排前面）
+    const ta = toMs(a.createdAt || 0);
+    const tb = toMs(b.createdAt || 0);
+    if(ta !== tb) return ta - tb;
+
+    // 萬一舊資料沒有 createdAt，就退而求其次用姓名排
+    return (a.name||"").localeCompare((b.name||""), "zh-Hant");
+  });
 
     /* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
     async function refreshStaffList(){
