@@ -1308,10 +1308,11 @@ async function refreshStaffList(){
       if(!dept) return alert("請輸入部門");
       if(!name) return alert("請輸入人員名稱");
       try{
-        await addDoc(colStaff, { dept, name, createdAt: Date.now() });
-        $("s_name").value="";
-        statusPill.textContent = "已新增人員 ✅";
-        await refreshStaffList();
+       await addDoc(colStaff, { dept, name, createdAt: Date.now() });
+$("s_name").value="";
+statusPill.textContent = "已新增人員 ✅";
+allStaffLoaded = false;          // 👈 讓快取下次重抓
+await refreshStaffList();
       }catch(err){
         console.error(err);
         alert("新增人員失敗\n\n" + (err?.message || err));
