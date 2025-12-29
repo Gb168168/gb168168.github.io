@@ -2395,6 +2395,9 @@ wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
             const menuCol = collection(db, "restaurants", rid, "menu");
             await addDoc(menuCol, { category, name, price, defaultQty, optionGroups: [], createdAt: Date.now() });
 
+    // 清空欄位 + refreshRestaurantsManage()
+  };
+});
             statusPill.textContent = "已新增餐點 ✅";
 
             const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
