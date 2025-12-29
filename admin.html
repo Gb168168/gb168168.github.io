@@ -1204,9 +1204,9 @@ let allStaffLoaded = false;
 
 async function loadAllStaffOnce(){
   if(allStaffLoaded && allStaffBase.length) return;
-  const snap = await getDocs(colStaff);
-  const arr = [];
-  snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+   const snap = await getDocs(colStaff);
+   const arr = [];
+   snap.forEach(d=> arr.push({ id:d.id, ...(d.data() || {}) }));
 
   // 🆕 部門依 DEPT_ORDER，部門內照新增順序(createdAt)
   arr.sort((a,b)=>{
