@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1</title>
+  <title>GoldBricks 呷奔👽｜管理12</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2325,51 +2325,61 @@ wrap.querySelectorAll('input[data-k="isClosed"]').forEach(ch=>{
       });
 
             wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
-        b.onclick = async ()=>{
-          const rid = b.dataset.rid;
-          const mid = b.dataset.mid;
-          const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
-          const patch = {};
-          els.forEach(el=>{
-            const k = el.dataset.k;
-            patch[k] = (k==="price" || k==="defaultQty")
-              ? Number(el.value||0)
-              : el.value.trim();
-          });
-          patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
-          patch.price = Math.max(0, Number(patch.price||0));
+  b.onclick = async ()=>{
+    const rid = b.dataset.rid;
+    const mid = b.dataset.mid;
 
-          // ✅ 把目前快取的選項群組一起寫回去（可選要不要用）
-          const ogKey = `${rid}__${mid}`;
-          const og = menuOptionCache.get(ogKey);
-          if(Array.isArray(og)){
-            patch.optionGroups = cloneOptionGroups(og);
-          }
+    // 1. 抓這一列的基本欄位
+    const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
+    const patch = {};
+    els.forEach(el=>{
+      const k = el.dataset.k;
+      patch[k] = (k==="price" || k==="defaultQty")
+        ? Number(el.value||0)
+        : el.value.trim();
+    });
+    patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
+    patch.price = Math.max(0, Number(patch.price||0));
 
-          try{
-            await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
-            statusPill.textContent = "餐點已儲存 ✅";
-          }catch(err){
-            console.error(err);
-            alert("儲存餐點失敗\n\n" + (err?.message || err));
-          }
-        };
-      });
+    // 2. 把目前快取的選項群組（你在下方編輯的）一起寫入 Firestore
+    const ogKey = `${rid}__${mid}`;
+    const og = menuOptionCache.get(ogKey);
+    if(Array.isArray(og)){
+      patch.optionGroups = cloneOptionGroups(og);
+    }
 
-      wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
-        b.onclick = async ()=>{
-          const rid = b.dataset.rid;
-          const mid = b.dataset.mid;
-          if(!confirm("確定刪除餐點？")) return;
-          try{
-            await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
-            await refreshRestaurantsManage();
-          }catch(err){
-            console.error(err);
-            alert("刪除餐點失敗\n\n" + (err?.message || err));
-          }
-        };
-      });
+    try{
+      statusPill.textContent = "餐點儲存中…";
+
+      // 3. 寫進 Firestore
+      await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+
+      statusPill.textContent = "餐點已儲存 ✅";
+
+      // 4. 重新載入餐廳資料（讓「選項群組摘要」馬上更新）
+      await refreshRestaurantsManage();
+    }catch(err){
+      console.error(err);
+      alert("儲存餐點失敗\n\n" + (err?.message || err));
+      statusPill.textContent = "餐點儲存失敗（看 console）";
+    }
+  };
+});
+
+wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
+  b.onclick = async ()=>{
+    const rid = b.dataset.rid;
+    const mid = b.dataset.mid;
+    if(!confirm("確定刪除餐點？")) return;
+    try{
+      await deleteDoc(doc(db,"restaurants", rid, "menu", mid));
+      await refreshRestaurantsManage();
+    }catch(err){
+      console.error(err);
+      alert("刪除餐點失敗\n\n" + (err?.message || err));
+    }
+  };
+});
 
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
