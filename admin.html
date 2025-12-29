@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理1234</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1196,10 +1196,19 @@
     /* ===== staff / restaurants / 班表 ===== */
 
     // 供班表/未點餐使用的全域人員快取
-    let allStaffBase = [];
-    let allStaffLoaded = false;
-      // ✅ 依部門順序 +「新增順序」排序（同部門內照你新增順序）
-   arr.sort((a,b)=>{
+let allStaffBase = [];
+let allStaffLoaded = false;
+
+// ✅ 只抓一次 staff，並照「部門順序 + 新增順序」排好
+async function loadAllStaffOnce(){
+  if(allStaffLoaded && allStaffBase.length) return;
+
+  const snap = await getDocs(colStaff);
+  const arr = [];
+  snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+
+  // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
+  arr.sort((a,b)=>{
     const da = (a.dept||"").trim();
     const dbb = (b.dept||"").trim();
 
@@ -1212,98 +1221,86 @@
     const tb = toMs(b.createdAt || 0);
     if(ta !== tb) return ta - tb;
 
-    // 萬一舊資料沒有 createdAt，就退而求其次用姓名排
+    // 舊資料沒有 createdAt，就退而求其次用姓名排
     return (a.name||"").localeCompare((b.name||""), "zh-Hant");
   });
 
-    /* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
-    async function refreshStaffList(){
-      const wrap = $("staffWrap");
-      wrap.innerHTML = `<div class="muted">載入中…</div>`;
+  allStaffBase = arr;
+  allStaffLoaded = true;
+}
 
-      try{
-        const snap = await getDocs(colStaff);
-        const arr = [];
-        snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+/* ✅ 人員清單：依指定部門順序（管理部→新場→...→教育訓練） */
+async function refreshStaffList(){
+  const wrap = $("staffWrap");
+  wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
-               // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
-        arr.sort((a,b)=>{
-          const da = (a.dept||"").trim();
-          const dbb = (b.dept||"").trim();
+  try{
+    // 用共用的快取 + 排序
+    await loadAllStaffOnce();
+    const arr = allStaffBase;
 
-          const ra = deptRank(da);
-          const rb = deptRank(dbb);
-          if(ra !== rb) return ra - rb;
-
-          const ta = toMs(a.createdAt || 0);
-          const tb = toMs(b.createdAt || 0);
-          if(ta !== tb) return ta - tb;
-
-          return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-        });
-
-        allStaffBase = arr;
-        allStaffLoaded = true;
-
-        // 分組
-        const map = new Map();
-        for(const v of arr){
-          const dept = (v.dept||"未分部門").trim();
-          if(!map.has(dept)) map.set(dept, []);
-          map.get(dept).push(v);
-        }
-
-        if(map.size===0){
-          wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
-          return;
-        }
-
-        // 依 DEPT_ORDER 輸出，未定義的排最後
-        const orderedDepts = [
-          ...DEPT_ORDER.filter(d=>map.has(d)),
-          ...Array.from(map.keys()).filter(d=>!DEPT_INDEX.has(d))
-        ];
-
-        wrap.innerHTML = orderedDepts.map(dept=>{
-          const list = map.get(dept) || [];
-          return `
-            <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
-              <summary>${esc(dept)} <span class="tag" style="margin-left:8px">${list.length}人</span></summary>
-              <div style="margin-top:10px">
-                ${list.map(p=>`
-                  <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
-                    <div><b>${esc(p.name||"")}</b></div>
-                    <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
-                  </div>
-                `).join("")}
-              </div>
-            </details>
-          `;
-        }).join("");
-
-        wrap.querySelectorAll("button[data-delstaff]").forEach(b=>{
-          b.onclick = async ()=>{
-            if(!confirm("確定刪除該人員？")) return;
-            try{
-              await deleteDoc(doc(db,"staff", b.dataset.delstaff));
-              await refreshStaffList();
-            }catch(err){
-              console.error(err);
-              alert("刪除人員失敗\n\n" + (err?.message || err));
-            }
-          };
-        });
-
-      }catch(err){
-        console.error(err);
-        wrap.innerHTML = `
-          <div class="muted">
-            讀取失敗<br/>
-            ${esc(err?.message || err)}
-          </div>
-        `;
-      }
+    // 分組
+    const map = new Map();
+    for(const v of arr){
+      const dept = (v.dept||"未分部門").trim();
+      if(!map.has(dept)) map.set(dept, []);
+      map.get(dept).push(v);
     }
+
+    if(map.size===0){
+      wrap.innerHTML = `<div class="muted">尚未新增人員</div>`;
+      return;
+    }
+
+    // 依 DEPT_ORDER 輸出，未定義的排最後
+    const orderedDepts = [
+      ...DEPT_ORDER.filter(d=>map.has(d)),
+      ...Array.from(map.keys()).filter(d=>!DEPT_INDEX.has(d))
+    ];
+
+    wrap.innerHTML = orderedDepts.map(dept=>{
+      const list = map.get(dept) || [];
+      return `
+        <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; margin-bottom:10px; background:#fff">
+          <summary>${esc(dept)} <span class="tag" style="margin-left:8px">${list.length}人</span></summary>
+          <div style="margin-top:10px">
+            ${list.map(p=>`
+              <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
+                <div><b>${esc(p.name||"")}</b></div>
+                <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
+              </div>
+            `).join("")}
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    // 刪除人員
+    wrap.querySelectorAll("[data-delstaff]").forEach(b=>{
+      b.onclick = async ()=>{
+        if(!confirm("確定刪除該人員？")) return;
+        try{
+          await deleteDoc(doc(db,"staff", b.dataset.delstaff));
+          // 讓快取失效，下次重抓
+          allStaffLoaded = false;
+          await refreshStaffList();
+        }catch(err){
+          console.error(err);
+          alert("刪除人員失敗\n\n" + (err?.message || err));
+        }
+      };
+    });
+
+  }catch(err){
+    console.error(err);
+    wrap.innerHTML = `
+      <div class="muted">
+        讀取失敗<br/>
+        ${esc(err?.message || err)}
+      </div>
+    `;
+  }
+}
 
     $("btnAddStaff").onclick = async ()=>{
       const dept = $("s_dept").value.trim();
