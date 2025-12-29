@@ -1629,64 +1629,71 @@
         return;
       }
 
-      /* 🔵 在這裡更新「顯示 & 開單中的餐廳」總覽卡片 */
-      const activeCountEl = $("restActiveCount");
-      const activeListEl  = $("restActiveList");
+    /* 🔵 更新上方兩張統計卡片：顯示中的 / 開單中的 */
+const showCountEl = $("restShowCount");
+const showListEl  = $("restShowList");
+const openCountEl = $("restOpenCount");
+const openListEl  = $("restOpenList");
 
-      if (activeCountEl && activeListEl) {
-        if (restaurants.length === 0) {
-          activeCountEl.textContent = "0 家";
-          activeListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
-        } else {
-          // 同時「使用者顯示」+「未結單」的餐廳
-          const active = restaurants.filter(r => (r.isVisible !== false) && !r.isClosed);
+if (showCountEl && showListEl && openCountEl && openListEl) {
+  if (restaurants.length === 0) {
+    showCountEl.textContent = "0 家";
+    openCountEl.textContent = "0 家";
+    showListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
+    openListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
+  } else {
+    const visibleList = restaurants.filter(r => (r.isVisible !== false));
+    const openListArr = restaurants.filter(r => !r.isClosed);
 
-          activeCountEl.textContent = `${active.length} 家`;
+    const sortByCatName = (arr)=>{
+      return [...arr].sort((a,b)=>{
+        const ca = (a.category || "").trim();
+        const cb = (b.category || "").trim();
+        const c = ca.localeCompare(cb, "zh-Hant");
+        if (c !== 0) return c;
+        return (a.name||"").localeCompare((b.name||""), "zh-Hant");
+      });
+    };
 
-          if (active.length === 0) {
-            activeListEl.innerHTML = `<div class="muted mini">
-              目前沒有「同時 顯示 + 開單」中的餐廳。
-            </div>`;
-          } else {
-            // 讓顯示順序好看點：先分類、再餐廳名稱
-            active.sort((a,b)=>{
-              const ca = (a.category || "").trim();
-              const cb = (b.category || "").trim();
-              const c = ca.localeCompare(cb, "zh-Hant");
-              if (c !== 0) return c;
-              return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-            });
+    showCountEl.textContent = `${visibleList.length} 家`;
+    openCountEl.textContent = `${openListArr.length} 家`;
 
-            activeListEl.innerHTML = active.map(r => `
-              <span class="tag mini" style="cursor:pointer" data-goto-rid="${r.id}">
-                ${esc(r.name || "未命名")}
-                <span class="muted mini">｜${esc((r.category||"").trim() || "未分類")}</span>
-              </span>
-            `).join("");
+    const buildTag = (arr)=> arr.length
+      ? sortByCatName(arr).map(r => `
+        <span class="tag mini" style="cursor:pointer" data-goto-rid="${r.id}">
+          ${esc(r.name || "未命名")}
+          <span class="muted mini">｜${esc((r.category||"").trim() || "未分類")}</span>
+        </span>
+      `).join("")
+      : `<div class="muted mini">目前沒有符合條件的餐廳</div>`;
+
+    showListEl.innerHTML = buildTag(visibleList);
+    openListEl.innerHTML = buildTag(openListArr);
+
+    // 點擊捲到該餐廳
+    [showListEl, openListEl].forEach(listEl=>{
+      listEl.querySelectorAll("[data-goto-rid]").forEach(el => {
+        el.onclick = () => {
+          const rid = el.dataset.gotoRid;
+          const wrap = $("restaurantsWrap");
+          if (!wrap) return;
+
+          const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
+          const detail = btn?.closest("details");
+          if (detail) {
+            detail.open = true;
+            let p = detail.parentElement;
+            while (p) {
+              if (p.tagName === "DETAILS") p.open = true;
+              p = p.parentElement;
+            }
+            detail.scrollIntoView({ behavior:"smooth", block:"start" });
           }
-
-          // 點總覽裡的 tag 可以直接捲到該餐廳的詳細區塊
-          activeListEl.querySelectorAll("[data-goto-rid]").forEach(el => {
-            el.onclick = () => {
-              const rid = el.dataset.gotoRid;
-              const wrap = $("restaurantsWrap");
-              if (!wrap) return;
-              const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
-              const detail = btn?.closest("details");
-              if (detail) {
-                detail.open = true;
-                // 若外面還包在分類 details 裡，一併展開
-                let p = detail.parentElement;
-                while (p) {
-                  if (p.tagName === "DETAILS") p.open = true;
-                  p = p.parentElement;
-                }
-                detail.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            };
-          });
-        }
-      }
+        };
+      });
+    });
+  }
+}
       /* 🔵 總覽卡片更新結束 */
 
       if(restaurants.length===0){ wrap.innerHTML = `<div class="muted">尚未新增餐廳</div>`; return; }
