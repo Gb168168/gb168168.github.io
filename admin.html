@@ -1227,7 +1227,7 @@
         const arr = [];
         snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
 
-        // ✅ 依自訂部門順序 + 人名
+               // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
         arr.sort((a,b)=>{
           const da = (a.dept||"").trim();
           const dbb = (b.dept||"").trim();
@@ -1235,6 +1235,10 @@
           const ra = deptRank(da);
           const rb = deptRank(dbb);
           if(ra !== rb) return ra - rb;
+
+          const ta = toMs(a.createdAt || 0);
+          const tb = toMs(b.createdAt || 0);
+          if(ta !== tb) return ta - tb;
 
           return (a.name||"").localeCompare((b.name||""), "zh-Hant");
         });
