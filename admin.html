@@ -561,21 +561,33 @@
       <section class="view" id="view_restaurants" style="display:none">
         <div class="card" style="margin-top:14px">
           <h3>餐廳管理（依分類收合顯示 + 可顯示/隱藏 + 可結單/開單）</h3>
+<!-- 🔵 顯示中的餐廳 -->
+<div class="subcard" style="margin-top:10px; margin-bottom:10px;">
+  <div class="inline" style="justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:13px; font-weight:800;">顯示中的餐廳</div>
+      <div class="muted mini">使用者端可見的店家</div>
+    </div>
+    <span class="tag" id="restShowCount">0 家</span>
+  </div>
+  <div id="restShowList" class="kpi" style="margin-top:8px;">
+    <div class="muted mini">載入中…</div>
+  </div>
+</div>
 
-          <!-- 🔵 🔵 🔵 顯示 & 開單中的餐廳：總覽卡片 🔵 🔵 🔵 -->
-          <div class="subcard" style="margin-top:10px; margin-bottom:10px;">
-            <div class="inline" style="justify-content:space-between; align-items:center;">
-              <div>
-                <div style="font-size:13px; font-weight:800;">顯示 & 開單中的餐廳</div>
-                <div class="muted mini">＝使用者端「看得到」且「可以送單」的店家</div>
-              </div>
-              <span class="tag" id="restActiveCount">0 家</span>
-            </div>
-
-            <div id="restActiveList" class="kpi" style="margin-top:8px">
-              <div class="muted mini">載入中…</div>
-            </div>
-          </div>
+<!-- 🔵 開單中的餐廳 -->
+<div class="subcard" style="margin-top:10px; margin-bottom:10px;">
+  <div class="inline" style="justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:13px; font-weight:800;">開單中的餐廳</div>
+      <div class="muted mini">目前可供訂單送出的店家</div>
+    </div>
+    <span class="tag" id="restOpenCount">0 家</span>
+  </div>
+  <div id="restOpenList" class="kpi" style="margin-top:8px;">
+    <div class="muted mini">載入中…</div>
+  </div>
+</div>
           <!-- 🔵 🔵 🔵 總覽卡片結束 🔵 🔵 🔵 -->
 
           <!-- 🔸 搜尋區塊 -->
