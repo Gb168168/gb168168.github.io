@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理1</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2552,35 +2552,35 @@ async function loadOrdersByDate(dateStr){
         ordersUnsub = null;
       }
 
-      const qOrders = query(
-        colOrders,
-        where("createdAt", ">=", start),
-        where("createdAt", "<=", end),
-        orderBy("createdAt", "desc"),
-        limit(5000)
-      );
+ const qOrders = query(
+  colorders,
+  where("createdAt", ">=", start),
+  where("createdAt", "<=", end),
+  orderBy("createdAt", "desc"),
+  limit(5000)
+);
 
-      ordersUnsub = onSnapshot(qOrders, (snap)=>{
-        (async ()=>{
-          const orders = [];
-          snap.forEach(d=> orders.push({ id:d.id, ...d.data() }));
-          lastLoadedOrders = orders;
+ordersUnsub = onSnapshot(qOrders, (snap)=>{
+  (async ()=>{
+    const orders = [];
+    snap.forEach(d => orders.push({ id: d.id, ...(d.data() || {}) }));
+    lastLoadedOrders = orders;
 
-          if(!orders.length){
-            $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-            $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-            statusPill.textContent = "已載入（目前無訂單）";
-          }else{
-            const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
-            $("ordersSummaryOut").innerHTML = summaryHTML;
-            $("ordersDetailOut").innerHTML = detailHTML;
-            bindOrderDeleteButtons();
-            statusPill.textContent = "已載入 ✅（即時更新中）";
-          }
+    if(orders.length){
+      $("ordersSummaryOut").innerHTML = '<div class="muted">此日期沒有訂單</div>';
+      $("ordersDetailOut").innerHTML  = '<div class="muted">此日期沒有訂單</div>';
+      statusPill.textContent = "已載入（目前無訂單）";
+    }else{
+      const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
+      $("ordersSummaryOut").innerHTML = summaryHTML;
+      $("ordersDetailOut").innerHTML  = detailHTML;
+      bindOrderDeleteButtons();
+      statusPill.textContent = "已載入 ✓（即時更新中）";
+    }
 
-          await checkNotOrderedForDate(dateStr, orders, false);
-        })().catch(console.error);
-      }, err=>{
+    await checkNotOrderedForDate(dateStr, orders, false);
+  })();
+});
         console.error(err);
         $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
         $("ordersDetailOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
