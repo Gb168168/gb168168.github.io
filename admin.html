@@ -1983,21 +1983,34 @@ if (showCountEl && showListEl && openCountEl && openListEl) {
                         </thead>
                         <tbody>
                           ${mlist.map(m=>{
-                            const optText = optionGroupsSummary(m.optionGroups);
-                            return `
-                              <tr>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
-                                <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
-                                <td class="muted" style="max-width:340px">${esc(optText)}</td>
-                                <td style="white-space:nowrap">
-                                  <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
-                                  <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
-                                </td>
-                              </tr>
-                            `;
-                          }).join("")}
+  const optText = optionGroupsSummary(m.optionGroups);
+  const optKey = `${r.id}__${m.id}`;
+  if(!menuOptionCache.has(optKey)){
+    menuOptionCache.set(optKey, cloneOptionGroups(m.optionGroups));
+  }
+
+  return `
+    <tr>
+      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
+      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
+      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+      <td class="muted" style="max-width:340px">${esc(optText)}</td>
+      <td style="white-space:nowrap">
+        <button class="btnSmall" type="button" data-editopt="1" data-rid="${r.id}" data-mid="${m.id}">選項群組</button>
+        <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
+        <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
+      </td>
+    </tr>
+    <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
+      <td colspan="6">
+        <div class="muted mini">
+          可在這裡編輯「擇一 / 加購」選項群組，編輯完成後請按上方「儲存」。
+        </div>
+      </td>
+    </tr>
+  `;
+}).join("")}
                         </tbody>
                       </table>
                     `;
