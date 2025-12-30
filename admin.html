@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理1</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2110,87 +2110,79 @@ function renderMenuOptionEditor(rid, mid, container){
           `;
 
           inner.push(`
-            <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:12px; background:#fff; margin-top:12px;">
-              <summary>
-                <span style="font-size:14.5px">${esc(r.name||"未命名")}</span>
-                <span class="tag" style="margin-left:8px">${menus===null ? "?" : menus.length} 道餐點</span>
-                ${visibleTag}
-                ${closedTag}
-                ${weeklyOffTag}
-                ${hoursTag}
-              </summary>
+           </summary>
 
-              <div class="kpi">
-                ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
-                ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
-                ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
-                ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
-              </div>
+<!-- ✅ 餐廳資訊外層可收合 -->
+<details style="margin-top:10px; border:1px solid rgba(15,23,42,.10); border-radius:12px; padding:10px; background:#fafafa;">
+  <summary style="cursor:pointer; font-size:14px; font-weight:700;">
+    餐廳資訊
+  </summary>
 
-              <label>餐廳分類（手動輸入，用於分類收合）</label>
-              <input data-r="${r.id}" data-k="category" value="${esc((r.category||"").trim())}" placeholder="例：燒臘 / 粥品"/>
+  <div style="margin-top:10px">
 
-              <div class="row" style="margin-top:10px">
-                <div>
-                  <label>電話</label>
-                  <input data-r="${r.id}" data-k="phone" value="${esc(r.phone||"")}"/>
-                </div>
-                <div>
-                  <label>地址</label>
-                  <input data-r="${r.id}" data-k="address" value="${esc(r.address||"")}"/>
-                </div>
-              </div>
+    <div class="kpi">
+      ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
+      ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
+      ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
+      ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
+    </div>
 
-              <label>Google Map 連結</label>
-              <input data-r="${r.id}" data-k="mapUrl" value="${esc(r.mapUrl||"")}"/>
+    <label>餐廳分類（手動輸入，用於分類收合）</label>
+    <input data-r="${r.id}" data-k="category" value="${esc((r.category||"").trim())}" placeholder="例：燒臘 / 粥品"/>
 
-              <label>營業時間</label>
-              <input data-r="${r.id}" data-k="businessHours"
-                     value="${esc(r.businessHours || "")}"
-                     placeholder="例：11:00~14:30 / 16:30~19:30"/>
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>電話</label>
+        <input data-r="${r.id}" data-k="phone" value="${esc(r.phone||"")}"/>
+      </div>
+      <div>
+        <label>地址</label>
+        <input data-r="${r.id}" data-k="address" value="${esc(r.address||"")}"/>
+      </div>
+    </div>
 
-              <label>公休日（可多選）</label>
-              <div class="chkline mini">
-                ${weeklyOffChecks}
-              </div>
+    <label>Google Map 連結</label>
+    <input data-r="${r.id}" data-k="mapUrl" value="${esc(r.mapUrl||"")}"/>
 
-              <div class="row">
-                <div>
-                  <label>Line QR Code 圖片網址</label>
-                  <div class="inline" style="gap:8px">
-                    <input data-r="${r.id}" data-k="lineQrUrl" value="${esc(r.lineQrUrl||"")}"/>
-                    <button class="btnSmall" type="button" data-openqr="${r.id}">開啟</button>
-                  </div>
-                </div>
-                <div class="muted" style="display:flex; align-items:end">
-                  （貼 QR code 圖片網址即可）
-                </div>
-              </div>
+    <label>營業時間</label>
+    <input data-r="${r.id}" data-k="businessHours"
+           value="${esc(r.businessHours || "")}"
+           placeholder="例：11:00~14:30 / 16:30~19:30"/>
 
-              <div class="row" style="margin-top:10px">
-                <div class="chkline">
-                  <input type="checkbox" data-r="${r.id}" data-k="isVisible" ${(r.isVisible !== false) ? "checked":""}/>
-                  <span class="muted">使用者顯示</span>
-                </div>
-                <div class="chkline">
-                  <input type="checkbox" data-r="${r.id}" data-k="isClosed" ${r.isClosed ? "checked":""}/>
-                  <span class="muted">結束點餐（使用者不可送出/刪除紀錄）</span>
-                </div>
-              </div>
+    <label>公休日（可多選）</label>
+    <div class="chkline mini">
+      ${weeklyOffChecks}
+    </div>
 
-              ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
-                          : `<div class="muted" style="margin-top:10px">（尚無餐廳圖片網址）</div>`}
+    <div class="row">
+      <div>
+        <label>Line QR Code 圖片網址</label>
+        <div class="inline" style="gap:8px">
+          <input data-r="${r.id}" data-k="lineQrUrl" value="${esc(r.lineQrUrl||"")}"/>
+          <button class="btnSmall" type="button" data-openqr="${r.id}">開啟</button>
+        </div>
+      </div>
+      <div class="muted" style="display:flex; align-items:end">
+        （貼 QR code 圖片網址即可）
+      </div>
+    </div>
 
-              ${r.lineQrUrl ? `<img src="${esc(r.lineQrUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="line-qr" onerror="this.style.display='none'"/>`
-                           : `<div class="muted" style="margin-top:10px">（尚無 Line QR code）</div>`}
+    ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
+                 : `<div class="muted" style="margin-top:10px">（尚無餐廳圖片網址）</div>`}
 
-              <label>備註</label>
-              <textarea data-r="${r.id}" data-k="note">${esc(r.note||"")}</textarea>
+    ${r.lineQrUrl ? `<img src="${esc(r.lineQrUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="line-qr" onerror="this.style.display='none'"/>`
+                  : `<div class="muted" style="margin-top:10px">（尚無 Line QR code）</div>`}
 
-              <div class="actions">
-                <button class="btnSmall btnOk" type="button" data-saver="${r.id}">儲存餐廳資料</button>
-                <button class="btnSmall btnDanger" type="button" data-delr="${r.id}">刪除餐廳</button>
-              </div>
+    <label>備註</label>
+    <textarea data-r="${r.id}" data-k="note">${esc(r.note||"")}</textarea>
+
+    <div class="actions">
+      <button class="btnSmall btnOk" type="button" data-saver="${r.id}">儲存餐廳資料</button>
+      <button class="btnSmall btnDanger" type="button" data-delr="${r.id}">刪除餐廳</button>
+    </div>
+
+  </div><!-- /餐廳資訊內層 -->
+</details><!-- /餐廳資訊收合 -->
 
               <div class="hr"></div>
               <h3 style="margin:0">已設定餐點（依類別收合）</h3>
