@@ -2213,6 +2213,17 @@ function renderMenuOptionEditor(rid, mid, container){
 
       wrap.innerHTML = blocks.join("");
 
+            // ✅ 把剛剛已經展開的餐廳再打開
+      openRids.forEach(rid=>{
+        const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
+        if(!btn) return;
+        let d = btn.closest("details");
+        while(d){
+          if(d.tagName === "DETAILS") d.open = true;
+          d = d.parentElement?.closest("details");
+        }
+      });
+
       // ===== 綁定餐廳管理內各種按鈕 =====
       wrap.querySelectorAll("button[data-openimg]").forEach(btn=>{
         btn.onclick = ()=>{
