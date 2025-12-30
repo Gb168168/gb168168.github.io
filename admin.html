@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理1</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2330,36 +2330,43 @@ function renderMenuOptionEditor(rid, mid, container){
       });
 
       wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
-        b.onclick = async ()=>{
-          const rid = b.dataset.rid;
-          const mid = b.dataset.mid;
+  b.onclick = async ()=>{
+    const rid = b.dataset.rid;
+    const mid = b.dataset.mid;
 
-          const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
-          const patch = {};
-          els.forEach(el=>{
-            const k = el.dataset.k;
-            patch[k] = (k==="price" || k==="defaultQty")
-              ? Number(el.value||0)
-              : el.value.trim();
-          });
-          patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
-          patch.price = Math.max(0, Number(patch.price||0));
+    const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
+    const patch = {};
+    els.forEach(el=>{
+      const k = el.dataset.k;
+      patch[k] = (k==="price" || k==="defaultQty")
+        ? Number(el.value||0)
+        : el.value.trim();
+    });
+    patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
+    patch.price = Math.max(0, Number(patch.price||0));
 
-          const ogKey = `${rid}__${mid}`;
-          const og = menuOptionCache.get(ogKey);
-          if(Array.isArray(og)){
-            patch.optionGroups = cloneOptionGroups(og);
-          }
+    // ✅ 把目前快取的選項群組一起寫回去
+    const ogKey = `${rid}__${mid}`;
+    const og = menuOptionCache.get(ogKey);
+    if(Array.isArray(og)){
+      patch.optionGroups = cloneOptionGroups(og);
+    }
 
-          try{
-            await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
-            statusPill.textContent = "餐點已儲存 ✅";
-          }catch(err){
-            console.error(err);
-            alert("儲存餐點失敗\n\n" + (err?.message || err));
-          }
-        };
-      });
+    try{
+      await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
+      statusPill.textContent = "餐點已儲存 ✅";
+
+      // 順便更新「已設定餐點」那一格文字，讓你當場看到有變
+      const td = b.closest("tr")?.querySelector("td:nth-child(5)");
+      if(td && Array.isArray(patch.optionGroups)){
+        td.textContent = optionGroupsSummary(patch.optionGroups);
+      }
+    }catch(err){
+      console.error(err);
+      alert("儲存餐點失敗\n\n" + (err?.message || err));
+    }
+  };
+});
 
       wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
         b.onclick = async ()=>{
