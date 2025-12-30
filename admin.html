@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理12</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2350,11 +2350,12 @@ function renderMenuOptionEditor(rid, mid, container){
         };
       });
 
-      wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
+    wrap.querySelectorAll("button[data-savem2]").forEach(b=>{
   b.onclick = async ()=>{
     const rid = b.dataset.rid;
     const mid = b.dataset.mid;
 
+    // 讀這一列餐點欄位
     const els = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid="${mid}"]`);
     const patch = {};
     els.forEach(el=>{
@@ -2366,25 +2367,32 @@ function renderMenuOptionEditor(rid, mid, container){
     patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
     patch.price = Math.max(0, Number(patch.price||0));
 
-    // ✅ 把目前快取的選項群組一起寫回去
+    // 🔍 看看快取裡有沒有群組（除錯用）
     const ogKey = `${rid}__${mid}`;
     const og = menuOptionCache.get(ogKey);
+    console.log("儲存時的選項群組快取：", ogKey, og);
+
+    // ✅ 有的話一起寫回 optionGroups
     if(Array.isArray(og)){
       patch.optionGroups = cloneOptionGroups(og);
     }
 
     try{
+      statusPill.textContent = "餐點儲存中…";
       await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
       statusPill.textContent = "餐點已儲存 ✅";
 
-      // 順便更新「已設定餐點」那一格文字，讓你當場看到有變
+      // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
       const td = b.closest("tr")?.querySelector("td:nth-child(5)");
       if(td && Array.isArray(patch.optionGroups)){
         td.textContent = optionGroupsSummary(patch.optionGroups);
       }
+
+      await refreshRestaurantsManage();
     }catch(err){
       console.error(err);
       alert("儲存餐點失敗\n\n" + (err?.message || err));
+      statusPill.textContent = "餐點儲存失敗（看 console）";
     }
   };
 });
