@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理123</title>
+  <title>GoldBricks 呷奔👽｜管理1234</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2372,73 +2372,86 @@ wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
   };
 });
 
-           // ✅ 餐廳管理：新增餐點（不帶群組，之後再用「選項群組」編輯）
-            // ✅ 餐廳管理：新增餐點（不帶群組，之後再用「選項群組」編輯）
-      wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
-        btn.onclick = async ()=>{
-          const rid = btn.dataset.addmenu;
+          // ===== 餐廳管理：單一餐點新增 / 清空 =====
+wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
+  btn.onclick = async ()=>{
+    const rid = btn.dataset.addmenu;
 
-          const category = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`)?.value || "").trim();
-          const name = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`)?.value || "").trim();
-          const price = Number(
-            wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`)?.value || 0
-          );
-          const defaultQty = Math.max(
-            1,
-            Number(wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`)?.value || 1)
-          );
+    const category = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`)?.value || "").trim();
+    const name = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`)?.value || "").trim();
+    const price = Number(wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`)?.value || 0);
+    const defaultQty = Math.max(1, Number(wrap.querySelector(
+      `[data-add-rid="${rid}"][data-add-k="defaultQty"]`
+    )?.value || 1));
 
-          if(!category) return alert("請輸入餐點類別");
-          if(!name) return alert("請輸入餐點名稱");
-          if(isNaN(price) || price<0) return alert("價格不正確");
+    if(!category) return alert("請輸入餐點類別");
+    if(!name) return alert("請輸入餐點名稱");
+    if(isNaN(price) || price < 0) return alert("價格不正確");
 
-          try{
-            statusPill.textContent = "新增餐點中…";
+    try{
+      statusPill.textContent = "新增餐點中…";
 
-            const menuCol = collection(db, "restaurants", rid, "menu");
-            await addDoc(menuCol, {
-              category,
-              name,
-              price,
-              defaultQty,
-              optionGroups: [],
-              createdAt: Date.now()
-            });
-
-            statusPill.textContent = "已新增餐點 ✅";
-
-            const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
-            const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
-            const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
-            const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
-            if(c1) c1.value = "";
-            if(c2) c2.value = "";
-            if(c3) c3.value = "";
-            if(c4) c4.value = "1";
-
-            await refreshRestaurantsManage();
-          }catch(err){
-            console.error(err);
-            alert("新增餐點失敗\n\n" + (err?.message || err));
-            statusPill.textContent = "新增餐點失敗（看 console）";
-          }
-        };
+      const menuCol = collection(db, "restaurants", rid, "menu");
+      await addDoc(menuCol, {
+        category,
+        name,
+        price,
+        defaultQty,
+        optionGroups: [],
+        createdAt: Date.now()
       });
 
-      // ✅ 清空「新增餐點」輸入欄位
-      wrap.querySelectorAll("button[data-clearadd]").forEach(btn=>{
-        btn.onclick = ()=>{
-          const rid = btn.dataset.clearadd;
-          const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
-          const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
-          const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
-          const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
-          if(c1) c1.value = "";
-          if(c2) c2.value = "";
-          if(c3) c3.value = "";
-          if(c4) c4.value = "1";
-        };
-      });
+      statusPill.textContent = "已新增餐點 ✅";
+
+      const c1 = wrap.querySelector(
+        `[data-add-rid="${rid}"][data-add-k="category"]`
+      );
+      const c2 = wrap.querySelector(
+        `[data-add-rid="${rid}"][data-add-k="name"]`
+      );
+      const c3 = wrap.querySelector(
+        `[data-add-rid="${rid}"][data-add-k="price"]`
+      );
+      const c4 = wrap.querySelector(
+        `[data-add-rid="${rid}"][data-add-k="defaultQty"]`
+      );
+
+      if(c1) c1.value = "";
+      if(c2) c2.value = "";
+      if(c3) c3.value = "";
+      if(c4) c4.value = "1";
+
+      await refreshRestaurantsManage();
+    }catch(err){
+      console.error(err);
+      alert("新增餐點失敗\n\n" + (err?.message || err));
+      statusPill.textContent = "新增餐點失敗（看 console）";
+    }
+  };
+});
+
+wrap.querySelectorAll("button[data-clearadd]").forEach(btn=>{
+  btn.onclick = ()=>{
+    const rid = btn.dataset.clearadd;
+    const c1 = wrap.querySelector(
+      `[data-add-rid="${rid}"][data-add-k="category"]`
+    );
+    const c2 = wrap.querySelector(
+      `[data-add-rid="${rid}"][data-add-k="name"]`
+    );
+    const c3 = wrap.querySelector(
+      `[data-add-rid="${rid}"][data-add-k="price"]`
+    );
+    const c4 = wrap.querySelector(
+      `[data-add-rid="${rid}"][data-add-k="defaultQty"]`
+    );
+
+    if(c1) c1.value = "";
+    if(c2) c2.value = "";
+    if(c3) c3.value = "";
+    if(c4) c4.value = "1";
+  };
+});
 
 
     // ====== 訂餐紀錄（彙整輸出 + Excel + 刪單/刪一道 + 未點餐提醒） ======
