@@ -1845,8 +1845,18 @@ function renderMenuOptionEditor(rid, mid, container){
     }
 
     async function refreshRestaurantsManage(){
-      const wrap = $("restaurantsWrap");
-      wrap.innerHTML = `<div class="muted">載入中…</div>`;
+  const wrap = $("restaurantsWrap");
+
+  // ✅ 記錄目前有展開的餐廳（以 data-saver 的 rid 為主）
+  const openRids = new Set();
+  wrap.querySelectorAll("details").forEach(d=>{
+    if(!d.open) return;
+    const btn = d.querySelector("button[data-saver]");
+    const rid = btn?.dataset?.saver;
+    if(rid) openRids.add(rid);
+  });
+
+  wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
       let restaurants = [];
       try{
