@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1234</title>
+  <title>GoldBricks 呷奔👽｜管理123</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1257,21 +1257,23 @@ async function loadAllStaffOnce(){
 
   // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
   arr.sort((a,b)=>{
-    const da = (a.dept||"").trim();
-    const db = (b.dept||"").trim();
+  const da = (a.dept || "").trim();
+  const db = (b.dept || "").trim();
 
-    const ra = deptRank(da);
-    const rb = deptRank(db);
-    if(ra !== rb) return ra - rb;
+  const ra = deptRank(da);
+  const rb = deptRank(db);
+  if(ra !== rb) return ra - rb;
 
-    // 同部門，用 createdAt 由舊到新
-    const ta = toMs(a.createdAt || 0);
-    const tb = toMs(b.createdAt || 0);
-    if(ta !== tb) return ta - tb;
+  const oa = Number(a.order || 0);
+  const ob = Number(b.order || 0);
+  if(oa !== ob) return oa - ob;
 
-    // 舊資料沒有 createdAt，就用姓名排
-    return (a.name||"").localeCompare((b.name||""), "zh-Hant");
-  });
+  const ta = Number(a.createdAt || 0);
+  const tb = Number(b.createdAt || 0);
+  if(ta !== tb) return ta - tb;
+
+  return (a.name || "").localeCompare((b.name || ""), "zh-Hant");
+});
 
   allStaffBase = arr;
   allStaffLoaded = true;
