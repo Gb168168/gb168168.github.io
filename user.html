@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用</title>
+  <title>GoldBricks 呷奔🍚｜使用者</title>
 
   <style>
     :root{
@@ -404,24 +404,13 @@
     let myOrdersCache = [];
     let activeOrderId = "";
 
-    // ✅ 群組啟用條件（較寬鬆：只要有 choices 就嘗試顯示）
+   // ✅ 群組啟用條件（超寬鬆版：只要有 choices 就顯示）
 function groupEnabled(g){
   if(!g || typeof g !== "object") return false;
-
-  let type = (g.type || "").trim();
   const choices = Array.isArray(g.choices) ? g.choices : [];
-
+  // 沒選項就不用畫
   if(choices.length === 0) return false;
-
-  // 如果沒填 type，但有 choices，就幫它推一個合理的預設
-  if(!type){
-    // 如果有「是否必選」的概念，大多數情況用 single 比較合理
-    type = "single";
-    g.type = "single";
-  }
-
-  if(type !== "single" && type !== "addon") return false;
-
+  // 不再管 type / required，後台怎麼存都先畫出來
   return true;
 }
 
