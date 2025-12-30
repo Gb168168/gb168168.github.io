@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1233</title>
+  <title>GoldBricks 呷奔👽｜管理1234</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2373,6 +2373,7 @@ wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
 });
 
            // ✅ 餐廳管理：新增餐點（不帶群組，之後再用「選項群組」編輯）
+            // ✅ 餐廳管理：新增餐點（不帶群組，之後再用「選項群組」編輯）
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
           const rid = btn.dataset.addmenu;
@@ -2389,7 +2390,7 @@ wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
 
           if(!category) return alert("請輸入餐點類別");
           if(!name) return alert("請輸入餐點名稱");
-          if(isNaN(price) || price < 0) return alert("價格不正確");
+          if(isNaN(price) || price<0) return alert("價格不正確");
 
           try{
             statusPill.textContent = "新增餐點中…";
