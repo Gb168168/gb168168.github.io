@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理123</title>
+  <title>GoldBricks 呷奔👽｜管理1234</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1253,7 +1253,7 @@ async function loadAllStaffOnce(){
 
   const snap = await getDocs(colStaff);
   const arr = [];
-  snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+  snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
 
   // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
   arr.sort((a,b)=>{
@@ -1588,7 +1588,7 @@ async function refreshStaffList(){
     const menuCol = collection(db, "restaurants", rid, "menu");
     const snap = await getDocs(query(menuCol, limit(2500)));
     const list = [];
-    snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+    snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
     list.sort((a,b)=> Number(toMs(b.createdAt||0)) - Number(toMs(a.createdAt||0)));
     return list;
   }catch(err){
@@ -1826,7 +1826,7 @@ function renderMenuOptionEditor(rid, mid, container){
       let restaurants = [];
       try{
         const snap = await getDocs(query(colRestaurants, limit(1200)));
-        snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+        snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
 
         restaurants.sort((a,b)=>{
           const aa = toMs(a.createdAt||0), bb = toMs(b.createdAt||0);
@@ -2534,7 +2534,8 @@ wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
       ));
 
       const orders = [];
-      snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+      snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+
       return orders;
     }
 
@@ -2898,7 +2899,8 @@ wrap.querySelectorAll("button[data-delm2]").forEach(b=>{
       ordersUnsub = onSnapshot(qOrders, (snap)=>{
         (async ()=>{
           const orders = [];
-          snap.forEach(d=> arr.push({ id:d.id, ...(d.data()||{}) }));
+          snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+
           lastLoadedOrders = orders;
 
           if(!orders.length){
