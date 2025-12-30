@@ -404,15 +404,26 @@
     let myOrdersCache = [];
     let activeOrderId = "";
 
-    // ✅ 群組啟用條件
-    function groupEnabled(g){
-      if(!g || typeof g !== "object") return false;
-      const type = (g.type || "").trim();
-      if(type !== "single" && type !== "addon") return false;
-      const choices = Array.isArray(g.choices) ? g.choices : [];
-      if(choices.length === 0) return false;
-      return true;
-    }
+    // ✅ 群組啟用條件（較寬鬆：只要有 choices 就嘗試顯示）
+function groupEnabled(g){
+  if(!g || typeof g !== "object") return false;
+
+  let type = (g.type || "").trim();
+  const choices = Array.isArray(g.choices) ? g.choices : [];
+
+  if(choices.length === 0) return false;
+
+  // 如果沒填 type，但有 choices，就幫它推一個合理的預設
+  if(!type){
+    // 如果有「是否必選」的概念，大多數情況用 single 比較合理
+    type = "single";
+    g.type = "single";
+  }
+
+  if(type !== "single" && type !== "addon") return false;
+
+  return true;
+}
 
     // ===== Staff =====
     async function loadStaff(){
