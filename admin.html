@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理</title>
+  <title>GoldBricks 呷奔👽｜管理66666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -184,6 +184,29 @@
       width:90%;
       box-shadow:0 20px 40px rgba(15,23,42,.35);
     }
+
+    /* =============== 結單 Modal 動畫 =============== */
+
+/* 黑背景淡入 */
+.modalMask.fadeIn {
+  animation: fadeInBg 0.25s ease forwards;
+}
+
+@keyframes fadeInBg {
+  from { background: rgba(0,0,0,0); }
+  to   { background: rgba(0,0,0,0.35); }
+}
+
+/* 內容微縮放彈出 */
+.modalBox.popIn {
+  animation: popIn 0.28s cubic-bezier(0.15, 1.30, 0.40, 1) forwards;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1.00); opacity: 1; }
+}
 
     /* 📅 班表樣式 */
     .schDayBlock{
