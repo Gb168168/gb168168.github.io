@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理1</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -858,6 +858,44 @@ function cloneOptionGroups(src){
       r_imgPrev.style.display="";
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
+
+    // 取得所有既有餐廳分類
+async function loadExistingCategories() {
+  const snap = await getDocs(collection(db, "restaurants"));
+  const set = new Set();
+
+  snap.forEach(doc => {
+    const c = doc.data().category;
+    if (c && typeof c === "string") {
+      set.add(c.trim());
+    }
+  });
+
+  return Array.from(set);
+}
+
+// 初始化分類下拉
+async function initCategoryDropdown() {
+  const input = $("r_category");
+  const select = $("r_category_select");
+
+  const list = await loadExistingCategories();
+
+  list.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    select.appendChild(opt);
+  });
+
+  select.onchange = () => {
+    if (select.value) {
+      input.value = select.value;
+    }
+  };
+}
+
+initCategoryDropdown();
 
     // ✅ 新增餐廳：Line QR 預覽
     const r_lineQrUrl = $("r_lineQrUrl");
