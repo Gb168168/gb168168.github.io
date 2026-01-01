@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理66</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -729,6 +729,22 @@
       </div>
     </div>
   </div>
+  
+  <!-- ⚠️ 結單確認彈跳視窗 -->
+<div id="closeConfirmModal" class="modalMask" style="display:none;">
+  <div class="modalBox">
+    <h3 style="margin-top:0; margin-bottom:8px;">⚠️ 確定要結單嗎？</h3>
+    <p class="muted mini" style="line-height:1.5; margin-bottom:16px;">
+      結單後，使用者將無法再送單。<br/>
+      請確認所有人員都已點餐完成，再進行結單操作。
+    </p>
+    <div class="actions" style="justify-content:flex-end; gap:12px;">
+      <button class="ghost" type="button" id="btnCancelClose">先不要</button>
+      <button class="primary" type="button" id="btnConfirmClose">確定結單</button>
+    </div>
+  </div>
+</div>
+
 
   <!-- ✅ Excel 匯出用（SheetJS） -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
