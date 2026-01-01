@@ -3050,6 +3050,75 @@ function renderMenuOptionEditor(rid, mid, container){
         }
       }
     }
+// ✅ 結單視窗用：更新「本日上班未點餐人員」區塊
+async function updateCloseConfirmNoOrder(){
+  const box = $("closeConfirmNoOrder");
+  if(!box) return;
+
+  const dateStr = todayISO(); // 直接用今天的日期
+  box.textContent = "本日上班未點餐人員：計算中…";
+
+  try{
+    // 讀取今天訂單
+    let orders = await loadOrdersByDate(dateStr);
+
+    // 讀取班表
+    const schSnap = await getDoc(doc(db,"schedules", dateStr));
+    if(!schSnap.exists()){
+      box.textContent = "今日尚未設定班表，無法判斷誰未點餐。";
+      return;
+    }
+
+    const data = schSnap.data() || {};
+    const workerKeys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
+    if(workerKeys.length === 0){
+      box.textContent = "今日班表無任何上班人員。";
+      return;
+    }
+
+    const workingSet = new Set(workerKeys);
+
+    // 已點餐者
+    const orderedSet = new Set();
+    for(const o of orders){
+      const dept = (o.userDept || "").trim();
+      const name = (o.userName || "").trim();
+      if(!name) continue;
+      orderedSet.add(`${dept}||${name}`);
+    }
+
+    // 找未點餐
+    const missingKeys = [];
+    workingSet.forEach(k=>{
+      if(!orderedSet.has(k)) missingKeys.push(k);
+    });
+
+    if(missingKeys.length === 0){
+      box.textContent = "✅ 今日所有應上班人員皆已點餐。";
+      return;
+    }
+
+    // 依部門分組
+    const byDept = new Map();
+    missingKeys.forEach(k=>{
+      const [dept,name] = k.split("||");
+      const d = dept || "未分部門";
+      if(!byDept.has(d)) byDept.set(d, []);
+      byDept.get(d).push(name || "");
+    });
+
+    const lines = Array.from(byDept.entries())
+      .map(([dept,names]) => `${dept}：${names.join("、")}`);
+
+    box.innerHTML = `
+      <div style="margin-bottom:4px;">本日上班未點餐人員：</div>
+      <ul class="mini">${lines.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
+    `;
+  }catch(err){
+    console.error(err);
+    box.textContent = "無法取得資料（請查看 console）。";
+  }
+}
 
     $("btnCloseNoOrder")?.addEventListener("click", ()=>{
       if(noOrderModal) noOrderModal.style.display = "none";
