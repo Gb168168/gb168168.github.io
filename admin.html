@@ -285,8 +285,18 @@
           <div class="card">
             <h3>餐廳資料（點擊新增）</h3>
 
-            <label>餐廳類別分類</label>
-            <input id="r_category" autocomplete="off" placeholder="例：燒臘 / 粥品 / 麵類 / 便當"/>
+          <label>餐廳分類（可輸入或快速選擇）</label>
+<div class="row">
+  <div>
+    <input id="r_category" autocomplete="off" placeholder="例：燒臘 / 粥品 / 麵類 / 便當"/>
+  </div>
+
+  <div>
+    <select id="r_category_select">
+      <option value="">選擇已使用過的分類</option>
+    </select>
+  </div>
+</div>
 
             <label>餐廳名稱</label>
             <input id="r_name" name="r_name_no_autofill" autocomplete="off" placeholder="例：金磚便當"/>
