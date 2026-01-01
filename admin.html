@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理66</title>
+  <title>GoldBricks 呷奔👽｜管理666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -3317,21 +3317,22 @@ document.addEventListener("change", (e) => {
   $("closeConfirmModal").style.display = "flex";
 });
 
-// 「先不要」→ 關閉 + 還原勾勾
-$("btnCancelClose").addEventListener("click", () => {
-  $("closeConfirmModal").style.display = "none";
+// 「先不要」→ 關閉視窗 + 還原勾勾
+document.getElementById("btnCancelClose").addEventListener("click", () => {
+  document.getElementById("closeConfirmModal").style.display = "none";
 
   if (pendingCloseCheckbox) {
-    pendingCloseCheckbox.checked = false; // 還原
+    pendingCloseCheckbox.checked = false;
     pendingCloseCheckbox = null;
   }
 });
 
-// 「確定結單」→ 關閉，但是保留勾勾（真正儲存靠你的存檔按鈕）
-$("btnConfirmClose").addEventListener("click", () => {
-  $("closeConfirmModal").style.display = "none";
+// 「確定結單」→ 關閉視窗（勾勾保留）
+document.getElementById("btnConfirmClose").addEventListener("click", () => {
+  document.getElementById("closeConfirmModal").style.display = "none";
   pendingCloseCheckbox = null;
 });
+
     
 </script>
 </body>
