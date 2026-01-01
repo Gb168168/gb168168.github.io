@@ -733,10 +733,16 @@
 <div id="closeConfirmModal" class="modalMask" style="display:none;">
   <div class="modalBox">
     <h3 style="margin-top:0; margin-bottom:8px;">⚠️ 確定要結單嗎？</h3>
-    <p class="muted mini" style="line-height:1.5; margin-bottom:16px;">
+    <p class="muted mini" style="line-height:1.5; margin-bottom:8px;">
       結單後，使用者將無法再送單。<br/>
-      點擊""確認結單""後，要記得儲存餐廳資料喔
+      點擊「確定結單」後，要記得儲存餐廳資料喔。
     </p>
+
+    <!-- 🔍 本日上班未點餐的人員（動態填入） -->
+    <div id="closeConfirmNoOrder" class="muted mini" style="margin-bottom:12px;">
+      本日上班未點餐人員：計算中…
+    </div>
+
     <div class="actions" style="justify-content:flex-end; gap:12px;">
       <button class="ghost" type="button" id="btnCancelClose">先不要</button>
       <button class="primary" type="button" id="btnConfirmClose">確定結單</button>
