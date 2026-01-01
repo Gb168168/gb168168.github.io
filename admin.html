@@ -3302,45 +3302,60 @@ function renderMenuOptionEditor(rid, mid, container){
 
 // ========= 結單確認（簡單版） =========
 
-// 暫存被點到的「結單」 checkbox
+// 暫存剛剛被勾選的「結單」 checkbox
 let pendingCloseCheckbox = null;
 
-// 監聽所有 data-k="isClosed" 的勾勾
+// 監聽所有變更事件，抓到 data-k="isClosed" 的勾勾
 document.addEventListener("change", (e) => {
   const cb = e.target;
-  if (!(cb instanceof HTMLInputElement)) return;
-  if (cb.type !== "checkbox") return;
-  if (cb.dataset.k !== "isClosed") return;
+  if (!(cb instanceof HTMLInputElement)) return; // 不是 input 就掰
+  if (cb.type !== "checkbox") return;            // 不是 checkbox 掰
+  if (cb.dataset.k !== "isClosed") return;       // 只處理 結單 的勾勾
 
-  // 只有勾起來 (checked = true) 才跳視窗
+  // 只有「勾起來」時要跳視窗，取消勾選就直接放過
   if (!cb.checked) return;
 
   pendingCloseCheckbox = cb;
 
-  // 顯示彈窗（這裡用最安全的寫法，不用 $）
   const modal = document.getElementById("closeConfirmModal");
-  if (modal) {
-    modal.style.display = "flex";
-  }
+  if (!modal) return;
+
+  // 顯示彈跳窗在畫面正中央
+  modal.style.display = "flex";
+
+  // 加上動畫 class（對應你上面 CSS 的 .modalMask.fadeIn / .modalBox.popIn）
+  modal.classList.add("fadeIn");
+  const box = modal.querySelector(".modalBox");
+  if (box) box.classList.add("popIn");
 });
 
-// 「先不要」→ 關閉視窗 + 還原勾勾
-document.getElementById("btnCancelClose").addEventListener("click", () => {
+// 「先不要」→ 關閉視窗 + 把勾勾取消
+document.getElementById("btnCancelClose")?.addEventListener("click", () => {
   const modal = document.getElementById("closeConfirmModal");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.style.display = "none";
+    modal.classList.remove("fadeIn");
+    const box = modal.querySelector(".modalBox");
+    if (box) box.classList.remove("popIn");
+  }
 
   if (pendingCloseCheckbox) {
-    pendingCloseCheckbox.checked = false; // 還原勾勾
+    pendingCloseCheckbox.checked = false; // 還原成沒結單
     pendingCloseCheckbox = null;
   }
 });
 
-// 「確定結單」→ 關閉視窗（勾勾保留）
-document.getElementById("btnConfirmClose").addEventListener("click", () => {
+// 「確定結單」→ 關閉視窗，但保留勾勾（真的結單）
+document.getElementById("btnConfirmClose")?.addEventListener("click", () => {
   const modal = document.getElementById("closeConfirmModal");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.style.display = "none";
+    modal.classList.remove("fadeIn");
+    const box = modal.querySelector(".modalBox");
+    if (box) box.classList.remove("popIn");
+  }
 
-  // 保留 checked = true，真正寫入 Firestore 還是靠原本的「儲存」按鈕
+  // 保留 checked 狀態就好
   pendingCloseCheckbox = null;
 });
 
