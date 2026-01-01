@@ -3295,6 +3295,43 @@ function renderMenuOptionEditor(rid, mid, container){
         statusPill.textContent = "匯出失敗（看 console）";
       }
     };
-  </script>
+    
+// ========= 結單確認（簡單版） =========
+
+// 暫存是哪一顆「結單」checkbox
+let pendingCloseCheckbox = null;
+
+// 監聽所有 data-k="isClosed" 的勾選事件
+document.addEventListener("change", (e)=>{
+  const cb = e.target;
+  if (!(cb instanceof HTMLInputElement)) return;
+  if (cb.type !== "checkbox") return;
+  if (cb.dataset.k !== "isClosed") return;
+
+  // 只有「要結單」(checked=true) 才跳視窗
+  if (!cb.checked) return;
+
+  pendingCloseCheckbox = cb;
+
+  // 顯示彈窗
+  $("closeConfirmModal").style.display = "flex";
+});
+
+// 「先不要」按鈕：關閉視窗 + 還原勾勾
+$("btnCancelClose").addEventListener("click", ()=>{
+  $("closeConfirmModal").style.display = "none";
+
+  if (pendingCloseCheckbox) {
+    pendingCloseCheckbox.checked = false;
+    pendingCloseCheckbox = null;
+  }
+});
+
+// 「確定結單」按鈕：關閉視窗（勾勾保留）
+$("btnConfirmClose").addEventListener("click", ()=>{
+  $("closeConfirmModal").style.display = "none";
+  pendingCloseCheckbox = null;
+});
+`  </script>
 </body>
 </html>
