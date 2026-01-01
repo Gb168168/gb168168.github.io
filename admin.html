@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理6666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -3296,44 +3296,16 @@ function renderMenuOptionEditor(rid, mid, container){
       }
     };
     
+  statusPill.textContent = "匯出失敗（看 console）";
+}
+});
+
 // ========= 結單確認（簡單版） =========
-
-// 暫存被點到的「結單」checkbox
 let pendingCloseCheckbox = null;
+document.addEventListener("change", (e) => { ... });
+document.getElementById("btnCancelClose").addEventListener("click", () => { ... });
+document.getElementById("btnConfirmClose").addEventListener("click", () => { ... });
 
-// 監聽所有 data-k="isClosed" 勾勾
-document.addEventListener("change", (e) => {
-  const cb = e.target;
-  if (!(cb instanceof HTMLInputElement)) return;
-  if (cb.type !== "checkbox") return;
-  if (cb.dataset.k !== "isClosed") return;
-
-  // 只有勾起來才跳視窗
-  if (!cb.checked) return;
-
-  pendingCloseCheckbox = cb;
-
-  // 顯示彈窗
-  $("closeConfirmModal").style.display = "flex";
-});
-
-// 「先不要」→ 關閉視窗 + 還原勾勾
-document.getElementById("btnCancelClose").addEventListener("click", () => {
-  document.getElementById("closeConfirmModal").style.display = "none";
-
-  if (pendingCloseCheckbox) {
-    pendingCloseCheckbox.checked = false;
-    pendingCloseCheckbox = null;
-  }
-});
-
-// 「確定結單」→ 關閉視窗（勾勾保留）
-document.getElementById("btnConfirmClose").addEventListener("click", () => {
-  document.getElementById("closeConfirmModal").style.display = "none";
-  pendingCloseCheckbox = null;
-});
-
-    
 </script>
 </body>
 </html>
