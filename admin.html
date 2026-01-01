@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1</title>
+  <title>GoldBricks 呷奔👽｜管理</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2180,11 +2180,36 @@ function renderMenuOptionEditor(rid, mid, container){
                 </summary>
                 <div style="margin-top:8px">
 
-                  <div class="kpi">
+                                   <div class="kpi">
                     ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
                     ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
                     ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
                     ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
+                  </div>
+
+                  <!-- ✅ 使用者顯示 / 結單 勾選 -->
+                  <div class="row" style="margin:10px 0; gap:16px;">
+                    <label style="margin:0; display:flex; align-items:center; gap:6px;">
+                      <input
+                        type="checkbox"
+                        data-r="${r.id}"
+                        data-k="isVisible"
+                        style="width:18px; height:18px;"
+                        ${r.isVisible === false ? "" : "checked"}
+                      />
+                      <span>使用者顯示</span>
+                    </label>
+
+                    <label style="margin:0; display:flex; align-items:center; gap:6px;">
+                      <input
+                        type="checkbox"
+                        data-r="${r.id}"
+                        data-k="isClosed"
+                        style="width:18px; height:18px;"
+                        ${r.isClosed ? "checked" : ""}
+                      />
+                      <span>結單（使用者不可送單）</span>
+                    </label>
                   </div>
 
                   <label>餐廳類別分類</label>
