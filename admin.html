@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理6666</title>
+  <title>GoldBricks 呷奔👽｜管理666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -3301,10 +3301,48 @@ function renderMenuOptionEditor(rid, mid, container){
 });
 
 // ========= 結單確認（簡單版） =========
+
+// 暫存被點到的「結單」 checkbox
 let pendingCloseCheckbox = null;
-document.addEventListener("change", (e) => { ... });
-document.getElementById("btnCancelClose").addEventListener("click", () => { ... });
-document.getElementById("btnConfirmClose").addEventListener("click", () => { ... });
+
+// 監聽所有 data-k="isClosed" 的勾勾
+document.addEventListener("change", (e) => {
+  const cb = e.target;
+  if (!(cb instanceof HTMLInputElement)) return;
+  if (cb.type !== "checkbox") return;
+  if (cb.dataset.k !== "isClosed") return;
+
+  // 只有勾起來 (checked = true) 才跳視窗
+  if (!cb.checked) return;
+
+  pendingCloseCheckbox = cb;
+
+  // 顯示彈窗（這裡用最安全的寫法，不用 $）
+  const modal = document.getElementById("closeConfirmModal");
+  if (modal) {
+    modal.style.display = "flex";
+  }
+});
+
+// 「先不要」→ 關閉視窗 + 還原勾勾
+document.getElementById("btnCancelClose").addEventListener("click", () => {
+  const modal = document.getElementById("closeConfirmModal");
+  if (modal) modal.style.display = "none";
+
+  if (pendingCloseCheckbox) {
+    pendingCloseCheckbox.checked = false; // 還原勾勾
+    pendingCloseCheckbox = null;
+  }
+});
+
+// 「確定結單」→ 關閉視窗（勾勾保留）
+document.getElementById("btnConfirmClose").addEventListener("click", () => {
+  const modal = document.getElementById("closeConfirmModal");
+  if (modal) modal.style.display = "none";
+
+  // 保留 checked = true，真正寫入 Firestore 還是靠原本的「儲存」按鈕
+  pendingCloseCheckbox = null;
+});
 
 </script>
 </body>
