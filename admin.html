@@ -285,7 +285,7 @@
           <div class="card">
             <h3>餐廳資料（點擊新增）</h3>
 
-            <label>餐廳分類（手動輸入，用於餐廳管理的分類收合）</label>
+            <label>餐廳類別分類</label>
             <input id="r_category" autocomplete="off" placeholder="例：燒臘 / 粥品 / 麵類 / 便當"/>
 
             <label>餐廳名稱</label>
@@ -308,15 +308,15 @@
                 <input id="r_map" autocomplete="off" placeholder="https://maps.google.com/..."/>
               </div>
               <div>
-                <label>餐廳圖片網址（可空）</label>
+                <label>餐廳圖片網址</label>
                 <input id="r_imgUrl" autocomplete="off" placeholder="https://...jpg / png"/>
               </div>
             </div>
 
-            <label>營業時間（可空，文字即可）</label>
+            <label>營業時間</label>
             <input id="r_hours" autocomplete="off" placeholder="例：11:00~14:30 / 16:30~19:30"/>
 
-            <label>公休日（可多選）</label>
+            <label>公休日</label>
             <div class="chkline mini" id="r_weeklyOffWrap">
               <label style="margin:0; display:flex; align-items:center; gap:6px;">
                 <input type="checkbox" data-weekday="週一公休"> 週一
@@ -343,7 +343,7 @@
 
             <div class="row">
               <div>
-                <label>Line QR Code 圖片網址（可空）</label>
+                <label>Line QR Code 圖片網址</label>
                 <input id="r_lineQrUrl" autocomplete="off" placeholder="https://...png（QR code 圖）"/>
               </div>
               <div class="muted" style="display:flex; align-items:end"></div>
@@ -497,7 +497,7 @@
       <section class="view" id="view_staff" style="display:none">
         <div class="grid">
           <div class="card">
-            <h3>新增人員（可新增部門/人員名稱）</h3>
+            <h3>新增人員</h3>
 
             <label>部門</label>
             <input id="s_dept" list="deptList" placeholder="例：FAE"/>
@@ -525,7 +525,7 @@
           </div>
 
           <div class="card">
-            <h3>人員清單（部門收合）</h3>
+            <h3>人員清單</h3>
             <div id="staffWrap"></div>
           </div>
         </div>
@@ -560,7 +560,7 @@
       <!-- VIEW: 餐廳管理 -->
       <section class="view" id="view_restaurants" style="display:none">
         <div class="card" style="margin-top:14px">
-          <h3>餐廳管理（依分類收合顯示 + 可顯示/隱藏 + 可結單/開單）</h3>
+          <h3>餐廳管理</h3>
 <!-- 🔵 顯示中的餐廳 -->
 <div class="subcard" style="margin-top:10px; margin-bottom:10px;">
   <div class="inline" style="justify-content:space-between; align-items:center;">
@@ -2139,7 +2139,7 @@ function renderMenuOptionEditor(rid, mid, container){
                     ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
                   </div>
 
-                  <label>餐廳分類（手動輸入，用於分類收合）</label>
+                  <label>餐廳類別分類</label>
                   <input data-r="${r.id}" data-k="category" value="${esc((r.category||"").trim())}" placeholder="例：燒臘 / 粥品"/>
 
                   <div class="row" style="margin-top:10px">
