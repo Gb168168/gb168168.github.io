@@ -367,12 +367,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const $ = (id)=> document.getElementById(id);
-    const statusPill = $("statusPill");
-    const esc = (s)=> (s??"").toString()
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+const $ = (id)=> document.getElementById(id);
+const statusPill = $("statusPill");
+const esc = (s)=> (s ?? "").toString()
+  .replaceAll("&","&amp;")
+  .replaceAll("<","&lt;")
+  .replaceAll(">","&gt;")
+  .replaceAll('"',"&quot;");
 
-    // ✅ 跟 admin 一樣的部門排序規則
+// ✅ 跟 admin 一樣的部門排序規則
 const DEPT_ORDER = [
   "管理部",
   "TSE-早",
@@ -388,23 +391,24 @@ const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
 
 function deptRank(dept){
   const key = (dept || "").trim();
-  return DEPT_INDEX.has(key) ? DEPT_INDEX.get(key) : 999;
+  return DEPT_INDEX.has(key) ? DEPT_INDEX.get(key) : 999; // 不在列表的排後面
 }
 
-    const todayISO = ()=>{
-      const d = new Date(); const pad = (n)=> String(n).padStart(2,"0");
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    };
+const todayISO = ()=>{
+  const d = new Date();
+  const pad = (n)=> String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+};
 
-    function setWhoLine(){
-      const dept = $("deptSelect").value || "";
-      const name = $("nameSelect").value || "";
-      $("whoLine").innerHTML = (dept && name)
-        ? `<span class="tag">使用者</span> <b style="margin-left:6px">${esc(dept)} / ${esc(name)}</b>`
-        : `尚未選擇使用者`;
-    }
+function setWhoLine(){
+  const dept = $("deptSelect").value || "";
+  const name = $("nameSelect").value || "";
+  $("whoLine").innerHTML = (dept && name)
+    ? `<span class="tag">使用者</span> <b style="margin-left:6px">${esc(dept)} / ${esc(name)}</b>`
+    : `尚未選擇使用者`;
+}
 
-    statusPill.textContent = "已連線 Firestore ✅";
+statusPill.textContent = "已連線 Firestore ✅";
 
     // ===== Collections =====
     const colStaff = collection(db, "staff");
