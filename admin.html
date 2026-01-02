@@ -3155,23 +3155,31 @@ async function updateCloseConfirmNoOrder(){
       );
 
       ordersUnsub = onSnapshot(qOrders, (snap)=>{
-        (async ()=>{
-          const orders = [];
-          snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+  (async ()=>{
+    const orders = [];
+    snap.forEach(d=>{
+      const v = d.data() || {};
+      orders.push({
+        id: d.id,
+        ...v
+      });
+    });
 
-          lastLoadedOrders = orders;
+    lastLoadedOrders = orders;
 
-          if(!orders.length){
-            $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-            $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-            statusPill.textContent = "已載入（目前無訂單）";
-          }else{
-            const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
-            $("ordersSummaryOut").innerHTML = summaryHTML;
-            $("ordersDetailOut").innerHTML = detailHTML;
-            bindOrderDeleteButtons();
-            statusPill.textContent = "已載入 ✅（即時更新中）";
-          }
+    if(!orders.length){
+      $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+      $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+      statusPill.textContent = "已載入（目前無訂單）";
+    }else{
+      const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
+      $("ordersSummaryOut").innerHTML = summaryHTML;
+      $("ordersDetailOut").innerHTML = detailHTML;
+      bindOrderDeleteButtons();
+      statusPill.textContent = "已載入 ✅";
+    }
+  })();
+});
 
           await checkNotOrderedForDate(dateStr, orders, false);
         })().catch(console.error);
