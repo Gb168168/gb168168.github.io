@@ -433,55 +433,76 @@ function groupEnabled(g){
   return true;
 }
 
-    // ===== Staff =====
-    async function loadStaff(){
-      try{
-        statusPill.textContent = "載入人員中…";
-        const snap = await getDocs(colStaff);
-        const map = {};
-        snap.forEach(d=>{
-          const v = d.data() || {};
-          const dept = (v.dept || "未分部門").trim();
-          const name = (v.name || "").trim();
-          if(!name) return;
-          if(!map[dept]) map[dept] = [];
-          map[dept].push({ id:d.id, name, order: Number(v.order||0), createdAt:Number(v.createdAt||0) });
-        });
+   // ===== Staff =====
+async function loadStaff(){
+  try{
+    statusPill.textContent = "載入人員中…";
 
-        Object.keys(map).forEach(dept=>{
-          map[dept].sort((a,b)=>{
-            const ao=a.order||0, bo=b.order||0;
-            if(ao!==bo) return ao-bo;
-            return (a.name||"").localeCompare((b.name||""),"zh-Hant");
-          });
-        });
+    const snap = await getDocs(colStaff);
+    const map = {};
 
-        staffByDept = map;
+    snap.forEach(d=>{
+      const v = d.data() || {};
+      const dept = (v.dept || "未分部門").trim();
+      const name = (v.name || "").trim();
+      if (!name) return;
 
-        const depts = Object.keys(map).sort((a,b)=> a.localeCompare(b,"zh-Hant"));
-        const deptSel = $("deptSelect");
-        deptSel.innerHTML = `<option value="">請選擇</option>` + depts.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("");
+      if (!map[dept]) map[dept] = [];
+      map[dept].push({
+        id: d.id,
+        name,
+        order: Number(v.order || 0),
+        createdAt: Number(v.createdAt || 0)
+      });
+    });
 
-        const savedDept = localStorage.getItem("gb_user_dept") || "";
-        const savedName = localStorage.getItem("gb_user_name") || "";
-        if(savedDept && staffByDept[savedDept]){
-          deptSel.value = savedDept;
-          renderNameSelect(savedDept);
-          if(savedName && staffByDept[savedDept].some(x=>x.name===savedName)){
-            $("nameSelect").value = savedName;
-          }
-        }else{
-          renderNameSelect("");
-        }
+    // ✅ 同一部門內的人員排序邏輯：跟 admin 一樣
+    Object.keys(map).forEach(dept=>{
+      map[dept].sort((a,b)=>{
+        const ao = Number(a.order || 0);
+        const bo = Number(b.order || 0);
+        if (ao !== bo) return ao - bo;
 
-        setWhoLine();
-        statusPill.textContent = "人員載入完成 ✅";
-      }catch(err){
-        console.error(err);
-        statusPill.textContent = "人員讀取失敗";
-        alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
+        const ta = Number(a.createdAt || 0);
+        const tb = Number(b.createdAt || 0);
+        if (ta !== tb) return ta - tb;
+
+        return (a.name || "").localeCompare((b.name || ""), "zh-Hant");
+      });
+    });
+
+    staffByDept = map;
+
+    // ✅ 部門下拉排序：使用 deptRank（跟 admin 一樣的固定順序）
+    const depts = Object.keys(map).sort((a,b)=>{
+      const ra = deptRank(a);
+      const rb = deptRank(b);
+      if (ra !== rb) return ra - rb;
+      return a.localeCompare(b, "zh-Hant");
+    });
+
+    const deptSel = $("deptSelect");
+    deptSel.innerHTML =
+      `<option value="">請選擇</option>` +
+      depts.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
+
+    const savedDept = localStorage.getItem("gb_user_dept") || "";
+    const savedName = localStorage.getItem("gb_user_name") || "";
+
+    if (savedDept && staffByDept[savedDept]) {
+      deptSel.value = savedDept;
+      renderNameSelect(savedDept);
+
+      if (savedName && staffByDept[savedDept].some(x => x.name === savedName)) {
+        $("nameSelect").value = savedName;
       }
+    } else {
+      renderNameSelect("");
     }
+
+    setWhoLine();
+    statusPill.textContent = "人員載入完成 ✅";
+  } catch (err) {
 
     function renderNameSelect(dept){
       const nameSel = $("nameSelect");
