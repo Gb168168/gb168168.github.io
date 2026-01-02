@@ -535,14 +535,14 @@
             <label>部門</label>
             <input id="s_dept" list="deptList" placeholder="例：FAE"/>
             <datalist id="deptList">
-              <option>管理部</option>
-              <option>TSE</option>
-              <option>FAE</option>
+             <option>管理部</option>
+              <option>TSE-早</option>
+              <option>FAE-早</option>
               <option>倉管</option>
               <option>新場</option>
               <option>工程師</option>
               <option>教育訓練</option>
-              <option>線上客服</option>
+              <option>線上客服-早</option>
             </datalist>
 
             <label>人員名稱</label>
@@ -807,14 +807,14 @@
        ✅ 部門排序：固定順序（訂單明細/Excel/人員清單 共用）
        ========================================================= */
     const DEPT_ORDER = [
-      "管理部",
-      "TSE",
-      "FAE",
+     "管理部",
+      "TSE-早",
+      "FAE-早",
       "倉管",
       "新場",
       "工程師",
       "教育訓練",
-      "線上客服"
+      "線上客服-早"
     ];
     const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
     function deptRank(dept){
