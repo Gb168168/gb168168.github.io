@@ -372,6 +372,25 @@
     const esc = (s)=> (s??"").toString()
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 
+    // ✅ 跟 admin 一樣的部門排序規則
+const DEPT_ORDER = [
+  "管理部",
+  "TSE-早",
+  "FAE-早",
+  "倉管",
+  "新場",
+  "工程師",
+  "教育訓練",
+  "線上客服-早"
+];
+
+const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
+
+function deptRank(dept){
+  const key = (dept || "").trim();
+  return DEPT_INDEX.has(key) ? DEPT_INDEX.get(key) : 999;
+}
+
     const todayISO = ()=>{
       const d = new Date(); const pad = (n)=> String(n).padStart(2,"0");
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
