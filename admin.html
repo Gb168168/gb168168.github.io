@@ -1342,9 +1342,15 @@ let allStaffLoaded = false;
 async function loadAllStaffOnce(){
   if(allStaffLoaded && allStaffBase.length) return;
 
-  const snap = await getDocs(colStaff);
+    const snap = await getDocs(colStaff);
   const arr = [];
-  snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+  snap.forEach(d=>{
+    const v = d.data() || {};
+    arr.push({
+      id: d.id,
+      ...v
+    });
+  });
 
   // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
   arr.sort((a,b)=>{
