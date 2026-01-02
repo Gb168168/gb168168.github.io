@@ -437,7 +437,7 @@ function groupEnabled(g){
   return true;
 }
 
-   // ===== Staff =====
+  // ===== Staff =====
 async function loadStaff(){
   try{
     statusPill.textContent = "載入人員中…";
@@ -460,7 +460,7 @@ async function loadStaff(){
       });
     });
 
-    // ✅ 同一部門內的人員排序邏輯：跟 admin 一樣
+    // ✅ 同一部門內的人員排序：order → createdAt → name（跟 admin 一樣）
     Object.keys(map).forEach(dept=>{
       map[dept].sort((a,b)=>{
         const ao = Number(a.order || 0);
@@ -477,7 +477,7 @@ async function loadStaff(){
 
     staffByDept = map;
 
-    // ✅ 部門下拉排序：使用 deptRank（跟 admin 一樣的固定順序）
+    // ✅ 部門下拉排序：用 deptRank（照 admin 順序）
     const depts = Object.keys(map).sort((a,b)=>{
       const ra = deptRank(a);
       const rb = deptRank(b);
@@ -507,6 +507,11 @@ async function loadStaff(){
     setWhoLine();
     statusPill.textContent = "人員載入完成 ✅";
   } catch (err) {
+    console.error(err);
+    statusPill.textContent = "人員讀取失敗";
+    alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
+  }
+}
 
     function renderNameSelect(dept){
       const nameSel = $("nameSelect");
