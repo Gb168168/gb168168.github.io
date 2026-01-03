@@ -1545,7 +1545,13 @@ $("btnStartPackage")?.addEventListener("click", ()=>{
   if(!name) return alert("請輸入套餐名稱");
   if(isNaN(price) || price < 0) return alert("加價不正確");
 
-  activePackageDraft = { name, price, menuTempIds: [] };
+  activePackageDraft = {
+  name,
+  price,
+  menuTempIds: [],
+  groups: [],              // ✅ 一定要有，不然完成群組會壞
+  activeGroupDraft: null   // ✅ 保險
+};
   $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
   showPkgDraftUI(true);
   renderPkgMenuPicker();
