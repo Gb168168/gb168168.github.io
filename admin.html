@@ -1659,10 +1659,10 @@ renderPkgChoiceDraft();
 // ====== 🍱 套餐：先建立套餐，再勾選包含哪些餐點（從 menuQueue 來） ======
 window.uid ||= (()=> (crypto?.randomUUID?.() || ("id_" + Math.random().toString(16).slice(2))));
 
-let packages = [];
+window.packages ||= [];
 // packages: [{ name, price, menuTempIds:[...], groups:[{name, rule, choices:[{name,price}]}] }]
 
-let activePackageDraft = null;
+window.activePackageDraft ??= null;
 // activePackageDraft: { name, price, menuTempIds:[], groups:[], activeGroupDraft:null }
 
 function showPkgDraftUI(on){
