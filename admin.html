@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理999</title>
+  <title>GoldBricks 呷奔👽｜管理99</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1445,32 +1445,42 @@ renderPackages();
         `;
       }).join("");
 
-      wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
-        b.onclick = ()=>{
-          menuQueue.splice(Number(b.dataset.delMenu), 1);
-          renderMenuQueue();
-        };
-      });
-    }
+     wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
+  b.onclick = ()=>{
+    menuQueue.splice(Number(b.dataset.delMenu), 1);
     renderMenuQueue();
+  };
+});
 
-    $("btnClearMenu").onclick = ()=>{
-      $("m_cat").value="";
-      $("m_name").value="";
-      $("m_price").value="";
-      $("m_defaultQty").value="1";
+// ✅ 同步套餐勾選＆顯示（只放這裡）
+renderPkgMenuPicker();
+renderPackages();
 
-      draftGroups = [];
-      activeGroupDraft = null;
-      showGroupDraftUI(false);
-      $("og_name").value="";
-      $("og_type").value="single";
-      $("og_required").checked=true;
-      $("opt_name").value="";
-      $("opt_price").value="";
-      renderGroups();
-      renderChoiceDraft();
-    };
+
+   $("btnClearMenu").onclick = ()=>{
+  $("m_cat").value="";
+  $("m_name").value="";
+  $("m_price").value="";
+  $("m_defaultQty").value="1";
+
+  draftGroups = [];
+  activeGroupDraft = null;
+  showGroupDraftUI(false);
+  $("og_name").value="";
+  $("og_type").value="single";
+  $("og_required").checked=true;
+  $("opt_name").value="";
+  $("opt_price").value="";
+  renderGroups();
+  renderChoiceDraft();
+
+  // ✅ 套餐也一併清空（就加在這）
+  packages = [];
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  renderPackages();
+  renderPkgMenuPicker();
+};
 
     $("btnAddMenuToQueue").onclick = ()=>{
       const category = $("m_cat").value;
@@ -1490,7 +1500,7 @@ renderPackages();
         choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
       }));
 
-      menuQueue.push({ category, name, price, defaultQty, optionGroups });
+     menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
 
       // ✅ 只清空餐點欄位，保留「選項群組」讓你可以套用在多道餐點
       $("m_name").value = "";
@@ -1552,19 +1562,44 @@ renderPackages();
         });
 
         if(menuQueue.length>0){
-          statusPill.textContent = "新增餐點清單中…";
-          const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-          for(const m of menuQueue){
-            await addDoc(menuCol, {
-              category: m.category,
-              name: m.name,
-              price: Number(m.price||0),
-              defaultQty: Math.max(1, Number(m.defaultQty||1)),
-              optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
-              createdAt: Date.now()
-            });
-          }
-        }
+  statusPill.textContent = "新增餐點清單中…";
+  const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+
+  // tempId -> 真正的 menu docId
+  const tempToDocId = new Map();
+
+  for(const m of menuQueue){
+    const docRef = await addDoc(menuCol, {
+      tempId: m.tempId, // ✅ 存一下（可選，但建議）
+      category: m.category,
+      name: m.name,
+      price: Number(m.price||0),
+      defaultQty: Math.max(1, Number(m.defaultQty||1)),
+      optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+      createdAt: Date.now()
+    });
+    tempToDocId.set(m.tempId, docRef.id);
+  }
+
+  // ✅ 把套餐的 tempIds 轉成真正的 menu docIds
+  const packagesResolved = (packages||[]).map(p=>({
+    name: p.name,
+    price: Number(p.price||0),
+    menuIds: (p.menuTempIds||[])
+      .map(tid => tempToDocId.get(tid))
+      .filter(Boolean)
+  })).filter(p => p.menuIds.length>0);
+
+  // ✅ 回寫到餐廳文件
+  await updateDoc(doc(db,"restaurants", restaurantRef.id), {
+    packages: packagesResolved
+  });
+}else{
+  // 沒餐點就不應該有套餐（保險）
+  if((packages||[]).length){
+    await updateDoc(doc(db,"restaurants", restaurantRef.id), { packages: [] });
+  }
+}
 
         statusPill.textContent = "新增完成 ✅";
         alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
