@@ -1673,9 +1673,7 @@ function showPkgGroupDraftUI(on){
   const el = $("pkgGroupDraftArea");
   if(el) el.style.display = on ? "" : "none";
 }
-
 function rulePickCount(rule){
-  // pick1 / pick2
   return (rule === "pick2") ? 2 : 1;
 }
 
@@ -1688,15 +1686,15 @@ function renderPkgMenuPicker(){
     wrap.innerHTML = "（尚未建立套餐）";
     return;
   }
-  if(menuQueue.length === 0){
+  if(!Array.isArray(menuQueue) || menuQueue.length === 0){
     wrap.innerHTML = "（請先加入餐點清單）";
     return;
   }
 
   wrap.innerHTML = menuQueue.map((m)=>{
-    const checked = activePackageDraft.menuTempIds.includes(m.tempId) ? "checked" : "";
+    const checked = (activePackageDraft.menuTempIds||[]).includes(m.tempId) ? "checked" : "";
     return `
-      <label class="chkline" style="margin:8px 0;">
+      <label class="chkline" style="margin:8px 0; display:flex; gap:10px; align-items:center;">
         <input type="checkbox" data-pkg-tempid="${esc(m.tempId)}" ${checked}/>
         <span><b>${esc(m.name||"")}</b> <span class="tag" style="margin-left:8px">價格 ${Number(m.price||0)}</span></span>
       </label>
@@ -1727,22 +1725,28 @@ function renderPkgChoiceDraft(){
     return;
   }
 
-  if(!g.choices?.length){
-    wrap.innerHTML = `<div class="muted mini">尚未加入選項。</div>`;
+  const list = g.choices || [];
+  if(list.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未加入選項。</div>`;
     return;
   }
 
-  wrap.innerHTML = g.choices.map((c,i)=>`
-    <div class="inline" style="justify-content:space-between; margin-top:8px;">
-      <div>${esc(c.name)} <span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span></div>
-      <button class="btnSmall btnDanger" type="button" data-del-pkg-choice="${i}">刪除</button>
+  wrap.innerHTML = list.map((c,i)=>`
+    <div style="margin-top:8px; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff">
+      <div class="inline" style="justify-content:space-between">
+        <div>
+          <b>${esc(c.name)}</b>
+          <span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span>
+        </div>
+        <button class="btnSmall btnDanger" type="button" data-del-pkg-choice="${i}">刪除</button>
+      </div>
     </div>
   `).join("");
 
   wrap.querySelectorAll("[data-del-pkg-choice]").forEach(btn=>{
     btn.onclick = ()=>{
-      const i = Number(btn.dataset.delPkgChoice);
-      g.choices.splice(i,1);
+      const idx = Number(btn.dataset.delPkgChoice);
+      g.choices.splice(idx, 1);
       renderPkgChoiceDraft();
     };
   });
@@ -1752,25 +1756,25 @@ function renderPkgGroups(){
   const wrap = $("pkgGroupsList");
   if(!wrap) return;
 
-  const gs = activePackageDraft?.groups || [];
-  if(!gs.length){
-    wrap.innerHTML = `<div class="muted mini">尚未新增群組。</div>`;
+  const groups = activePackageDraft?.groups || [];
+  if(groups.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未新增群組。</div>`;
     return;
   }
 
-  wrap.innerHTML = gs.map((g,gi)=>{
+  wrap.innerHTML = groups.map((g,gi)=>{
     const need = rulePickCount(g.rule);
-    const names = (g.choices||[]).map(c=>`${c.name}${Number(c.price||0)?`(+${Number(c.price||0)})`:""}`).join("、") || "（尚無選項）";
+    const choices = (g.choices||[]).map(c=>`${c.name}${Number(c.price||0)>0?`(+${Number(c.price)})`:""}`).join("、");
     return `
       <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
         <div class="inline" style="justify-content:space-between">
           <div>
-            <b>${esc(g.name||"")}</b>
-            <span class="tag" style="margin-left:8px">${need===2 ? "任選 2" : "擇 1"}</span>
+            <b>${esc(g.name)}</b>
+            <span class="tag" style="margin-left:8px">${g.rule==="pick2" ? `任選${need}` : `擇${need}`}</span>
           </div>
           <button class="btnSmall btnDanger" type="button" data-del-pkg-group="${gi}">刪除</button>
         </div>
-        <div class="muted mini" style="margin-top:6px">選項：${esc(names)}</div>
+        <div class="muted mini" style="margin-top:8px">選項：${esc(choices||"（無）")}</div>
       </div>
     `;
   }).join("");
@@ -1778,29 +1782,26 @@ function renderPkgGroups(){
   wrap.querySelectorAll("[data-del-pkg-group]").forEach(btn=>{
     btn.onclick = ()=>{
       const gi = Number(btn.dataset.delPkgGroup);
-      activePackageDraft.groups.splice(gi,1);
+      activePackageDraft.groups.splice(gi, 1);
       renderPkgGroups();
     };
   });
 }
 
-// 套餐清單（已完成的套餐）
 function renderPackages(){
   const wrap = $("packageList");
   if(!wrap) return;
 
-  if(packages.length === 0){
+  if(!Array.isArray(packages) || packages.length === 0){
     wrap.innerHTML = `<div class="muted">尚未建立套餐。</div>`;
     return;
   }
 
-  const nameByTempId = new Map(menuQueue.map(m=>[m.tempId, m.name]));
-
   wrap.innerHTML = packages.map((p,pi)=>{
-    const menuNames = (p.menuTempIds||[])
-      .map(tid => nameByTempId.get(tid))
+    const fixedMenuNames = (p.menuTempIds||[])
+      .map(tid => (menuQueue.find(m=>m.tempId===tid)?.name))
       .filter(Boolean)
-      .join("、") || "（未選餐點）";
+      .join("、") || "（未勾固定餐點）";
 
     const groupNames = (p.groups||[])
       .map(g => `${g.name}(${g.rule==="pick2"?"任選2":"擇1"})`)
@@ -1815,7 +1816,7 @@ function renderPackages(){
           </div>
           <button class="btnSmall btnDanger" type="button" data-del-pkg="${pi}">刪除</button>
         </div>
-        <div class="muted mini" style="margin-top:8px">包含：${esc(menuNames)}</div>
+        <div class="muted mini" style="margin-top:8px">固定餐點：${esc(fixedMenuNames)}</div>
         <div class="muted mini" style="margin-top:6px">群組：${esc(groupNames)}</div>
       </div>
     `;
@@ -1829,8 +1830,10 @@ function renderPackages(){
   });
 }
 
+/* ====== 按鈕綁定（只用 onclick，避免雙綁定打架） ====== */
+
 // 建立套餐草稿
-$("btnStartPackage")?.addEventListener("click", ()=>{
+$("btnStartPackage").onclick = ()=>{
   const name = $("pkg_name").value.trim();
   const price = Number($("pkg_price").value || 0);
   if(!name) return alert("請輸入套餐名稱");
@@ -1840,8 +1843,8 @@ $("btnStartPackage")?.addEventListener("click", ()=>{
     name,
     price,
     menuTempIds: [],
-    groups: [],            // ✅ 必須存在
-    activeGroupDraft: null // ✅ 必須存在
+    groups: [],
+    activeGroupDraft: null
   };
 
   $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
@@ -1851,55 +1854,60 @@ $("btnStartPackage")?.addEventListener("click", ()=>{
   renderPkgMenuPicker();
   renderPkgGroups();
   renderPkgChoiceDraft();
-});
+};
 
 // 取消套餐草稿
-$("btnCancelPackage")?.addEventListener("click", ()=>{
+$("btnCancelPackage").onclick = ()=>{
   activePackageDraft = null;
   showPkgDraftUI(false);
   showPkgGroupDraftUI(false);
   renderPkgMenuPicker();
   renderPkgGroups();
   renderPkgChoiceDraft();
-});
+};
 
-// 新增群組（A / B / C / D）
-$("btnPkgStartGroup")?.addEventListener("click", ()=>{
+// 新增群組（A/B/C/D）
+$("btnPkgStartGroup").onclick = ()=>{
   if(!activePackageDraft) return alert("請先建立套餐");
+
   const name = $("pkg_g_name").value.trim();
+  if(!name) return alert("請輸入群組名稱");
+
   const rule = $("pkg_g_rule").value || "pick1";
-  if(!name) return alert("請輸入群組名稱（例如 A 沙拉 / B 小點）");
-
   activePackageDraft.activeGroupDraft = { name, rule, choices: [] };
+
   $("pkgDraftGroupTitle").textContent = `群組：${name}`;
-  $("pkgDraftGroupDesc").textContent = `規則：${rule==="pick2" ? "任選 2" : "擇 1"}`;
-
-  // 清空輸入
-  $("pkg_opt_name").value = "";
-  $("pkg_opt_price").value = "";
-
+  $("pkgDraftGroupDesc").textContent = (rule==="pick2") ? "任選2（剛好2）" : "擇1";
   showPkgGroupDraftUI(true);
   renderPkgChoiceDraft();
-});
+};
 
-// 加入選項（群組內）
-$("btnPkgAddChoice")?.addEventListener("click", ()=>{
+// 取消群組草稿
+$("btnPkgCancelGroup").onclick = ()=>{
+  if(!activePackageDraft) return;
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+  renderPkgChoiceDraft();
+};
+
+// 加入選項
+$("btnPkgAddChoice").onclick = ()=>{
   const g = activePackageDraft?.activeGroupDraft;
-  if(!g) return alert("請先新增群組");
+  if(!g) return;
 
   const n = $("pkg_opt_name").value.trim();
   const p = Number($("pkg_opt_price").value || 0);
   if(!n) return alert("請輸入選項名稱");
   if(isNaN(p) || p < 0) return alert("加價不正確");
 
-  g.choices.push({ name: n, price: p });
+  g.choices.push({ name:n, price:p });
   $("pkg_opt_name").value = "";
   $("pkg_opt_price").value = "";
   renderPkgChoiceDraft();
-});
+};
 
 // 完成此群組（加入套餐）
-$("btnPkgCommitGroup")?.addEventListener("click", ()=>{
+$("btnPkgCommitGroup").onclick = ()=>{
   const g = activePackageDraft?.activeGroupDraft;
   if(!g) return;
 
@@ -1912,27 +1920,33 @@ $("btnPkgCommitGroup")?.addEventListener("click", ()=>{
   activePackageDraft.activeGroupDraft = null;
   showPkgGroupDraftUI(false);
 
-  // 清空群組輸入
   $("pkg_g_name").value = "";
   $("pkg_g_rule").value = "pick1";
+  $("pkg_opt_name").value = "";
+  $("pkg_opt_price").value = "";
 
   renderPkgGroups();
   renderPkgChoiceDraft();
-});
+};
 
 // 完成此套餐（加入套餐清單）
-$("btnCommitPackage")?.addEventListener("click", ()=>{
+$("btnCommitPackage").onclick = ()=>{
   const p = activePackageDraft;
   if(!p) return;
 
-  if(!Array.isArray(p.menuTempIds) || p.menuTempIds.length === 0){
-    return alert("請至少勾選 1 道餐點作為套餐內容");
+  const hasFixedMenus = Array.isArray(p.menuTempIds) && p.menuTempIds.length > 0;
+  const hasGroups = Array.isArray(p.groups) && p.groups.length > 0;
+
+  if(!hasFixedMenus && !hasGroups){
+    return alert("請至少設定 1 個套餐群組（A/B/C/D）或勾選 1 道固定餐點");
   }
 
-  // 群組可為 0（你若想強制一定要有 A/B/C/D，再打開這段）
-  // if(!p.groups?.length) return alert("請至少新增 1 個套餐選項群組（A/B/C/D）");
-
-  packages.push(p);
+  packages.push({
+    name: p.name,
+    price: Number(p.price||0),
+    menuTempIds: Array.isArray(p.menuTempIds) ? p.menuTempIds : [],
+    groups: Array.isArray(p.groups) ? p.groups : []
+  });
 
   activePackageDraft = null;
   $("pkg_name").value = "";
@@ -1942,8 +1956,13 @@ $("btnCommitPackage")?.addEventListener("click", ()=>{
 
   renderPackages();
   renderPkgMenuPicker();
-  renderPkgGroups();
-  renderPkgChoiceDraft();
+};
+
+// 初始化
+renderPackages();
+renderPkgMenuPicker();
+renderPkgGroups();
+renderPkgChoiceDraft();
 });
 
 // 初始化顯示
