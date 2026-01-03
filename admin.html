@@ -1764,20 +1764,23 @@ $("btnAddMenuToQueue").onclick = ()=>{
 
       try{
         const restaurantRef = await addDoc(colRestaurants, {
-          category: $("r_category").value.trim(),
-          name,
-          phone: $("r_phone").value.trim(),
-          address: $("r_addr").value.trim(),
-          mapUrl: $("r_map").value.trim(),
-          note: $("r_note").value.trim(),
-          businessHours: $("r_hours").value.trim(),
-          weeklyOff: getWeeklyOffFromCreateForm(),
-          imageUrl: $("r_imgUrl").value.trim(),
-          lineQrUrl: $("r_lineQrUrl").value.trim(),
-          isVisible: $("r_visible").checked,
-          isClosed: $("r_closed").checked,
-          createdAt: Date.now()
-        });
+  category: $("r_category").value.trim(),
+  name,
+  phone: $("r_phone").value.trim(),
+  address: $("r_addr").value.trim(),
+  mapUrl: $("r_map").value.trim(),
+  note: $("r_note").value.trim(),
+  businessHours: $("r_hours").value.trim(),
+  weeklyOff: getWeeklyOffFromCreateForm(),
+  imageUrl: $("r_imgUrl").value.trim(),
+  lineQrUrl: $("r_lineQrUrl").value.trim(),
+  isVisible: $("r_visible").checked,
+  isClosed: $("r_closed").checked,
+  createdAt: Date.now(),
+
+  // ✅ 新增：套餐模板庫（A/B/C/D 定義存在餐廳文件）
+  packageTemplates: Array.isArray(packageTemplates) ? packageTemplates : []
+});
 
         if(menuQueue.length>0){
   statusPill.textContent = "新增餐點清單中…";
