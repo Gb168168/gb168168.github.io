@@ -1532,7 +1532,9 @@ $("btnPkgCommitGroup")?.addEventListener("click", ()=>{
     return alert(`此群組需要至少 ${need} 個選項`);
   }
 
+  if(!Array.isArray(activePackageDraft.groups)) activePackageDraft.groups = []; // ✅
   activePackageDraft.groups.push(g);
+
   activePackageDraft.activeGroupDraft = null;
   showPkgGroupDraftUI(false);
   renderPkgGroups();
