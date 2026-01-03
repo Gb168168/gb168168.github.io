@@ -1265,6 +1265,136 @@ initCategoryDropdown();
 
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
+// ====== 🍱 套餐：先建立套餐，再勾選包含哪些餐點（從 menuQueue 來） ======
+const uid = ()=> (crypto?.randomUUID?.() || ("id_" + Math.random().toString(16).slice(2)));
+
+let packages = []; 
+// [{ name, price, menuTempIds: ["tmp_xxx","tmp_yyy"] }]
+
+let activePackageDraft = null; 
+// { name, price, menuTempIds: [] }
+
+function showPkgDraftUI(on){
+  const el = $("pkgDraftArea");
+  if(el) el.style.display = on ? "" : "none";
+}
+
+function renderPkgMenuPicker(){
+  const wrap = $("pkgPickMenus");
+  if(!wrap) return;
+
+  if(!activePackageDraft){
+    wrap.innerHTML = "（尚未建立套餐）";
+    return;
+  }
+  if(menuQueue.length === 0){
+    wrap.innerHTML = "（請先加入餐點清單）";
+    return;
+  }
+
+  wrap.innerHTML = menuQueue.map((m)=>{
+    const checked = activePackageDraft.menuTempIds.includes(m.tempId) ? "checked" : "";
+    return `
+      <label class="chkline" style="margin:8px 0;">
+        <input type="checkbox" data-pkg-tempid="${esc(m.tempId)}" ${checked}/>
+        <span><b>${esc(m.name||"")}</b> <span class="tag" style="margin-left:8px">價格 ${Number(m.price||0)}</span></span>
+      </label>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll('input[type="checkbox"][data-pkg-tempid]').forEach(ch=>{
+    ch.onchange = ()=>{
+      const tid = ch.dataset.pkgTempid;
+      if(ch.checked){
+        if(!activePackageDraft.menuTempIds.includes(tid)) activePackageDraft.menuTempIds.push(tid);
+      }else{
+        activePackageDraft.menuTempIds = activePackageDraft.menuTempIds.filter(x=> x !== tid);
+      }
+    };
+  });
+}
+
+function renderPackages(){
+  const wrap = $("packageList");
+  if(!wrap) return;
+
+  if(packages.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未建立套餐。</div>`;
+    return;
+  }
+
+  // 讓顯示用 tempId 找回餐點名字（若被刪除就略過）
+  const nameByTempId = new Map(menuQueue.map(m=>[m.tempId, m.name]));
+
+  wrap.innerHTML = packages.map((p,pi)=>{
+    const names = (p.menuTempIds||[])
+      .map(tid => nameByTempId.get(tid))
+      .filter(Boolean)
+      .join("、") || "（未選餐點）";
+
+    return `
+      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <b>${esc(p.name)}</b>
+            <span class="tag" style="margin-left:8px">+${Number(p.price||0)}</span>
+          </div>
+          <button class="btnSmall btnDanger" type="button" data-del-pkg="${pi}">刪除</button>
+        </div>
+        <div class="muted mini" style="margin-top:8px">包含：${esc(names)}</div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-del-pkg]").forEach(btn=>{
+    btn.onclick = ()=>{
+      packages.splice(Number(btn.dataset.delPkg), 1);
+      renderPackages();
+    };
+  });
+}
+
+// 建立套餐草稿
+$("btnStartPackage")?.addEventListener("click", ()=>{
+  const name = $("pkg_name").value.trim();
+  const price = Number($("pkg_price").value || 0);
+  if(!name) return alert("請輸入套餐名稱");
+  if(isNaN(price) || price < 0) return alert("加價不正確");
+
+  activePackageDraft = { name, price, menuTempIds: [] };
+  $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
+  showPkgDraftUI(true);
+  renderPkgMenuPicker();
+});
+
+// 取消套餐草稿
+$("btnCancelPackage")?.addEventListener("click", ()=>{
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  renderPkgMenuPicker();
+});
+
+// 完成套餐（加入套餐清單）
+$("btnCommitPackage")?.addEventListener("click", ()=>{
+  const p = activePackageDraft;
+  if(!p) return;
+  if(!Array.isArray(p.menuTempIds) || p.menuTempIds.length===0){
+    return alert("請至少勾選 1 道餐點作為套餐內容");
+  }
+
+  packages.push(p);
+
+  activePackageDraft = null;
+  $("pkg_name").value = "";
+  $("pkg_price").value = "";
+  showPkgDraftUI(false);
+
+  renderPackages();
+  renderPkgMenuPicker();
+});
+
+// 初始化顯示
+renderPackages();
 
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
