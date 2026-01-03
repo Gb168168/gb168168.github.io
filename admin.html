@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理999</title>
+  <title>GoldBricks 呷奔👽｜管理99</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1548,52 +1548,63 @@ $("btnStartPackage")?.addEventListener("click", ()=>{
   if(isNaN(price) || price < 0) return alert("加價不正確");
 
   activePackageDraft = {
-  name,
-  price,
-  menuTempIds: [],
-  groups: [],              // ✅ 一定要有，不然完成群組會壞
-  activeGroupDraft: null   // ✅ 保險
-};
+    name,
+    price,
+    menuTempIds: [],        // 仍可保留：如果你想做「套餐包含哪些固定餐點」
+    groups: [],             // ✅ A/B/C/D 群組存在這
+    activeGroupDraft: null  // ✅ 正在編輯中的群組草稿
+  };
+
   $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
   showPkgDraftUI(true);
-  renderPkgMenuPicker();
+
+  // 如果你還保留舊的「勾餐點」區塊就留著
+  if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
+
+  // 新的 A/B/C/D UI
+  if (typeof renderPkgGroups === "function") renderPkgGroups();
+  if (typeof renderPkgChoiceDraft === "function") renderPkgChoiceDraft();
 });
 
 // 取消套餐草稿
 $("btnCancelPackage")?.addEventListener("click", ()=>{
   activePackageDraft = null;
   showPkgDraftUI(false);
-  renderPkgMenuPicker();
+
+  if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
+  if (typeof renderPkgGroups === "function") renderPkgGroups();
+  if (typeof renderPkgChoiceDraft === "function") renderPkgChoiceDraft();
 });
 
-    // ✅ 完成套餐（加入套餐清單）
+// ✅ 完成套餐（加入套餐清單）
 $("btnCommitPackage")?.addEventListener("click", ()=>{
   const p = activePackageDraft;
   if(!p) return;
 
-  // 1) 至少要選到餐點（套餐包含哪些餐）
-  if(!Array.isArray(p.menuTempIds) || p.menuTempIds.length===0){
-    return alert("請至少勾選 1 道餐點作為套餐內容");
+  const hasFixedMenus = Array.isArray(p.menuTempIds) && p.menuTempIds.length > 0;
+  const hasGroups = Array.isArray(p.groups) && p.groups.length > 0;
+
+  if(!hasFixedMenus && !hasGroups){
+    return alert("請至少設定 1 個套餐群組（A/B/C/D）或勾選 1 道固定餐點");
   }
 
-  // 2) 套餐選項群組（A/B/C/D）可選：你想強制一定要有群組就打開這段
-  // if(!Array.isArray(p.groups) || p.groups.length===0){
-  //   return alert("請至少新增 1 個套餐選項群組（例如 A 沙拉 / B 小點…）");
-  // }
+  packages.push({
+    name: p.name,
+    price: Number(p.price||0),
+    menuTempIds: Array.isArray(p.menuTempIds) ? p.menuTempIds : [],
+    groups: Array.isArray(p.groups) ? p.groups : []
+  });
 
-  packages.push(p);
-
-  // 清空草稿 + UI
   activePackageDraft = null;
   $("pkg_name").value = "";
   $("pkg_price").value = "";
   showPkgDraftUI(false);
 
   renderPackages();
-  renderPkgMenuPicker();
+  if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
 });
 
-    
+
 // 初始化顯示
 renderPackages();
 
