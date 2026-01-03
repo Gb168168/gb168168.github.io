@@ -1558,25 +1558,6 @@ $("btnCancelPackage")?.addEventListener("click", ()=>{
   renderPkgMenuPicker();
 });
 
-// 完成套餐（加入套餐清單）
-$("btnCommitPackage")?.addEventListener("click", ()=>{
-  const p = activePackageDraft;
-  if(!p) return;
-  if(!Array.isArray(p.menuTempIds) || p.menuTempIds.length===0){
-    return alert("請至少勾選 1 道餐點作為套餐內容");
-  }
-
-  packages.push(p);
-
-  activePackageDraft = null;
-  $("pkg_name").value = "";
-  $("pkg_price").value = "";
-  showPkgDraftUI(false);
-
-  renderPackages();
-  renderPkgMenuPicker();
-});
-
 // 初始化顯示
 renderPackages();
 
