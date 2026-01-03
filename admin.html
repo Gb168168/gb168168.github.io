@@ -582,13 +582,9 @@
   </div>
 </details>
 
-<!-- ✅ 2) 套餐模板（可收合、先固定好給多餐點共用） -->
+<!-- 🍱 套餐（可收合） -->
 <details id="packageDetails" style="margin-top:12px">
-  <summary style="font-weight:900">🍱 套餐模板（先建立→餐點勾選套用）</summary>
-
-  <p class="muted mini" style="margin-top:8px">
-    先把套餐做成「模板庫」（例如：升級套餐 +80），之後每道餐點只要勾選支援哪些套餐模板即可（10 道餐點都能共用）。
-  </p>
+  <summary style="font-weight:900">🍱 套餐設定（可先做套餐，再一起新增）</summary>
 
   <div class="subcard" style="margin-top:10px">
     <div class="row3">
@@ -600,17 +596,34 @@
         <label>套餐加價（+）</label>
         <input id="pkg_price" type="number" min="0" placeholder="80"/>
       </div>
-      <div style="display:flex; align-items:end; gap:10px">
-        <button class="btnSmall btnOk" id="btnAddPackageTpl" type="button">加入模板庫</button>
+      <div style="display:flex; align-items:end">
+        <button class="btnSmall btnOk" id="btnStartPackage" type="button">建立套餐</button>
       </div>
     </div>
 
-    <div id="packageTplList" style="margin-top:10px"></div>
+    <div id="pkgDraftArea" style="margin-top:10px; display:none">
+      <div class="optBox">
+        <div class="inline" style="justify-content:space-between; align-items:flex-start">
+          <div>
+            <b id="pkgDraftTitle">套餐</b>
+            <div class="muted mini">請勾選此套餐包含的餐點（從下方餐點清單來）</div>
+          </div>
+          <button class="btnSmall btnDanger" id="btnCancelPackage" type="button">取消</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div id="pkgPickMenus" class="muted mini">（請先加入餐點清單）</div>
+
+        <div class="actions" style="margin-top:12px">
+          <button class="btnSmall btnOk" id="btnCommitPackage" type="button">完成此套餐（加入套餐清單）</button>
+        </div>
+      </div>
+    </div>
 
     <div class="hr"></div>
-
-    <label>本餐點支援的套餐模板（可多選）</label>
-    <div id="pkgPickForMenu" class="muted mini">（尚未建立套餐模板）</div>
+    <b>套餐清單（將一起新增）</b>
+    <div id="packageList" class="muted" style="margin-top:10px">尚未建立套餐。</div>
   </div>
 </details>
 
