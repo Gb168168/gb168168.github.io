@@ -1411,6 +1411,133 @@ function renderPackages(){
   });
 }
 
+    /* ===============================
+   🍱 套餐選項群組（A/B/C/D）
+   =============================== */
+function rulePickCount(rule){
+  return rule === "pick2" ? 2 : 1;
+}
+
+function showPkgGroupDraftUI(on){
+  const area = $("pkgGroupDraftArea");
+  if(area) area.style.display = on ? "" : "none";
+}
+
+function renderPkgChoiceDraft(){
+  const wrap = $("pkgChoiceDraftList");
+  if(!wrap) return;
+
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g){
+    wrap.innerHTML = `<div class="muted mini">尚未開始編輯群組</div>`;
+    return;
+  }
+
+  const list = g.choices || [];
+  if(list.length === 0){
+    wrap.innerHTML = `<div class="muted mini">尚未加入選項</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map((c,ci)=>`
+    <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff; margin-top:8px;">
+      <div>${esc(c.name)} ${Number(c.price||0)?`<span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span>`:""}</div>
+      <button class="btnSmall btnDanger" type="button" data-del-pkg-choice="${ci}">刪除</button>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("[data-del-pkg-choice]").forEach(btn=>{
+    btn.onclick = ()=>{
+      g.choices.splice(Number(btn.dataset.delPkgChoice), 1);
+      renderPkgChoiceDraft();
+    };
+  });
+}
+
+function renderPkgGroups(){
+  const wrap = $("pkgGroupsList");
+  if(!wrap) return;
+
+  const groups = activePackageDraft?.groups || [];
+  if(groups.length === 0){
+    wrap.innerHTML = `<div class="muted mini">尚未建立任何群組（A/B/C/D）</div>`;
+    return;
+  }
+
+  wrap.innerHTML = groups.map((g,gi)=>`
+    <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+      <div class="inline" style="justify-content:space-between">
+        <div>
+          <b>${esc(g.name)}</b>
+          <span class="tag" style="margin-left:8px">${g.rule==="pick2"?"任選2":"擇1"}</span>
+        </div>
+        <button class="btnSmall btnDanger" type="button" data-del-pkg-group="${gi}">刪除</button>
+      </div>
+      <div class="muted mini" style="margin-top:8px">
+        選項：${(g.choices||[]).map(c=>c.name).join("、")}
+      </div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("[data-del-pkg-group]").forEach(btn=>{
+    btn.onclick = ()=>{
+      activePackageDraft.groups.splice(Number(btn.dataset.delPkgGroup),1);
+      renderPkgGroups();
+    };
+  });
+}
+
+/* 綁定按鈕 */
+$("btnPkgStartGroup")?.addEventListener("click", ()=>{
+  if(!activePackageDraft) return alert("請先建立套餐");
+
+  const name = $("pkg_g_name").value.trim();
+  if(!name) return alert("請輸入群組名稱");
+
+  const rule = $("pkg_g_rule").value || "pick1";
+  activePackageDraft.activeGroupDraft = { name, rule, choices: [] };
+
+  $("pkgDraftGroupTitle").textContent = `群組：${name}`;
+  $("pkgDraftGroupDesc").textContent = rule==="pick2"?"任選2（剛好2）":"擇1";
+  showPkgGroupDraftUI(true);
+  renderPkgChoiceDraft();
+});
+
+$("btnPkgCancelGroup")?.addEventListener("click", ()=>{
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+  renderPkgChoiceDraft();
+});
+
+$("btnPkgAddChoice")?.addEventListener("click", ()=>{
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g) return;
+
+  const n = $("pkg_opt_name").value.trim();
+  const p = Number($("pkg_opt_price").value||0);
+  if(!n) return alert("請輸入選項名稱");
+
+  g.choices.push({ name:n, price:p });
+  $("pkg_opt_name").value="";
+  $("pkg_opt_price").value="";
+  renderPkgChoiceDraft();
+});
+
+$("btnPkgCommitGroup")?.addEventListener("click", ()=>{
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g) return;
+
+  const need = rulePickCount(g.rule);
+  if(g.choices.length < need){
+    return alert(`此群組需要至少 ${need} 個選項`);
+  }
+
+  activePackageDraft.groups.push(g);
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+  renderPkgGroups();
+});
+
 // 建立套餐草稿
 $("btnStartPackage")?.addEventListener("click", ()=>{
   const name = $("pkg_name").value.trim();
