@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理99</title>
+  <title>GoldBricks 呷奔👽｜管理9999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1405,59 +1405,65 @@ renderPackages();
       }).join("、");
     }
 
-    function renderMenuQueue(){
-      const wrap = $("menuQueueWrap");
-      if(menuQueue.length===0){
-        wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
-        return;
-      }
+   function renderMenuQueue(){
+  const wrap = $("menuQueueWrap");
+  if(menuQueue.length===0){
+    wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
 
-      const group = new Map();
-      for(const m of menuQueue){
-        const cat = (m.category||"未分類").trim() || "未分類";
-        if(!group.has(cat)) group.set(cat, []);
-        group.get(cat).push(m);
-      }
+    // ✅ 即使沒有餐點，也要同步套餐 UI
+    if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
+    if (typeof renderPackages === "function") renderPackages();
+    return;
+  }
 
-      wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
-        const rows = list.map((m)=>{
-          const globalIndex = menuQueue.indexOf(m);
-          return `
-            <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
-              <div class="inline" style="justify-content:space-between">
-                <div>
-                  <b>${esc(m.name)}</b>
-                  <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
-                  <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
-                </div>
-                <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
-              </div>
-              <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+  const group = new Map();
+  for(const m of menuQueue){
+    const cat = (m.category||"未分類").trim() || "未分類";
+    if(!group.has(cat)) group.set(cat, []);
+    group.get(cat).push(m);
+  }
+
+  wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
+    const rows = list.map((m)=>{
+      const globalIndex = menuQueue.indexOf(m);
+      return `
+        <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <b>${esc(m.name)}</b>
+              <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
+              <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
             </div>
-          `;
-        }).join("");
+            <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
+          </div>
+          <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+        </div>
+      `;
+    }).join("");
 
-        return `
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
-            <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
-            <div style="margin-top:10px">${rows}</div>
-          </details>
-        `;
-      }).join("");
+    return `
+      <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
+        <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
+        <div style="margin-top:10px">${rows}</div>
+      </details>
+    `;
+  }).join("");
 
-     wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
-  b.onclick = ()=>{
-    menuQueue.splice(Number(b.dataset.delMenu), 1);
-    renderMenuQueue();
-  };
-});
+  wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
+    b.onclick = ()=>{
+      menuQueue.splice(Number(b.dataset.delMenu), 1);
+      renderMenuQueue();
+    };
+  });
 
-// ✅ 同步套餐勾選＆顯示（只放這裡）
-renderPkgMenuPicker();
-renderPackages();
+  // ✅ 同步套餐勾選＆顯示（一定要在 renderMenuQueue 結尾）
+  if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
+  if (typeof renderPackages === "function") renderPackages();
+}
 
+renderMenuQueue(); // ✅ 這行要在 function 外面（只留一次）
 
-   $("btnClearMenu").onclick = ()=>{
+$("btnClearMenu").onclick = ()=>{
   $("m_cat").value="";
   $("m_name").value="";
   $("m_price").value="";
@@ -1474,7 +1480,7 @@ renderPackages();
   renderGroups();
   renderChoiceDraft();
 
-  // ✅ 套餐也一併清空（就加在這）
+  // ✅ 套餐也一併清空
   packages = [];
   activePackageDraft = null;
   showPkgDraftUI(false);
@@ -1482,7 +1488,7 @@ renderPackages();
   renderPkgMenuPicker();
 };
 
-   $("btnAddMenuToQueue").onclick = ()=>{
+$("btnAddMenuToQueue").onclick = ()=>{
   const category = $("m_cat").value;
   if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
 
@@ -1500,10 +1506,9 @@ renderPackages();
     choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
   }));
 
-  // ✅ 新增到餐點清單
-  menuQueue.push({ category, name, price, defaultQty, optionGroups });
+  // ✅ 你套餐用的是 tempId，所以這裡一定要加
+  menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
 
-  // ✅ 只清空餐點欄位，保留「選項群組」讓你可以套用在多道餐點
   $("m_name").value = "";
   $("m_price").value = "";
   $("m_defaultQty").value = "1";
