@@ -3,12 +3,26 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理99</title>
+  <title>GoldBricks 呷奔👽｜管理9999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
   <style>
+    /* ====== 人員頁左右欄參數（你只要改這三個） ====== */
+#view_staff .grid{
+  grid-template-columns: 360px minmax(0, 1fr) !important; /* (①) 左欄寬度 */
+  gap: 14px !important;                                   /* (②) 欄間距 */
+  align-items: start;
+}
+
+/* (③) 小螢幕也永遠左右：保留同樣兩欄 */
+@media (max-width:980px){
+  #view_staff .grid{
+    grid-template-columns: 360px minmax(0, 1fr) !important;
+  }
+}
+
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
       --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
