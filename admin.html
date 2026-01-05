@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理6</title>
+  <title>GoldBricks 呷奔👽｜管理9</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -94,6 +94,71 @@
     th,td{border-bottom:1px solid rgba(15,23,42,.08); padding:10px 8px; text-align:left; vertical-align:top}
     th{color:var(--muted); font-weight:900}
     .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
+    .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px }
+/* === 未點餐：長條＋框框（像「開單中的餐廳」） === */
+.missStrip{
+  border:1px dashed rgba(15,23,42,.18);
+  border-radius:18px;
+  background:#fff;
+  padding:12px 14px;
+}
+
+.missStripHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.missTitle{
+  font-weight:900;
+  font-size:14px;
+}
+
+.missSub{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12.5px;
+}
+
+.missPills{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.missPill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.14);
+  background:#fff;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.missDept{
+  font-weight:900;
+  color:#0f172a;
+}
+
+.missCount{
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.12);
+  background:rgba(15,23,42,.03);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+}
+
+.missNames{
+  color:#0f172a;
+}
+
     .btnSmall{
       padding:7px 10px; border-radius:12px; border:1px solid var(--border);
       background:#fff; cursor:pointer; font-weight:800; font-size:12.5px;
@@ -447,72 +512,193 @@
             </div>
 
             <div class="hr"></div>
-            <h3 style="margin-top:0">✅ 選項群組（可選要不要用）</h3>
-            <p class="muted mini" style="margin-top:-4px">
-              - 「擇一」：使用者端會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
-              - 「加購」：使用者端會顯示可勾選（例：加蛋 +10 / 加麵 +15）
-            </p>
 
-            <div class="subcard">
-              <div class="row3">
-                <div>
-                  <label>群組名稱</label>
-                  <input id="og_name" placeholder="例：肉類 / 醬料 / 麵體"/>
-                </div>
-                <div>
-                  <label>類型</label>
-                  <select id="og_type">
-                    <option value="single">擇一（下拉）</option>
-                    <option value="addon">加購（多選）</option>
-                  </select>
-                </div>
-                <div style="display:flex; align-items:end; gap:10px">
-                  <label style="display:flex; align-items:center; gap:8px; margin:0;">
-                    <input id="og_required" type="checkbox" style="width:18px; height:18px;" checked/>
-                    必選（擇一用）
-                  </label>
-                  <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
-                </div>
-              </div>
+<!-- ✅ 1) 選項群組（可收合） -->
+<details id="optGroupDetails" open>
+  <summary style="font-weight:900">✅ 選項群組（可選要不要用）</summary>
 
-              <div id="groupDraftArea" style="margin-top:10px; display:none">
-                <div class="optBox">
-                  <div class="inline" style="justify-content:space-between; align-items:flex-start">
-                    <div>
-                      <b id="draftGroupTitle">群組</b>
-                      <div class="muted mini" id="draftGroupDesc"></div>
-                    </div>
-                    <button class="btnSmall btnDanger" id="btnCancelGroup" type="button">取消群組</button>
-                  </div>
+  <p class="muted mini" style="margin-top:8px">
+    - 「擇一」：使用者端會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
+    - 「加購」：使用者端會顯示可勾選（例：加蛋 +10 / 加麵 +15）
+  </p>
 
-                  <div class="hr"></div>
+  <div class="subcard" style="margin-top:10px">
+    <div class="row3">
+      <div>
+        <label>群組名稱</label>
+        <input id="og_name" placeholder="例：肉類 / 醬料 / 麵體"/>
+      </div>
+      <div>
+        <label>類型</label>
+        <select id="og_type">
+          <option value="single">擇一（下拉）</option>
+          <option value="addon">加購（多選）</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:end; gap:10px">
+        <label style="display:flex; align-items:center; gap:8px; margin:0;">
+          <input id="og_required" type="checkbox" style="width:18px; height:18px;" checked/>
+          必選（擇一用）
+        </label>
+        <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
+      </div>
+    </div>
 
-                  <div class="optRow">
-                    <div>
-                      <label>選項名稱</label>
-                      <input id="opt_name" placeholder="例：豬肉 / 雞肉 / 加蛋"/>
-                    </div>
-                    <div>
-                      <label>加價（可為 0）</label>
-                      <input id="opt_price" type="number" min="0" placeholder="0"/>
-                    </div>
-                    <div style="display:flex; align-items:end; gap:10px">
-                      <button class="btnSmall btnOk" id="btnAddChoice" type="button">加入選項</button>
-                    </div>
-                  </div>
+    <div id="groupDraftArea" style="margin-top:10px; display:none">
+      <div class="optBox">
+        <div class="inline" style="justify-content:space-between; align-items:flex-start">
+          <div>
+            <b id="draftGroupTitle">群組</b>
+            <div class="muted mini" id="draftGroupDesc"></div>
+          </div>
+          <button class="btnSmall btnDanger" id="btnCancelGroup" type="button">取消群組</button>
+        </div>
 
-                  <div id="choiceDraftList" style="margin-top:10px"></div>
+        <div class="hr"></div>
 
-                  <div class="actions">
-                    <button class="btnSmall btnOk" id="btnCommitGroup" type="button">完成此群組（加入到餐點）</button>
-                  </div>
-                </div>
-              </div>
+        <div class="optRow">
+          <div>
+            <label>選項名稱</label>
+            <input id="opt_name" placeholder="例：豬肉 / 雞肉 / 加蛋"/>
+          </div>
+          <div>
+            <label>加價（可為 0）</label>
+            <input id="opt_price" type="number" min="0" placeholder="0"/>
+          </div>
+          <div style="display:flex; align-items:end; gap:10px">
+            <button class="btnSmall btnOk" id="btnAddChoice" type="button">加入選項</button>
+          </div>
+        </div>
 
-              <div id="menuOptionGroupsList" style="margin-top:10px"></div>
-            </div>
+        <div id="choiceDraftList" style="margin-top:10px"></div>
 
-            <div class="hr"></div>
+        <div class="actions">
+          <button class="btnSmall btnOk" id="btnCommitGroup" type="button">完成此群組（加入到餐點）</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="menuOptionGroupsList" style="margin-top:10px"></div>
+  </div>
+</details>
+
+<!-- 🍱 套餐（可收合） -->
+<details id="packageDetails" style="margin-top:12px">
+  <summary style="font-weight:900">🍱 套餐設定（可先做套餐，再一起新增）</summary>
+
+  <div class="subcard" style="margin-top:10px">
+    <div class="row3">
+      <div>
+        <label>套餐名稱</label>
+        <input id="pkg_name" placeholder="例：升級套餐"/>
+      </div>
+      <div>
+        <label>套餐加價（+）</label>
+        <input id="pkg_price" type="number" min="0" placeholder="80"/>
+      </div>
+      <div style="display:flex; align-items:end">
+        <button class="btnSmall btnOk" id="btnStartPackage" type="button">建立套餐</button>
+      </div>
+    </div>
+
+   <div id="pkgDraftArea" style="margin-top:10px; display:none">
+  <div class="optBox">
+    <div class="inline" style="justify-content:space-between; align-items:flex-start">
+      <div>
+        <b id="pkgDraftTitle">套餐</b>
+        <div class="muted mini">可先做 A/B/C/D 選項群組，也可勾選此套餐包含哪些固定餐點（可不勾）</div>
+      </div>
+      <button class="btnSmall btnDanger" id="btnCancelPackage" type="button">取消</button>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- ✅ 固定餐點（可選） -->
+    <b>固定餐點（可選）</b>
+    <div id="pkgPickMenus" class="muted mini" style="margin-top:8px">（請先在下方「餐點清單」加入餐點後，這裡才會出現可勾選清單）</div>
+
+    <div class="hr"></div>
+
+    <!-- ✅ A/B/C/D 群組 -->
+    <b>套餐選項群組（A / B / C / D）</b>
+    <p class="muted mini" style="margin-top:6px">
+      每個群組可設定「擇 1」或「任選 2（剛好 2）」。
+    </p>
+
+    <div class="optBox" style="margin-top:10px">
+      <div class="row3">
+        <div>
+          <label>群組名稱</label>
+          <input id="pkg_g_name" placeholder="例：A 沙拉 / B 小點 / C 湯品 / D 飲料">
+        </div>
+
+        <div>
+          <label>規則</label>
+          <select id="pkg_g_rule">
+            <option value="pick1">擇 1</option>
+            <option value="pick2">任選 2（剛好 2）</option>
+          </select>
+        </div>
+
+        <div style="display:flex; align-items:end">
+          <button class="btnSmall btnOk" id="btnPkgStartGroup" type="button">新增群組</button>
+        </div>
+      </div>
+
+      <div id="pkgGroupDraftArea" style="margin-top:10px; display:none">
+        <div class="inline" style="justify-content:space-between; align-items:flex-start">
+          <div>
+            <b id="pkgDraftGroupTitle">群組</b>
+            <div class="muted mini" id="pkgDraftGroupDesc"></div>
+          </div>
+          <button class="btnSmall btnDanger" id="btnPkgCancelGroup" type="button">取消群組</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="optRow">
+          <div>
+            <label>選項名稱</label>
+            <input id="pkg_opt_name" placeholder="例：凱薩 / 胡麻 / 薯條 / 雞塊…">
+          </div>
+          <div>
+            <label>加價（可為 0）</label>
+            <input id="pkg_opt_price" type="number" min="0" placeholder="0">
+          </div>
+          <div style="display:flex; align-items:end">
+            <button class="btnSmall btnOk" id="btnPkgAddChoice" type="button">加入選項</button>
+          </div>
+        </div>
+
+        <div id="pkgChoiceDraftList" style="margin-top:10px"></div>
+
+        <div class="actions">
+          <button class="btnSmall btnOk" id="btnPkgCommitGroup" type="button">完成此群組（加入套餐）</button>
+        </div>
+      </div>
+
+      <div id="pkgGroupsList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="actions" style="margin-top:12px">
+      <button class="btnSmall btnOk" id="btnCommitPackage" type="button">完成此套餐（加入套餐清單）</button>
+    </div>
+  </div>
+</div>
+
+  <div id="pkgGroupsList" style="margin-top:10px"></div>
+</div>
+
+      </div>
+    </div>
+
+    <div class="hr"></div>
+    <b>套餐清單（將一起新增）</b>
+    <div id="packageList" class="muted" style="margin-top:10px">尚未建立套餐。</div>
+  </div>
+</details>
+
+<div class="hr"></div>
 
             <div class="actions">
               <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
@@ -1151,6 +1337,638 @@ initCategoryDropdown();
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
 
+    // ========================
+// 🍱 套餐（可先做套餐，再一起新增）
+// ========================
+let packages = [];           // 已完成的套餐清單
+let activePackageDraft = null;
+
+// 簡單 uid（你原本有 uid() 就保留原本的，沒有就用這個）
+function uid(){
+  return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+
+function rulePickCount(rule){
+  return rule === "pick2" ? 2 : 1;
+}
+
+function showPkgDraftUI(show){
+  const el = $("pkgDraftArea");
+  if(el) el.style.display = show ? "" : "none";
+}
+function showPkgGroupDraftUI(show){
+  const el = $("pkgGroupDraftArea");
+  if(el) el.style.display = show ? "" : "none";
+}
+
+function renderPkgMenuPicker(){
+  const wrap = $("pkgPickMenus");
+  if(!wrap) return;
+
+  if(!activePackageDraft){
+    wrap.innerHTML = `<div class="muted">（尚未建立套餐）</div>`;
+    return;
+  }
+
+  if(!Array.isArray(menuQueue) || menuQueue.length === 0){
+    wrap.innerHTML = `<div class="muted">（尚未加入餐點，請先到下方「餐點清單」加入餐點）</div>`;
+    return;
+  }
+
+  const chosen = new Set(activePackageDraft.menuTempIds || []);
+  wrap.innerHTML = `
+    <div class="subcard" style="margin-top:8px">
+      <div class="muted mini" style="margin-bottom:6px">勾選此套餐固定包含哪些餐點（可不勾；也可以只做 A/B/C/D 群組）</div>
+      <div class="inline">
+        ${menuQueue.map(m=>{
+          const tid = m.tempId;
+          const checked = chosen.has(tid) ? "checked" : "";
+          return `
+            <label class="tag" style="cursor:pointer">
+              <input type="checkbox" data-pkg-menu="${esc(tid)}" ${checked} style="width:16px;height:16px"/>
+              ${esc(m.name)}
+            </label>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+
+  wrap.querySelectorAll("input[data-pkg-menu]").forEach(chk=>{
+    chk.onchange = ()=>{
+      const tid = chk.dataset.pkgMenu;
+      const set = new Set(activePackageDraft.menuTempIds || []);
+      if(chk.checked) set.add(tid);
+      else set.delete(tid);
+      activePackageDraft.menuTempIds = Array.from(set);
+    };
+  });
+}
+
+function renderPkgChoiceDraft(){
+  const wrap = $("pkgChoiceDraftList");
+  if(!wrap) return;
+
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g){
+    wrap.innerHTML = "";
+    return;
+  }
+
+  const list = g.choices || [];
+  if(list.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未加入選項。</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map((c, i)=>`
+    <div style="margin-top:8px; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff">
+      <div class="inline" style="justify-content:space-between">
+        <div>
+          <b>${esc(c.name)}</b>
+          <span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span>
+        </div>
+        <button class="btnSmall btnDanger" type="button" data-del-pkg-choice="${i}">刪除</button>
+      </div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("[data-del-pkg-choice]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = Number(btn.dataset.delPkgChoice);
+      g.choices.splice(idx, 1);
+      renderPkgChoiceDraft();
+    };
+  });
+}
+
+function renderPkgGroups(){
+  const wrap = $("pkgGroupsList");
+  if(!wrap) return;
+
+  const groups = activePackageDraft?.groups || [];
+  if(groups.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未新增群組。</div>`;
+    return;
+  }
+
+  wrap.innerHTML = groups.map((g,gi)=>{
+    const need = rulePickCount(g.rule);
+    const choices = (g.choices||[]).map(c=>`${c.name}${Number(c.price||0)>0?`(+${Number(c.price)})`:""}`).join("、");
+    return `
+      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <b>${esc(g.name)}</b>
+            <span class="tag" style="margin-left:8px">${g.rule==="pick2" ? `任選${need}` : `擇${need}`}</span>
+          </div>
+          <button class="btnSmall btnDanger" type="button" data-del-pkg-group="${gi}">刪除</button>
+        </div>
+        <div class="muted mini" style="margin-top:8px">選項：${esc(choices||"（無）")}</div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-del-pkg-group]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const gi = Number(btn.dataset.delPkgGroup);
+      activePackageDraft.groups.splice(gi, 1);
+      renderPkgGroups();
+    };
+  });
+}
+
+function renderPackages(){
+  const wrap = $("packageList");
+  if(!wrap) return;
+
+  if(packages.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未建立套餐。</div>`;
+    return;
+  }
+
+  wrap.innerHTML = packages.map((p,pi)=>{
+    const groupNames = (p.groups||[])
+      .map(g => `${g.name}(${g.rule==="pick2"?"任選2":"擇1"})`)
+      .join("、") || "（無群組）";
+
+    const fixedMenuNames = (p.menuTempIds||[])
+      .map(tid => (menuQueue.find(m=>m.tempId===tid)?.name))
+      .filter(Boolean)
+      .join("、") || "（未勾固定餐點）";
+
+    return `
+      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <b>${esc(p.name)}</b>
+            <span class="tag" style="margin-left:8px">+${Number(p.price||0)}</span>
+          </div>
+          <button class="btnSmall btnDanger" type="button" data-del-pkg="${pi}">刪除</button>
+        </div>
+        <div class="muted mini" style="margin-top:8px">固定餐點：${esc(fixedMenuNames)}</div>
+        <div class="muted mini" style="margin-top:6px">群組：${esc(groupNames)}</div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-del-pkg]").forEach(btn=>{
+    btn.onclick = ()=>{
+      packages.splice(Number(btn.dataset.delPkg), 1);
+      renderPackages();
+    };
+  });
+}
+
+/* ========================
+   綁定按鈕（用 onclick 覆蓋，避免舊版打架）
+======================== */
+
+// 建立套餐草稿
+$("btnStartPackage").onclick = ()=>{
+  const name = $("pkg_name").value.trim();
+  const price = Number($("pkg_price").value || 0);
+  if(!name) return alert("請輸入套餐名稱");
+  if(isNaN(price) || price < 0) return alert("加價不正確");
+
+  activePackageDraft = {
+    name,
+    price,
+    menuTempIds: [],
+    groups: [],
+    activeGroupDraft: null
+  };
+
+  $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
+  showPkgDraftUI(true);
+  showPkgGroupDraftUI(false);
+
+  renderPkgMenuPicker();
+  renderPkgGroups();
+  renderPkgChoiceDraft();
+};
+
+// 取消套餐草稿
+$("btnCancelPackage").onclick = ()=>{
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  showPkgGroupDraftUI(false);
+  renderPkgMenuPicker();
+  renderPkgGroups();
+  renderPkgChoiceDraft();
+};
+
+// 新增群組（A/B/C/D）
+$("btnPkgStartGroup").onclick = ()=>{
+  if(!activePackageDraft) return alert("請先建立套餐");
+
+  const name = $("pkg_g_name").value.trim();
+  if(!name) return alert("請輸入群組名稱");
+
+  const rule = $("pkg_g_rule").value || "pick1";
+  activePackageDraft.activeGroupDraft = { name, rule, choices: [] };
+
+  $("pkgDraftGroupTitle").textContent = `群組：${name}`;
+  $("pkgDraftGroupDesc").textContent = rule==="pick2" ? "任選2（剛好2）" : "擇1";
+  showPkgGroupDraftUI(true);
+  renderPkgChoiceDraft();
+};
+
+// 取消群組草稿
+$("btnPkgCancelGroup").onclick = ()=>{
+  if(!activePackageDraft) return;
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+  renderPkgChoiceDraft();
+};
+
+// 加入選項
+$("btnPkgAddChoice").onclick = ()=>{
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g) return;
+
+  const n = $("pkg_opt_name").value.trim();
+  const p = Number($("pkg_opt_price").value || 0);
+  if(!n) return alert("請輸入選項名稱");
+  if(isNaN(p) || p < 0) return alert("加價不正確");
+
+  g.choices.push({ name:n, price:p });
+  $("pkg_opt_name").value = "";
+  $("pkg_opt_price").value = "";
+  renderPkgChoiceDraft();
+};
+
+// 完成此群組（加入套餐）
+$("btnPkgCommitGroup").onclick = ()=>{
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g) return;
+
+  const need = rulePickCount(g.rule);
+  if(!Array.isArray(g.choices) || g.choices.length < need){
+    return alert(`此群組至少需要 ${need} 個選項`);
+  }
+
+  activePackageDraft.groups.push(g);
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+
+  $("pkg_g_name").value = "";
+  $("pkg_g_rule").value = "pick1";
+  $("pkg_opt_name").value = "";
+  $("pkg_opt_price").value = "";
+
+  renderPkgGroups();
+  renderPkgChoiceDraft();
+};
+
+// ✅ 完成此套餐（加入套餐清單）
+$("btnCommitPackage").onclick = ()=>{
+  const p = activePackageDraft;
+  if(!p) return;
+
+  const hasFixedMenus = Array.isArray(p.menuTempIds) && p.menuTempIds.length > 0;
+  const hasGroups = Array.isArray(p.groups) && p.groups.length > 0;
+
+  if(!hasFixedMenus && !hasGroups){
+    return alert("請至少設定 1 個套餐群組（A/B/C/D）或勾選 1 道固定餐點");
+  }
+
+  packages.push({
+    name: p.name,
+    price: Number(p.price||0),
+    menuTempIds: Array.isArray(p.menuTempIds) ? p.menuTempIds : [],
+    groups: Array.isArray(p.groups) ? p.groups : []
+  });
+
+  activePackageDraft = null;
+  $("pkg_name").value = "";
+  $("pkg_price").value = "";
+  showPkgDraftUI(false);
+  showPkgGroupDraftUI(false);
+
+  renderPackages();
+  renderPkgMenuPicker();
+};
+
+// 初始化
+renderPackages();
+renderPkgMenuPicker();
+renderPkgGroups();
+renderPkgChoiceDraft();
+
+// ====== 🍱 套餐：先建立套餐，再勾選包含哪些餐點（從 menuQueue 來） ======
+const uid = ()=> (crypto?.randomUUID?.() || ("id_" + Math.random().toString(16).slice(2)));
+
+let packages = [];
+// packages: [{ name, price, menuTempIds:[...], groups:[{name, rule, choices:[{name,price}]}] }]
+
+let activePackageDraft = null;
+// activePackageDraft: { name, price, menuTempIds:[], groups:[], activeGroupDraft:null }
+
+function showPkgDraftUI(on){
+  const el = $("pkgDraftArea");
+  if(el) el.style.display = on ? "" : "none";
+}
+function showPkgGroupDraftUI(on){
+  const el = $("pkgGroupDraftArea");
+  if(el) el.style.display = on ? "" : "none";
+}
+function rulePickCount(rule){
+  return (rule === "pick2") ? 2 : 1;
+}
+
+// 右上「選哪些餐點包含在套餐」
+function renderPkgMenuPicker(){
+  const wrap = $("pkgPickMenus");
+  if(!wrap) return;
+
+  if(!activePackageDraft){
+    wrap.innerHTML = "（尚未建立套餐）";
+    return;
+  }
+  if(!Array.isArray(menuQueue) || menuQueue.length === 0){
+    wrap.innerHTML = "（請先加入餐點清單）";
+    return;
+  }
+
+  wrap.innerHTML = menuQueue.map((m)=>{
+    const checked = (activePackageDraft.menuTempIds||[]).includes(m.tempId) ? "checked" : "";
+    return `
+      <label class="chkline" style="margin:8px 0; display:flex; gap:10px; align-items:center;">
+        <input type="checkbox" data-pkg-tempid="${esc(m.tempId)}" ${checked}/>
+        <span><b>${esc(m.name||"")}</b> <span class="tag" style="margin-left:8px">價格 ${Number(m.price||0)}</span></span>
+      </label>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll('input[type="checkbox"][data-pkg-tempid]').forEach(ch=>{
+    ch.onchange = ()=>{
+      const tid = ch.dataset.pkgTempid;
+      if(!activePackageDraft) return;
+
+      if(ch.checked){
+        if(!activePackageDraft.menuTempIds.includes(tid)) activePackageDraft.menuTempIds.push(tid);
+      }else{
+        activePackageDraft.menuTempIds = activePackageDraft.menuTempIds.filter(x=>x!==tid);
+      }
+    };
+  });
+}
+
+function renderPkgChoiceDraft(){
+  const wrap = $("pkgChoiceDraftList");
+  if(!wrap) return;
+
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g){
+    wrap.innerHTML = "";
+    return;
+  }
+
+  const list = g.choices || [];
+  if(list.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未加入選項。</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map((c,i)=>`
+    <div style="margin-top:8px; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff">
+      <div class="inline" style="justify-content:space-between">
+        <div>
+          <b>${esc(c.name)}</b>
+          <span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span>
+        </div>
+        <button class="btnSmall btnDanger" type="button" data-del-pkg-choice="${i}">刪除</button>
+      </div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("[data-del-pkg-choice]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = Number(btn.dataset.delPkgChoice);
+      g.choices.splice(idx, 1);
+      renderPkgChoiceDraft();
+    };
+  });
+}
+
+function renderPkgGroups(){
+  const wrap = $("pkgGroupsList");
+  if(!wrap) return;
+
+  const groups = activePackageDraft?.groups || [];
+  if(groups.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未新增群組。</div>`;
+    return;
+  }
+
+  wrap.innerHTML = groups.map((g,gi)=>{
+    const need = rulePickCount(g.rule);
+    const choices = (g.choices||[]).map(c=>`${c.name}${Number(c.price||0)>0?`(+${Number(c.price)})`:""}`).join("、");
+    return `
+      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <b>${esc(g.name)}</b>
+            <span class="tag" style="margin-left:8px">${g.rule==="pick2" ? `任選${need}` : `擇${need}`}</span>
+          </div>
+          <button class="btnSmall btnDanger" type="button" data-del-pkg-group="${gi}">刪除</button>
+        </div>
+        <div class="muted mini" style="margin-top:8px">選項：${esc(choices||"（無）")}</div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-del-pkg-group]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const gi = Number(btn.dataset.delPkgGroup);
+      activePackageDraft.groups.splice(gi, 1);
+      renderPkgGroups();
+    };
+  });
+}
+
+function renderPackages(){
+  const wrap = $("packageList");
+  if(!wrap) return;
+
+  if(!Array.isArray(packages) || packages.length === 0){
+    wrap.innerHTML = `<div class="muted">尚未建立套餐。</div>`;
+    return;
+  }
+
+  wrap.innerHTML = packages.map((p,pi)=>{
+    const fixedMenuNames = (p.menuTempIds||[])
+      .map(tid => (menuQueue.find(m=>m.tempId===tid)?.name))
+      .filter(Boolean)
+      .join("、") || "（未勾固定餐點）";
+
+    const groupNames = (p.groups||[])
+      .map(g => `${g.name}(${g.rule==="pick2"?"任選2":"擇1"})`)
+      .join("、") || "（無群組）";
+
+    return `
+      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <b>${esc(p.name)}</b>
+            <span class="tag" style="margin-left:8px">+${Number(p.price||0)}</span>
+          </div>
+          <button class="btnSmall btnDanger" type="button" data-del-pkg="${pi}">刪除</button>
+        </div>
+        <div class="muted mini" style="margin-top:8px">固定餐點：${esc(fixedMenuNames)}</div>
+        <div class="muted mini" style="margin-top:6px">群組：${esc(groupNames)}</div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-del-pkg]").forEach(btn=>{
+    btn.onclick = ()=>{
+      packages.splice(Number(btn.dataset.delPkg), 1);
+      renderPackages();
+    };
+  });
+}
+
+/* ====== 按鈕綁定（只用 onclick，避免雙綁定打架） ====== */
+
+// 建立套餐草稿
+$("btnStartPackage").onclick = ()=>{
+  const name = $("pkg_name").value.trim();
+  const price = Number($("pkg_price").value || 0);
+  if(!name) return alert("請輸入套餐名稱");
+  if(isNaN(price) || price < 0) return alert("加價不正確");
+
+  activePackageDraft = {
+    name,
+    price,
+    menuTempIds: [],
+    groups: [],
+    activeGroupDraft: null
+  };
+
+  $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
+  showPkgDraftUI(true);
+  showPkgGroupDraftUI(false);
+
+  renderPkgMenuPicker();
+  renderPkgGroups();
+  renderPkgChoiceDraft();
+};
+
+// 取消套餐草稿
+$("btnCancelPackage").onclick = ()=>{
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  showPkgGroupDraftUI(false);
+  renderPkgMenuPicker();
+  renderPkgGroups();
+  renderPkgChoiceDraft();
+};
+
+// 新增群組（A/B/C/D）
+$("btnPkgStartGroup").onclick = ()=>{
+  if(!activePackageDraft) return alert("請先建立套餐");
+
+  const name = $("pkg_g_name").value.trim();
+  if(!name) return alert("請輸入群組名稱");
+
+  const rule = $("pkg_g_rule").value || "pick1";
+  activePackageDraft.activeGroupDraft = { name, rule, choices: [] };
+
+  $("pkgDraftGroupTitle").textContent = `群組：${name}`;
+  $("pkgDraftGroupDesc").textContent = (rule==="pick2") ? "任選2（剛好2）" : "擇1";
+  showPkgGroupDraftUI(true);
+  renderPkgChoiceDraft();
+};
+
+// 取消群組草稿
+$("btnPkgCancelGroup").onclick = ()=>{
+  if(!activePackageDraft) return;
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+  renderPkgChoiceDraft();
+};
+
+// 加入選項
+$("btnPkgAddChoice").onclick = ()=>{
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g) return;
+
+  const n = $("pkg_opt_name").value.trim();
+  const p = Number($("pkg_opt_price").value || 0);
+  if(!n) return alert("請輸入選項名稱");
+  if(isNaN(p) || p < 0) return alert("加價不正確");
+
+  g.choices.push({ name:n, price:p });
+  $("pkg_opt_name").value = "";
+  $("pkg_opt_price").value = "";
+  renderPkgChoiceDraft();
+};
+
+// 完成此群組（加入套餐）
+$("btnPkgCommitGroup").onclick = ()=>{
+  const g = activePackageDraft?.activeGroupDraft;
+  if(!g) return;
+
+  const need = rulePickCount(g.rule);
+  if(!Array.isArray(g.choices) || g.choices.length < need){
+    return alert(`此群組至少需要 ${need} 個選項`);
+  }
+
+  activePackageDraft.groups.push(g);
+  activePackageDraft.activeGroupDraft = null;
+  showPkgGroupDraftUI(false);
+
+  $("pkg_g_name").value = "";
+  $("pkg_g_rule").value = "pick1";
+  $("pkg_opt_name").value = "";
+  $("pkg_opt_price").value = "";
+
+  renderPkgGroups();
+  renderPkgChoiceDraft();
+};
+
+// 完成此套餐（加入套餐清單）
+$("btnCommitPackage").onclick = ()=>{
+  const p = activePackageDraft;
+  if(!p) return;
+
+  const hasFixedMenus = Array.isArray(p.menuTempIds) && p.menuTempIds.length > 0;
+  const hasGroups = Array.isArray(p.groups) && p.groups.length > 0;
+
+  if(!hasFixedMenus && !hasGroups){
+    return alert("請至少設定 1 個套餐群組（A/B/C/D）或勾選 1 道固定餐點");
+  }
+
+  packages.push({
+    name: p.name,
+    price: Number(p.price||0),
+    menuTempIds: Array.isArray(p.menuTempIds) ? p.menuTempIds : [],
+    groups: Array.isArray(p.groups) ? p.groups : []
+  });
+
+  activePackageDraft = null;
+  $("pkg_name").value = "";
+  $("pkg_price").value = "";
+  showPkgDraftUI(false);
+  showPkgGroupDraftUI(false);
+
+  renderPackages();
+  renderPkgMenuPicker();
+};
+
+// 初始化
+renderPackages();
+renderPkgMenuPicker();
+renderPkgGroups();
+renderPkgChoiceDraft();
+});
+
+// 初始化顯示
+renderPackages();
+renderPkgMenuPicker();
+
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
       if(gs.length===0) return "（無）";
@@ -1160,100 +1978,116 @@ initCategoryDropdown();
       }).join("、");
     }
 
-    function renderMenuQueue(){
-      const wrap = $("menuQueueWrap");
-      if(menuQueue.length===0){
-        wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
-        return;
-      }
+   function renderMenuQueue(){
+  const wrap = $("menuQueueWrap");
+  if(menuQueue.length===0){
+    wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
 
-      const group = new Map();
-      for(const m of menuQueue){
-        const cat = (m.category||"未分類").trim() || "未分類";
-        if(!group.has(cat)) group.set(cat, []);
-        group.get(cat).push(m);
-      }
+    // ✅ 即使沒有餐點，也要同步套餐 UI
+    if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
+    if (typeof renderPackages === "function") renderPackages();
+    return;
+  }
 
-      wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
-        const rows = list.map((m)=>{
-          const globalIndex = menuQueue.indexOf(m);
-          return `
-            <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
-              <div class="inline" style="justify-content:space-between">
-                <div>
-                  <b>${esc(m.name)}</b>
-                  <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
-                  <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
-                </div>
-                <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
-              </div>
-              <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+  const group = new Map();
+  for(const m of menuQueue){
+    const cat = (m.category||"未分類").trim() || "未分類";
+    if(!group.has(cat)) group.set(cat, []);
+    group.get(cat).push(m);
+  }
+
+  wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
+    const rows = list.map((m)=>{
+      const globalIndex = menuQueue.indexOf(m);
+      return `
+        <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <b>${esc(m.name)}</b>
+              <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
+              <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
             </div>
-          `;
-        }).join("");
+            <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
+          </div>
+          <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+        </div>
+      `;
+    }).join("");
 
-        return `
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
-            <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
-            <div style="margin-top:10px">${rows}</div>
-          </details>
-        `;
-      }).join("");
+    return `
+      <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
+        <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
+        <div style="margin-top:10px">${rows}</div>
+      </details>
+    `;
+  }).join("");
 
-      wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
-        b.onclick = ()=>{
-          menuQueue.splice(Number(b.dataset.delMenu), 1);
-          renderMenuQueue();
-        };
-      });
-    }
-    renderMenuQueue();
-
-    $("btnClearMenu").onclick = ()=>{
-      $("m_cat").value="";
-      $("m_name").value="";
-      $("m_price").value="";
-      $("m_defaultQty").value="1";
-
-      draftGroups = [];
-      activeGroupDraft = null;
-      showGroupDraftUI(false);
-      $("og_name").value="";
-      $("og_type").value="single";
-      $("og_required").checked=true;
-      $("opt_name").value="";
-      $("opt_price").value="";
-      renderGroups();
-      renderChoiceDraft();
-    };
-
-    $("btnAddMenuToQueue").onclick = ()=>{
-      const category = $("m_cat").value;
-      if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
-
-      const name = $("m_name").value.trim();
-      const price = Number($("m_price").value||0);
-      const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
-
-      if(!name) return alert("請輸入餐點名稱");
-      if(isNaN(price) || price<0) return alert("價格不正確");
-
-      const optionGroups = (draftGroups||[]).map(g=> ({
-        name: g.name,
-        type: g.type,
-        required: !!g.required,
-        choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
-      }));
-
-      menuQueue.push({ category, name, price, defaultQty, optionGroups });
-
-      // ✅ 只清空餐點欄位，保留「選項群組」讓你可以套用在多道餐點
-      $("m_name").value = "";
-      $("m_price").value = "";
-      $("m_defaultQty").value = "1";
-
+  wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
+    b.onclick = ()=>{
+      menuQueue.splice(Number(b.dataset.delMenu), 1);
       renderMenuQueue();
     };
+  });
+
+  // ✅ 同步套餐勾選＆顯示（一定要在 renderMenuQueue 結尾）
+  if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
+  if (typeof renderPackages === "function") renderPackages();
+}
+
+renderMenuQueue(); // ✅ 這行要在 function 外面（只留一次）
+
+$("btnClearMenu").onclick = ()=>{
+  $("m_cat").value="";
+  $("m_name").value="";
+  $("m_price").value="";
+  $("m_defaultQty").value="1";
+
+  draftGroups = [];
+  activeGroupDraft = null;
+  showGroupDraftUI(false);
+  $("og_name").value="";
+  $("og_type").value="single";
+  $("og_required").checked=true;
+  $("opt_name").value="";
+  $("opt_price").value="";
+  renderGroups();
+  renderChoiceDraft();
+
+  // ✅ 套餐也一併清空
+  packages = [];
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  renderPackages();
+  renderPkgMenuPicker();
+};
+
+$("btnAddMenuToQueue").onclick = ()=>{
+  const category = $("m_cat").value;
+  if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
+
+  const name = $("m_name").value.trim();
+  const price = Number($("m_price").value||0);
+  const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
+
+  if(!name) return alert("請輸入餐點名稱");
+  if(isNaN(price) || price<0) return alert("價格不正確");
+
+  const optionGroups = (draftGroups||[]).map(g=> ({
+    name: g.name,
+    type: g.type,
+    required: !!g.required,
+    choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
+  }));
+
+  // ✅ 你套餐用的是 tempId，所以這裡一定要加
+  menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
+
+  $("m_name").value = "";
+  $("m_price").value = "";
+  $("m_defaultQty").value = "1";
+
+  renderMenuQueue();
+};
 
     ["m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
@@ -1291,35 +2125,63 @@ initCategoryDropdown();
 
       try{
         const restaurantRef = await addDoc(colRestaurants, {
-          category: $("r_category").value.trim(),
-          name,
-          phone: $("r_phone").value.trim(),
-          address: $("r_addr").value.trim(),
-          mapUrl: $("r_map").value.trim(),
-          note: $("r_note").value.trim(),
-          businessHours: $("r_hours").value.trim(),
-          weeklyOff: getWeeklyOffFromCreateForm(),
-          imageUrl: $("r_imgUrl").value.trim(),
-          lineQrUrl: $("r_lineQrUrl").value.trim(),
-          isVisible: $("r_visible").checked,
-          isClosed: $("r_closed").checked,
-          createdAt: Date.now()
-        });
+  category: $("r_category").value.trim(),
+  name,
+  phone: $("r_phone").value.trim(),
+  address: $("r_addr").value.trim(),
+  mapUrl: $("r_map").value.trim(),
+  note: $("r_note").value.trim(),
+  businessHours: $("r_hours").value.trim(),
+  weeklyOff: getWeeklyOffFromCreateForm(),
+  imageUrl: $("r_imgUrl").value.trim(),
+  lineQrUrl: $("r_lineQrUrl").value.trim(),
+  isVisible: $("r_visible").checked,
+  isClosed: $("r_closed").checked,
+  createdAt: Date.now(),
+
+  // ✅ 新增：套餐模板庫（A/B/C/D 定義存在餐廳文件）
+  packageTemplates: Array.isArray(packageTemplates) ? packageTemplates : []
+});
 
         if(menuQueue.length>0){
-          statusPill.textContent = "新增餐點清單中…";
-          const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-          for(const m of menuQueue){
-            await addDoc(menuCol, {
-              category: m.category,
-              name: m.name,
-              price: Number(m.price||0),
-              defaultQty: Math.max(1, Number(m.defaultQty||1)),
-              optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
-              createdAt: Date.now()
-            });
-          }
-        }
+  statusPill.textContent = "新增餐點清單中…";
+  const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+
+  // tempId -> 真正的 menu docId
+  const tempToDocId = new Map();
+
+  for(const m of menuQueue){
+    const docRef = await addDoc(menuCol, {
+      tempId: m.tempId, // ✅ 存一下（可選，但建議）
+      category: m.category,
+      name: m.name,
+      price: Number(m.price||0),
+      defaultQty: Math.max(1, Number(m.defaultQty||1)),
+      optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+      createdAt: Date.now()
+    });
+    tempToDocId.set(m.tempId, docRef.id);
+  }
+
+  // ✅ 把套餐的 tempIds 轉成真正的 menu docIds
+  const packagesResolved = (packages||[]).map(p=>({
+    name: p.name,
+    price: Number(p.price||0),
+    menuIds: (p.menuTempIds||[])
+      .map(tid => tempToDocId.get(tid))
+      .filter(Boolean)
+  })).filter(p => p.menuIds.length>0);
+
+  // ✅ 回寫到餐廳文件
+  await updateDoc(doc(db,"restaurants", restaurantRef.id), {
+    packages: packagesResolved
+  });
+}else{
+  // 沒餐點就不應該有套餐（保險）
+  if((packages||[]).length){
+    await updateDoc(doc(db,"restaurants", restaurantRef.id), { packages: [] });
+  }
+}
 
         statusPill.textContent = "新增完成 ✅";
         alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
@@ -1342,9 +2204,15 @@ let allStaffLoaded = false;
 async function loadAllStaffOnce(){
   if(allStaffLoaded && allStaffBase.length) return;
 
-  const snap = await getDocs(colStaff);
+    const snap = await getDocs(colStaff);
   const arr = [];
-  snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+  snap.forEach(d=>{
+    const v = d.data() || {};
+    arr.push({
+      id: d.id,
+      ...v
+    });
+  });
 
   // ✅ 依自訂部門順序 +「新增順序」（同部門內照你新增順序）
   arr.sort((a,b)=>{
@@ -2701,22 +3569,27 @@ function renderMenuOptionEditor(rid, mid, container){
     }
 
     // ✅ createdAt 日期區間查詢（給 getDocs 用）
-    async function loadOrdersByDate(dateStr){
-      const { start, end } = dayRangeMs(dateStr);
+async function loadOrdersByDate(dateStr){
+  const { start, end } = dayRangeMs(dateStr);
 
-      const snap = await getDocs(query(
-        colOrders,
-        where("createdAt", ">=", start),
-        where("createdAt", "<=", end),
-        orderBy("createdAt", "desc"),
-        limit(5000)
-      ));
+  const snap = await getDocs(query(
+    colOrders,
+    where("createdAt", ">=", start),
+    where("createdAt", "<=", end),
+    orderBy("createdAt", "desc"),
+    limit(5000)
+  ));
 
-      const orders = [];
-      snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+  const orders = [];
+  snap.forEach(d => {
+    orders.push({
+      id: d.id,
+      ...(d.data() || {})
+    });
+  });
 
-      return orders;
-    }
+  return orders;
+}
 
     async function deleteWholeOrder(orderId){
       if(!confirm("確定刪除整筆訂單？")) return;
@@ -3128,50 +4001,70 @@ async function updateCloseConfirmNoOrder(){
       }
     });
 
-    async function setupOrdersLive(dateStr){
-      const { start, end } = dayRangeMs(dateStr);
-      if(ordersUnsub){
-        ordersUnsub();
-        ordersUnsub = null;
-      }
+   // ✅ 訂單即時監聽（管理者後台）
+async function setupOrdersLive(dateStr){
+  // 先把舊的監聽關掉
+  if (ordersUnsub) {
+    ordersUnsub();
+    ordersUnsub = null;
+  }
 
-      const qOrders = query(
-        colOrders,
-        where("createdAt", ">=", start),
-        where("createdAt", "<=", end),
-        orderBy("createdAt", "desc"),
-        limit(5000)
-      );
+  const { start, end } = dayRangeMs(dateStr);
 
-      ordersUnsub = onSnapshot(qOrders, (snap)=>{
-        (async ()=>{
-          const orders = [];
-          snap.forEach(d => arr.push({ id: d.id, ...(d.data() || {}) }));
+  const qOrders = query(
+    colOrders,
+    where("createdAt", ">=", start),
+    where("createdAt", "<=", end),
+    orderBy("createdAt", "desc"),
+    limit(5000)
+  );
 
-          lastLoadedOrders = orders;
+  statusPill.textContent = "讀取訂單中…";
 
-          if(!orders.length){
-            $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-            $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
-            statusPill.textContent = "已載入（目前無訂單）";
-          }else{
-            const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
-            $("ordersSummaryOut").innerHTML = summaryHTML;
-            $("ordersDetailOut").innerHTML = detailHTML;
-            bindOrderDeleteButtons();
-            statusPill.textContent = "已載入 ✅（即時更新中）";
-          }
+  ordersUnsub = onSnapshot(
+    qOrders,
+    (snap)=>{
+      (async ()=>{
+        const orders = [];
+        snap.forEach(d=>{
+          const v = d.data() || {};
+          orders.push({
+            id: d.id,
+            ...v
+          });
+        });
 
-          await checkNotOrderedForDate(dateStr, orders, false);
-        })().catch(console.error);
-      }, err=>{
-        console.error(err);
-        $("ordersSummaryOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
-        $("ordersDetailOut").innerHTML = `<div class="muted">讀取訂單失敗<br/>${esc(err?.message||err)}</div>`;
-        alert("讀取訂單失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "讀取失敗（看 console）";
-      });
+        // 快取
+        lastLoadedOrders = orders;
+
+        // 畫面輸出
+        if (!orders.length) {
+          $("ordersSummaryOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+          $("ordersDetailOut").innerHTML = `<div class="muted">此日期沒有訂單</div>`;
+          statusPill.textContent = "已載入（目前無訂單）";
+        } else {
+          const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(orders);
+          $("ordersSummaryOut").innerHTML = summaryHTML;
+          $("ordersDetailOut").innerHTML = detailHTML;
+          bindOrderDeleteButtons();
+          statusPill.textContent = "已載入 ✅";
+        }
+
+        // 檢查「未點餐的人員」
+        await checkNotOrderedForDate(dateStr, orders, false);
+      })().catch(console.error);
+    },
+    (err)=>{
+      console.error(err);
+      $("ordersSummaryOut").innerHTML =
+        `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+      $("ordersDetailOut").innerHTML =
+        `<div class="muted">讀取訂單失敗<br/>${esc(err?.message || err)}</div>`;
+      alert("讀取訂單失敗\n\n" + (err?.message || err));
+      statusPill.textContent = "讀取失敗（看 console）";
     }
+  );
+}
 
     $("btnLoadOrders").onclick = async ()=>{
       const date = $("o_date").value;
