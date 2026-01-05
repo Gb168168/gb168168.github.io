@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理9</title>
+  <title>GoldBricks 呷奔👽｜管理999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2118,81 +2118,59 @@ $("btnAddMenuToQueue").onclick = ()=>{
       renderMenuQueue();
     };
 
-    $("btnSubmitAll").onclick = async ()=>{
-      const name = $("r_name").value.trim();
-      if(!name) return alert("請輸入餐廳名稱");
-      statusPill.textContent = "新增餐廳中…";
+ $("btnSubmitAll").onclick = async ()=>{
+  const name = $("r_name").value.trim();
+  if(!name) return alert("請輸入餐廳名稱");
+  statusPill.textContent = "新增餐廳中…";
+  console.log("➡️ submit start");
 
-      try{
-        const restaurantRef = await addDoc(colRestaurants, {
-  category: $("r_category").value.trim(),
-  name,
-  phone: $("r_phone").value.trim(),
-  address: $("r_addr").value.trim(),
-  mapUrl: $("r_map").value.trim(),
-  note: $("r_note").value.trim(),
-  businessHours: $("r_hours").value.trim(),
-  weeklyOff: getWeeklyOffFromCreateForm(),
-  imageUrl: $("r_imgUrl").value.trim(),
-  lineQrUrl: $("r_lineQrUrl").value.trim(),
-  isVisible: $("r_visible").checked,
-  isClosed: $("r_closed").checked,
-  createdAt: Date.now(),
-
-  // ✅ 新增：套餐模板庫（A/B/C/D 定義存在餐廳文件）
-  packageTemplates: Array.isArray(packageTemplates) ? packageTemplates : []
-});
-
-        if(menuQueue.length>0){
-  statusPill.textContent = "新增餐點清單中…";
-  const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-
-  // tempId -> 真正的 menu docId
-  const tempToDocId = new Map();
-
-  for(const m of menuQueue){
-    const docRef = await addDoc(menuCol, {
-      tempId: m.tempId, // ✅ 存一下（可選，但建議）
-      category: m.category,
-      name: m.name,
-      price: Number(m.price||0),
-      defaultQty: Math.max(1, Number(m.defaultQty||1)),
-      optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+  try{
+    const restaurantRef = await addDoc(colRestaurants, {
+      category: $("r_category").value.trim(),
+      name,
+      phone: $("r_phone").value.trim(),
+      address: $("r_addr").value.trim(),
+      mapUrl: $("r_map").value.trim(),
+      note: $("r_note").value.trim(),
+      businessHours: $("r_hours").value.trim(),
+      weeklyOff: getWeeklyOffFromCreateForm(),
+      imageUrl: $("r_imgUrl").value.trim(),
+      lineQrUrl: $("r_lineQrUrl").value.trim(),
+      isVisible: $("r_visible").checked,
+      isClosed: $("r_closed").checked,
       createdAt: Date.now()
     });
-    tempToDocId.set(m.tempId, docRef.id);
-  }
 
-  // ✅ 把套餐的 tempIds 轉成真正的 menu docIds
-  const packagesResolved = (packages||[]).map(p=>({
-    name: p.name,
-    price: Number(p.price||0),
-    menuIds: (p.menuTempIds||[])
-      .map(tid => tempToDocId.get(tid))
-      .filter(Boolean)
-  })).filter(p => p.menuIds.length>0);
+    console.log("✅ restaurant created", restaurantRef.id);
 
-  // ✅ 回寫到餐廳文件
-  await updateDoc(doc(db,"restaurants", restaurantRef.id), {
-    packages: packagesResolved
-  });
-}else{
-  // 沒餐點就不應該有套餐（保險）
-  if((packages||[]).length){
-    await updateDoc(doc(db,"restaurants", restaurantRef.id), { packages: [] });
-  }
-}
+    if(menuQueue.length>0){
+      console.log("➡️ start add menus", menuQueue.length);
 
-        statusPill.textContent = "新增完成 ✅";
-        alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
-        $("btnClearAll").click();
-        await refreshRestaurantsManage();
-      }catch(err){
-        console.error(err);
-        alert("新增失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "新增失敗（看 console）";
+      statusPill.textContent = "新增餐點清單中…";
+      const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+      for(const m of menuQueue){
+        await addDoc(menuCol, {
+          category: m.category,
+          name: m.name,
+          price: Number(m.price||0),
+          defaultQty: Math.max(1, Number(m.defaultQty||1)),
+          optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+          createdAt: Date.now()
+        });
       }
-    };
+    }
+
+    statusPill.textContent = "新增完成 ✅";
+    alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
+    $("btnClearAll").click();
+    await refreshRestaurantsManage();
+  }catch(err){
+    console.error(err);
+    alert("新增失敗\n\n" + (err?.message || err));
+    statusPill.textContent = "新增失敗（看 console）";
+  }
+};
+
 
     /* ===== staff / restaurants / 班表 ===== */
 
