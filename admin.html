@@ -1665,11 +1665,11 @@ window.packages ||= [];
 window.activePackageDraft ??= null;
 // activePackageDraft: { name, price, menuTempIds:[], groups:[], activeGroupDraft:null }
 
-function showPkgDraftUI(on){
+function showPkgDraftUI2(on){
   const el = $("pkgDraftArea");
   if(el) el.style.display = on ? "" : "none";
 }
-function showPkgGroupDraftUI(on){
+function showPkgGroupDraftUI2(on){
   const el = $("pkgGroupDraftArea");
   if(el) el.style.display = on ? "" : "none";
 }
