@@ -1366,18 +1366,18 @@ function renderPkgMenuPicker(){
   // 還沒建立套餐
   if(!activePackageDraft){
     wrap.innerHTML = "（尚未建立套餐）";
-    updateCommitPackageButton();   // ⭐補這行
+    updateCommitPackageButton();
     return;
   }
 
-  // 已建立套餐，但還沒有任何餐點可勾
-  if(menuQueue.length === 0){
+  // 沒有餐點可勾
+  if(!Array.isArray(menuQueue) || menuQueue.length === 0){
     wrap.innerHTML = "（請先把餐點加入「餐點清單」，才能勾選套餐包含的餐點）";
-    updateCommitPackageButton();   // ⭐補這行
+    updateCommitPackageButton();
     return;
   }
 
-  // 正常情況：畫 checkbox
+  // 正常：畫 checkbox
   wrap.innerHTML = "";
 
   menuQueue.forEach(m=>{
@@ -1385,25 +1385,28 @@ function renderPkgMenuPicker(){
     const checked = activePackageDraft.menuTempIds.includes(m.tempId);
 
     wrap.insertAdjacentHTML("beforeend", `
-      <label>
+      <label class="chkline" style="margin:8px 0; display:flex; gap:10px; align-items:center;">
         <input type="checkbox" id="${id}" ${checked ? "checked" : ""}>
-        ${m.name}
+        <span><b>${esc(m.name||"")}</b> <span class="tag" style="margin-left:8px">價格 ${Number(m.price||0)}</span></span>
       </label>
     `);
 
-    $(id).addEventListener("change", e=>{
+    $(id)?.addEventListener("change", (e)=>{
       if(e.target.checked){
-        activePackageDraft.menuTempIds.push(m.tempId);
+        if(!activePackageDraft.menuTempIds.includes(m.tempId)){
+          activePackageDraft.menuTempIds.push(m.tempId);
+        }
       }else{
         activePackageDraft.menuTempIds =
-          activePackageDraft.menuTempIds.filter(x=>x!==m.tempId);
+          activePackageDraft.menuTempIds.filter(x=>x !== m.tempId);
       }
-      updateCommitPackageButton(); // ⭐勾選變化就更新
+      updateCommitPackageButton();
     });
   });
 
-  updateCommitPackageButton();     // ⭐畫完再更新一次
+  updateCommitPackageButton();
 }
+
 
 function renderPackages(){
   const wrap = $("packageList");
