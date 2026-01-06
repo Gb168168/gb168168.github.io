@@ -1351,38 +1351,46 @@ function renderPkgMenuPicker(){
   const wrap = $("pkgPickMenus");
   if(!wrap) return;
 
-  // ① 還沒建立套餐
+  // 還沒建立套餐
   if(!activePackageDraft){
     wrap.innerHTML = "（尚未建立套餐）";
+    updateCommitPackageButton();   // ⭐補這行
     return;
   }
 
-  // ② 已建立套餐，但還沒有任何餐點可勾
+  // 已建立套餐，但還沒有任何餐點可勾
   if(menuQueue.length === 0){
     wrap.innerHTML = "（請先把餐點加入「餐點清單」，才能勾選套餐包含的餐點）";
+    updateCommitPackageButton();   // ⭐補這行
     return;
   }
 
-  // ③ 正常情況：下面才開始畫 checkbox
+  // 正常情況：畫 checkbox
   wrap.innerHTML = "";
+
   menuQueue.forEach(m=>{
     const id = `pkg_m_${m.tempId}`;
     const checked = activePackageDraft.menuTempIds.includes(m.tempId);
+
     wrap.insertAdjacentHTML("beforeend", `
       <label>
         <input type="checkbox" id="${id}" ${checked ? "checked" : ""}>
         ${m.name}
       </label>
     `);
-    $(id).onchange = e=>{
+
+    $(id).addEventListener("change", e=>{
       if(e.target.checked){
         activePackageDraft.menuTempIds.push(m.tempId);
       }else{
         activePackageDraft.menuTempIds =
           activePackageDraft.menuTempIds.filter(x=>x!==m.tempId);
       }
-    };
+      updateCommitPackageButton(); // ⭐勾選變化就更新
+    });
   });
+
+  updateCommitPackageButton();     // ⭐畫完再更新一次
 }
 
 
