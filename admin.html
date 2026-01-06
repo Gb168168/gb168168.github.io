@@ -1393,26 +1393,6 @@ function renderPkgMenuPicker(){
   updateCommitPackageButton();     // ⭐畫完再更新一次
 }
 
-
-  if(!activePackageDraft){
-    wrap.innerHTML = "（尚未建立套餐）";
-    return;
-  }
-  if(menuQueue.length === 0){
-    wrap.innerHTML = "（請先加入餐點清單）";
-    return;
-  }
-
-  wrap.innerHTML = menuQueue.map((m)=>{
-    const checked = activePackageDraft.menuTempIds.includes(m.tempId) ? "checked" : "";
-    return `
-      <label class="chkline" style="margin:8px 0;">
-        <input type="checkbox" data-pkg-tempid="${esc(m.tempId)}" ${checked}/>
-        <span><b>${esc(m.name||"")}</b> <span class="tag" style="margin-left:8px">價格 ${Number(m.price||0)}</span></span>
-      </label>
-    `;
-  }).join("");
-
 function renderPackages(){
   const wrap = $("packageList");
   if(!wrap) return;
