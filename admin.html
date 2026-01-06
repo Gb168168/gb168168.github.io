@@ -1576,6 +1576,36 @@ $("btnCancelPackage")?.addEventListener("click", ()=>{
   renderPkgMenuPicker();
 });
 
+// ✅ 完成套餐（加入套餐清單）
+$("btnCommitPackage")?.addEventListener("click", ()=>{
+  if(!activePackageDraft) return alert("請先建立套餐");
+
+  if(!Array.isArray(activePackageDraft.menuTempIds) || activePackageDraft.menuTempIds.length === 0){
+    return alert("請至少勾選 1 道餐點，才能完成套餐");
+  }
+
+  const groups = Array.isArray(activePackageDraft.groups) ? activePackageDraft.groups : [];
+
+  packages.push({
+    id: uid(),
+    name: activePackageDraft.name,
+    price: Number(activePackageDraft.price || 0),
+    menuTempIds: [...activePackageDraft.menuTempIds],
+    groups
+  });
+
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  renderPkgMenuPicker();
+  renderPackages();
+
+  $("pkg_name").value = "";
+  $("pkg_price").value = "";
+  $("pkg_g_name").value = "";
+  $("pkg_opt_name").value = "";
+  $("pkg_opt_price").value = "";
+});
+
 // 初始化顯示
 renderPackages();
 
