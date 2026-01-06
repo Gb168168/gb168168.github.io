@@ -672,11 +672,22 @@
     </div>
   </div>
 
+   ...
   <div id="pkgGroupsList" style="margin-top:10px"></div>
-</div>
 
-      </div>
-    </div>
+  <div class="hr"></div>
+
+  <b>勾選此套餐包含的餐點</b>
+  <div id="pkgPickMenus" class="muted" style="margin-top:10px">
+    （尚未建立套餐）
+  </div>
+
+  <div class="actions">
+    <button class="btnSmall btnOk" id="btnCommitPackage" type="button">
+      完成套餐（加入套餐清單）
+    </button>
+  </div>
+</div>
 
     <div class="hr"></div>
     <b>套餐清單（將一起新增）</b>
@@ -1545,7 +1556,14 @@ $("btnStartPackage")?.addEventListener("click", ()=>{
   if(!name) return alert("請輸入套餐名稱");
   if(isNaN(price) || price < 0) return alert("加價不正確");
 
-  activePackageDraft = { name, price, menuTempIds: [] };
+  activePackageDraft = { 
+  name, 
+  price, 
+  menuTempIds: [], 
+  groups: [], 
+  activeGroupDraft: null 
+};
+
   $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
   showPkgDraftUI(true);
   renderPkgMenuPicker();
