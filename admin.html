@@ -1413,18 +1413,6 @@ function renderPkgMenuPicker(){
     `;
   }).join("");
 
-  wrap.querySelectorAll('input[type="checkbox"][data-pkg-tempid]').forEach(ch=>{
-    ch.onchange = ()=>{
-      const tid = ch.dataset.pkgTempid;
-      if(ch.checked){
-        if(!activePackageDraft.menuTempIds.includes(tid)) activePackageDraft.menuTempIds.push(tid);
-      }else{
-        activePackageDraft.menuTempIds = activePackageDraft.menuTempIds.filter(x=> x !== tid);
-      }
-    };
-  });
-}
-
 function renderPackages(){
   const wrap = $("packageList");
   if(!wrap) return;
