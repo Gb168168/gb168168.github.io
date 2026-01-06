@@ -1347,6 +1347,18 @@ function showPkgDraftUI(on){
   if(el) el.style.display = on ? "" : "none";
 }
 
+function updateCommitPackageButton(){
+  const btn = $("btnCommitPackage");
+  if(!btn) return;
+
+  const ok =
+    !!activePackageDraft &&
+    Array.isArray(activePackageDraft.menuTempIds) &&
+    activePackageDraft.menuTempIds.length > 0;
+
+  btn.disabled = !ok;
+}
+
 function renderPkgMenuPicker(){
   const wrap = $("pkgPickMenus");
   if(!wrap) return;
