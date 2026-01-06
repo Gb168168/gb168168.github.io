@@ -1739,9 +1739,9 @@ $("btnAddMenuToQueue").onclick = ()=>{
   // ✅ 你套餐用的是 tempId，所以這裡一定要加
   menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
 
-  $("m_name").value = "";
-  $("m_price").value = "";
-  $("m_defaultQty").value = "1";
+ // ✅ 不清空，避免「看起來像不見」；改成選取名稱方便連續輸入
+$("m_name").focus();
+$("m_name").select();
 
   renderMenuQueue();
 };
