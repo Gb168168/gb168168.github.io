@@ -1576,6 +1576,23 @@ $("btnCancelPackage")?.addEventListener("click", ()=>{
   renderPkgMenuPicker();
 });
 
+// ====== 🍱 套餐：Enter 直接送出 ======
+["pkg_name","pkg_price"].forEach(id=>{
+  $(id)?.addEventListener("keydown",(e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      if(!activePackageDraft){
+        // 尚未建立套餐 → 等於按「建立套餐」
+        $("btnStartPackage")?.click();
+      }else{
+        // 已建立套餐 → 等於按「完成套餐」
+        $("btnCommitPackage")?.click();
+      }
+    }
+  });
+});
+
+
 // ✅ 完成套餐（加入套餐清單）
 $("btnCommitPackage")?.addEventListener("click", ()=>{
   if(!activePackageDraft) return alert("請先建立套餐");
