@@ -689,9 +689,7 @@
   </div>
 </div>
 
-    <div class="hr"></div>
-    <b>套餐清單（將一起新增）</b>
-    <div id="packageList" class="muted" style="margin-top:10px">尚未建立套餐。</div>
+  
   </div>
 </details>
 
@@ -704,7 +702,11 @@
 
             <div class="hr"></div>
             <h3 style="margin-top:0">餐點清單（將一起新增）</h3>
-            <div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
+<div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
+
+<b>套餐清單（將一起新增）</b>
+<div id="packageList" class="muted" style="margin-top:10px">尚未建立套餐。</div>
+
           </div>
         </div>
       </section>
@@ -1360,7 +1362,7 @@ function updateCommitPackageButton(){
 }
 
 function renderPkgMenuPicker(){
-  const wrap = $("pkgPickMenus");
+  const wrap = $("packageList");
   if(!wrap) return;
 
   // 還沒建立套餐
