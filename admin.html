@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理13</title>
+  <title>GoldBricks 呷奔👽｜管理1313</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1747,29 +1747,37 @@ $("btnClearMenu").onclick = ()=>{
 };
 
 $("btnAddMenuToQueue").onclick = ()=>{
+
+  // 🔴 防呆：正在編輯套餐時，不能用此按鈕
+  if (activePackageDraft) {
+    return alert("目前正在編輯套餐，請先完成或取消套餐");
+  }
+
   const category = $("m_cat").value;
-  if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
+  if(!category) return alert("請先選擇餐點類別");
 
   const name = $("m_name").value.trim();
-  const price = Number($("m_price").value||0);
-  const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
+  const price = Number($("m_price").value || 0);
+
+  const defaultQty = Math.max(1, Number($("m_defaultQty").value || 1)); // ✅ 修正
 
   if(!name) return alert("請輸入餐點名稱");
-  if(isNaN(price) || price<0) return alert("價格不正確");
+  if(isNaN(price) || price < 0) return alert("價格不正確");
 
-  const optionGroups = (draftGroups||[]).map(g=> ({
+  const optionGroups = (draftGroups||[]).map(g=>({
     name: g.name,
     type: g.type,
     required: !!g.required,
-    choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
+    choices: (g.choices||[]).map(c=>({ name:c.name, price:Number(c.price||0) }))
   }));
 
-  // ✅ 你套餐用的是 tempId，所以這裡一定要加
   menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
 
- // ✅ 不清空，避免「看起來像不見」；改成選取名稱方便連續輸入
-$("m_name").focus();
-$("m_name").select();
+  renderPkgMenuPicker(); // ✅ 加這行
+
+  $("m_name").focus();
+  $("m_name").select();
+};
 
   renderMenuQueue();
 };
