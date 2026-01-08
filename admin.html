@@ -672,8 +672,13 @@
     </div>
   </div>
 
-  <div id="pkgGroupsList" style="margin-top:10px"></div>
+  <!-- ✅ 這個套餐要套用到哪些餐點（從「餐點清單」挑） -->
+<div class="hr"></div>
+<b>此套餐套用餐點（可不選；之後也能在「餐點」那邊勾可搭配）</b>
+<div class="muted mini" style="margin-top:6px">
+  勾選後，送出新增時會把 tempId 轉成真正 menuId 存進餐廳的 packages 內。
 </div>
+<div id="pkgPickMenus" style="margin-top:10px"></div>
 
       </div>
     </div>
@@ -1560,6 +1565,47 @@ $("btnCancelPackage")?.addEventListener("click", ()=>{
 
 // 初始化顯示
 renderPackages();
+
+    // ========== 🍱 餐點：可搭配套餐（在加入餐點清單前先勾） ==========
+let menuSupportedPkgIdsDraft = []; // 目前餐點草稿勾到哪些套餐（存 package.id）
+
+function renderMenuPkgPicker(){
+  const wrap = $("menuPkgPicker");
+  if(!wrap) return;
+
+  const enabledPkgs = (packages || []).filter(p => p && p.enabled !== false);
+
+  if(enabledPkgs.length === 0){
+    wrap.innerHTML = "（尚未建立套餐，或全部已停用）";
+    menuSupportedPkgIdsDraft = [];
+    return;
+  }
+
+  // 若套餐被刪除/停用，順便把草稿內不存在的 id 清掉
+  const validIdSet = new Set(enabledPkgs.map(p=>p.id));
+  menuSupportedPkgIdsDraft = (menuSupportedPkgIdsDraft || []).filter(id => validIdSet.has(id));
+
+  wrap.innerHTML = enabledPkgs.map(p=>{
+    const checked = menuSupportedPkgIdsDraft.includes(p.id) ? "checked" : "";
+    return `
+      <label class="chkline mini" style="margin:6px 0">
+        <input type="checkbox" data-menu-pkg="${esc(p.id)}" ${checked}/>
+        <span><b>${esc(p.name || "")}</b>（+${Number(p.price||0)}）</span>
+      </label>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("input[data-menu-pkg]").forEach(ch=>{
+    ch.onchange = ()=>{
+      const id = ch.dataset.menuPkg;
+      if(ch.checked){
+        if(!menuSupportedPkgIdsDraft.includes(id)) menuSupportedPkgIdsDraft.push(id);
+      }else{
+        menuSupportedPkgIdsDraft = menuSupportedPkgIdsDraft.filter(x=>x!==id);
+      }
+    };
+  });
+}
 
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
