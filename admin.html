@@ -1598,6 +1598,9 @@ menuQueue.push({ category, name, price, defaultQty, optionGroups, setMealTemplat
       $("m_price").value = "";
       $("m_defaultQty").value = "1";
 
+      menuSetMealSelected = new Set();
+      renderSetMealPickList();
+
       renderMenuQueue();
     };
 
