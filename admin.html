@@ -1515,52 +1515,66 @@ renderSetMealPickList();
     }
 
     function renderMenuQueue(){
-      const wrap = $("menuQueueWrap");
-      if(menuQueue.length===0){
-        wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
-        return;
-      }
+  const wrap = $("menuQueueWrap");
+  if(!wrap) return;
 
-      const group = new Map();
-      for(const m of menuQueue){
-        const cat = (m.category||"未分類").trim() || "未分類";
-        if(!group.has(cat)) group.set(cat, []);
-        group.get(cat).push(m);
-      }
+  if(menuQueue.length===0){
+    wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
+    return;
+  }
 
-      wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
-        const rows = list.map((m)=>{
-          const globalIndex = menuQueue.indexOf(m);
-          return `
-            <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
-              <div class="inline" style="justify-content:space-between">
-                <div>
-                  <b>${esc(m.name)}</b>
-                  <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
-                  <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
-                </div>
-                <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
-              </div>
-              <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+  const group = new Map();
+  for(const m of menuQueue){
+    const cat = (m.category||"未分類").trim() || "未分類";
+    if(!group.has(cat)) group.set(cat, []);
+    group.get(cat).push(m);
+  }
+
+  wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
+    const rows = list.map((m)=>{
+      const globalIndex = menuQueue.indexOf(m);
+
+      // ✅ 取出這道餐勾選的套餐名稱
+      let setMealNames = [];
+      if(Array.isArray(m.setMealTemplateIds) && Array.isArray(setMealTemplates)){
+        setMealNames = setMealTemplates
+          .filter(t => m.setMealTemplateIds.includes(t.id))
+          .map(t => t.name);
+      }
+      const setMealText = setMealNames.length ? setMealNames.join("、") : "無";
+
+      return `
+        <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <b>${esc(m.name)}</b>
+              <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
+              <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
             </div>
-          `;
-        }).join("");
+            <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
+          </div>
 
-        return `
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
-            <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
-            <div style="margin-top:10px">${rows}</div>
-          </details>
-        `;
-      }).join("");
+          <div class="muted mini" style="margin-top:8px">套餐：${esc(setMealText)}</div>
+          <div class="muted mini" style="margin-top:4px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+        </div>
+      `;
+    }).join("");
 
-      wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
-        b.onclick = ()=>{
-          menuQueue.splice(Number(b.dataset.delMenu), 1);
-          renderMenuQueue();
-        };
-      });
-    }
+    return `
+      <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
+        <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
+        <div style="margin-top:10px">${rows}</div>
+      </details>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
+    b.onclick = ()=>{
+      menuQueue.splice(Number(b.dataset.delMenu), 1);
+      renderMenuQueue();
+    };
+  });
+}
     renderMenuQueue();
 
    $("btnClearMenu").onclick = ()=>{
