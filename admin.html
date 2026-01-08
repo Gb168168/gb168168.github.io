@@ -1362,7 +1362,7 @@ function updateCommitPackageButton(){
 }
 
 function renderPkgMenuPicker(){
-  const wrap = $("packageList");
+  const wrap = $("pkgPickMenus");  // ✅ 改這一行
   if(!wrap) return;
 
   // 還沒建立套餐
