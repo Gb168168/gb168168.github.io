@@ -1580,38 +1580,40 @@ renderSetMealPickList();
   renderSetMealPickList();
 };
 
-    $("btnAddMenuToQueue").onclick = ()=>{
-      const category = $("m_cat").value;
-      if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
+   $("btnAddMenuToQueue").onclick = ()=>{
+  const category = $("m_cat").value;
+  if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
 
-      const name = $("m_name").value.trim();
-      const price = Number($("m_price").value||0);
-      const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
+  const name = $("m_name").value.trim();
+  const price = Number($("m_price").value||0);
+  const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
 
-      if(!name) return alert("請輸入餐點名稱");
-      if(isNaN(price) || price<0) return alert("價格不正確");
+  if(!name) return alert("請輸入餐點名稱");
+  if(isNaN(price) || price<0) return alert("價格不正確");
 
-     const optionGroups = (draftGroups||[]).map(g=> ({
-  name: g.name,
-  type: g.type,
-  required: !!g.required,
-  choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
-}));
+  const optionGroups = (draftGroups||[]).map(g=> ({
+    name: g.name,
+    type: g.type,
+    required: !!g.required,
+    choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
+  }));
 
-const setMealTemplateIds = Array.from(menuSetMealSelected);
+  // ✅ 套餐：把勾選的套餐 id 一起帶進餐點
+  const setMealTemplateIds = Array.from(menuSetMealSelected);
 
-menuQueue.push({ category, name, price, defaultQty, optionGroups, setMealTemplateIds });
+  menuQueue.push({ category, name, price, defaultQty, optionGroups, setMealTemplateIds });
 
-      // ✅ 只清空餐點欄位，保留「選項群組」讓你可以套用在多道餐點
-      $("m_name").value = "";
-      $("m_price").value = "";
-      $("m_defaultQty").value = "1";
+  // ✅ 只清空餐點欄位（保留選項群組）
+  $("m_name").value = "";
+  $("m_price").value = "";
+  $("m_defaultQty").value = "1";
 
-      menuSetMealSelected = new Set();
-      renderSetMealPickList();
+  // ✅ 清掉「本餐點勾選的套餐」，避免下一道沿用
+  menuSetMealSelected = new Set();
+  renderSetMealPickList();
 
-      renderMenuQueue();
-    };
+  renderMenuQueue();
+};
 
     ["m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
