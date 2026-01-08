@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1313</title>
+  <title>GoldBricks 呷奔👽｜管理13</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1758,8 +1758,7 @@ $("btnAddMenuToQueue").onclick = ()=>{
 
   const name = $("m_name").value.trim();
   const price = Number($("m_price").value || 0);
-
-  const defaultQty = Math.max(1, Number($("m_defaultQty").value || 1)); // ✅ 修正
+  const defaultQty = Math.max(1, Number($("m_defaultQty").value || 1));
 
   if(!name) return alert("請輸入餐點名稱");
   if(isNaN(price) || price < 0) return alert("價格不正確");
@@ -1773,14 +1772,13 @@ $("btnAddMenuToQueue").onclick = ()=>{
 
   menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
 
-  renderPkgMenuPicker(); // ✅ 加這行
+  renderMenuQueue();      // ✅ 放這裡
+  renderPkgMenuPicker();  // ✅ 放這裡（你原本加的）
 
   $("m_name").focus();
   $("m_name").select();
 };
 
-  renderMenuQueue();
-};
 
     ["m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
