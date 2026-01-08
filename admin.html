@@ -1532,6 +1532,19 @@ $("btnPkgCommitGroup")?.addEventListener("click", ()=>{
   const g = activePackageDraft?.activeGroupDraft;
   if(!g) return;
 
+  // 把目前群組加入套餐草稿
+  if(!Array.isArray(activePackageDraft.groups)){
+    activePackageDraft.groups = [];
+  }
+  activePackageDraft.groups.push(g);
+
+  // 清空目前群組草稿
+  activePackageDraft.activeGroupDraft = null;
+
+  // 重畫群組清單
+  renderPkgGroupDraftList?.();
+});
+
   const need = rulePickCount(g.rule);
   if(g.choices.length < need){
     return alert(`此群組需要至少 ${need} 個選項`);
