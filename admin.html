@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理99</title>
+  <title>GoldBricks 呷奔👽｜管理999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -645,16 +645,23 @@
   <!-- 已建立的套餐模板 -->
   <div style="margin-top:10px">
     <div class="muted mini" style="margin-bottom:6px">已建立的套餐模板（可刪除）</div>
-    <div id="setMealTemplatesList"></div>
+    <div id="setMealTemplatesList"></div>menuSetMealSelected = new Set();
   </div>
 
   <div class="hr"></div>
 
-  <!-- 這道餐點要支援哪些套餐（勾選） -->
-  <div>
-    <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些套餐（勾選）</div>
-    <div id="setMealPickList" class="kpi"></div>
-  </div>
+  <!-- 此餐點支援哪些套餐（勾選） -->
+<div>
+  <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些套餐（勾選）</div>
+  <div id="setMealPickList" class="kpi"></div>
+</div>
+
+</div> <!-- ✅ 這個是套餐 subcard 結束 -->
+
+<!-- ✅ 你把兩顆按鈕貼在這裡 -->
+<div class="actions">
+  <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
+  <button class="ghost" id="btnClearMenu" type="button">清空餐點欄位（含選項群組）</button>
 </div>
             
  <div class="hr"></div>
