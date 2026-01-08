@@ -1651,52 +1651,56 @@ renderSetMealPickList();
     };
 
     $("btnSubmitAll").onclick = async ()=>{
-      const name = $("r_name").value.trim();
-      if(!name) return alert("請輸入餐廳名稱");
-      statusPill.textContent = "新增餐廳中…";
+  const name = $("r_name").value.trim();
+  if(!name) return alert("請輸入餐廳名稱");
+  statusPill.textContent = "新增餐廳中…";
 
-      try{
-        const restaurantRef = await addDoc(colRestaurants, {
-          category: $("r_category").value.trim(),
-          name,
-          phone: $("r_phone").value.trim(),
-          address: $("r_addr").value.trim(),
-          mapUrl: $("r_map").value.trim(),
-          note: $("r_note").value.trim(),
-          businessHours: $("r_hours").value.trim(),
-          weeklyOff: getWeeklyOffFromCreateForm(),
-          imageUrl: $("r_imgUrl").value.trim(),
-          lineQrUrl: $("r_lineQrUrl").value.trim(),
-          isVisible: $("r_visible").checked,
-          isClosed: $("r_closed").checked,
+  try{
+    const restaurantRef = await addDoc(colRestaurants, {
+      category: $("r_category").value.trim(),
+      name,
+      phone: $("r_phone").value.trim(),
+      address: $("r_addr").value.trim(),
+      mapUrl: $("r_map").value.trim(),
+      note: $("r_note").value.trim(),
+      businessHours: $("r_hours").value.trim(),
+      weeklyOff: getWeeklyOffFromCreateForm(),
+      imageUrl: $("r_imgUrl").value.trim(),
+      lineQrUrl: $("r_lineQrUrl").value.trim(),
+      isVisible: $("r_visible").checked,
+      isClosed: $("r_closed").checked,
+      createdAt: Date.now()
+    });
+
+    if(menuQueue.length>0){
+      statusPill.textContent = "新增餐點清單中…";
+      const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+
+      for(const m of menuQueue){
+        await addDoc(menuCol, {
+          category: m.category,
+          name: m.name,
+          price: Number(m.price||0),
+          defaultQty: Math.max(1, Number(m.defaultQty||1)),
+          optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+          // ✅ 套餐 id 一起寫入
+          setMealTemplateIds: Array.isArray(m.setMealTemplateIds) ? m.setMealTemplateIds : [],
           createdAt: Date.now()
         });
-
-        if(menuQueue.length>0){
-          statusPill.textContent = "新增餐點清單中…";
-          const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-          for(const m of menuQueue){
-          await addDoc(menuCol, {
-  category: m.category,
-  name: m.name,
-  price: Number(m.price||0),
-  defaultQty: Math.max(1, Number(m.defaultQty||1)),
-  optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
-  setMealTemplateIds: Array.isArray(m.setMealTemplateIds) ? m.setMealTemplateIds : [], // ✅加這行
-  createdAt: Date.now()
-});
-
-
-        statusPill.textContent = "新增完成 ✅";
-        alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
-        $("btnClearAll").click();
-        await refreshRestaurantsManage();
-      }catch(err){
-        console.error(err);
-        alert("新增失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "新增失敗（看 console）";
       }
-    };
+    }
+
+    statusPill.textContent = "新增完成 ✅";
+    alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
+    $("btnClearAll").click();
+    await refreshRestaurantsManage();
+
+  }catch(err){
+    console.error(err);
+    alert("新增失敗\n\n" + (err?.message || err));
+    statusPill.textContent = "新增失敗（看 console）";
+  }
+};
 
     /* ===== staff / restaurants / 班表 ===== */
 
