@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理12</title>
+  <title>GoldBricks 呷奔👽｜管理9</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -512,75 +512,84 @@
             </div>
 
             <div class="hr"></div>
+            <h3 style="margin-top:0">✅ 選項群組（可選要不要用）</h3>
+            <p class="muted mini" style="margin-top:-4px">
+              - 「擇一」：使用者端會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
+              - 「加購」：使用者端會顯示可勾選（例：加蛋 +10 / 加麵 +15）
+            </p>
 
-<!-- ✅ 1) 選項群組（可收合） -->
-<details id="optGroupDetails" open>
-  <summary style="font-weight:900">✅ 選項群組（可選要不要用）</summary>
+            <div class="subcard">
+              <div class="row3">
+                <div>
+                  <label>群組名稱</label>
+                  <input id="og_name" placeholder="例：肉類 / 醬料 / 麵體"/>
+                </div>
+                <div>
+                  <label>類型</label>
+                  <select id="og_type">
+                    <option value="single">擇一（下拉）</option>
+                    <option value="addon">加購（多選）</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:end; gap:10px">
+                  <label style="display:flex; align-items:center; gap:8px; margin:0;">
+                    <input id="og_required" type="checkbox" style="width:18px; height:18px;" checked/>
+                    必選（擇一用）
+                  </label>
+                  <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
+                </div>
+              </div>
 
-  <p class="muted mini" style="margin-top:8px">
-    - 「擇一」：使用者端會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
-    - 「加購」：使用者端會顯示可勾選（例：加蛋 +10 / 加麵 +15）
-  </p>
+              <div id="groupDraftArea" style="margin-top:10px; display:none">
+                <div class="optBox">
+                  <div class="inline" style="justify-content:space-between; align-items:flex-start">
+                    <div>
+                      <b id="draftGroupTitle">群組</b>
+                      <div class="muted mini" id="draftGroupDesc"></div>
+                    </div>
+                    <button class="btnSmall btnDanger" id="btnCancelGroup" type="button">取消群組</button>
+                  </div>
 
-  <div class="subcard" style="margin-top:10px">
-    <div class="row3">
-      <div>
-        <label>群組名稱</label>
-        <input id="og_name" placeholder="例：肉類 / 醬料 / 麵體"/>
-      </div>
-      <div>
-        <label>類型</label>
-        <select id="og_type">
-          <option value="single">擇一（下拉）</option>
-          <option value="addon">加購（多選）</option>
-        </select>
-      </div>
-      <div style="display:flex; align-items:end; gap:10px">
-        <label style="display:flex; align-items:center; gap:8px; margin:0;">
-          <input id="og_required" type="checkbox" style="width:18px; height:18px;" checked/>
-          必選（擇一用）
-        </label>
-        <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
-      </div>
-    </div>
+                  <div class="hr"></div>
 
-    <div id="groupDraftArea" style="margin-top:10px; display:none">
-      <div class="optBox">
-        <div class="inline" style="justify-content:space-between; align-items:flex-start">
-          <div>
-            <b id="draftGroupTitle">群組</b>
-            <div class="muted mini" id="draftGroupDesc"></div>
+                  <div class="optRow">
+                    <div>
+                      <label>選項名稱</label>
+                      <input id="opt_name" placeholder="例：豬肉 / 雞肉 / 加蛋"/>
+                    </div>
+                    <div>
+                      <label>加價（可為 0）</label>
+                      <input id="opt_price" type="number" min="0" placeholder="0"/>
+                    </div>
+                    <div style="display:flex; align-items:end; gap:10px">
+                      <button class="btnSmall btnOk" id="btnAddChoice" type="button">加入選項</button>
+                    </div>
+                  </div>
+
+                  <div id="choiceDraftList" style="margin-top:10px"></div>
+
+                  <div class="actions">
+                    <button class="btnSmall btnOk" id="btnCommitGroup" type="button">完成此群組（加入到餐點）</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="menuOptionGroupsList" style="margin-top:10px"></div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="actions">
+              <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
+              <button class="ghost" id="btnClearMenu" type="button">清空餐點欄位（含選項群組）</button>
+            </div>
+
+            <div class="hr"></div>
+            <h3 style="margin-top:0">餐點清單（將一起新增）</h3>
+            <div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
           </div>
-          <button class="btnSmall btnDanger" id="btnCancelGroup" type="button">取消群組</button>
         </div>
-
-        <div class="hr"></div>
-
-        <div class="optRow">
-          <div>
-            <label>選項名稱</label>
-            <input id="opt_name" placeholder="例：豬肉 / 雞肉 / 加蛋"/>
-          </div>
-          <div>
-            <label>加價（可為 0）</label>
-            <input id="opt_price" type="number" min="0" placeholder="0"/>
-          </div>
-          <div style="display:flex; align-items:end; gap:10px">
-            <button class="btnSmall btnOk" id="btnAddChoice" type="button">加入選項</button>
-          </div>
-        </div>
-
-        <div id="choiceDraftList" style="margin-top:10px"></div>
-
-        <div class="actions">
-          <button class="btnSmall btnOk" id="btnCommitGroup" type="button">完成此群組（加入到餐點）</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="menuOptionGroupsList" style="margin-top:10px"></div>
-  </div>
-</details>
+      </section>
 
       <!-- VIEW: 新增人員 -->
       <section class="view" id="view_staff" style="display:none">
@@ -1207,10 +1216,6 @@ initCategoryDropdown();
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
 
-
-// 初始化顯示
-renderPackages();
-
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
       if(gs.length===0) return "（無）";
@@ -1220,40 +1225,100 @@ renderPackages();
       }).join("、");
     }
 
-   function renderMenuQueue(){
-  const wrap = $("menuQueueWrap");
-  if(menuQueue.length===0){
-    wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
+    function renderMenuQueue(){
+      const wrap = $("menuQueueWrap");
+      if(menuQueue.length===0){
+        wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
+        return;
+      }
 
+      const group = new Map();
+      for(const m of menuQueue){
+        const cat = (m.category||"未分類").trim() || "未分類";
+        if(!group.has(cat)) group.set(cat, []);
+        group.get(cat).push(m);
+      }
 
+      wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
+        const rows = list.map((m)=>{
+          const globalIndex = menuQueue.indexOf(m);
+          return `
+            <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
+              <div class="inline" style="justify-content:space-between">
+                <div>
+                  <b>${esc(m.name)}</b>
+                  <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
+                  <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
+                </div>
+                <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
+              </div>
+              <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+            </div>
+          `;
+        }).join("");
 
-$("btnAddMenuToQueue").onclick = ()=>{
-  const category = $("m_cat").value;
-  if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
+        return `
+          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:#fff; margin-top:10px;">
+            <summary>${esc(cat)} <span class="tag" style="margin-left:8px">${list.length} 道</span></summary>
+            <div style="margin-top:10px">${rows}</div>
+          </details>
+        `;
+      }).join("");
 
-  const name = $("m_name").value.trim();
-  const price = Number($("m_price").value||0);
-  const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
+      wrap.querySelectorAll("button[data-del-menu]").forEach(b=>{
+        b.onclick = ()=>{
+          menuQueue.splice(Number(b.dataset.delMenu), 1);
+          renderMenuQueue();
+        };
+      });
+    }
+    renderMenuQueue();
 
-  if(!name) return alert("請輸入餐點名稱");
-  if(isNaN(price) || price<0) return alert("價格不正確");
+    $("btnClearMenu").onclick = ()=>{
+      $("m_cat").value="";
+      $("m_name").value="";
+      $("m_price").value="";
+      $("m_defaultQty").value="1";
 
-  const optionGroups = (draftGroups||[]).map(g=> ({
-    name: g.name,
-    type: g.type,
-    required: !!g.required,
-    choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
-  }));
+      draftGroups = [];
+      activeGroupDraft = null;
+      showGroupDraftUI(false);
+      $("og_name").value="";
+      $("og_type").value="single";
+      $("og_required").checked=true;
+      $("opt_name").value="";
+      $("opt_price").value="";
+      renderGroups();
+      renderChoiceDraft();
+    };
 
-  // ✅ 你套餐用的是 tempId，所以這裡一定要加
-  menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
+    $("btnAddMenuToQueue").onclick = ()=>{
+      const category = $("m_cat").value;
+      if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
 
-  $("m_name").value = "";
-  $("m_price").value = "";
-  $("m_defaultQty").value = "1";
+      const name = $("m_name").value.trim();
+      const price = Number($("m_price").value||0);
+      const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
 
-  renderMenuQueue();
-};
+      if(!name) return alert("請輸入餐點名稱");
+      if(isNaN(price) || price<0) return alert("價格不正確");
+
+      const optionGroups = (draftGroups||[]).map(g=> ({
+        name: g.name,
+        type: g.type,
+        required: !!g.required,
+        choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
+      }));
+
+      menuQueue.push({ category, name, price, defaultQty, optionGroups });
+
+      // ✅ 只清空餐點欄位，保留「選項群組」讓你可以套用在多道餐點
+      $("m_name").value = "";
+      $("m_price").value = "";
+      $("m_defaultQty").value = "1";
+
+      renderMenuQueue();
+    };
 
     ["m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
@@ -1307,24 +1372,19 @@ $("btnAddMenuToQueue").onclick = ()=>{
         });
 
         if(menuQueue.length>0){
-  statusPill.textContent = "新增餐點清單中…";
-  const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-
-  // tempId -> 真正的 menu docId
-  const tempToDocId = new Map();
-
-  for(const m of menuQueue){
-    const docRef = await addDoc(menuCol, {
-      tempId: m.tempId, // ✅ 存一下（可選，但建議）
-      category: m.category,
-      name: m.name,
-      price: Number(m.price||0),
-      defaultQty: Math.max(1, Number(m.defaultQty||1)),
-      optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
-      createdAt: Date.now()
-    });
-    tempToDocId.set(m.tempId, docRef.id);
-  }
+          statusPill.textContent = "新增餐點清單中…";
+          const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
+          for(const m of menuQueue){
+            await addDoc(menuCol, {
+              category: m.category,
+              name: m.name,
+              price: Number(m.price||0),
+              defaultQty: Math.max(1, Number(m.defaultQty||1)),
+              optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+              createdAt: Date.now()
+            });
+          }
+        }
 
         statusPill.textContent = "新增完成 ✅";
         alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
