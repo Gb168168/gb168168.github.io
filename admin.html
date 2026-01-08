@@ -1582,14 +1582,16 @@ renderSetMealPickList();
       if(!name) return alert("請輸入餐點名稱");
       if(isNaN(price) || price<0) return alert("價格不正確");
 
-      const optionGroups = (draftGroups||[]).map(g=> ({
-        name: g.name,
-        type: g.type,
-        required: !!g.required,
-        choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
-      }));
+     const optionGroups = (draftGroups||[]).map(g=> ({
+  name: g.name,
+  type: g.type,
+  required: !!g.required,
+  choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
+}));
 
-      menuQueue.push({ category, name, price, defaultQty, optionGroups });
+const setMealTemplateIds = Array.from(menuSetMealSelected);
+
+menuQueue.push({ category, name, price, defaultQty, optionGroups, setMealTemplateIds });
 
       // ✅ 只清空餐點欄位，保留「選項群組」讓你可以套用在多道餐點
       $("m_name").value = "";
