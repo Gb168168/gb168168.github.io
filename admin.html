@@ -1676,13 +1676,13 @@ renderSetMealPickList();
           statusPill.textContent = "新增餐點清單中…";
           const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
           for(const m of menuQueue){
-           await addDoc(menuCol, {
+          await addDoc(menuCol, {
   category: m.category,
   name: m.name,
   price: Number(m.price||0),
   defaultQty: Math.max(1, Number(m.defaultQty||1)),
   optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
-  setMealTemplateIds: Array.isArray(m.setMealTemplateIds) ? m.setMealTemplateIds : [],
+  setMealTemplateIds: Array.isArray(m.setMealTemplateIds) ? m.setMealTemplateIds : [], // ✅加這行
   createdAt: Date.now()
 });
 
