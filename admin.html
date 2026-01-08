@@ -1402,26 +1402,6 @@ $("btnAddMenuToQueue").onclick = ()=>{
     tempToDocId.set(m.tempId, docRef.id);
   }
 
-  // ✅ 把套餐的 tempIds 轉成真正的 menu docIds
-  const packagesResolved = (packages||[]).map(p=>({
-    name: p.name,
-    price: Number(p.price||0),
-    menuIds: (p.menuTempIds||[])
-      .map(tid => tempToDocId.get(tid))
-      .filter(Boolean)
-  })).filter(p => p.menuIds.length>0);
-
-  // ✅ 回寫到餐廳文件
-  await updateDoc(doc(db,"restaurants", restaurantRef.id), {
-    packages: packagesResolved
-  });
-}else{
-  // 沒餐點就不應該有套餐（保險）
-  if((packages||[]).length){
-    await updateDoc(doc(db,"restaurants", restaurantRef.id), { packages: [] });
-  }
-}
-
         statusPill.textContent = "新增完成 ✅";
         alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
         $("btnClearAll").click();
