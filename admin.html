@@ -250,6 +250,29 @@
       box-shadow:0 20px 40px rgba(15,23,42,.35);
     }
 
+ /* =============== 結單 Modal 動畫 =============== */
+
+/* 黑背景淡入 */
+.modalMask.fadeIn {
+  animation: fadeInBg 0.25s ease forwards;
+}
+
+@keyframes fadeInBg {
+  from { background: rgba(0,0,0,0); }
+  to   { background: rgba(0,0,0,0.35); }
+}
+
+/* 內容微縮放彈出 */
+.modalBox.popIn {
+  animation: popIn 0.28s cubic-bezier(0.15, 1.30, 0.40, 1) forwards;
+}
+
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1.00); opacity: 1; }
+}
+
     /* 📅 班表樣式 */
     .schDayBlock{
       border:1px solid var(--border);
@@ -558,7 +581,6 @@
     <div id="menuOptionGroupsList" style="margin-top:10px"></div>
   </div>
 </details>
-
 
       <!-- VIEW: 新增人員 -->
       <section class="view" id="view_staff" style="display:none">
@@ -1182,6 +1204,8 @@ initCategoryDropdown();
 
     renderGroups();
 
+    // ====== 新增餐廳：餐點清單（含選項群組） ======
+    let menuQueue = [];
 
 
 // 初始化顯示
@@ -1271,6 +1295,12 @@ $("btnClearMenu").onclick = ()=>{
   renderGroups();
   renderChoiceDraft();
 
+  // ✅ 套餐也一併清空
+  packages = [];
+  activePackageDraft = null;
+  showPkgDraftUI(false);
+  renderPackages();
+  renderPkgMenuPicker();
 };
 
 $("btnAddMenuToQueue").onclick = ()=>{
@@ -1291,6 +1321,15 @@ $("btnAddMenuToQueue").onclick = ()=>{
     choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
   }));
 
+  // ✅ 你套餐用的是 tempId，所以這裡一定要加
+  menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
+
+  $("m_name").value = "";
+  $("m_price").value = "";
+  $("m_defaultQty").value = "1";
+
+  renderMenuQueue();
+};
 
     ["m_name","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
@@ -1363,6 +1402,14 @@ $("btnAddMenuToQueue").onclick = ()=>{
     tempToDocId.set(m.tempId, docRef.id);
   }
 
+  // ✅ 把套餐的 tempIds 轉成真正的 menu docIds
+  const packagesResolved = (packages||[]).map(p=>({
+    name: p.name,
+    price: Number(p.price||0),
+    menuIds: (p.menuTempIds||[])
+      .map(tid => tempToDocId.get(tid))
+      .filter(Boolean)
+  })).filter(p => p.menuIds.length>0);
 
   // ✅ 回寫到餐廳文件
   await updateDoc(doc(db,"restaurants", restaurantRef.id), {
