@@ -76,6 +76,21 @@
   gap:12px;
   padding:0 6px 6px;   /* ↓ 減少下面空白 */
 }
+    /* ================================
+   修正主畫面被撐開（最終解法）
+   ================================ */
+.main{
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-start !important; /* ⛔ 不要 space-between */
+  align-items:stretch !important;
+  gap:14px;
+}
+
+/* 避免 view 自己產生怪的上間距 */
+.main > .view{
+  margin-top:0 !important;
+}
 
     .topbar h2{margin:0; font-size:18px}
     .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
