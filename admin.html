@@ -586,11 +586,12 @@
 
              </details>
 
-            <!-- =========================
-     ✅ 套餐選項（可選要不要用）
-     ========================= -->
+<!-- =========================
+✅ 套餐選項（可選要不要用）
+========================= -->
 <div class="hr"></div>
 
+<!-- ✅ 預設收合：不要加 open -->
 <details id="secSetMeal" class="fold">
   <summary>
     ✅ 套餐選項（可選要不要用）
@@ -598,83 +599,82 @@
   </summary>
 
   <p class="muted mini" style="margin-top:8px">
-    - 先建立「套餐模板」，可設定每個類別要「選1/選2」與套餐加價<br/>
+    - 先建立「套餐模板」，可設定每個類別要「選1/選2」，與各選項加價<br/>
     - 建好後，在下方勾選「此餐點支援哪些套餐」
   </p>
 
-  <div class="subcard" style="margin-top:10px">
+  <div class="subcard">
+    <div class="row3">
+      <div>
+        <label>套餐名稱</label>
+        <input id="sm_name" placeholder="例：A餐 / 超值套餐"/>
+      </div>
+      <div>
+        <label>套餐價格（基礎）</label>
+        <input id="sm_price" type="number" min="0" placeholder="例：59"/>
+      </div>
+      <div style="display:flex; align-items:end; gap:10px">
+        <button class="btnSmall btnOk" id="btnStartSetMeal" type="button">新增套餐</button>
+      </div>
+    </div>
 
-  <!-- 建立套餐模板 -->
-  <div class="row3">
+    <!-- 套餐編輯區（草稿） -->
+    <div id="setMealDraftArea" style="margin-top:10px; display:none">
+      <div class="optBox">
+        <div class="inline" style="justify-content:space-between; align-items:flex-start">
+          <div>
+            <b id="draftSetMealTitle">套餐</b>
+            <div class="muted mini" id="draftSetMealDesc"></div>
+          </div>
+          <button class="btnSmall btnDanger" id="btnCancelSetMeal" type="button">取消套餐</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row3">
+          <div>
+            <label>套餐類別</label>
+            <input id="sm_catName" placeholder="例：小點 / 湯品 / 飲品"/>
+          </div>
+          <div>
+            <label>此類別要選幾樣</label>
+            <select id="sm_pickCount">
+              <option value="1">選 1</option>
+              <option value="2">選 2</option>
+            </select>
+          </div>
+          <div style="display:flex; align-items:end; gap:10px">
+            <button class="btnSmall btnOk" id="btnAddSetMealCategory" type="button">加入類別</button>
+          </div>
+        </div>
+
+        <div id="setMealCategoryList" style="margin-top:10px"></div>
+
+        <div class="actions">
+          <button class="btnSmall btnOk" id="btnCommitSetMeal" type="button">完成此套餐（加入到模板清單）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 已建立的套餐模板 -->
+    <div style="margin-top:10px">
+      <div class="muted mini" style="margin-bottom:6px">已建立的套餐模板（可刪除）</div>
+      <div id="setMealTemplatesList"></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- 此餐點支援哪些套餐（勾選） -->
     <div>
-      <label>套餐名稱</label>
-      <input id="sm_name" placeholder="例：A餐 / 超值套餐"/>
-    </div>
-    <div>
-      <label>套餐價格（基礎）</label>
-      <input id="sm_price" type="number" min="0" placeholder="例：59"/>
-    </div>
-    <div style="display:flex; align-items:end; gap:10px">
-      <button class="btnSmall btnOk" id="btnStartSetMeal" type="button">新增套餐</button>
+      <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些套餐（勾選）</div>
+      <div id="setMealPickList" class="kpi"></div>
     </div>
   </div>
+</details>
 
-  <!-- 套餐編輯區（草稿） -->
-  <div id="setMealDraftArea" style="margin-top:10px; display:none">
-    <div class="optBox">
-      <div class="inline" style="justify-content:space-between; align-items:flex-start">
-        <div>
-          <b id="draftSetMealTitle">套餐</b>
-          <div class="muted mini" id="draftSetMealDesc"></div>
-        </div>
-        <button class="btnSmall btnDanger" id="btnCancelSetMeal" type="button">取消套餐</button>
-      </div>
+<div class="hr"></div>
 
-      <div class="hr"></div>
-
-      <!-- 新增類別（小點/湯品/飲品…） -->
-      <div class="row3">
-        <div>
-          <label>套餐類別</label>
-          <input id="sm_catName" placeholder="例：小點 / 湯品 / 飲品"/>
-        </div>
-        <div>
-          <label>此類別要選幾樣</label>
-          <select id="sm_pickCount">
-            <option value="1">選 1</option>
-            <option value="2">選 2</option>
-          </select>
-        </div>
-        <div style="display:flex; align-items:end; gap:10px">
-          <button class="btnSmall btnOk" id="btnAddSetMealCategory" type="button">加入類別</button>
-        </div>
-      </div>
-
-      <div id="setMealCategoryList" style="margin-top:10px"></div>
-
-      <div class="actions">
-        <button class="btnSmall btnOk" id="btnCommitSetMeal" type="button">完成此套餐（加入到模板清單）</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 已建立的套餐模板 -->
-  <div style="margin-top:10px">
-    <div class="muted mini" style="margin-bottom:6px">已建立的套餐模板（可刪除）</div>
-    <div id="setMealTemplatesList"></div>
-  </div>
-
-  <div class="hr"></div>
-
-  <!-- 此餐點支援哪些套餐（勾選） -->
-<div>
-  <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些套餐（勾選）</div>
-  <div id="setMealPickList" class="kpi"></div>
-</div>
-
-</div> <!-- ✅ 這個是套餐 subcard 結束 -->
-
-<!-- ✅ 你把兩顆按鈕貼在這裡 -->
+<!-- ✅ 這兩顆按鈕要放在「套餐」下面（你要的） -->
 <div class="actions">
   <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
   <button class="ghost" id="btnClearMenu" type="button">清空餐點欄位（含選項群組）</button>
