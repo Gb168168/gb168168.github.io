@@ -24,11 +24,13 @@
       color:var(--text);
       min-height:100vh;
     }
-    .layout{
+  .layout{
   display:grid;
   grid-template-columns: 300px 1fr;
   gap:16px;
-  padding:0 16px 16px;   /* ✅ 上方貼齊，左右/下方保留 */
+  padding:0 16px 16px;
+
+  align-items: start;   /* ✅ 關鍵：防止 main 被 sidebar 撐高 */
 }
 
     @media (max-width:980px){.layout{grid-template-columns:1fr}}
