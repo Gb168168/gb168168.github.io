@@ -41,11 +41,12 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
-    .sidebar{
+ .sidebar{
   padding:14px;
   position:sticky;
-  top:0;                 /* ✅ 貼齊 */
-  height: fit-content;
+  top:0;
+
+  align-self: start;   /* ⭐ 關鍵：不要撐高 grid row */
 }
 
     .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
