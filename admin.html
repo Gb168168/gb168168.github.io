@@ -39,7 +39,13 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
-    .sidebar{padding:14px; position:sticky; top:16px; height: fit-content}
+    .sidebar{
+  padding:14px;
+  position:sticky;
+  top:0;                 /* ✅ 貼齊 */
+  height: fit-content;
+}
+
     .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
     .brand h1{font-size:16px; margin:0}
     .brand small{color:var(--muted)}
