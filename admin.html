@@ -24,7 +24,13 @@
       color:var(--text);
       min-height:100vh;
     }
-    .layout{display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px;}
+    .layout{
+  display:grid;
+  grid-template-columns: 300px 1fr;
+  gap:16px;
+  padding:0 16px 16px;   /* ✅ 上方貼齊，左右/下方保留 */
+}
+
     @media (max-width:980px){.layout{grid-template-columns:1fr}}
     .sidebar,.main{
       background: rgba(255,255,255,.78);
