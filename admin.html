@@ -64,11 +64,11 @@
       box-shadow: 0 10px 22px rgba(251,113,133,.18);
     }
 
-  .main{
+ .main{
   padding:0 14px 14px;
   align-self:start;
 
-  /* ✅ 關鍵在這三行 */
+  /* 讓內容永遠從上方開始排，不要被撐到下面 */
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
