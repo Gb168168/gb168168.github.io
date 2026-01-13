@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理9</title>
+  <title>GoldBricks 呷奔👽｜管理9999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -381,6 +381,19 @@
 /* 3) grid 容器也不要做垂直對齊/撐高 */
 .layout{
   align-items:start !important;
+}
+
+    /* ✅ 關鍵修正：不要讓 view 撐滿畫面 */
+.view{
+  min-height:auto !important;
+  height:auto !important;
+  padding-top:0 !important;
+  display:block !important;
+}
+
+/* 如果你原本用 flex 排卡片，只針對內層 */
+.view > .grid{
+  align-items:start;
 }
 
   </style>
