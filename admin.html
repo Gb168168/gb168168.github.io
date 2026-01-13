@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理9999</title>
+  <title>GoldBricks 呷奔👽｜管理999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -350,6 +350,17 @@
       font-size:11px;
       padding:3px 7px;
     }
+
+    /* ✅ 強制修正：主內容不要用 flex，避免把 view 推到底 */
+.main{
+  display:block !important;
+}
+
+/* ✅ 確保 view 不會被任何 auto margin 推開 */
+.main > .view{
+  margin:0 !important;
+}
+
   </style>
 </head>
 <body>
