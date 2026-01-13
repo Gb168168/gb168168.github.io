@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>GoldBricks 呷奔👽｜管理999</title>
 
+  <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
   <style>
@@ -22,56 +23,30 @@
                   var(--bg);
       color:var(--text);
       min-height:100vh;
-      overflow-x: hidden; /* 防止全域橫向捲軸 */
     }
+.layout{
+  display:grid;
+  grid-template-columns: 300px 1fr;
+  gap:16px;
+  padding:16px;   /* ⛔ 上方 16px 直接把整個右側往下推 */
+}
 
-    /* 🛠️ 核心修正：將 Grid 改為 Flex 並強制不換行 */
-    .layout {
-      display: flex;
-      gap: 16px;
-      padding: 16px;
-      align-items: flex-start;
-      flex-wrap: nowrap; /* 強制並排，絕不換行 */
-      width: 100%;
-    }
-
-    /* 📱 行動裝置適應 */
-    @media (max-width:980px){
-      .layout { flex-wrap: wrap; }
-      .sidebar { width: 100% !important; position: static !important; }
-    }
-
-    .sidebar, .main {
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+    .sidebar,.main{
       background: rgba(255,255,255,.78);
       border:1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
+ .sidebar{
+  padding:14px;
+  position:sticky;
+  top:0;
 
-    .sidebar {
-      width: 300px;
-      flex-shrink: 0; /* 禁止側邊欄被壓縮 */
-      padding: 14px;
-      position: sticky;
-      top: 16px;
-    }
+  align-self: start;   /* ⭐ 關鍵：不要撐高 grid row */
+}
 
-    .main {
-      flex: 1;         /* 自動填滿右側剩餘空間 */
-      min-width: 0;    /* 🌟 重要：防止內部內容撐爆寬度 */
-      padding: 0 14px 14px;
-      align-self: start;
-    }
-
-    /* 修正內部 Grid 的回應式問題 */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 自動適配 */
-      gap: 14px;
-    }
-
-    /* 以下保留您原本的所有樣式... */
     .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
     .brand h1{font-size:16px; margin:0}
     .brand small{color:var(--muted)}
@@ -79,7 +54,7 @@
     .nav button{
       text-align:left; padding:11px 12px; border-radius:14px;
       border:1px solid var(--border); background:#fff; cursor:pointer;
-      font-weight:800; width: 100%;
+      font-weight:800;
     }
     .nav button.active{
       border-color: rgba(251,113,133,.55);
@@ -87,11 +62,44 @@
       box-shadow: 0 10px 22px rgba(251,113,133,.18);
     }
 
-    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 6px 6px; }
+  .main{
+  padding:0 14px 14px;  /* ✅ 拿掉上方 padding */
+  align-self:start;
+}
+
+ .topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:0 6px 6px;   /* ↓ 減少下面空白 */
+}
+
     .topbar h2{margin:0; font-size:18px}
-    .card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-top:14px; }
-    
-    /* 這裡省略其他未更動的樣式，請直接補回原本內容... */
+    .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
+    .ghost{
+      padding:9px 12px; border-radius:14px; border:1px solid var(--border);
+      background:#fff; cursor:pointer; font-weight:800;
+    }
+    .primary{
+      padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
+    }
+
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+    /* ✅ 訂餐紀錄：左小右大（只影響 view_orders） */
+    #view_orders .grid{ grid-template-columns: 360px 1fr; }
+    @media (max-width:980px){ #view_orders .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow: 0 8px 25px rgba(15,23,42,.07);
+      padding:14px;
+    }
     .card h3{margin:0 0 10px; font-size:15px}
     label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
@@ -99,7 +107,6 @@
       border:1px solid var(--border); outline:none; background:#fff;
       font-size:14px;
     }
-    /* ... 剩餘 CSS 與 HTML 結構保持不變 ... */
     textarea{min-height:92px; resize:vertical}
     input:focus,select:focus,textarea:focus{border-color: rgba(251,113,133,.7)}
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
