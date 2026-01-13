@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理9999</title>
+  <title>GoldBricks 呷奔👽｜管理999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -28,9 +28,7 @@
   display:grid;
   grid-template-columns: 300px 1fr;
   gap:16px;
-  padding:0 16px 16px;
-
-  align-items: start;   /* ← 這一行是主因 */
+  padding:16px;   /* ⛔ 上方 16px 直接把整個右側往下推 */
 }
 
     @media (max-width:980px){.layout{grid-template-columns:1fr}}
