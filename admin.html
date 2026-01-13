@@ -1,9 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理123</title>
+  <title>GoldBricks 呷奔👽｜管理999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -24,7 +24,13 @@
       color:var(--text);
       min-height:100vh;
     }
-    .layout{display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px;}
+.layout{
+  display:grid;
+  grid-template-columns: 300px 1fr;
+  gap:16px;
+  padding:16px;   /* ⛔ 上方 16px 直接把整個右側往下推 */
+}
+
     @media (max-width:980px){.layout{grid-template-columns:1fr}}
     .sidebar,.main{
       background: rgba(255,255,255,.78);
@@ -33,7 +39,14 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
     }
-    .sidebar{padding:14px; position:sticky; top:16px; height: fit-content}
+ .sidebar{
+  padding:14px;
+  position:sticky;
+  top:0;
+
+  align-self: start;   /* ⭐ 關鍵：不要撐高 grid row */
+}
+
     .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
     .brand h1{font-size:16px; margin:0}
     .brand small{color:var(--muted)}
@@ -49,8 +62,19 @@
       box-shadow: 0 10px 22px rgba(251,113,133,.18);
     }
 
-    .main{padding:14px}
-    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 6px 12px;}
+  .main{
+  padding:0 14px 14px;  /* ✅ 拿掉上方 padding */
+  align-self:start;
+}
+
+ .topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:0 6px 6px;   /* ↓ 減少下面空白 */
+}
+
     .topbar h2{margin:0; font-size:18px}
     .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
@@ -324,6 +348,7 @@
       font-size:11px;
       padding:3px 7px;
     }
+
   </style>
 </head>
 <body>
@@ -511,189 +536,190 @@
               <div class="muted" style="display:flex; align-items:end"></div>
             </div>
 
-            <div class="hr"></div>
+           <div class="hr"></div>
 
-<!-- ✅ 1) 選項群組（可收合） -->
-<details id="optGroupDetails" open>
-  <summary style="font-weight:900">✅ 選項群組（可選要不要用）</summary>
+<details id="secOptionGroups" class="fold">
+  
+  <summary>
+    ✅ 選項群組（可選要不要用）
+    <span class="muted mini" style="margin-left:8px">（可收合）</span>
+  </summary>
 
   <p class="muted mini" style="margin-top:8px">
-    - 「擇一」：使用者端會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
-    - 「加購」：使用者端會顯示可勾選（例：加蛋 +10 / 加麵 +15）
+    -「擇一」：使用者會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
+    -「加購」：使用者會顯示可勾選（例：加蛋 +10 / 加麵 +15）
   </p>
 
-  <div class="subcard" style="margin-top:10px">
+            <div class="subcard">
+              <div class="row3">
+                <div>
+                  <label>群組名稱</label>
+                  <input id="og_name" placeholder="例：肉類 / 醬料 / 麵體"/>
+                </div>
+                <div>
+                  <label>類型</label>
+                  <select id="og_type">
+                    <option value="single">擇一（下拉）</option>
+                    <option value="addon">加購（多選）</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:end; gap:10px">
+                  <label style="display:flex; align-items:center; gap:8px; margin:0;">
+                    <input id="og_required" type="checkbox" style="width:18px; height:18px;" checked/>
+                    必選（擇一用）
+                  </label>
+                  <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
+                </div>
+              </div>
+
+              <div id="groupDraftArea" style="margin-top:10px; display:none">
+                <div class="optBox">
+                  <div class="inline" style="justify-content:space-between; align-items:flex-start">
+                    <div>
+                      <b id="draftGroupTitle">群組</b>
+                      <div class="muted mini" id="draftGroupDesc"></div>
+                    </div>
+                    <button class="btnSmall btnDanger" id="btnCancelGroup" type="button">取消群組</button>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <div class="optRow">
+                    <div>
+                      <label>選項名稱</label>
+                      <input id="opt_name" placeholder="例：豬肉 / 雞肉 / 加蛋"/>
+                    </div>
+                    <div>
+                      <label>加價（可為 0）</label>
+                      <input id="opt_price" type="number" min="0" placeholder="0"/>
+                    </div>
+                    <div style="display:flex; align-items:end; gap:10px">
+                      <button class="btnSmall btnOk" id="btnAddChoice" type="button">加入選項</button>
+                    </div>
+                  </div>
+
+                  <div id="choiceDraftList" style="margin-top:10px"></div>
+
+                  <div class="actions">
+                    <button class="btnSmall btnOk" id="btnCommitGroup" type="button">完成此群組（加入到餐點）</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="menuOptionGroupsList" style="margin-top:10px"></div>
+              </div>
+
+             </details>
+
+<!-- =========================
+✅ 套餐選項（可選要不要用）
+========================= -->
+<div class="hr"></div>
+
+<!-- ✅ 預設收合：不要加 open -->
+<details id="secSetMeal" class="fold">
+  <summary>
+    ✅ 套餐選項（可選要不要用）
+    <span class="muted mini" style="margin-left:8px">（可收合）</span>
+  </summary>
+
+  <p class="muted mini" style="margin-top:8px">
+    - 先建立「套餐模板」，可設定每個類別要「選1/選2」，與各選項加價<br/>
+    - 建好後，在下方勾選「此餐點支援哪些套餐」
+  </p>
+
+  <div class="subcard">
     <div class="row3">
       <div>
-        <label>群組名稱</label>
-        <input id="og_name" placeholder="例：肉類 / 醬料 / 麵體"/>
+        <label>套餐名稱</label>
+        <input id="sm_name" placeholder="例：A餐 / 超值套餐"/>
       </div>
       <div>
-        <label>類型</label>
-        <select id="og_type">
-          <option value="single">擇一（下拉）</option>
-          <option value="addon">加購（多選）</option>
-        </select>
+        <label>套餐價格（基礎）</label>
+        <input id="sm_price" type="number" min="0" placeholder="例：59"/>
       </div>
       <div style="display:flex; align-items:end; gap:10px">
-        <label style="display:flex; align-items:center; gap:8px; margin:0;">
-          <input id="og_required" type="checkbox" style="width:18px; height:18px;" checked/>
-          必選（擇一用）
-        </label>
-        <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
+        <button class="btnSmall btnOk" id="btnStartSetMeal" type="button">新增套餐</button>
       </div>
     </div>
 
-    <div id="groupDraftArea" style="margin-top:10px; display:none">
+    <!-- 套餐編輯區（草稿） -->
+    <div id="setMealDraftArea" style="margin-top:10px; display:none">
       <div class="optBox">
         <div class="inline" style="justify-content:space-between; align-items:flex-start">
           <div>
-            <b id="draftGroupTitle">群組</b>
-            <div class="muted mini" id="draftGroupDesc"></div>
+            <b id="draftSetMealTitle">套餐</b>
+            <div class="muted mini" id="draftSetMealDesc"></div>
           </div>
-          <button class="btnSmall btnDanger" id="btnCancelGroup" type="button">取消群組</button>
+          <button class="btnSmall btnDanger" id="btnCancelSetMeal" type="button">取消套餐</button>
         </div>
 
         <div class="hr"></div>
 
-        <div class="optRow">
+        <div class="row3">
           <div>
-            <label>選項名稱</label>
-            <input id="opt_name" placeholder="例：豬肉 / 雞肉 / 加蛋"/>
+            <label>套餐類別</label>
+            <input id="sm_catName" placeholder="例：小點 / 湯品 / 飲品"/>
           </div>
           <div>
-            <label>加價（可為 0）</label>
-            <input id="opt_price" type="number" min="0" placeholder="0"/>
+            <label>此類別要選幾樣</label>
+            <select id="sm_pickCount">
+              <option value="1">選 1</option>
+              <option value="2">選 2</option>
+            </select>
           </div>
           <div style="display:flex; align-items:end; gap:10px">
-            <button class="btnSmall btnOk" id="btnAddChoice" type="button">加入選項</button>
+            <button class="btnSmall btnOk" id="btnAddSetMealCategory" type="button">加入類別</button>
           </div>
         </div>
 
-        <div id="choiceDraftList" style="margin-top:10px"></div>
+        <div id="setMealCategoryList" style="margin-top:10px"></div>
 
         <div class="actions">
-          <button class="btnSmall btnOk" id="btnCommitGroup" type="button">完成此群組（加入到餐點）</button>
+          <button class="btnSmall btnOk" id="btnCommitSetMeal" type="button">完成此套餐（加入到模板清單）</button>
         </div>
       </div>
     </div>
 
-    <div id="menuOptionGroupsList" style="margin-top:10px"></div>
-  </div>
-</details>
-
-<!-- 🍱 套餐（可收合） -->
-<details id="packageDetails" style="margin-top:12px">
-  <summary style="font-weight:900">🍱 套餐設定（可先做套餐，再一起新增）</summary>
-
-  <div class="subcard" style="margin-top:10px">
-    <div class="row3">
-      <div>
-        <label>套餐名稱</label>
-        <input id="pkg_name" placeholder="例：升級套餐"/>
-      </div>
-      <div>
-        <label>套餐加價（+）</label>
-        <input id="pkg_price" type="number" min="0" placeholder="80"/>
-      </div>
-      <div style="display:flex; align-items:end">
-        <button class="btnSmall btnOk" id="btnStartPackage" type="button">建立套餐</button>
-      </div>
-    </div>
-
-    <div id="pkgDraftArea" style="margin-top:10px; display:none">
-      <div class="optBox">
-        <div class="inline" style="justify-content:space-between; align-items:flex-start">
-          <div>
-            <b id="pkgDraftTitle">套餐</b>
-            <div class="muted mini">請勾選此套餐包含的餐點（從下方餐點清單來）</div>
-          </div>
-          <button class="btnSmall btnDanger" id="btnCancelPackage" type="button">取消</button>
-        </div>
-
-       <div class="hr"></div>
-
-<b>套餐選項群組（A / B / C / D）</b>
-<p class="muted mini" style="margin-top:6px">
-  每個群組可設定「擇 1」或「任選 2（剛好 2）」。
-</p>
-
-<div class="optBox" style="margin-top:10px">
-  <div class="row3">
-    <div>
-      <label>群組名稱</label>
-      <input id="pkg_g_name" placeholder="例：A 沙拉 / B 小點 / C 湯品 / D 飲料">
-    </div>
-
-    <div>
-      <label>規則</label>
-      <select id="pkg_g_rule">
-        <option value="pick1">擇 1</option>
-        <option value="pick2">任選 2（剛好 2）</option>
-      </select>
-    </div>
-
-    <div style="display:flex; align-items:end">
-      <button class="btnSmall btnOk" id="btnPkgStartGroup" type="button">新增群組</button>
-    </div>
-  </div>
-
-  <div id="pkgGroupDraftArea" style="margin-top:10px; display:none">
-    <div class="inline" style="justify-content:space-between; align-items:flex-start">
-      <div>
-        <b id="pkgDraftGroupTitle">群組</b>
-        <div class="muted mini" id="pkgDraftGroupDesc"></div>
-      </div>
-      <button class="btnSmall btnDanger" id="btnPkgCancelGroup" type="button">取消群組</button>
+    <!-- 已建立的套餐模板 -->
+    <div style="margin-top:10px">
+      <div class="muted mini" style="margin-bottom:6px">已建立的套餐模板（可刪除）</div>
+      <div id="setMealTemplatesList"></div>
     </div>
 
     <div class="hr"></div>
 
-    <div class="optRow">
-      <div>
-        <label>選項名稱</label>
-        <input id="pkg_opt_name" placeholder="例：凱薩 / 胡麻 / 薯條 / 雞塊">
-      </div>
-      <div>
-        <label>加價（可為 0）</label>
-        <input id="pkg_opt_price" type="number" min="0" placeholder="0">
-      </div>
-      <div style="display:flex; align-items:end">
-        <button class="btnSmall btnOk" id="btnPkgAddChoice" type="button">加入選項</button>
-      </div>
+    <!-- 此餐點支援哪些套餐（勾選） -->
+    <div>
+      <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些套餐（勾選）</div>
+      <div id="setMealPickList" class="kpi"></div>
     </div>
-
-    <div id="pkgChoiceDraftList" style="margin-top:10px"></div>
-
-    <div class="actions">
-      <button class="btnSmall btnOk" id="btnPkgCommitGroup" type="button">
-        完成此群組（加入套餐）
-      </button>
-    </div>
-  </div>
-
-  <div id="pkgGroupsList" style="margin-top:10px"></div>
-</div>
-
-      </div>
-    </div>
-
-    <div class="hr"></div>
-    <b>套餐清單（將一起新增）</b>
-    <div id="packageList" class="muted" style="margin-top:10px">尚未建立套餐。</div>
   </div>
 </details>
 
 <div class="hr"></div>
 
-            <div class="actions">
-              <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
-              <button class="ghost" id="btnClearMenu" type="button">清空餐點欄位（含選項群組）</button>
-            </div>
+<!-- ✅ 這兩顆按鈕要放在「套餐」下面（你要的） -->
+<div class="actions">
+  <button class="btnSmall btnOk" id="btnAddMenuToQueue" type="button">加入餐點清單</button>
+  <button class="ghost" id="btnClearMenu" type="button">清空餐點欄位（含選項群組）</button>
+</div>
+            
+ <div class="hr"></div>
 
-            <div class="hr"></div>
-            <h3 style="margin-top:0">餐點清單（將一起新增）</h3>
-            <div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
+<!-- =========================
+✅ 套餐選項（可選要不要用）
+========================= -->
+
+
+</div>
+<!-- ✅ 套餐選項結束 -->
+
+           <div style="grid-column: 1 / -1">
+  <div class="hr"></div>
+  <h3 style="margin-top:0">餐點清單（將一起新增）</h3>
+  <div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
+</div>
           </div>
         </div>
       </section>
@@ -763,7 +789,7 @@
 
       <!-- VIEW: 餐廳管理 -->
       <section class="view" id="view_restaurants" style="display:none">
-        <div class="card" style="margin-top:14px">
+  <div class="card">
           <h3>餐廳管理</h3>
 <!-- 🔵 顯示中的餐廳 -->
 <div class="subcard" style="margin-top:10px; margin-bottom:10px;">
@@ -1016,8 +1042,14 @@
       restaurants: $("view_restaurants"),
       orders: $("view_orders"),
     };
-    function show(viewKey){
-      Object.entries(views).forEach(([k,el])=> el.style.display = (k===viewKey) ? "" : "none");
+   function show(viewKey){
+  Object.entries(views).forEach(([k,el])=> 
+    el.style.display = (k===viewKey) ? "" : "none"
+  );
+
+  // 🔥 強制把主內容捲軸拉回最上
+  document.querySelector(".main").scrollTop = 0;
+  window.scrollTo(0, 0);
       document.querySelectorAll(".navBtn[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view===viewKey));
       pageTitle.textContent =
         viewKey==="staff" ? "新增人員" :
@@ -1259,6 +1291,203 @@ initCategoryDropdown();
       });
     }
 
+    /* =========================================================
+   ✅ 套餐模板（可選要不要用）
+   ========================================================= */
+
+const uid = () =>
+  (crypto?.randomUUID?.() ||
+   `sm_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+
+let setMealTemplates = [];          // 已建立的套餐模板（全店）
+let activeSetMealDraft = null;      // 正在編輯中的套餐
+let menuSetMealSelected = new Set();// 此餐點勾選的套餐 id
+
+/* ===== UI helpers ===== */
+function showSetMealDraftUI(on){
+  $("setMealDraftArea").style.display = on ? "" : "none";
+}
+
+/* ===== 套餐模板列表 ===== */
+function renderSetMealTemplates(){
+  const wrap = $("setMealTemplatesList");
+  if(!wrap) return;
+
+  if(setMealTemplates.length === 0){
+    wrap.innerHTML = `<div class="muted">（尚未建立任何套餐）</div>`;
+    return;
+  }
+
+  wrap.innerHTML = setMealTemplates.map((t, i)=>{
+    const cats = (t.categories||[]).map(c=>{
+      const opts = (c.options||[])
+        .map(o=> `${o.name}${Number(o.addPrice||0) ? `(+${o.addPrice})` : ""}`)
+        .join("、") || "—";
+      return `${c.name}（選${c.pickCount}）：${opts}`;
+    }).join("<br/>");
+
+    return `
+      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.12); border-radius:14px; background:#fff">
+        <div class="inline" style="justify-content:space-between">
+          <div>
+            <b>${esc(t.name)}</b>
+            <span class="tag" style="margin-left:6px">套餐 ${t.price}</span>
+            <div class="muted mini" style="margin-top:6px">${cats}</div>
+          </div>
+          <button class="btnSmall btnDanger" data-sm-del="${i}">刪除</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-sm-del]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = Number(btn.dataset.smDel);
+      const removed = setMealTemplates[idx];
+      setMealTemplates.splice(idx,1);
+      if(removed?.id) menuSetMealSelected.delete(removed.id);
+      renderSetMealTemplates();
+      renderSetMealPickList();
+    };
+  });
+}
+
+/* ===== 套餐勾選（此餐點） ===== */
+function renderSetMealPickList(){
+  const wrap = $("setMealPickList");
+  if(!wrap) return;
+
+  if(setMealTemplates.length === 0){
+    wrap.innerHTML = `<div class="muted mini">（沒有套餐可選）</div>`;
+    return;
+  }
+
+  wrap.innerHTML = setMealTemplates.map(t=>{
+    const checked = menuSetMealSelected.has(t.id) ? "checked" : "";
+    return `
+      <label class="tag" style="cursor:pointer">
+        <input type="checkbox" data-sm-pick="${t.id}" ${checked}
+               style="width:16px; height:16px; margin:0;">
+        ${esc(t.name)} <span class="muted mini">(${t.price})</span>
+      </label>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-sm-pick]").forEach(ch=>{
+    ch.onchange = ()=>{
+      const id = ch.dataset.smPick;
+      ch.checked ? menuSetMealSelected.add(id)
+                 : menuSetMealSelected.delete(id);
+    };
+  });
+}
+
+/* ===== 套餐草稿（類別 / 選項） ===== */
+function renderSetMealCategoryList(){
+  const wrap = $("setMealCategoryList");
+  const t = activeSetMealDraft;
+  if(!wrap) return;
+
+  if(!t || !t.categories.length){
+    wrap.innerHTML = `<div class="muted">尚未加入類別</div>`;
+    return;
+  }
+
+  wrap.innerHTML = t.categories.map((c,ci)=>{
+    const opts = c.options.map((o,oi)=>`
+      <div class="inline" style="justify-content:space-between; margin-top:6px">
+        <div>${esc(o.name)} <span class="tag">+${o.addPrice}</span></div>
+        <button class="btnSmall btnDanger" data-sm-delopt="${ci}|${oi}">刪除</button>
+      </div>
+    `).join("");
+
+    return `
+      <div style="margin-top:10px; padding:10px; border:1px dashed rgba(15,23,42,.2); border-radius:12px">
+        <b>${esc(c.name)}</b>
+        <span class="tag">選 ${c.pickCount}</span>
+
+        <div class="optRow" style="margin-top:8px">
+          <input data-sm-optname="${ci}" placeholder="選項名稱">
+          <input data-sm-optprice="${ci}" type="number" min="0" placeholder="加價">
+          <button class="btnSmall btnOk" data-sm-addopt="${ci}">加入</button>
+        </div>
+
+        ${opts || `<div class="muted mini">尚無選項</div>`}
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-sm-addopt]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const ci = Number(btn.dataset.smAddopt);
+      const nameEl = wrap.querySelector(`[data-sm-optname="${ci}"]`);
+      const priceEl = wrap.querySelector(`[data-sm-optprice="${ci}"]`);
+      const n = nameEl.value.trim();
+      const p = Number(priceEl.value||0);
+      if(!n) return alert("請輸入選項名稱");
+      activeSetMealDraft.categories[ci].options.push({name:n, addPrice:p});
+      nameEl.value = "";
+      priceEl.value = "";
+      renderSetMealCategoryList();
+    };
+  });
+
+  wrap.querySelectorAll("[data-sm-delopt]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const [ci,oi] = btn.dataset.smDelopt.split("|").map(Number);
+      activeSetMealDraft.categories[ci].options.splice(oi,1);
+      renderSetMealCategoryList();
+    };
+  });
+}
+
+/* ===== 事件 ===== */
+$("btnStartSetMeal").onclick = ()=>{
+  const name = $("sm_name").value.trim();
+  const price = Number($("sm_price").value||0);
+  if(!name) return alert("請輸入套餐名稱");
+
+  activeSetMealDraft = { id: uid(), name, price, categories: [] };
+  $("draftSetMealTitle").textContent = `套餐：${name}`;
+  $("draftSetMealDesc").textContent = `套餐價 ${price}`;
+  showSetMealDraftUI(true);
+  renderSetMealCategoryList();
+};
+
+$("btnCancelSetMeal").onclick = ()=>{
+  activeSetMealDraft = null;
+  showSetMealDraftUI(false);
+};
+
+$("btnAddSetMealCategory").onclick = ()=>{
+  if(!activeSetMealDraft) return;
+  const n = $("sm_catName").value.trim();
+  const p = Number($("sm_pickCount").value||1);
+  if(!n) return alert("請輸入類別名稱");
+  activeSetMealDraft.categories.push({name:n, pickCount:p, options:[]});
+  $("sm_catName").value = "";
+  renderSetMealCategoryList();
+};
+
+$("btnCommitSetMeal").onclick = ()=>{
+  const t = activeSetMealDraft;
+  if(!t || !t.categories.length) return alert("至少要一個類別");
+  for(const c of t.categories){
+    if(!c.options.length) return alert(`類別「${c.name}」沒有選項`);
+  }
+  setMealTemplates.push(t);
+  activeSetMealDraft = null;
+  showSetMealDraftUI(false);
+  $("sm_name").value = "";
+  $("sm_price").value = "";
+  renderSetMealTemplates();
+  renderSetMealPickList();
+};
+
+/* ===== 初始化 ===== */
+renderSetMealTemplates();
+renderSetMealPickList();
+
     $("btnStartGroup").onclick = ()=>{
       const name = $("og_name").value.trim();
       const type = $("og_type").value;
@@ -1322,244 +1551,6 @@ initCategoryDropdown();
 
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
-// ====== 🍱 套餐：先建立套餐，再勾選包含哪些餐點（從 menuQueue 來） ======
-const uid = ()=> (crypto?.randomUUID?.() || ("id_" + Math.random().toString(16).slice(2)));
-
-let packages = []; 
-// [{ name, price, menuTempIds: ["tmp_xxx","tmp_yyy"] }]
-
-let activePackageDraft = null; 
-// { name, price, menuTempIds: [] }
-
-function showPkgDraftUI(on){
-  const el = $("pkgDraftArea");
-  if(el) el.style.display = on ? "" : "none";
-}
-
-function renderPkgMenuPicker(){
-  const wrap = $("pkgPickMenus");
-  if(!wrap) return;
-
-  if(!activePackageDraft){
-    wrap.innerHTML = "（尚未建立套餐）";
-    return;
-  }
-  if(menuQueue.length === 0){
-    wrap.innerHTML = "（請先加入餐點清單）";
-    return;
-  }
-
-  wrap.innerHTML = menuQueue.map((m)=>{
-    const checked = activePackageDraft.menuTempIds.includes(m.tempId) ? "checked" : "";
-    return `
-      <label class="chkline" style="margin:8px 0;">
-        <input type="checkbox" data-pkg-tempid="${esc(m.tempId)}" ${checked}/>
-        <span><b>${esc(m.name||"")}</b> <span class="tag" style="margin-left:8px">價格 ${Number(m.price||0)}</span></span>
-      </label>
-    `;
-  }).join("");
-
-  wrap.querySelectorAll('input[type="checkbox"][data-pkg-tempid]').forEach(ch=>{
-    ch.onchange = ()=>{
-      const tid = ch.dataset.pkgTempid;
-      if(ch.checked){
-        if(!activePackageDraft.menuTempIds.includes(tid)) activePackageDraft.menuTempIds.push(tid);
-      }else{
-        activePackageDraft.menuTempIds = activePackageDraft.menuTempIds.filter(x=> x !== tid);
-      }
-    };
-  });
-}
-
-function renderPackages(){
-  const wrap = $("packageList");
-  if(!wrap) return;
-
-  if(packages.length === 0){
-    wrap.innerHTML = `<div class="muted">尚未建立套餐。</div>`;
-    return;
-  }
-
-  // 讓顯示用 tempId 找回餐點名字（若被刪除就略過）
-  const nameByTempId = new Map(menuQueue.map(m=>[m.tempId, m.name]));
-
-  wrap.innerHTML = packages.map((p,pi)=>{
-    const names = (p.menuTempIds||[])
-      .map(tid => nameByTempId.get(tid))
-      .filter(Boolean)
-      .join("、") || "（未選餐點）";
-
-    return `
-      <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
-        <div class="inline" style="justify-content:space-between">
-          <div>
-            <b>${esc(p.name)}</b>
-            <span class="tag" style="margin-left:8px">+${Number(p.price||0)}</span>
-          </div>
-          <button class="btnSmall btnDanger" type="button" data-del-pkg="${pi}">刪除</button>
-        </div>
-        <div class="muted mini" style="margin-top:8px">包含：${esc(names)}</div>
-      </div>
-    `;
-  }).join("");
-
-  wrap.querySelectorAll("[data-del-pkg]").forEach(btn=>{
-    btn.onclick = ()=>{
-      packages.splice(Number(btn.dataset.delPkg), 1);
-      renderPackages();
-    };
-  });
-}
-
-    /* ===============================
-   🍱 套餐選項群組（A/B/C/D）
-   =============================== */
-function rulePickCount(rule){
-  return rule === "pick2" ? 2 : 1;
-}
-
-function showPkgGroupDraftUI(on){
-  const area = $("pkgGroupDraftArea");
-  if(area) area.style.display = on ? "" : "none";
-}
-
-function renderPkgChoiceDraft(){
-  const wrap = $("pkgChoiceDraftList");
-  if(!wrap) return;
-
-  const g = activePackageDraft?.activeGroupDraft;
-  if(!g){
-    wrap.innerHTML = `<div class="muted mini">尚未開始編輯群組</div>`;
-    return;
-  }
-
-  const list = g.choices || [];
-  if(list.length === 0){
-    wrap.innerHTML = `<div class="muted mini">尚未加入選項</div>`;
-    return;
-  }
-
-  wrap.innerHTML = list.map((c,ci)=>`
-    <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.10); border-radius:14px; background:#fff; margin-top:8px;">
-      <div>${esc(c.name)} ${Number(c.price||0)?`<span class="tag" style="margin-left:8px">+${Number(c.price||0)}</span>`:""}</div>
-      <button class="btnSmall btnDanger" type="button" data-del-pkg-choice="${ci}">刪除</button>
-    </div>
-  `).join("");
-
-  wrap.querySelectorAll("[data-del-pkg-choice]").forEach(btn=>{
-    btn.onclick = ()=>{
-      g.choices.splice(Number(btn.dataset.delPkgChoice), 1);
-      renderPkgChoiceDraft();
-    };
-  });
-}
-
-function renderPkgGroups(){
-  const wrap = $("pkgGroupsList");
-  if(!wrap) return;
-
-  const groups = activePackageDraft?.groups || [];
-  if(groups.length === 0){
-    wrap.innerHTML = `<div class="muted mini">尚未建立任何群組（A/B/C/D）</div>`;
-    return;
-  }
-
-  wrap.innerHTML = groups.map((g,gi)=>`
-    <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
-      <div class="inline" style="justify-content:space-between">
-        <div>
-          <b>${esc(g.name)}</b>
-          <span class="tag" style="margin-left:8px">${g.rule==="pick2"?"任選2":"擇1"}</span>
-        </div>
-        <button class="btnSmall btnDanger" type="button" data-del-pkg-group="${gi}">刪除</button>
-      </div>
-      <div class="muted mini" style="margin-top:8px">
-        選項：${(g.choices||[]).map(c=>c.name).join("、")}
-      </div>
-    </div>
-  `).join("");
-
-  wrap.querySelectorAll("[data-del-pkg-group]").forEach(btn=>{
-    btn.onclick = ()=>{
-      activePackageDraft.groups.splice(Number(btn.dataset.delPkgGroup),1);
-      renderPkgGroups();
-    };
-  });
-}
-
-/* 綁定按鈕 */
-$("btnPkgStartGroup")?.addEventListener("click", ()=>{
-  if(!activePackageDraft) return alert("請先建立套餐");
-
-  const name = $("pkg_g_name").value.trim();
-  if(!name) return alert("請輸入群組名稱");
-
-  const rule = $("pkg_g_rule").value || "pick1";
-  activePackageDraft.activeGroupDraft = { name, rule, choices: [] };
-
-  $("pkgDraftGroupTitle").textContent = `群組：${name}`;
-  $("pkgDraftGroupDesc").textContent = rule==="pick2"?"任選2（剛好2）":"擇1";
-  showPkgGroupDraftUI(true);
-  renderPkgChoiceDraft();
-});
-
-$("btnPkgCancelGroup")?.addEventListener("click", ()=>{
-  activePackageDraft.activeGroupDraft = null;
-  showPkgGroupDraftUI(false);
-  renderPkgChoiceDraft();
-});
-
-$("btnPkgAddChoice")?.addEventListener("click", ()=>{
-  const g = activePackageDraft?.activeGroupDraft;
-  if(!g) return;
-
-  const n = $("pkg_opt_name").value.trim();
-  const p = Number($("pkg_opt_price").value||0);
-  if(!n) return alert("請輸入選項名稱");
-
-  g.choices.push({ name:n, price:p });
-  $("pkg_opt_name").value="";
-  $("pkg_opt_price").value="";
-  renderPkgChoiceDraft();
-});
-
-$("btnPkgCommitGroup")?.addEventListener("click", ()=>{
-  const g = activePackageDraft?.activeGroupDraft;
-  if(!g) return;
-
-  const need = rulePickCount(g.rule);
-  if(g.choices.length < need){
-    return alert(`此群組需要至少 ${need} 個選項`);
-  }
-
-  activePackageDraft.groups.push(g);
-  activePackageDraft.activeGroupDraft = null;
-  showPkgGroupDraftUI(false);
-  renderPkgGroups();
-});
-
-// 建立套餐草稿
-$("btnStartPackage")?.addEventListener("click", ()=>{
-  const name = $("pkg_name").value.trim();
-  const price = Number($("pkg_price").value || 0);
-  if(!name) return alert("請輸入套餐名稱");
-  if(isNaN(price) || price < 0) return alert("加價不正確");
-
-  activePackageDraft = { name, price, menuTempIds: [] };
-  $("pkgDraftTitle").textContent = `套餐：${name}（+${price}）`;
-  showPkgDraftUI(true);
-  renderPkgMenuPicker();
-});
-
-// 取消套餐草稿
-$("btnCancelPackage")?.addEventListener("click", ()=>{
-  activePackageDraft = null;
-  showPkgDraftUI(false);
-  renderPkgMenuPicker();
-});
-
-// 初始化顯示
-renderPackages();
 
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
@@ -1570,14 +1561,12 @@ renderPackages();
       }).join("、");
     }
 
-   function renderMenuQueue(){
+    function renderMenuQueue(){
   const wrap = $("menuQueueWrap");
+  if(!wrap) return;
+
   if(menuQueue.length===0){
     wrap.innerHTML = '<div class="muted">尚未加入餐點。</div>';
-
-    // ✅ 即使沒有餐點，也要同步套餐 UI
-    if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
-    if (typeof renderPackages === "function") renderPackages();
     return;
   }
 
@@ -1591,6 +1580,16 @@ renderPackages();
   wrap.innerHTML = Array.from(group.entries()).map(([cat, list])=>{
     const rows = list.map((m)=>{
       const globalIndex = menuQueue.indexOf(m);
+
+      // ✅ 取出這道餐勾選的套餐名稱
+      let setMealNames = [];
+      if(Array.isArray(m.setMealTemplateIds) && Array.isArray(setMealTemplates)){
+        setMealNames = setMealTemplates
+          .filter(t => m.setMealTemplateIds.includes(t.id))
+          .map(t => t.name);
+      }
+      const setMealText = setMealNames.length ? setMealNames.join("、") : "無";
+
       return `
         <div style="margin-top:10px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff">
           <div class="inline" style="justify-content:space-between">
@@ -1601,7 +1600,9 @@ renderPackages();
             </div>
             <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
           </div>
-          <div class="muted mini" style="margin-top:8px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
+
+          <div class="muted mini" style="margin-top:8px">套餐：${esc(setMealText)}</div>
+          <div class="muted mini" style="margin-top:4px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
         </div>
       `;
     }).join("");
@@ -1620,15 +1621,10 @@ renderPackages();
       renderMenuQueue();
     };
   });
-
-  // ✅ 同步套餐勾選＆顯示（一定要在 renderMenuQueue 結尾）
-  if (typeof renderPkgMenuPicker === "function") renderPkgMenuPicker();
-  if (typeof renderPackages === "function") renderPackages();
 }
+    renderMenuQueue();
 
-renderMenuQueue(); // ✅ 這行要在 function 外面（只留一次）
-
-$("btnClearMenu").onclick = ()=>{
+   $("btnClearMenu").onclick = ()=>{
   $("m_cat").value="";
   $("m_name").value="";
   $("m_price").value="";
@@ -1645,15 +1641,12 @@ $("btnClearMenu").onclick = ()=>{
   renderGroups();
   renderChoiceDraft();
 
-  // ✅ 套餐也一併清空
-  packages = [];
-  activePackageDraft = null;
-  showPkgDraftUI(false);
-  renderPackages();
-  renderPkgMenuPicker();
+  // ✅ 清掉「本餐點勾選的套餐」（模板保留）
+  menuSetMealSelected = new Set();
+  renderSetMealPickList();
 };
 
-$("btnAddMenuToQueue").onclick = ()=>{
+   $("btnAddMenuToQueue").onclick = ()=>{
   const category = $("m_cat").value;
   if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
 
@@ -1671,12 +1664,19 @@ $("btnAddMenuToQueue").onclick = ()=>{
     choices: (g.choices||[]).map(c=> ({ name:c.name, price:Number(c.price||0) }))
   }));
 
-  // ✅ 你套餐用的是 tempId，所以這裡一定要加
-  menuQueue.push({ tempId: uid(), category, name, price, defaultQty, optionGroups });
+  // ✅ 套餐：把勾選的套餐 id 一起帶進餐點
+  const setMealTemplateIds = Array.from(menuSetMealSelected);
 
+  menuQueue.push({ category, name, price, defaultQty, optionGroups, setMealTemplateIds });
+
+  // ✅ 只清空餐點欄位（保留選項群組）
   $("m_name").value = "";
   $("m_price").value = "";
   $("m_defaultQty").value = "1";
+
+  // ✅ 清掉「本餐點勾選的套餐」，避免下一道沿用
+  menuSetMealSelected = new Set();
+  renderSetMealPickList();
 
   renderMenuQueue();
 };
@@ -1705,83 +1705,70 @@ $("btnAddMenuToQueue").onclick = ()=>{
       if(catInput) catInput.value = "";
       renderCatGroups();
 
+      // ✅【這一段是你要加的】
+  setMealTemplates = [];
+  activeSetMealDraft = null;
+  menuSetMealSelected = new Set();
+  showSetMealDraftUI(false);
+  renderSetMealTemplates();
+  renderSetMealPickList();
+      
       menuQueue = [];
       $("btnClearMenu").click();
       renderMenuQueue();
     };
 
     $("btnSubmitAll").onclick = async ()=>{
-      const name = $("r_name").value.trim();
-      if(!name) return alert("請輸入餐廳名稱");
-      statusPill.textContent = "新增餐廳中…";
+  const name = $("r_name").value.trim();
+  if(!name) return alert("請輸入餐廳名稱");
+  statusPill.textContent = "新增餐廳中…";
 
-      try{
-        const restaurantRef = await addDoc(colRestaurants, {
-          category: $("r_category").value.trim(),
-          name,
-          phone: $("r_phone").value.trim(),
-          address: $("r_addr").value.trim(),
-          mapUrl: $("r_map").value.trim(),
-          note: $("r_note").value.trim(),
-          businessHours: $("r_hours").value.trim(),
-          weeklyOff: getWeeklyOffFromCreateForm(),
-          imageUrl: $("r_imgUrl").value.trim(),
-          lineQrUrl: $("r_lineQrUrl").value.trim(),
-          isVisible: $("r_visible").checked,
-          isClosed: $("r_closed").checked,
-          createdAt: Date.now()
-        });
-
-        if(menuQueue.length>0){
-  statusPill.textContent = "新增餐點清單中…";
-  const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
-
-  // tempId -> 真正的 menu docId
-  const tempToDocId = new Map();
-
-  for(const m of menuQueue){
-    const docRef = await addDoc(menuCol, {
-      tempId: m.tempId, // ✅ 存一下（可選，但建議）
-      category: m.category,
-      name: m.name,
-      price: Number(m.price||0),
-      defaultQty: Math.max(1, Number(m.defaultQty||1)),
-      optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+  try{
+    const restaurantRef = await addDoc(colRestaurants, {
+      category: $("r_category").value.trim(),
+      name,
+      phone: $("r_phone").value.trim(),
+      address: $("r_addr").value.trim(),
+      mapUrl: $("r_map").value.trim(),
+      note: $("r_note").value.trim(),
+      businessHours: $("r_hours").value.trim(),
+      weeklyOff: getWeeklyOffFromCreateForm(),
+      imageUrl: $("r_imgUrl").value.trim(),
+      lineQrUrl: $("r_lineQrUrl").value.trim(),
+      isVisible: $("r_visible").checked,
+      isClosed: $("r_closed").checked,
       createdAt: Date.now()
     });
-    tempToDocId.set(m.tempId, docRef.id);
-  }
 
-  // ✅ 把套餐的 tempIds 轉成真正的 menu docIds
-  const packagesResolved = (packages||[]).map(p=>({
-    name: p.name,
-    price: Number(p.price||0),
-    menuIds: (p.menuTempIds||[])
-      .map(tid => tempToDocId.get(tid))
-      .filter(Boolean)
-  })).filter(p => p.menuIds.length>0);
+    if(menuQueue.length>0){
+      statusPill.textContent = "新增餐點清單中…";
+      const menuCol = collection(db, "restaurants", restaurantRef.id, "menu");
 
-  // ✅ 回寫到餐廳文件
-  await updateDoc(doc(db,"restaurants", restaurantRef.id), {
-    packages: packagesResolved
-  });
-}else{
-  // 沒餐點就不應該有套餐（保險）
-  if((packages||[]).length){
-    await updateDoc(doc(db,"restaurants", restaurantRef.id), { packages: [] });
-  }
-}
-
-        statusPill.textContent = "新增完成 ✅";
-        alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
-        $("btnClearAll").click();
-        await refreshRestaurantsManage();
-      }catch(err){
-        console.error(err);
-        alert("新增失敗\n\n" + (err?.message || err));
-        statusPill.textContent = "新增失敗（看 console）";
+      for(const m of menuQueue){
+        await addDoc(menuCol, {
+          category: m.category,
+          name: m.name,
+          price: Number(m.price||0),
+          defaultQty: Math.max(1, Number(m.defaultQty||1)),
+          optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
+          // ✅ 套餐 id 一起寫入
+          setMealTemplateIds: Array.isArray(m.setMealTemplateIds) ? m.setMealTemplateIds : [],
+          createdAt: Date.now()
+        });
       }
-    };
+    }
+
+    statusPill.textContent = "新增完成 ✅";
+    alert(menuQueue.length>0 ? "餐廳 + 餐點已新增！" : "餐廳已新增！");
+    $("btnClearAll").click();
+    await refreshRestaurantsManage();
+
+  }catch(err){
+    console.error(err);
+    alert("新增失敗\n\n" + (err?.message || err));
+    statusPill.textContent = "新增失敗（看 console）";
+  }
+};
 
     /* ===== staff / restaurants / 班表 ===== */
 
