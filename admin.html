@@ -363,6 +363,26 @@
 
  body{ outline:6px solid red !important; }
 
+    /* 1) 主區不要被撐到滿高 */
+.main{
+  display:block !important;
+  height:auto !important;
+  min-height:0 !important;
+}
+
+/* 2) view 不准用任何方式把自己推到底 */
+.main > .view{
+  margin:0 !important;
+  position:static !important;
+  inset:auto !important;
+  transform:none !important;
+}
+
+/* 3) grid 容器也不要做垂直對齊/撐高 */
+.layout{
+  align-items:start !important;
+}
+
   </style>
 </head>
 <body>
