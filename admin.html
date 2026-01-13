@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理9999</title>
+  <title>GoldBricks 呷奔👽｜管理999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -28,37 +28,53 @@
   display:grid;
   grid-template-columns: 300px 1fr;
   gap:16px;
-  padding:16px;   /* 這裡的 16px 是外邊距，必須保留畫面才不會貼死邊緣 */
+  padding:16px;   /* ⛔ 上方 16px 直接把整個右側往下推 */
 }
 
-@media (max-width:980px){.layout{grid-template-columns:1fr}}
-
-.sidebar, .main{
-  background: rgba(255,255,255,.78);
-  border:1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
-}
-
-.sidebar{
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+    .sidebar,.main{
+      background: rgba(255,255,255,.78);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+ .sidebar{
   padding:14px;
   position:sticky;
-  top: 16px;          /* ✅ 改回 16px，對齊 layout 的 padding */
-  align-self: start;  /* ✅ 保持這個，防止 sidebar 被 main 撐開變長 */
+  top:0;
+
+  align-self: start;   /* ⭐ 關鍵：不要撐高 grid row */
 }
 
-.main{ 
-  padding:14px;       /* ✅ 恢復 admin.txt 版本，修正下移問題 */
+    .brand{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 10px 6px;}
+    .brand h1{font-size:16px; margin:0}
+    .brand small{color:var(--muted)}
+    .nav{margin-top:10px; display:flex; flex-direction:column; gap:8px}
+    .nav button{
+      text-align:left; padding:11px 12px; border-radius:14px;
+      border:1px solid var(--border); background:#fff; cursor:pointer;
+      font-weight:800;
+    }
+    .nav button.active{
+      border-color: rgba(251,113,133,.55);
+      background: linear-gradient(90deg, rgba(251,113,133,.18), rgba(255,154,158,.10));
+      box-shadow: 0 10px 22px rgba(251,113,133,.18);
+    }
+
+  .main{
+  padding:0 14px 14px;  /* ✅ 拿掉上方 padding */
+  align-self:start;
 }
 
-.topbar{
+ .topbar{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  padding:6px 6px 12px; /* ✅ 恢復 admin.txt 版本 */
+  padding:0 6px 6px;   /* ↓ 減少下面空白 */
 }
+
     .topbar h2{margin:0; font-size:18px}
     .topbar .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12.5px}
