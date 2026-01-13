@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理99</title>
+  <title>GoldBricks 呷奔👽｜管理9999</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -97,15 +97,26 @@
     #view_orders .grid{ grid-template-columns: 360px 1fr; }
     @media (max-width:980px){ #view_orders .grid{ grid-template-columns: 1fr; } }
 
-    /* ✅ 管理人員：新增人員＋人員清單 靠右 */
-#view_staff .grid{
-  grid-template-columns: 1fr 480px; /* 左空白｜右內容 */
-  align-items: start;
+/* ✅ 管理人員：整個區塊靠右顯示 */
+#view_staff{
+  display: flex;
+  justify-content: flex-end;
 }
 
+/* 右側欄寬度控制 */
+#view_staff .grid{
+  width: 100%;
+  max-width: 520px;   /* ← 右側欄寬度，可調 */
+  grid-template-columns: 1fr; /* 內容單欄堆疊 */
+}
+
+/* 小螢幕恢復正常 */
 @media (max-width:980px){
+  #view_staff{
+    display: block;
+  }
   #view_staff .grid{
-    grid-template-columns: 1fr;
+    max-width: none;
   }
 }
 
