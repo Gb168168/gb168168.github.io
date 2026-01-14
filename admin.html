@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理7777</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -275,6 +275,38 @@
       color:#064e3b;
     }
 
+     .alertTitle{
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .noOrderDeptList{
+      list-style:none;
+      margin:6px 0 0;
+      padding:0;
+      display:grid;
+      gap:6px;
+    }
+    .noOrderDeptList li{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:6px;
+    }
+    .deptTag{
+      font-size:12px;
+      font-weight:700;
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(248,113,113,.12);
+      border:1px solid rgba(248,113,113,.4);
+      color:#991b1b;
+      white-space:nowrap;
+    }
+    .deptNames{
+      font-weight:600;
+      color:#7f1d1d;
+    }
+    
     /* 🔔 未點餐彈跳視窗 */
     .modalMask{
       position:fixed;
@@ -3500,19 +3532,36 @@ async function loadOrdersByDate(dateStr){
           const [dept,name] = k.split("||");
           const d = (dept || "未分部門");
           if(!byDept.has(d)) byDept.set(d,[]);
-          byDept.get(d).push(name || "");
+           if(name) byDept.get(d).push(name);
         });
-        const lines = Array.from(byDept.entries()).map(([dept,names])=>`${dept}：${names.join("、")}`);
-
+        const deptEntries = Array.from(byDept.entries()).map(([dept,names])=>({
+          dept,
+          names,
+        }));
+        const deptListHtml = deptEntries.map(({dept, names})=>{
+          const nameText = names.join("、");
+          return `
+            <li>
+              <span class="deptTag">${esc(dept)}</span>
+              <span class="deptNames">${esc(nameText)}</span>
+            </li>
+          `;
+        }).join("");
+        
         noOrderBanner.className = "alertBar alertWarn";
-        noOrderBanner.textContent = `🔔 今日尚有 ${missingKeys.length} 人未點餐：` + lines.join("；");
+        noOrderBanner.innerHTML = `
+          <div class="alertTitle">🔔 今日尚有 <b>${missingKeys.length}</b> 人未點餐</div>
+          <ul class="noOrderDeptList">
+            ${deptListHtml}
+          </ul>
+        `;
         noOrderBanner.style.display = "";
 
         if(showModal && noOrderModal && noOrderList){
           noOrderList.innerHTML = `
             <p class="muted">今日尚有 <b>${missingKeys.length}</b> 人未點餐：</p>
-            <ul class="mini">
-              ${lines.map(line=>`<li>${esc(line)}</li>`).join("")}
+            <ul class="noOrderDeptList mini">
+              ${deptListHtml}
             </ul>
             <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人。</p>
           `;
