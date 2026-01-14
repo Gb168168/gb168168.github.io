@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -422,7 +422,8 @@ statusPill.textContent = "已連線 Firestore ✅";
     let selectedRestaurant = null;
     let menuCache = [];
     let cart = [];
-
+    let setMealTemplates = [];
+    
     // ✅ 明細狀態
     let myOrdersCache = [];
     let activeOrderId = "";
@@ -631,6 +632,27 @@ async function loadStaff(){
         card.addEventListener("keydown",(e)=>{ if(e.key==="Enter") go(); });
       });
     }
+    
+function normalizeSetMealTemplates(raw){
+      if(!Array.isArray(raw)) return [];
+      return raw.map(t=>({
+        id: (t?.id || "").trim(),
+        name: (t?.name || "").trim(),
+        price: Number(t?.price || 0),
+        categories: Array.isArray(t?.categories)
+          ? t.categories.map(c=>({
+              name: (c?.name || "").trim(),
+              pickCount: Math.max(1, Number(c?.pickCount || 1)),
+              options: Array.isArray(c?.options)
+                ? c.options.map(o=>({
+                    name: (o?.name || "").trim(),
+                    addPrice: Number(o?.addPrice || 0)
+                  }))
+                : []
+            }))
+          : []
+      })).filter(t=> t.id && t.name);
+    }
 
     async function pickRestaurant(rid, opt={}){
       try{
@@ -638,7 +660,8 @@ async function loadStaff(){
         const snap = await getDoc(doc(db,"restaurants",rid));
         selectedRestaurantId = rid;
         selectedRestaurant = snap.exists() ? snap.data() : null;
-
+        setMealTemplates = normalizeSetMealTemplates(selectedRestaurant?.setMealTemplates);
+        
         localStorage.setItem("gb_user_rid", rid);
 
         $("pickedRestaurantName").textContent = selectedRestaurant?.name || "未命名";
@@ -742,11 +765,27 @@ async function loadStaff(){
           }
         });
       });
+      
+      wrap.querySelectorAll("[data-mid-setmeal]").forEach(sel=>{
+        const mid = sel.dataset.midSetmeal;
+        sel.addEventListener("change", ()=>{
+          updateSetMealUI(mid);
+        });
+        updateSetMealUI(mid);
+      });
+
+      wrap.querySelectorAll("input[data-sm-mid]").forEach(inp=>{
+        inp.addEventListener("change", ()=>{
+          enforceSetMealPickLimit(inp);
+        });
+      });
     }
 
     function renderMenuItem(m){
       const gs = (Array.isArray(m.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
-
+      const setMealIds = Array.isArray(m.setMealTemplateIds) ? m.setMealTemplateIds : [];
+      const setMeals = setMealTemplates.filter(t=> setMealIds.includes(t.id));
+      
       const userOK = !!($("deptSelect").value && $("nameSelect").value);
       const closed = !!selectedRestaurant?.isClosed;
       const lock = closed ? "disabled" : "";
@@ -800,6 +839,59 @@ async function loadStaff(){
         return "";
       }).join("");
 
+         const setMealHTML = setMeals.length ? `
+        <div class="box" style="margin-top:10px">
+          <div class="inline" style="justify-content:space-between">
+            <b>套餐選項</b>
+            <span class="tag">可選擇</span>
+          </div>
+          <select data-mid-setmeal="${esc(m.id)}" ${disabled}>
+            <option value="">不使用套餐</option>
+            ${setMeals.map(t=>`
+              <option value="${esc(t.id)}">${esc(t.name)}${Number(t.price||0)?`（+${Number(t.price||0)}）`:``}</option>
+            `).join("")}
+          </select>
+        </div>
+        ${setMeals.map(t=>`
+          <div class="box" data-mid-setmeal-box="${esc(m.id)}" data-smid="${esc(t.id)}" style="display:none; margin-top:10px">
+            <div class="inline" style="justify-content:space-between">
+              <b>${esc(t.name || "套餐")}</b>
+              <span class="tag priceTag">套餐價：${Number(t.price||0)}</span>
+            </div>
+            <div style="margin-top:8px">
+              ${t.categories.map((c,ci)=>{
+                const pickCount = Math.max(1, Number(c.pickCount||1));
+                const isSingle = pickCount === 1;
+                const inputType = isSingle ? "radio" : "checkbox";
+                const groupName = `sm_${esc(m.id)}_${esc(t.id)}_${ci}`;
+                return `
+                  <div class="box" style="margin-top:10px">
+                    <div class="inline" style="justify-content:space-between">
+                      <b>${esc(c.name || "類別")}</b>
+                      <span class="tag">選 ${pickCount}</span>
+                    </div>
+                    <div style="margin-top:8px">
+                      ${(Array.isArray(c.options)?c.options:[]).map((o,oi)=>{
+                        const price = Number(o.addPrice||0);
+                        const label = `${esc(o.name||"")}${price?`（+${price}）`:""}`;
+                        return `
+                          <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
+                            <input type="${inputType}" name="${groupName}"
+                              data-sm-mid="${esc(m.id)}" data-smid="${esc(t.id)}" data-sm-cat="${ci}" data-sm-oi="${oi}" data-sm-pick="${pickCount}"
+                              ${disabled}/>
+                            <span>${label}</span>
+                          </label>
+                        `;
+                      }).join("")}
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `).join("")}
+      ` : "";
+
       return `
         <div class="menuItem" data-mid="${esc(m.id)}">
           <div class="inline" style="justify-content:space-between">
@@ -827,9 +919,42 @@ async function loadStaff(){
             </div>
           </div>
 
+          ${setMealHTML}
           ${groupsHTML}
         </div>
       `;
+    }
+
+     function updateSetMealUI(mid){
+      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
+      const chosen = (sel?.value || "").trim();
+
+      document.querySelectorAll(`[data-mid-setmeal-box="${CSS.escape(mid)}"]`).forEach(box=>{
+        const active = box.dataset.smid === chosen;
+        box.style.display = active ? "block" : "none";
+        if(!active){
+          box.querySelectorAll("input[type='checkbox'], input[type='radio']").forEach(inp=>{
+            inp.checked = false;
+          });
+        }
+      });
+    }
+
+    function enforceSetMealPickLimit(input){
+      const pickCount = Number(input.dataset.smPick || 1);
+      if(pickCount <= 1) return;
+      const mid = input.dataset.smMid || "";
+      const smid = input.dataset.smid || "";
+      const cat = input.dataset.smCat || "";
+
+      const checked = document.querySelectorAll(
+        `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${cat}"]:checked`
+      );
+
+      if(checked.length > pickCount){
+        input.checked = false;
+        alert(`此類別最多選 ${pickCount} 項`);
+      }
     }
 
     function readChosenOptions(mid){
@@ -879,6 +1004,44 @@ async function loadStaff(){
       return { addons, addonSum };
     }
 
+    function readChosenSetMeal(mid){
+      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
+      const smid = (sel?.value || "").trim();
+      if(!smid) return { setMeal: null, setMealSum: 0, addons: [] };
+
+      const t = setMealTemplates.find(x=> x.id === smid);
+      if(!t) return { setMeal: null, setMealSum: 0, addons: [] };
+
+      const addons = [];
+      let setMealSum = Number(t.price || 0);
+
+      if(Number(t.price || 0)){
+        addons.push({ kind:"setmeal", group:"套餐", name:t.name || "", price:Number(t.price||0) });
+      }
+
+      (Array.isArray(t.categories)?t.categories:[]).forEach((c,ci)=>{
+        const inputs = document.querySelectorAll(
+          `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"]:checked`
+        );
+
+        inputs.forEach(inp=>{
+          const oi = Number(inp.dataset.smOi);
+          const opt = (Array.isArray(c.options)?c.options:[])[oi];
+          if(!opt) return;
+          const price = Number(opt.addPrice||0);
+          addons.push({
+            kind:"setmeal",
+            group:`${t.name || "套餐"} / ${c.name || "類別"}`,
+            name: opt.name || "",
+            price
+          });
+          setMealSum += price;
+        });
+      });
+
+      return { setMeal: { id: t.id, name: t.name || "" }, setMealSum, addons };
+    }
+
     function validateRequired(mid){
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
@@ -900,6 +1063,24 @@ async function loadStaff(){
           let any = false;
           els.forEach(el=>{ if(el.checked) any = true; });
           if(!any) return `請先選擇「${g.name||"加購"}」`;
+        }
+      }
+      
+      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
+      const smid = (sel?.value || "").trim();
+      if(smid){
+        const t = setMealTemplates.find(x=> x.id === smid);
+        if(!t) return "找不到套餐";
+
+        for(let ci=0; ci<(t.categories||[]).length; ci++){
+          const c = t.categories[ci] || {};
+          const pickCount = Math.max(1, Number(c.pickCount||1));
+          const els = document.querySelectorAll(
+            `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"]:checked`
+          );
+          if(els.length !== pickCount){
+            return `請選擇套餐「${c.name||"類別"}」（需選 ${pickCount}）`;
+          }
         }
       }
       return "";
@@ -925,7 +1106,8 @@ async function loadStaff(){
 
       const { chosenOptions, optSum } = readChosenOptions(mid);
       const { addons, addonSum } = readChosenAddons(mid);
-
+      const { setMeal, setMealSum, addons: setMealAddons } = readChosenSetMeal(mid);
+      
       const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
       Object.entries(chosenOptions).forEach(([giStr, oi])=>{
         const gi = Number(giStr);
@@ -938,8 +1120,10 @@ async function loadStaff(){
       });
 
       const base = Number(m.price||0);
-      const unit = base + optSum + addonSum;
+      const unit = base + optSum + addonSum + setMealSum;
       const lineTotal = unit * qty;
+
+      const combinedAddons = [...addons, ...setMealAddons];
 
       cart.push({
         mid: m.id,
@@ -947,7 +1131,8 @@ async function loadStaff(){
         qty,
         note,
         price: base,
-        addons,
+        addons: combinedAddons,
+        setMeal,
         unit,
         lineTotal,
         createdAt: Date.now()
@@ -977,7 +1162,9 @@ async function loadStaff(){
 
       const fmtAddon = (a)=>{
         const p = Number(a?.price||0);
-        const kind = a?.kind==="choice" ? "擇一" : (a?.kind==="addon" ? "加購" : "");
+        const kind = a?.kind==="choice"
+          ? "擇一"
+          : (a?.kind==="addon" ? "加購" : (a?.kind==="setmeal" ? "套餐" : ""));
         const group = a?.group ? `(${a.group})` : "";
         return `${kind?`[${kind}]`:``}${group}${a?.name||""}${p?`(+${p})`:``}`;
       };
@@ -1115,7 +1302,7 @@ async function loadStaff(){
         const addonText = addons.length
           ? `（加購/擇一：${addons.map(a=>{
               const p=Number(a?.price||0);
-              const k=a?.kind==="choice"?"擇一":(a?.kind==="addon"?"加購":"");
+              const k=a?.kind==="choice"?"擇一":(a?.kind==="addon"?"加購":(a?.kind==="setmeal"?"套餐":""));
               const g=a?.group?`(${a.group})`:"";
               return `${k?`[${k}]`:``}${g}${a?.name||""}${p?`(+${p})`:``}`;
             }).join("；")}）`
