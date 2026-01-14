@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理66</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -65,17 +65,16 @@
     }
 
 .main{
-  /* ✅ 全頁都變寬：這裡改一次就所有 view 都會生效 */
-  max-width: none;            /* 或改成 1800px 之類也可以 */
-  margin: 0;                  /* 不要 0 auto，不然會置中造成你覺得「上不去/對不齊」 */
+  width: 100%;
+  max-width: none;   /* 🔥 解除任何上限（最重要） */
+  margin: 0;         /* 🔥 不要 0 auto，避免被置中 */
   padding: 0 16px;
 
-  /* ✅ 讓內容永遠從上方開始排 */
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  align-items: stretch;  /* 讓裡面的 view / card 全寬 */
 }
-
+    
  .topbar{
   display:flex;
   align-items:center;
