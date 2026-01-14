@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -498,7 +498,7 @@
               </div>
             </div>
 
-            <div class="row">
+              <div class="row3">
               <div>
                 <label>Google map 連結</label>
                 <input id="r_map" autocomplete="off" placeholder="https://maps.google.com/..."/>
@@ -506,6 +506,10 @@
               <div>
                 <label>餐廳圖片網址</label>
                 <input id="r_imgUrl" autocomplete="off" placeholder="https://...jpg / png"/>
+              </div>
+                 <div>
+                <label>餐廳菜單圖片網址</label>
+                <input id="r_menuImgUrl" autocomplete="off" placeholder="https://...jpg / png"/>
               </div>
             </div>
 
@@ -550,6 +554,7 @@
             <div class="muted" style="margin-top:6px">（貼 QR code 圖片網址或線上點餐連結即可）</div>
 
             <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
+            <img id="r_menuImgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="menu preview"/>
             <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
 
             <div class="row">
@@ -1169,6 +1174,16 @@ function cloneOptionGroups(src){
       r_imgPrev.style.display="";
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
+
+     const r_menuImgUrl = $("r_menuImgUrl");
+    const r_menuImgPrev = $("r_menuImgPrev");
+    r_menuImgUrl.addEventListener("input", ()=>{
+      const url = r_menuImgUrl.value.trim();
+      if(!url){ r_menuImgPrev.style.display="none"; return; }
+      r_menuImgPrev.src = url;
+      r_menuImgPrev.style.display="";
+    });
+    r_menuImgPrev.addEventListener("error", ()=>{ r_menuImgPrev.style.display="none"; });
 
     // 取得所有既有餐廳分類
 async function loadExistingCategories() {
@@ -1820,6 +1835,7 @@ renderSetMealPickList();
       $("r_map").value=""; $("r_note").value="";
       $("r_hours").value="";
       $("r_imgUrl").value=""; r_imgPrev.style.display="none";
+      $("r_menuImgUrl").value=""; r_menuImgPrev.style.display="none";
       $("r_lineQrUrl").value=""; r_lineQrPrev.style.display="none";
       $("r_onlineOrderUrl").value="";
       $("r_visible").checked = true;
@@ -1877,6 +1893,7 @@ renderSetMealPickList();
         businessHours: $("r_hours").value.trim(),
         weeklyOff: getWeeklyOffFromCreateForm(),
         imageUrl: $("r_imgUrl").value.trim(),
+        menuImageUrl: $("r_menuImgUrl").value.trim(),
         lineQrUrl: $("r_lineQrUrl").value.trim(),
         onlineOrderUrl: $("r_onlineOrderUrl").value.trim(),
         isVisible: $("r_visible").checked,
@@ -2835,6 +2852,8 @@ function renderMenuOptionEditor(rid, mid, container){
                     ${r.phone ? `<span class="tag">☎ ${esc(r.phone)}</span>` : ``}
                     ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
                     ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
+                    ${r.imageUrl ? `<span class="tag"><a target="_blank" href="${esc(r.imageUrl)}" style="color:inherit; text-decoration:none">餐廳圖片</a></span>` : ``}
+                    ${r.menuImageUrl ? `<span class="tag"><a target="_blank" href="${esc(r.menuImageUrl)}" style="color:inherit; text-decoration:none">菜單圖片</a></span>` : ``}
                     ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
                     ${r.onlineOrderUrl ? `<span class="tag"><a target="_blank" href="${esc(r.onlineOrderUrl)}" style="color:inherit; text-decoration:none">線上點餐</a></span>` : ``}
                   </div>
@@ -2881,6 +2900,23 @@ function renderMenuOptionEditor(rid, mid, container){
                   <label>Google Map 連結</label>
                   <input data-r="${r.id}" data-k="mapUrl" value="${esc(r.mapUrl||"")}"/>
 
+                  <div class="row" style="margin-top:10px">
+                    <div>
+                      <label>餐廳圖片網址</label>
+                      <div class="inline" style="gap:8px">
+                        <input data-r="${r.id}" data-k="imageUrl" value="${esc(r.imageUrl||"")}"/>
+                        <button class="btnSmall" type="button" data-openimg="${r.id}">開啟</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label>餐廳菜單圖片網址</label>
+                      <div class="inline" style="gap:8px">
+                        <input data-r="${r.id}" data-k="menuImageUrl" value="${esc(r.menuImageUrl||"")}"/>
+                        <button class="btnSmall" type="button" data-openmenuimg="${r.id}">開啟</button>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <label>營業時間</label>
                   <input data-r="${r.id}" data-k="businessHours"
                          value="${esc(r.businessHours || "")}"
@@ -2913,6 +2949,9 @@ function renderMenuOptionEditor(rid, mid, container){
 
                   ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="img" onerror="this.style.display='none'"/>`
                                : `<div class="muted" style="margin-top:10px">（尚無餐廳圖片網址）</div>`}
+
+                 ${r.menuImageUrl ? `<img src="${esc(r.menuImageUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="menu-img" onerror="this.style.display='none'"/>`
+                                : `<div class="muted" style="margin-top:10px">（尚無餐廳菜單圖片網址）</div>`}
 
                   ${r.lineQrUrl ? `<img src="${esc(r.lineQrUrl)}" class="previewImg" style="max-width:160px; border-radius:12px; margin-top:10px" alt="line-qr" onerror="this.style.display='none'"/>`
                                 : `<div class="muted" style="margin-top:10px">（尚無 Line QR code）</div>`}
@@ -2984,6 +3023,17 @@ function renderMenuOptionEditor(rid, mid, container){
           const input = wrap.querySelector(`[data-r="${rid}"][data-k="imageUrl"]`);
           const url = (input?.value || "").trim();
           if(!url) return alert("目前沒有圖片網址");
+          const finalUrl = url.startsWith("http://") || url.startsWith("https://") ? url : ("https://" + url);
+          window.open(finalUrl, "_blank");
+        };
+      });
+
+       wrap.querySelectorAll("button[data-openmenuimg]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.openmenuimg;
+          const input = wrap.querySelector(`[data-r="${rid}"][data-k="menuImageUrl"]`);
+          const url = (input?.value || "").trim();
+          if(!url) return alert("目前沒有菜單圖片網址");
           const finalUrl = url.startsWith("http://") || url.startsWith("https://") ? url : ("https://" + url);
           window.open(finalUrl, "_blank");
         };
