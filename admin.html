@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -542,8 +542,12 @@
                 <label>Line QR Code 圖片網址</label>
                 <input id="r_lineQrUrl" autocomplete="off" placeholder="https://...png（QR code 圖）"/>
               </div>
-              <div class="muted" style="display:flex; align-items:end"></div>
+               <div>
+                <label>線上點餐連結</label>
+                <input id="r_onlineOrderUrl" autocomplete="off" placeholder="https://..."/>
+              </div>
             </div>
+            <div class="muted" style="margin-top:6px">（貼 QR code 圖片網址或線上點餐連結即可）</div>
 
             <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
             <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
@@ -1817,6 +1821,7 @@ renderSetMealPickList();
       $("r_hours").value="";
       $("r_imgUrl").value=""; r_imgPrev.style.display="none";
       $("r_lineQrUrl").value=""; r_lineQrPrev.style.display="none";
+      $("r_onlineOrderUrl").value="";
       $("r_visible").checked = true;
       $("r_closed").checked = false;
       clearWeeklyOffCreateForm();
@@ -1873,6 +1878,7 @@ renderSetMealPickList();
         weeklyOff: getWeeklyOffFromCreateForm(),
         imageUrl: $("r_imgUrl").value.trim(),
         lineQrUrl: $("r_lineQrUrl").value.trim(),
+        onlineOrderUrl: $("r_onlineOrderUrl").value.trim(),
         isVisible: $("r_visible").checked,
         isClosed: $("r_closed").checked,
         setMealTemplates: setMealPayload,
@@ -2830,6 +2836,7 @@ function renderMenuOptionEditor(rid, mid, container){
                     ${r.address ? `<span class="tag">📍 ${esc(r.address)}</span>` : ``}
                     ${r.mapUrl ? `<span class="tag"><a target="_blank" href="${esc(r.mapUrl)}" style="color:inherit; text-decoration:none">Google Map</a></span>` : ``}
                     ${r.lineQrUrl ? `<span class="tag"><a target="_blank" href="${esc(r.lineQrUrl)}" style="color:inherit; text-decoration:none">Line QR</a></span>` : ``}
+                    ${r.onlineOrderUrl ? `<span class="tag"><a target="_blank" href="${esc(r.onlineOrderUrl)}" style="color:inherit; text-decoration:none">線上點餐</a></span>` : ``}
                   </div>
 
                   <!-- ✅ 使用者顯示 / 結單 勾選 -->
@@ -2892,8 +2899,15 @@ function renderMenuOptionEditor(rid, mid, container){
                         <button class="btnSmall" type="button" data-openqr="${r.id}">開啟</button>
                       </div>
                     </div>
-                    <div class="muted" style="display:flex; align-items:end">
-                      （貼 QR code 圖片網址即可）
+                    <div>
+                      <label>線上點餐連結</label>
+                      <div class="inline" style="gap:8px">
+                        <input data-r="${r.id}" data-k="onlineOrderUrl" value="${esc(r.onlineOrderUrl||"")}"/>
+                        <button class="btnSmall" type="button" data-openorder="${r.id}">開啟</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="muted" style="margin-top:6px">（貼 QR code 圖片網址或線上點餐連結即可）</div>
                     </div>
                   </div>
 
@@ -2986,6 +3000,17 @@ function renderMenuOptionEditor(rid, mid, container){
         };
       });
 
+        wrap.querySelectorAll("button[data-openorder]").forEach(btn=>{
+        btn.onclick = ()=>{
+          const rid = btn.dataset.openorder;
+          const input = wrap.querySelector(`[data-r="${rid}"][data-k="onlineOrderUrl"]`);
+          const url = (input?.value || "").trim();
+          if(!url) return alert("目前沒有線上點餐連結");
+          const finalUrl = url.startsWith("http://") || url.startsWith("https://") ? url : ("https://" + url);
+          window.open(finalUrl, "_blank");
+        };
+      });
+      
       wrap.querySelectorAll("button[data-saver]").forEach(b=>{
         b.onclick = async ()=>{
           const rid = b.dataset.saver;
