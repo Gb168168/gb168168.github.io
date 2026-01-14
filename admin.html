@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2236,6 +2236,17 @@ async function loadMenusOfRestaurant(rid){
   }
 }
 
+     function setMealTemplatesSummary(templateIds){
+      const ids = Array.isArray(templateIds) ? templateIds : [];
+      if(ids.length===0) return "—";
+      if(!Array.isArray(setMealTemplates) || setMealTemplates.length===0) return "—";
+      const names = setMealTemplates
+        .filter(t => ids.includes(t.id))
+        .map(t => t.name)
+        .filter(Boolean);
+      return names.length ? names.join("、") : "—";
+    }
+
     function optionGroupsSummary(groups){
       const gs = Array.isArray(groups) ? groups : [];
       if(gs.length===0) return "—";
@@ -2624,11 +2635,12 @@ function renderMenuOptionEditor(rid, mid, container){
                       <table style="margin-top:10px">
                         <thead>
                           <tr>
-                            <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>選項群組</th><th>操作</th>
+                           <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>套餐群組</th><th>選項群組</th><th>操作</th>
                           </tr>
                         </thead>
                         <tbody>
                           ${mlist.map(m=>{
+  const setMealText = setMealTemplatesSummary(m.setMealTemplateIds);
   const optText = optionGroupsSummary(m.optionGroups);
   const optKey = `${r.id}__${m.id}`;
   if(!menuOptionCache.has(optKey)){
@@ -2641,6 +2653,7 @@ function renderMenuOptionEditor(rid, mid, container){
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
+      <td class="muted" style="max-width:220px">${esc(setMealText)}</td>
       <td class="muted" style="max-width:340px">${esc(optText)}</td>
       <td style="white-space:nowrap">
         <button class="btnSmall" type="button" data-editopt="1" data-rid="${r.id}" data-mid="${m.id}">選項群組</button>
@@ -2649,7 +2662,7 @@ function renderMenuOptionEditor(rid, mid, container){
       </td>
     </tr>
    <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
-  <td colspan="6">
+   <td colspan="7">
     <div class="muted mini" style="margin-bottom:6px">
       可在這裡編輯「擇一 / 加購」選項群組，編輯完成後請按上方「儲存」。
     </div>
@@ -3043,7 +3056,7 @@ function renderMenuOptionEditor(rid, mid, container){
       statusPill.textContent = "餐點已儲存 ✅";
 
       // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
-      const td = b.closest("tr")?.querySelector("td:nth-child(5)");
+      const td = b.closest("tr")?.querySelector("td:nth-child(6)");
       if(td && Array.isArray(patch.optionGroups)){
         td.textContent = optionGroupsSummary(patch.optionGroups);
       }
