@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理999</title>
+  <title>GoldBricks 呷奔👽｜管理99</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -370,14 +370,20 @@
       padding:3px 7px;
     }
 
-    /* 🔧 修正：切換 view 時不要被前一個 view 撐高度 */
 .view{
   align-self: start;
   margin-top: 0;
 }
-    
+
 .view > .card{
   width: 100%;
+}
+
+/* ✅ 這段你現在一定要有 */
+.main{
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
   </style>
