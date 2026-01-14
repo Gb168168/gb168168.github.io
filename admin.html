@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1363,6 +1363,27 @@ let setMealTemplates = [];          // 已建立的套餐模板（全店）
 let activeSetMealDraft = null;      // 正在編輯中的套餐
 let menuSetMealSelected = new Set();// 此餐點勾選的套餐 id
 
+function normalizeSetMealTemplates(raw){
+  if(!Array.isArray(raw)) return [];
+  return raw.map(t=>({
+    id: String(t?.id || "").trim(),
+    name: String(t?.name || "").trim(),
+    price: Number(t?.price || 0),
+    categories: Array.isArray(t?.categories)
+      ? t.categories.map(c=>({
+          name: String(c?.name || "").trim(),
+          pickCount: Math.max(1, Number(c?.pickCount || 1)),
+          options: Array.isArray(c?.options)
+            ? c.options.map(o=>({
+                name: String(o?.name || "").trim(),
+                addPrice: Number(o?.addPrice || 0)
+              }))
+            : []
+        }))
+      : []
+  })).filter(t=> t.id && t.name);
+}
+
 /* ===== UI helpers ===== */
 function showSetMealDraftUI(on){
   $("setMealDraftArea").style.display = on ? "" : "none";
@@ -1492,6 +1513,24 @@ function renderSetMealCategoryList(){
     };
   });
 
+  wrap.querySelectorAll("[data-sm-optname]").forEach(input=>{
+    input.addEventListener("keydown",(e)=>{
+      if(e.key!=="Enter") return;
+      e.preventDefault();
+      const ci = Number(input.dataset.smOptname);
+      wrap.querySelector(`[data-sm-addopt="${ci}"]`)?.click();
+    });
+  });
+
+  wrap.querySelectorAll("[data-sm-optprice]").forEach(input=>{
+    input.addEventListener("keydown",(e)=>{
+      if(e.key!=="Enter") return;
+      e.preventDefault();
+      const ci = Number(input.dataset.smOptprice);
+      wrap.querySelector(`[data-sm-addopt="${ci}"]`)?.click();
+    });
+  });
+
   wrap.querySelectorAll("[data-sm-delopt]").forEach(btn=>{
     btn.onclick = ()=>{
       const [ci,oi] = btn.dataset.smDelopt.split("|").map(Number);
@@ -1514,6 +1553,20 @@ $("btnStartSetMeal").onclick = ()=>{
   renderSetMealCategoryList();
 };
 
+$("sm_name").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    $("btnStartSetMeal").click();
+  }
+});
+
+$("sm_price").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    $("btnStartSetMeal").click();
+  }
+});
+    
 $("btnCancelSetMeal").onclick = ()=>{
   activeSetMealDraft = null;
   showSetMealDraftUI(false);
@@ -1528,6 +1581,13 @@ $("btnAddSetMealCategory").onclick = ()=>{
   $("sm_catName").value = "";
   renderSetMealCategoryList();
 };
+
+ $("sm_catName").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    $("btnAddSetMealCategory").click();
+  }
+});
 
 $("btnCommitSetMeal").onclick = ()=>{
   const t = activeSetMealDraft;
@@ -2236,12 +2296,15 @@ async function loadMenusOfRestaurant(rid){
   }
 }
 
-     function setMealTemplatesSummary(templateIds){
-      const ids = Array.isArray(templateIds) ? templateIds : [];
+      function setMealTemplatesSummary(templateIds, templates){
+      const ids = Array.isArray(templateIds)
+        ? templateIds.map(id=> String(id || "").trim()).filter(Boolean)
+        : [];
       if(ids.length===0) return "—";
-      if(!Array.isArray(setMealTemplates) || setMealTemplates.length===0) return "—";
-      const names = setMealTemplates
-        .filter(t => ids.includes(t.id))
+     const pool = Array.isArray(templates) && templates.length ? templates : setMealTemplates;
+      if(!Array.isArray(pool) || pool.length===0) return "—";
+      const names = pool
+        .filter(t => ids.includes(String(t.id || "").trim()))
         .map(t => t.name)
         .filter(Boolean);
       return names.length ? names.join("、") : "—";
@@ -2487,7 +2550,10 @@ function renderMenuOptionEditor(rid, mid, container){
       try{
         const snap = await getDocs(query(colRestaurants, limit(1200)));
         snap.forEach(d => restaurants.push({ id: d.id, ...(d.data() || {}) }));
-
+        restaurants.forEach(r=>{
+          r._setMealTemplates = normalizeSetMealTemplates(r.setMealTemplates);
+        });
+        
         restaurants.sort((a,b)=>{
           const aa = toMs(a.createdAt||0), bb = toMs(b.createdAt||0);
           if(bb !== aa) return bb - aa;
@@ -2640,7 +2706,7 @@ function renderMenuOptionEditor(rid, mid, container){
                         </thead>
                         <tbody>
                           ${mlist.map(m=>{
-  const setMealText = setMealTemplatesSummary(m.setMealTemplateIds);
+  const setMealText = setMealTemplatesSummary(m.setMealTemplateIds, r._setMealTemplates);
   const optText = optionGroupsSummary(m.optionGroups);
   const optKey = `${r.id}__${m.id}`;
   if(!menuOptionCache.has(optKey)){
