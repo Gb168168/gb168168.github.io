@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -189,7 +189,7 @@
   color:#0f172a;
 }
 
-.missCount{
+  .missCount{
   padding:4px 8px;
   border-radius:999px;
   border:1px solid rgba(15,23,42,.12);
@@ -197,6 +197,29 @@
   color:var(--muted);
   font-size:12px;
   font-weight:900;
+}
+
+  .randomResult{
+  border:1px dashed rgba(15,23,42,.18);
+  border-radius:18px;
+  background:#fff;
+  padding:14px;
+  margin-top:12px;
+}
+.randomResultTitle{
+  font-size:15px;
+  font-weight:900;
+}
+.randomResultMeta{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:12.5px;
+}
+.randomResultActions{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
 }
 
 .missNames{
@@ -441,6 +464,7 @@
         <button class="navBtn" data-view="schedule">班表管理</button>
         <button class="navBtn" data-view="addRestaurant">新增餐廳</button>
         <button class="navBtn" data-view="restaurants">餐廳管理</button>
+        <button class="navBtn" data-view="randomPick">幫我想要吃啥</button>
         <button class="navBtn" data-view="orders">訂餐紀錄</button>
         <div class="hr"></div>
         <button id="switchUser" class="navBtn">切換使用者模式</button>
@@ -904,6 +928,33 @@
         </div>
       </section>
 
+       <!-- VIEW: 幫我想要吃啥 -->
+      <section class="view" id="view_randomPick" style="display:none">
+        <div class="card">
+          <h3>幫我想要吃啥</h3>
+          <p class="muted">
+            從已開單且使用者可見的餐廳中，隨機幫你挑一家。可先選擇餐廳分類或全選。
+          </p>
+
+          <div class="inline" style="margin-top:10px">
+            <div style="min-width:220px">
+              <label style="margin:0; color:var(--muted)">餐廳分類</label>
+              <select id="randomCategorySelect">
+                <option value="all">全部分類</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-end;">
+              <button class="primary" id="btnRandomPick" type="button">隨機決定</button>
+              <button class="ghost" id="btnRandomReload" type="button">重新載入</button>
+            </div>
+          </div>
+
+          <div class="randomResult" id="randomResult">
+            <div class="muted">尚未抽選。</div>
+          </div>
+        </div>
+      </section>
+
       <!-- VIEW: 訂餐紀錄 -->
       <section class="view" id="view_orders" style="display:none">
         <!-- ✅ 上：控制橫條 ；下：左右兩欄 -->
@@ -1107,6 +1158,7 @@
       schedule: $("view_schedule"),
       addRestaurant: $("view_addRestaurant"),
       restaurants: $("view_restaurants"),
+      randomPick: $("view_randomPick"),
       orders: $("view_orders"),
     };
    function show(viewKey){
@@ -1123,16 +1175,21 @@
         viewKey==="schedule" ? "班表管理" :
         viewKey==="addRestaurant" ? "新增餐廳" :
         viewKey==="restaurants" ? "餐廳管理" :
+        viewKey==="randomPick" ? "幫我想要吃啥" :
         "訂餐紀錄";
 
       if(viewKey==="staff") refreshStaffList();
       if(viewKey==="restaurants") refreshRestaurantsManage();
+      if(viewKey==="randomPick") refreshRandomPick();
     }
     document.querySelectorAll(".navBtn[data-view]").forEach(btn=>{
       btn.addEventListener("click", ()=> show(btn.dataset.view));
     });
     show("addRestaurant");
 
+    $("btnRandomPick")?.addEventListener("click", ()=> pickRandomRestaurant());
+    $("btnRandomReload")?.addEventListener("click", ()=> refreshRandomPick(true));
+    
     $("logout").onclick = ()=>{ localStorage.removeItem(roleKey); location.href = "./index.html"; };
     $("switchUser").onclick = ()=>{ localStorage.setItem(roleKey, "user"); location.href = "./user.html"; };
     $("gotoIndex").onclick = ()=> location.href = "./index.html";
@@ -1141,6 +1198,99 @@
     const colStaff = collection(db, "staff");
     const colOrders = collection(db, "orders");
     const colSchedules = collection(db, "schedules");
+
+      let randomPickRestaurants = [];
+
+    const normalizeRestaurantCategory = (value)=> (value || "").trim() || "未分類";
+
+    const buildRandomCategoryOptions = (list, selectEl)=>{
+      if(!selectEl) return;
+      const prevValue = selectEl.value || "all";
+      const set = new Set();
+      list.forEach(r => set.add(normalizeRestaurantCategory(r.category)));
+      const options = Array.from(set).sort((a,b)=>{
+        if(a === "未分類" && b !== "未分類") return 1;
+        if(b === "未分類" && a !== "未分類") return -1;
+        return a.localeCompare(b, "zh-Hant");
+      });
+      selectEl.innerHTML = `
+        <option value="all">全部分類</option>
+        ${options.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("")}
+      `;
+      if(options.includes(prevValue)) selectEl.value = prevValue;
+    };
+
+    const getRandomPickCandidates = (category)=>{
+      let list = randomPickRestaurants.filter(r => (r.isVisible !== false) && !r.isClosed);
+      if(category && category !== "all"){
+        list = list.filter(r => normalizeRestaurantCategory(r.category) === category);
+      }
+      return list;
+    };
+
+    async function refreshRandomPick(force = false){
+      const selectEl = $("randomCategorySelect");
+      const resultEl = $("randomResult");
+      if(!selectEl || !resultEl) return;
+
+      if(!force && randomPickRestaurants.length){
+        const available = getRandomPickCandidates("all");
+        buildRandomCategoryOptions(available, selectEl);
+        resultEl.innerHTML = `<div class="muted">請按「隨機決定」開始抽選。</div>`;
+        return;
+      }
+
+      resultEl.innerHTML = `<div class="muted">載入中…</div>`;
+      try{
+        const snap = await getDocs(query(colRestaurants, limit(1200)));
+        randomPickRestaurants = [];
+        snap.forEach(d => randomPickRestaurants.push({ id: d.id, ...(d.data() || {}) }));
+
+        const available = getRandomPickCandidates("all");
+        buildRandomCategoryOptions(available, selectEl);
+        resultEl.innerHTML = available.length
+          ? `<div class="muted">目前可抽選 ${available.length} 家餐廳。</div>`
+          : `<div class="muted">目前沒有可抽選的餐廳。</div>`;
+      }catch(err){
+        console.error(err);
+        resultEl.innerHTML = `<div class="muted">無法載入餐廳清單<br/>${esc(err?.message || err)}</div>`;
+      }
+    }
+
+    async function pickRandomRestaurant(){
+      const selectEl = $("randomCategorySelect");
+      const resultEl = $("randomResult");
+      if(!selectEl || !resultEl) return;
+
+      if(!randomPickRestaurants.length){
+        await refreshRandomPick(true);
+      }
+
+      const category = selectEl.value || "all";
+      const list = getRandomPickCandidates(category);
+
+      if(!list.length){
+        resultEl.innerHTML = `<div class="muted">目前沒有符合條件的餐廳。</div>`;
+        return;
+      }
+
+      const pick = list[Math.floor(Math.random() * list.length)];
+      const cat = normalizeRestaurantCategory(pick.category);
+      const address = (pick.address || "").trim();
+      const mapUrl = (pick.mapUrl || "").trim();
+      const onlineUrl = (pick.onlineOrderUrl || "").trim();
+
+      resultEl.innerHTML = `
+        <div class="randomResultTitle">🎯 ${esc(pick.name || "未命名餐廳")}</div>
+        <div class="randomResultMeta">分類：${esc(cat)}</div>
+        ${address ? `<div class="randomResultMeta">地址：${esc(address)}</div>` : ""}
+        <div class="randomResultActions">
+          ${mapUrl ? `<a class="btnSmall" href="${esc(mapUrl)}" target="_blank" rel="noopener">查看地圖</a>` : ""}
+          ${onlineUrl ? `<a class="btnSmall btnOk" href="${esc(onlineUrl)}" target="_blank" rel="noopener">線上點餐</a>` : ""}
+          <span class="tag">可抽選 ${list.length} 家</span>
+        </div>
+      `;
+    }
 
    // ✅ 餐廳管理：快取每個餐點的 optionGroups，給 inline 編輯用
 let menuOptionCache = new Map();
