@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -3801,7 +3801,7 @@ if(!menuSetMealCache.has(smKey)){
           const ids = normalizeSetMealIds(menuData.setMealTemplateIds);
           menuSetMealCache.set(rowKey, new Set(ids));
 
-          const templates = setMealByRid.get(rid) || [];
+          const templates = getAddMenuSetMealTemplates(rid, setMealByRid.get(rid) || []);
           renderMenuSetMealEditor(rid, mid, templates, box);
           row.style.display = "table-row";
         };
@@ -3880,9 +3880,9 @@ if(!menuSetMealCache.has(smKey)){
       statusPill.textContent = "餐點已儲存 ✅";
 
       // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
-     const smTd = b.closest("tr")?.querySelector("td:nth-child(6)");
+      const smTd = b.closest("tr")?.querySelector("td:nth-child(6)");
     　const td = b.closest("tr")?.querySelector("td:nth-child(7)");
-      const templates = setMealByRid.get(rid) || [];
+      const templates = getAddMenuSetMealTemplates(rid, setMealByRid.get(rid) || []);
       if(smTd && Array.isArray(patch.setMealTemplateIds)){
         smTd.textContent = setMealTemplatesSummary(patch.setMealTemplateIds, templates);
       }
