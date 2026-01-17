@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -3160,19 +3160,16 @@ async function saveAddMenuSetMealTemplates(rid, templates){
                       <table style="margin-top:10px">
                         <thead>
                           <tr>
-                          <th>餐點類別</th><th>餐點名稱</th><th>餐點內容</th><th>價格</th><th>預設數量</th><th>套餐群組</th><th>選項群組</th><th>操作</th>
+                             <th>餐點類別</th><th>餐點名稱</th><th>餐點內容</th><th>價格</th><th>預設數量</th><th>選項群組</th><th>操作</th>
                           </tr>
                         </thead>
                         <tbody>
                           ${mlist.map(m=>{
-  const setMealText = setMealTemplatesSummary(m.setMealTemplateIds, r._setMealTemplates);
   const optText = optionGroupsSummary(m.optionGroups);
   const optKey = `${r.id}__${m.id}`;
-  const smKey = `${r.id}__${m.id}`;
   if(!menuOptionCache.has(optKey)){
     menuOptionCache.set(optKey, cloneOptionGroups(m.optionGroups));
   }
-menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
 
   return `
     <tr>
@@ -3181,22 +3178,15 @@ menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="content" value="${esc(m.content||"")}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
-      <td class="muted" style="max-width:220px">${esc(setMealText)}</td>
       <td class="muted" style="max-width:340px">${esc(optText)}</td>
       <td style="white-space:nowrap">
-        <button class="btnSmall" type="button" data-editsetmeal="1" data-rid="${r.id}" data-mid="${m.id}">套餐群組</button>
         <button class="btnSmall" type="button" data-editopt="1" data-rid="${r.id}" data-mid="${m.id}">選項群組</button>
         <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
         <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
       </td>
     </tr>
-    <tr class="menuSetMealEditorRow" data-setmeal-row="${r.id}__${m.id}" style="display:none;">
-   <td colspan="8">
-    <div class="setMealEditorBox" data-setmeal-editor="${r.id}__${m.id}"></div>
-  </td>
-</tr>
    <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
-   <td colspan="8">
+    <td colspan="7">
     <div class="muted mini" style="margin-bottom:6px">
       可在這裡編輯「擇一 / 加購」選項群組，編輯完成後請按上方「儲存」。
     </div>
@@ -3772,49 +3762,6 @@ menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
         };
       });
 
-       // ===== 餐點：套餐群組編輯 =====
-      wrap.querySelectorAll("button[data-editsetmeal]").forEach(btn=>{
-        btn.onclick = async ()=>{
-          const rid = btn.dataset.rid;
-          const mid = btn.dataset.mid;
-          const rowKey = `${rid}__${mid}`;
-
-          const row = wrap.querySelector(`.menuSetMealEditorRow[data-setmeal-row="${rowKey}"]`);
-          if(!row) return;
-
-          const box = row.querySelector(".setMealEditorBox");
-          if(!box) return;
-
-          const isOpen = row.style.display === "" || row.style.display === "table-row";
-          if(isOpen){
-            row.style.display = "none";
-            box.innerHTML = "";
-            return;
-          }
-
-          const menuSnap = await getDoc(doc(db,"restaurants", rid, "menu", mid));
-          const menuData = menuSnap.exists() ? menuSnap.data() : {};
-
-          const ids = normalizeSetMealIds(menuData.setMealTemplateIds);
-          menuSetMealCache.set(rowKey, new Set(ids));
-
-          let templates = [];
-          try{
-            const restSnap = await getDoc(doc(db,"restaurants", rid));
-            const restData = restSnap.exists() ? restSnap.data() : {};
-            templates = normalizeSetMealTemplates(restData.setMealTemplates);
-            setMealByRid.set(rid, templates);
-          }catch(err){
-            console.error("讀取套餐模板失敗：", err);
-            templates = setMealByRid.get(rid) || [];
-          }
-
-          templates = getAddMenuSetMealTemplates(rid, templates);
-          renderMenuSetMealEditor(rid, mid, templates, box);
-          row.style.display = "table-row";
-        };
-      });
-
       // ===== 餐點：選項群組編輯 & 儲存 / 刪除 =====
       wrap.querySelectorAll("button[data-editopt]").forEach(btn=>{
         btn.onclick = async ()=>{
@@ -3876,24 +3823,13 @@ menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
       patch.optionGroups = cloneOptionGroups(og);
     }
 
-     const smKey = `${rid}__${mid}`;
-    const smSet = menuSetMealCache.get(smKey);
-    if(smSet){
-      patch.setMealTemplateIds = Array.from(smSet);
-    }
-    
     try{
       statusPill.textContent = "餐點儲存中…";
       await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
       statusPill.textContent = "餐點已儲存 ✅";
 
       // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
-      const smTd = b.closest("tr")?.querySelector("td:nth-child(6)");
-    　const td = b.closest("tr")?.querySelector("td:nth-child(7)");
-      const templates = getAddMenuSetMealTemplates(rid, setMealByRid.get(rid) || []);
-      if(smTd && Array.isArray(patch.setMealTemplateIds)){
-        smTd.textContent = setMealTemplatesSummary(patch.setMealTemplateIds, templates);
-      }
+    const td = b.closest("tr")?.querySelector("td:nth-child(6)");
       if(td && Array.isArray(patch.optionGroups)){
         td.textContent = optionGroupsSummary(patch.optionGroups);
       }
