@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理7777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1144,7 +1144,9 @@
 
    // ✅ 餐廳管理：快取每個餐點的 optionGroups，給 inline 編輯用
 let menuOptionCache = new Map();
-
+let addMenuOptionCache = new Map();
+let addMenuSetMealSelected = new Map();
+    
 // 深拷貝成乾淨的 optionGroups 結構（寫回 Firestore 用）
 function cloneOptionGroups(src){
   const arr = Array.isArray(src) ? src : [];
@@ -1160,6 +1162,16 @@ function cloneOptionGroups(src){
       : []
   }));
 }
+  function getAddMenuOptionGroups(rid){
+  if(!addMenuOptionCache.has(rid)) addMenuOptionCache.set(rid, []);
+  return addMenuOptionCache.get(rid);
+}
+
+  function getAddMenuSetMealSelected(rid){
+  if(!addMenuSetMealSelected.has(rid)) addMenuSetMealSelected.set(rid, new Set());
+  return addMenuSetMealSelected.get(rid);
+}
+    
     // ====== 新增餐廳：圖片網址預覽 ======
 
 
@@ -2534,6 +2546,223 @@ function renderMenuOptionEditor(rid, mid, container){
   });
 }
 
+    // ✅ 餐廳管理：新增餐點用的 optionGroups 編輯
+function renderAddMenuOptionEditor(rid, container){
+  if(!container) return;
+  let groups = cloneOptionGroups(getAddMenuOptionGroups(rid));
+  addMenuOptionCache.set(rid, groups);
+
+  let html = `
+    <div class="actions" style="margin:4px 0 10px; justify-content:flex-start;">
+      <button class="btnSmall btnOk" type="button" data-role="add-group">新增群組</button>
+    </div>
+  `;
+
+  if(groups.length===0){
+    html += `<div class="muted mini">目前沒有任何選項群組。</div>`;
+  }else{
+    html += groups.map((g,gi)=>{
+      const choices = Array.isArray(g.choices) ? g.choices : [];
+      const rows = choices.length
+        ? choices.map((c,ci)=>`
+            <tr data-ci="${ci}">
+              <td><input data-role="c-name" value="${esc(c.name||"")}"></td>
+              <td><input data-role="c-price" type="number" min="0" value="${Number(c.price||0)}"></td>
+              <td style="width:1%; white-space:nowrap;">
+                <button class="btnSmall btnDanger" type="button" data-role="del-choice">刪除</button>
+              </td>
+            </tr>
+          `).join("")
+        : `<tr><td colspan="3" class="muted mini">尚未加入任何選項</td></tr>`;
+
+      return `
+        <div class="optBox" data-gi="${gi}" style="margin-bottom:10px;">
+          <div class="row3">
+            <div>
+              <label>群組名稱
+                <input data-role="g-name" value="${esc(g.name||"")}">
+              </label>
+            </div>
+            <div>
+              <label>類型
+                <select data-role="g-type">
+                  <option value="single" ${g.type==="addon"?"":"selected"}>擇一（下拉）</option>
+                  <option value="addon" ${g.type==="addon"?"selected":""}>加購（多選）</option>
+                </select>
+              </label>
+            </div>
+            <div style="display:flex; align-items:flex-end; gap:10px;">
+              <label style="margin:0; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" data-role="g-required"
+                  style="width:18px; height:18px;" ${(g.type==="single" && g.required) ? "checked":""}>
+                必選（擇一用）
+              </label>
+              <button class="btnSmall btnDanger" type="button" data-role="del-group">刪除此群組</button>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+            <thead>
+              <tr>
+                <th>選項名稱</th>
+                <th>加價</th>
+                <th style="width:1%;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+              <tr>
+                <td><input data-role="new-c-name" placeholder="例：豬肉 / 加麵"></td>
+                <td><input data-role="new-c-price" type="number" min="0" placeholder="0"></td>
+                <td>
+                  <button class="btnSmall btnOk" type="button" data-role="add-choice">新增選項</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join("");
+  }
+
+  container.innerHTML = html;
+
+  const addGroupBtn = container.querySelector('[data-role="add-group"]');
+  if(addGroupBtn){
+    addGroupBtn.onclick = ()=>{
+      groups.push({ name:"", type:"single", required:true, choices:[] });
+      addMenuOptionCache.set(rid, groups);
+      renderAddMenuOptionEditor(rid, container);
+    };
+  }
+
+  container.querySelectorAll(".optBox").forEach(box=>{
+    const gi = Number(box.dataset.gi);
+    const g = groups[gi];
+    if(!g) return;
+
+    const nameInp = box.querySelector('[data-role="g-name"]');
+    if(nameInp){
+      nameInp.addEventListener("input", e=>{
+        g.name = e.target.value;
+        addMenuOptionCache.set(rid, groups);
+      });
+    }
+
+    const typeSel = box.querySelector('[data-role="g-type"]');
+    if(typeSel){
+      typeSel.addEventListener("change", e=>{
+        const v = e.target.value === "addon" ? "addon" : "single";
+        g.type = v;
+        if(v !== "single") g.required = false;
+        addMenuOptionCache.set(rid, groups);
+        renderAddMenuOptionEditor(rid, container);
+      });
+    }
+
+    const reqChk = box.querySelector('[data-role="g-required"]');
+    if(reqChk){
+      reqChk.addEventListener("change", e=>{
+        g.required = !!e.target.checked;
+        addMenuOptionCache.set(rid, groups);
+      });
+    }
+
+    const delGroupBtn = box.querySelector('[data-role="del-group"]');
+    if(delGroupBtn){
+      delGroupBtn.onclick = ()=>{
+        groups.splice(gi,1);
+        addMenuOptionCache.set(rid, groups);
+        renderAddMenuOptionEditor(rid, container);
+      };
+    }
+
+    box.querySelectorAll("tr[data-ci]").forEach(row=>{
+      const ci = Number(row.dataset.ci);
+      const c = g.choices[ci];
+      if(!c) return;
+
+      const nInp = row.querySelector('[data-role="c-name"]');
+      const pInp = row.querySelector('[data-role="c-price"]');
+      const delBtn = row.querySelector('[data-role="del-choice"]');
+
+      if(nInp){
+        nInp.addEventListener("input", e=>{
+          c.name = e.target.value;
+          addMenuOptionCache.set(rid, groups);
+        });
+      }
+      if(pInp){
+        pInp.addEventListener("input", e=>{
+          let v = Number(e.target.value || 0);
+          if(isNaN(v) || v < 0) v = 0;
+          c.price = v;
+          addMenuOptionCache.set(rid, groups);
+        });
+      }
+      if(delBtn){
+        delBtn.addEventListener("click", ()=>{
+          g.choices.splice(ci,1);
+          addMenuOptionCache.set(rid, groups);
+          renderAddMenuOptionEditor(rid, container);
+        });
+      }
+    });
+
+    const newName = box.querySelector('[data-role="new-c-name"]');
+    const newPrice = box.querySelector('[data-role="new-c-price"]');
+    const addChoiceBtn = box.querySelector('[data-role="add-choice"]');
+
+    if(addChoiceBtn){
+      const submitNew = ()=>{
+        const name = (newName?.value || "").trim();
+        const price = Number(newPrice?.value || 0);
+        if(!name) return alert("請輸入選項名稱");
+        if(isNaN(price) || price < 0) return alert("加價需為 0 或正數");
+        if(!Array.isArray(g.choices)) g.choices = [];
+        g.choices.push({ name, price });
+        addMenuOptionCache.set(rid, groups);
+        renderAddMenuOptionEditor(rid, container);
+      };
+      addChoiceBtn.addEventListener("click", submitNew);
+      newName?.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); submitNew(); }});
+      newPrice?.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); submitNew(); }});
+    }
+  });
+}
+
+function renderAddMenuSetMealPickList(rid, templates, container){
+  if(!container) return;
+  const selected = getAddMenuSetMealSelected(rid);
+  const list = Array.isArray(templates) ? templates : [];
+
+  if(list.length === 0){
+    container.innerHTML = `<div class="muted mini">（此餐廳尚未建立套餐模板）</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(t=>{
+    const checked = selected.has(t.id) ? "checked" : "";
+    return `
+      <label class="tag" style="cursor:pointer">
+        <input type="checkbox" data-add-sm-pick="${esc(t.id)}"
+               style="width:16px; height:16px; margin:0;" ${checked}>
+        ${esc(t.name)} <span class="muted mini">(${Number(t.price||0)})</span>
+      </label>
+    `;
+  }).join("");
+
+  container.querySelectorAll("[data-add-sm-pick]").forEach(ch=>{
+    ch.onchange = ()=>{
+      const id = ch.dataset.addSmPick;
+      ch.checked ? selected.add(id) : selected.delete(id);
+      addMenuSetMealSelected.set(rid, selected);
+    };
+  });
+}
+
     function buildCatDatalistForRestaurant(rid, menus){
       const set = new Set();
       (menus||[]).forEach(m=>{
@@ -2562,6 +2791,7 @@ function renderMenuOptionEditor(rid, mid, container){
   wrap.innerHTML = `<div class="muted">載入中…</div>`;
 
       let restaurants = [];
+      let setMealByRid = new Map();
       try{
         const snap = await getDocs(query(colRestaurants, limit(1200)));
         snap.forEach(d => restaurants.push({ id: d.id, ...(d.data() || {}) }));
@@ -2574,6 +2804,9 @@ function renderMenuOptionEditor(rid, mid, container){
           if(bb !== aa) return bb - aa;
           return (a.name||"").localeCompare((b.name||""),"zh-Hant");
         });
+
+        setMealByRid = new Map();
+        restaurants.forEach(r=> setMealByRid.set(r.id, r._setMealTemplates || []));
 
       }catch(err){
         console.error(err);
@@ -2812,6 +3045,29 @@ function renderMenuOptionEditor(rid, mid, container){
               </div>
             </div>
 
+           <details class="fold" style="margin-top:10px">
+              <summary>
+                ✅ 選項群組（可選要不要用）
+                <span class="muted mini" style="margin-left:8px">（可收合）</span>
+              </summary>
+              <p class="muted mini" style="margin-top:8px">
+                -「擇一」：使用者會顯示下拉選單（例：肉類：豬肉/雞肉）<br/>
+                -「加購」：使用者會顯示可勾選（例：加蛋 +10 / 加麵 +15）
+              </p>
+              <div class="optEditorBox" data-add-og="${r.id}"></div>
+            </details>
+
+            <details class="fold" style="margin-top:10px">
+              <summary>
+                ✅ 套餐選項（可選要不要用）
+                <span class="muted mini" style="margin-left:8px">（可收合）</span>
+              </summary>
+              <p class="muted mini" style="margin-top:8px">
+                - 需先在「新增餐廳」建立套餐模板，這裡可勾選此餐點支援的套餐
+              </p>
+              <div class="kpi" data-add-sm="${r.id}"></div>
+            </details>
+
             <div class="actions">
               <button class="btnSmall btnOk" type="button" data-addmenu="${r.id}">新增餐點</button>
               <button class="btnSmall" type="button" data-clearadd="${r.id}">清空欄位</button>
@@ -2998,8 +3254,19 @@ function renderMenuOptionEditor(rid, mid, container){
 
       wrap.innerHTML = blocks.join("");
 
-            // ✅ 把剛剛已經展開的餐廳再打開
-      openRids.forEach(rid=>{
+        wrap.querySelectorAll("[data-add-og]").forEach(box=>{
+        const rid = box.dataset.addOg;
+        renderAddMenuOptionEditor(rid, box);
+      });
+
+      wrap.querySelectorAll("[data-add-sm]").forEach(box=>{
+        const rid = box.dataset.addSm;
+        const templates = setMealByRid.get(rid) || [];
+        renderAddMenuSetMealPickList(rid, templates, box);
+      });
+
+      // ✅ 把剛剛已經展開的餐廳再打開
+       openRids.forEach(rid=>{
         const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
         if(!btn) return;
         let d = btn.closest("details");
@@ -3242,6 +3509,9 @@ function renderMenuOptionEditor(rid, mid, container){
           try{
             statusPill.textContent = "新增餐點中…";
 
+            const optionGroups = cloneOptionGroups(getAddMenuOptionGroups(rid));
+            const setMealTemplateIds = Array.from(getAddMenuSetMealSelected(rid));
+            
             const menuCol = collection(db, "restaurants", rid, "menu");
             await addDoc(menuCol, {
               category,
@@ -3249,7 +3519,8 @@ function renderMenuOptionEditor(rid, mid, container){
               content,
               price,
               defaultQty,
-              optionGroups: [],
+              optionGroups,
+              setMealTemplateIds,
               createdAt: Date.now()
             });
 
@@ -3266,6 +3537,9 @@ function renderMenuOptionEditor(rid, mid, container){
             if(c4) c4.value = "";
             if(c5) c5.value = "1";
 
+            addMenuOptionCache.set(rid, []);
+            addMenuSetMealSelected.set(rid, new Set());
+            
             await refreshRestaurantsManage();
           }catch(err){
             console.error(err);
@@ -3289,6 +3563,13 @@ function renderMenuOptionEditor(rid, mid, container){
           if(c3) c3.value = "";
           if(c4) c4.value = "";
           if(c5) c5.value = "1";
+          addMenuOptionCache.set(rid, []);
+          addMenuSetMealSelected.set(rid, new Set());
+
+          const ogBox = wrap.querySelector(`[data-add-og="${rid}"]`);
+          if(ogBox) renderAddMenuOptionEditor(rid, ogBox);
+          const smBox = wrap.querySelector(`[data-add-sm="${rid}"]`);
+          if(smBox) renderAddMenuSetMealPickList(rid, setMealByRid.get(rid) || [], smBox);
         };
       });
 
