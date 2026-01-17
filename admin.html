@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1176,9 +1176,8 @@ function cloneOptionGroups(src){
 }
 
   function getAddMenuSetMealTemplates(rid, templates){
-  if(!addMenuSetMealTemplatesCache.has(rid)){
-    addMenuSetMealTemplatesCache.set(rid, normalizeSetMealTemplates(templates));
-  }
+  const normalized = normalizeSetMealTemplates(templates);
+  addMenuSetMealTemplatesCache.set(rid, normalized);
   return addMenuSetMealTemplatesCache.get(rid);
 }
     
@@ -3173,9 +3172,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
   if(!menuOptionCache.has(optKey)){
     menuOptionCache.set(optKey, cloneOptionGroups(m.optionGroups));
   }
-if(!menuSetMealCache.has(smKey)){
-    menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
-  }
+menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
 
   return `
     <tr>
