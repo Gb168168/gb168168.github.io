@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -3160,7 +3160,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
                       <table style="margin-top:10px">
                         <thead>
                           <tr>
-                             <th>餐點類別</th><th>餐點名稱</th><th>餐點內容</th><th>價格</th><th>預設數量</th><th>選項群組</th><th>操作</th>
+                             <th>排序</th><th>餐點類別</th><th>餐點名稱</th><th>餐點內容</th><th>價格</th><th>預設數量</th><th>選項群組</th><th>操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -3173,6 +3173,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
 
   return `
     <tr>
+      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="order" type="number" min="0" value="${Number(m.order||0)}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="content" value="${esc(m.content||"")}"></td>
@@ -3806,13 +3807,14 @@ async function saveAddMenuSetMealTemplates(rid, templates){
     const patch = {};
     els.forEach(el=>{
       const k = el.dataset.k;
-      patch[k] = (k==="price" || k==="defaultQty")
+      patch[k] = (k==="price" || k==="defaultQty" || k==="order")
         ? Number(el.value||0)
         : el.value.trim();
     });
     patch.defaultQty = Math.max(1, Number(patch.defaultQty||1));
     patch.price = Math.max(0, Number(patch.price||0));
-
+    patch.order = Math.max(0, Number(patch.order||0));
+    
     // 🔍 看看快取裡有沒有群組（除錯用）
     const ogKey = `${rid}__${mid}`;
     const og = menuOptionCache.get(ogKey);
@@ -3829,7 +3831,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       statusPill.textContent = "餐點已儲存 ✅";
 
       // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
-    const td = b.closest("tr")?.querySelector("td:nth-child(6)");
+    const td = b.closest("tr")?.querySelector("td:nth-child(7)");
       if(td && Array.isArray(patch.optionGroups)){
         td.textContent = optionGroupsSummary(patch.optionGroups);
       }
