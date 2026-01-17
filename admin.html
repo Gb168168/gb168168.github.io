@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1144,6 +1144,7 @@
 
    // ✅ 餐廳管理：快取每個餐點的 optionGroups，給 inline 編輯用
 let menuOptionCache = new Map();
+let menuSetMealCache = new Map();
 let addMenuOptionCache = new Map();
 let addMenuSetMealSelected = new Map();
 let addMenuSetMealTemplatesCache = new Map();
@@ -2356,6 +2357,56 @@ async function loadMenusOfRestaurant(rid){
         return `${g.name}(${t}${req?`/${req}`:""}): ${c}`;
       }).join("｜");
     }
+    
+function normalizeSetMealIds(ids){
+  return Array.isArray(ids)
+    ? ids.map(id=> String(id || "").trim()).filter(Boolean)
+    : [];
+}
+
+function renderMenuSetMealEditor(rid, mid, templates, container){
+  if(!container) return;
+  const key = `${rid}__${mid}`;
+  const selected = menuSetMealCache.get(key) || new Set();
+  const list = Array.isArray(templates) ? templates : [];
+
+  let html = `
+    <div class="muted mini" style="margin-bottom:6px">
+      在此可勾選此餐點支援的「套餐群組」，完成後請按上方「儲存」該餐點。
+    </div>
+  `;
+
+  if(list.length === 0){
+    html += `<div class="muted mini">（此餐廳尚未建立套餐模板）</div>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  html += `
+    <div class="kpi">
+      ${list.map(t=>{
+        const checked = selected.has(String(t.id || "").trim()) ? "checked" : "";
+        return `
+          <label class="tag" style="cursor:pointer">
+            <input type="checkbox" data-setmeal-pick="${esc(t.id)}"
+                   style="width:16px; height:16px; margin:0;" ${checked}>
+            ${esc(t.name)} <span class="muted mini">(${Number(t.price||0)})</span>
+          </label>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  container.innerHTML = html;
+
+  container.querySelectorAll("[data-setmeal-pick]").forEach(ch=>{
+    ch.onchange = ()=>{
+      const id = String(ch.dataset.setmealPick || "").trim();
+      ch.checked ? selected.add(id) : selected.delete(id);
+      menuSetMealCache.set(key, selected);
+    };
+  });
+}
 // ✅ 餐廳管理：每道餐點 inline 編輯 optionGroups 用
 function renderMenuOptionEditor(rid, mid, container){
   if(!container) return;
@@ -3118,8 +3169,12 @@ async function saveAddMenuSetMealTemplates(rid, templates){
   const setMealText = setMealTemplatesSummary(m.setMealTemplateIds, r._setMealTemplates);
   const optText = optionGroupsSummary(m.optionGroups);
   const optKey = `${r.id}__${m.id}`;
+  const smKey = `${r.id}__${m.id}`;
   if(!menuOptionCache.has(optKey)){
     menuOptionCache.set(optKey, cloneOptionGroups(m.optionGroups));
+  }
+if(!menuSetMealCache.has(smKey)){
+    menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
   }
 
   return `
@@ -3132,11 +3187,17 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       <td class="muted" style="max-width:220px">${esc(setMealText)}</td>
       <td class="muted" style="max-width:340px">${esc(optText)}</td>
       <td style="white-space:nowrap">
+        <button class="btnSmall" type="button" data-editsetmeal="1" data-rid="${r.id}" data-mid="${m.id}">套餐群組</button>
         <button class="btnSmall" type="button" data-editopt="1" data-rid="${r.id}" data-mid="${m.id}">選項群組</button>
         <button class="btnSmall btnOk" type="button" data-savem2="1" data-rid="${r.id}" data-mid="${m.id}">儲存</button>
         <button class="btnSmall btnDanger" type="button" data-delm2="1" data-rid="${r.id}" data-mid="${m.id}">刪除</button>
       </td>
     </tr>
+    <tr class="menuSetMealEditorRow" data-setmeal-row="${r.id}__${m.id}" style="display:none;">
+   <td colspan="8">
+    <div class="setMealEditorBox" data-setmeal-editor="${r.id}__${m.id}"></div>
+  </td>
+</tr>
    <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
    <td colspan="8">
     <div class="muted mini" style="margin-bottom:6px">
@@ -3714,6 +3775,38 @@ async function saveAddMenuSetMealTemplates(rid, templates){
         };
       });
 
+       // ===== 餐點：套餐群組編輯 =====
+      wrap.querySelectorAll("button[data-editsetmeal]").forEach(btn=>{
+        btn.onclick = async ()=>{
+          const rid = btn.dataset.rid;
+          const mid = btn.dataset.mid;
+          const rowKey = `${rid}__${mid}`;
+
+          const row = wrap.querySelector(`.menuSetMealEditorRow[data-setmeal-row="${rowKey}"]`);
+          if(!row) return;
+
+          const box = row.querySelector(".setMealEditorBox");
+          if(!box) return;
+
+          const isOpen = row.style.display === "" || row.style.display === "table-row";
+          if(isOpen){
+            row.style.display = "none";
+            box.innerHTML = "";
+            return;
+          }
+
+          const menuSnap = await getDoc(doc(db,"restaurants", rid, "menu", mid));
+          const menuData = menuSnap.exists() ? menuSnap.data() : {};
+
+          const ids = normalizeSetMealIds(menuData.setMealTemplateIds);
+          menuSetMealCache.set(rowKey, new Set(ids));
+
+          const templates = setMealByRid.get(rid) || [];
+          renderMenuSetMealEditor(rid, mid, templates, box);
+          row.style.display = "table-row";
+        };
+      });
+
       // ===== 餐點：選項群組編輯 & 儲存 / 刪除 =====
       wrap.querySelectorAll("button[data-editopt]").forEach(btn=>{
         btn.onclick = async ()=>{
@@ -3775,13 +3868,24 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       patch.optionGroups = cloneOptionGroups(og);
     }
 
+     const smKey = `${rid}__${mid}`;
+    const smSet = menuSetMealCache.get(smKey);
+    if(smSet){
+      patch.setMealTemplateIds = Array.from(smSet);
+    }
+    
     try{
       statusPill.textContent = "餐點儲存中…";
       await updateDoc(doc(db,"restaurants", rid, "menu", mid), patch);
       statusPill.textContent = "餐點已儲存 ✅";
 
       // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
-       const td = b.closest("tr")?.querySelector("td:nth-child(7)");
+     const smTd = b.closest("tr")?.querySelector("td:nth-child(6)");
+    　const td = b.closest("tr")?.querySelector("td:nth-child(7)");
+      const templates = setMealByRid.get(rid) || [];
+      if(smTd && Array.isArray(patch.setMealTemplateIds)){
+        smTd.textContent = setMealTemplatesSummary(patch.setMealTemplateIds, templates);
+      }
       if(td && Array.isArray(patch.optionGroups)){
         td.textContent = optionGroupsSummary(patch.optionGroups);
       }
