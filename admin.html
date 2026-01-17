@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2790,19 +2790,16 @@ function renderMenuOptionEditor(rid, mid, container){
 
             ${catDl.html}
 
-            <div class="row" style="margin-top:10px">
-              <div>
-                <label>餐點類別（輸入 + 下拉建議）</label>
-                <input list="${catDl.dlId}" data-add-rid="${r.id}" data-add-k="category" placeholder="例：飯類 / 麵類 / 小菜 / 飲料">
-              </div>
-              <div>
-                <label>餐點名稱</label>
-                <input data-add-rid="${r.id}" data-add-k="name" placeholder="例：法式炒麵">
-              </div>
+           <div style="margin-top:10px">
+              <label>餐點類別（輸入 + 下拉建議）</label>
+              <input list="${catDl.dlId}" data-add-rid="${r.id}" data-add-k="category" placeholder="例：飯類 / 麵類 / 小菜 / 飲料">
             </div>
 
-            <label>餐點內容</label>
-            <input data-add-rid="${r.id}" data-add-k="content" placeholder="例：雞腿、蔬菜、滷蛋">
+           <label>餐點名稱</label>
+            <input data-add-rid="${r.id}" data-add-k="name" placeholder="例：法式炒麵">
+
+             <label>餐點內容</label>
+            <textarea data-add-rid="${r.id}" data-add-k="content" placeholder="例：雞腿、蔬菜、滷蛋"></textarea>
 
             <div class="row">
               <div>
