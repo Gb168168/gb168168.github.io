@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -498,7 +498,7 @@
               </div>
             </div>
 
-              <div class="row3">
+             <div class="row">
               <div>
                 <label>Google map 連結</label>
                 <input id="r_map" autocomplete="off" placeholder="https://maps.google.com/..."/>
@@ -506,10 +506,6 @@
               <div>
                 <label>餐廳圖片網址</label>
                 <input id="r_imgUrl" autocomplete="off" placeholder="https://...jpg / png"/>
-              </div>
-                 <div>
-                <label>餐廳菜單圖片網址</label>
-                <input id="r_menuImgUrl" autocomplete="off" placeholder="https://...jpg / png"/>
               </div>
             </div>
 
@@ -554,7 +550,6 @@
             <div class="muted" style="margin-top:6px">（貼 QR code 圖片網址或線上點餐連結即可）</div>
 
             <img id="r_imgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="preview"/>
-            <img id="r_menuImgPrev" class="imgPrev" style="display:none; margin-top:10px" alt="menu preview"/>
             <img id="r_lineQrPrev" class="qrPrev" style="display:none; margin-top:10px" alt="Line QR preview"/>
 
             <div class="row">
@@ -609,6 +604,9 @@
                 <input id="m_price" type="number" min="0" placeholder="120"/>
               </div>
             </div>
+
+             <label>餐點內容</label>
+            <input id="m_content" placeholder="例：雞腿、蔬菜、滷蛋"/>
 
             <div class="row">
               <div>
@@ -1175,16 +1173,7 @@ function cloneOptionGroups(src){
     });
     r_imgPrev.addEventListener("error", ()=>{ r_imgPrev.style.display="none"; });
 
-     const r_menuImgUrl = $("r_menuImgUrl");
-    const r_menuImgPrev = $("r_menuImgPrev");
-    r_menuImgUrl.addEventListener("input", ()=>{
-      const url = r_menuImgUrl.value.trim();
-      if(!url){ r_menuImgPrev.style.display="none"; return; }
-      r_menuImgPrev.src = url;
-      r_menuImgPrev.style.display="";
-    });
-    r_menuImgPrev.addEventListener("error", ()=>{ r_menuImgPrev.style.display="none"; });
-
+    
     // 取得所有既有餐廳分類
 async function loadExistingCategories() {
   const snap = await getDocs(collection(db, "restaurants"));
@@ -1740,6 +1729,7 @@ renderSetMealPickList();
             <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
           </div>
 
+          ${m.content ? `<div class="muted mini" style="margin-top:6px">內容：${esc(m.content)}</div>` : ``}
           <div class="muted mini" style="margin-top:8px">套餐：${esc(setMealText)}</div>
           <div class="muted mini" style="margin-top:4px">選項群組：${esc(summarizeGroups(m.optionGroups))}</div>
         </div>
@@ -1763,9 +1753,10 @@ renderSetMealPickList();
 }
     renderMenuQueue();
 
-   $("btnClearMenu").onclick = ()=>{
+  $("btnClearMenu").onclick = ()=>{
   $("m_cat").value="";
   $("m_name").value="";
+  $("m_content").value="";
   $("m_price").value="";
   $("m_defaultQty").value="1";
 
@@ -1790,6 +1781,7 @@ renderSetMealPickList();
   if(!category) return alert("請先建立並選擇餐點類別（需使用新增類別群組）");
 
   const name = $("m_name").value.trim();
+  const content = $("m_content").value.trim();
   const price = Number($("m_price").value||0);
   const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
 
@@ -1806,10 +1798,11 @@ renderSetMealPickList();
   // ✅ 套餐：把勾選的套餐 id 一起帶進餐點
   const setMealTemplateIds = Array.from(menuSetMealSelected);
 
-  menuQueue.push({ category, name, price, defaultQty, optionGroups, setMealTemplateIds });
+  menuQueue.push({ category, name, content, price, defaultQty, optionGroups, setMealTemplateIds });
 
   // ✅ 只清空餐點欄位（保留選項群組）
   $("m_name").value = "";
+  $("m_content").value = "";
   $("m_price").value = "";
   $("m_defaultQty").value = "1";
 
@@ -1820,7 +1813,7 @@ renderSetMealPickList();
   renderMenuQueue();
 };
 
-    ["m_name","m_price","m_defaultQty"].forEach(id=>{
+    ["m_name","m_content","m_price","m_defaultQty"].forEach(id=>{
       $(id).addEventListener("keydown",(e)=>{
         if(e.key==="Enter"){
           e.preventDefault();
@@ -1835,7 +1828,6 @@ renderSetMealPickList();
       $("r_map").value=""; $("r_note").value="";
       $("r_hours").value="";
       $("r_imgUrl").value=""; r_imgPrev.style.display="none";
-      $("r_menuImgUrl").value=""; r_menuImgPrev.style.display="none";
       $("r_lineQrUrl").value=""; r_lineQrPrev.style.display="none";
       $("r_onlineOrderUrl").value="";
       $("r_visible").checked = true;
@@ -1893,7 +1885,6 @@ renderSetMealPickList();
         businessHours: $("r_hours").value.trim(),
         weeklyOff: getWeeklyOffFromCreateForm(),
         imageUrl: $("r_imgUrl").value.trim(),
-        menuImageUrl: $("r_menuImgUrl").value.trim(),
         lineQrUrl: $("r_lineQrUrl").value.trim(),
         onlineOrderUrl: $("r_onlineOrderUrl").value.trim(),
         isVisible: $("r_visible").checked,
@@ -1910,6 +1901,7 @@ renderSetMealPickList();
         await addDoc(menuCol, {
           category: m.category,
           name: m.name,
+          content: m.content || "",
           price: Number(m.price||0),
           defaultQty: Math.max(1, Number(m.defaultQty||1)),
           optionGroups: Array.isArray(m.optionGroups) ? m.optionGroups : [],
@@ -2724,7 +2716,7 @@ function renderMenuOptionEditor(rid, mid, container){
                       <table style="margin-top:10px">
                         <thead>
                           <tr>
-                           <th>餐點類別</th><th>餐點名稱</th><th>價格</th><th>預設數量</th><th>套餐群組</th><th>選項群組</th><th>操作</th>
+                          <th>餐點類別</th><th>餐點名稱</th><th>餐點內容</th><th>價格</th><th>預設數量</th><th>套餐群組</th><th>選項群組</th><th>操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2740,6 +2732,7 @@ function renderMenuOptionEditor(rid, mid, container){
     <tr>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="category" value="${esc(m.category||"")}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="name" value="${esc(m.name||"")}"></td>
+      <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="content" value="${esc(m.content||"")}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="price" type="number" min="0" value="${Number(m.price||0)}"></td>
       <td><input data-rid="${r.id}" data-mid="${m.id}" data-k="defaultQty" type="number" min="1" value="${Number(m.defaultQty||1)}"></td>
       <td class="muted" style="max-width:220px">${esc(setMealText)}</td>
@@ -2751,7 +2744,7 @@ function renderMenuOptionEditor(rid, mid, container){
       </td>
     </tr>
    <tr class="menuOptEditorRow" data-opt-row="${r.id}__${m.id}" style="display:none;">
-   <td colspan="7">
+   <td colspan="8">
     <div class="muted mini" style="margin-bottom:6px">
       可在這裡編輯「擇一 / 加購」選項群組，編輯完成後請按上方「儲存」。
     </div>
@@ -2807,6 +2800,9 @@ function renderMenuOptionEditor(rid, mid, container){
                 <input data-add-rid="${r.id}" data-add-k="name" placeholder="例：法式炒麵">
               </div>
             </div>
+
+            <label>餐點內容</label>
+            <input data-add-rid="${r.id}" data-add-k="content" placeholder="例：雞腿、蔬菜、滷蛋">
 
             <div class="row">
               <div>
@@ -3197,7 +3193,7 @@ function renderMenuOptionEditor(rid, mid, container){
       statusPill.textContent = "餐點已儲存 ✅";
 
       // ✅ 順便更新「已設定餐點」那一格 summary，馬上看到結果
-      const td = b.closest("tr")?.querySelector("td:nth-child(6)");
+       const td = b.closest("tr")?.querySelector("td:nth-child(7)");
       if(td && Array.isArray(patch.optionGroups)){
         td.textContent = optionGroupsSummary(patch.optionGroups);
       }
@@ -3233,6 +3229,7 @@ function renderMenuOptionEditor(rid, mid, container){
 
           const category = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`)?.value || "").trim();
           const name = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`)?.value || "").trim();
+          const content = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="content"]`)?.value || "").trim();
           const price = Number(
             wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`)?.value || 0
           );
@@ -3252,6 +3249,7 @@ function renderMenuOptionEditor(rid, mid, container){
             await addDoc(menuCol, {
               category,
               name,
+              content,
               price,
               defaultQty,
               optionGroups: [],
@@ -3262,12 +3260,14 @@ function renderMenuOptionEditor(rid, mid, container){
 
             const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
             const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
-            const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
-            const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+            const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="content"]`);
+            const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
+            const c5 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
             if(c1) c1.value = "";
             if(c2) c2.value = "";
             if(c3) c3.value = "";
-            if(c4) c4.value = "1";
+            if(c4) c4.value = "";
+            if(c5) c5.value = "1";
 
             await refreshRestaurantsManage();
           }catch(err){
@@ -3284,12 +3284,14 @@ function renderMenuOptionEditor(rid, mid, container){
           const rid = btn.dataset.clearadd;
           const c1 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="category"]`);
           const c2 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="name"]`);
-          const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
-          const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+          const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="content"]`);
+          const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
+          const c5 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
           if(c1) c1.value = "";
           if(c2) c2.value = "";
           if(c3) c3.value = "";
-          if(c4) c4.value = "1";
+          if(c4) c4.value = "";
+          if(c5) c5.value = "1";
         };
       });
 
