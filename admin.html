@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理7777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -700,12 +700,19 @@
 
             <div class="row">
               <div>
-                <label>預設數量（倍數）</label>
-                <input id="m_defaultQty" type="number" min="1" value="1"/>
+                    <label>數量規則</label>
+                <select id="m_qtyType">
+                  <option value="normal">正常份量（1,2,3...）</option>
+                  <option value="multiple">倍數份量（固定倍數）</option>
+                </select>
               </div>
-              <div class="muted" style="display:flex; align-items:end">數量會以此倍數遞增（例：2 → 2、4、6）</div>
+              <div>
+                <label>倍數基準數</label>
+                <input id="m_defaultQty" type="number" min="1" value="1"/>
+             <div class="muted mini" id="m_qtyHint" style="margin-top:6px">數量會以此倍數遞增（例：5 → 5、10、15）</div>
             </div>
-
+           </div>
+            
            <div class="hr"></div>
 
 <details id="secOptionGroups" class="fold">
@@ -1961,7 +1968,7 @@ renderSetMealPickList();
             <div>
               <b>${esc(m.name)}</b>
               <span class="tag" style="margin-left:6px">價格 ${Number(m.price||0)}</span>
-              <span class="tag" style="margin-left:6px">預設數量 ${Number(m.defaultQty||1)}</span>
+              <span class="tag" style="margin-left:6px">${Number(m.defaultQty||1) > 1 ? `倍數 ${Number(m.defaultQty||1)}` : "正常份量"}</span>
             </div>
             <button class="btnSmall btnDanger" data-del-menu="${globalIndex}" type="button">刪除</button>
           </div>
@@ -1990,12 +1997,34 @@ renderSetMealPickList();
 }
     renderMenuQueue();
 
+    function syncQtyMode(selectEl, qtyInput, hintEl){
+    if(!selectEl || !qtyInput) return;
+    const isMultiple = (selectEl.value || "normal") === "multiple";
+    qtyInput.disabled = !isMultiple;
+    if(!isMultiple){
+      qtyInput.value = "1";
+    }else if(Number(qtyInput.value || 0) < 1){
+      qtyInput.value = "1";
+    }
+    if(hintEl) hintEl.style.display = isMultiple ? "block" : "none";
+  }
+
+  const mainQtyType = $("m_qtyType");
+  const mainQtyInput = $("m_defaultQty");
+  const mainQtyHint = $("m_qtyHint");
+  if(mainQtyType){
+    mainQtyType.addEventListener("change", ()=>syncQtyMode(mainQtyType, mainQtyInput, mainQtyHint));
+    syncQtyMode(mainQtyType, mainQtyInput, mainQtyHint);
+  }
+
   $("btnClearMenu").onclick = ()=>{
   $("m_cat").value="";
   $("m_name").value="";
   $("m_content").value="";
   $("m_price").value="";
   $("m_defaultQty").value="1";
+  $("m_qtyType").value="normal";
+  syncQtyMode(mainQtyType, mainQtyInput, mainQtyHint);
 
   draftGroups = [];
   activeGroupDraft = null;
@@ -2020,7 +2049,10 @@ renderSetMealPickList();
   const name = $("m_name").value.trim();
   const content = $("m_content").value.trim();
   const price = Number($("m_price").value||0);
-  const defaultQty = Math.max(1, Number($("m_defaultQty").value||1));
+  const qtyType = $("m_qtyType").value || "normal";
+  const defaultQty = qtyType === "multiple"
+    ? Math.max(1, Number($("m_defaultQty").value||1))
+    : 1;
 
   if(!name) return alert("請輸入餐點名稱");
   if(isNaN(price) || price<0) return alert("價格不正確");
@@ -2042,7 +2074,9 @@ renderSetMealPickList();
   $("m_content").value = "";
   $("m_price").value = "";
   $("m_defaultQty").value = "1";
-
+  $("m_qtyType").value = "normal";
+  syncQtyMode(mainQtyType, mainQtyInput, mainQtyHint);
+     
   // ✅ 清掉「本餐點勾選的套餐」，避免下一道沿用
   menuSetMealSelected = new Set();
   renderSetMealPickList();
@@ -3466,9 +3500,18 @@ async function saveAddMenuSetMealTemplates(rid, templates){
                 <input data-add-rid="${r.id}" data-add-k="price" type="number" min="0" placeholder="120">
               </div>
               <div>
-               <label>預設數量（倍數）</label>
-                <input data-add-rid="${r.id}" data-add-k="defaultQty" type="number" min="1" value="1">
+                <label>數量規則</label>
+                <select data-add-rid="${r.id}" data-add-k="qtyType">
+                  <option value="normal">正常份量（1,2,3...）</option>
+                  <option value="multiple">倍數份量（固定倍數）</option>
+                </select>
               </div>
+            </div>
+
+           <div style="margin-top:10px">
+              <label>倍數基準數</label>
+              <input data-add-rid="${r.id}" data-add-k="defaultQty" type="number" min="1" value="1">
+              <div class="muted mini" data-add-qty-hint="${r.id}" style="margin-top:6px">數量會以此倍數遞增（例：5 → 5、10、15）</div>
             </div>
 
            <details class="fold" style="margin-top:10px">
@@ -4076,6 +4119,15 @@ async function saveAddMenuSetMealTemplates(rid, templates){
         };
       });
 
+      wrap.querySelectorAll('select[data-add-k="qtyType"]').forEach(sel=>{
+        const rid = sel.dataset.addRid;
+        const qtyInput = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+        const hintEl = wrap.querySelector(`[data-add-qty-hint="${rid}"]`);
+        const apply = ()=>syncQtyMode(sel, qtyInput, hintEl);
+        sel.addEventListener("change", apply);
+        apply();
+      });
+
       // ===== 餐廳管理：新增餐點 / 清空 =====
       wrap.querySelectorAll("button[data-addmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
@@ -4087,11 +4139,14 @@ async function saveAddMenuSetMealTemplates(rid, templates){
           const price = Number(
             wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`)?.value || 0
           );
-          const defaultQty = Math.max(
-            1,
-            Number(wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`)?.value || 1)
-          );
-
+            const qtyType = (wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="qtyType"]`)?.value || "normal").trim();
+          const defaultQty = qtyType === "multiple"
+            ? Math.max(
+              1,
+              Number(wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`)?.value || 1)
+            )
+            : 1;
+          
           if(!category) return alert("請輸入餐點類別");
           if(!name) return alert("請輸入餐點名稱");
           if(isNaN(price) || price<0) return alert("價格不正確");
@@ -4121,11 +4176,14 @@ async function saveAddMenuSetMealTemplates(rid, templates){
             const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="content"]`);
             const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
             const c5 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+            const c6 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="qtyType"]`);
             if(c1) c1.value = "";
             if(c2) c2.value = "";
             if(c3) c3.value = "";
             if(c4) c4.value = "";
             if(c5) c5.value = "1";
+            if(c6) c6.value = "normal";
+            if(c6) syncQtyMode(c6, c5, wrap.querySelector(`[data-add-qty-hint="${rid}"]`));
 
             addMenuOptionCache.set(rid, []);
             addMenuSetMealSelected.set(rid, new Set());
@@ -4148,11 +4206,14 @@ async function saveAddMenuSetMealTemplates(rid, templates){
           const c3 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="content"]`);
           const c4 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="price"]`);
           const c5 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="defaultQty"]`);
+          const c6 = wrap.querySelector(`[data-add-rid="${rid}"][data-add-k="qtyType"]`);
           if(c1) c1.value = "";
           if(c2) c2.value = "";
           if(c3) c3.value = "";
           if(c4) c4.value = "";
           if(c5) c5.value = "1";
+          if(c6) c6.value = "normal";
+          if(c6) syncQtyMode(c6, c5, wrap.querySelector(`[data-add-qty-hint="${rid}"]`));
           addMenuOptionCache.set(rid, []);
           addMenuSetMealSelected.set(rid, new Set());
 
