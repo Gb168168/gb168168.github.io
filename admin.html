@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2523,42 +2523,286 @@ function renderMenuSetMealEditor(rid, mid, templates, container){
   const selected = menuSetMealCache.get(key) || new Set();
   const list = Array.isArray(templates) ? templates : [];
 
-  let html = `
+  container.innerHTML = `
     <div class="muted mini" style="margin-bottom:6px">
       在此可勾選此餐點支援的「套餐群組」，完成後請按上方「儲存」該餐點。
     </div>
+    <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些套餐（勾選）</div>
+    <div class="kpi" data-menu-sm-picklist></div>
+
+    <details class="fold" style="margin-top:10px">
+      <summary>
+        套餐模板管理
+        <span class="muted mini" style="margin-left:8px">（可編輯內容）</span>
+      </summary>
+      <div class="subcard" style="margin-top:8px" data-menu-sm-editor>
+        <div class="row3">
+          <div>
+            <label>套餐名稱</label>
+            <input data-menu-sm-name placeholder="例：A餐 / 超值套餐">
+          </div>
+          <div>
+            <label>套餐價格（基礎）</label>
+            <input data-menu-sm-price type="number" min="0" placeholder="例：59">
+          </div>
+          <div style="display:flex; align-items:end; gap:10px">
+            <button class="btnSmall btnOk" type="button" data-menu-sm-start>新增套餐</button>
+          </div>
+        </div>
+
+        <div data-menu-sm-draft style="margin-top:10px; display:none">
+          <div class="optBox">
+            <div class="inline" style="justify-content:space-between; align-items:flex-start">
+              <div>
+                <b data-menu-sm-title>套餐</b>
+                <div class="muted mini" data-menu-sm-desc></div>
+              </div>
+              <button class="btnSmall btnDanger" type="button" data-menu-sm-cancel>取消套餐</button>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row3">
+              <div>
+                <label>套餐類別</label>
+                <input data-menu-sm-catname placeholder="例：小點 / 湯品 / 飲品">
+              </div>
+              <div>
+                <label>此類別要選幾樣</label>
+                <select data-menu-sm-pickcount>
+                  <option value="1">選 1</option>
+                  <option value="2">選 2</option>
+                </select>
+              </div>
+              <div style="display:flex; align-items:end; gap:10px">
+                <button class="btnSmall btnOk" type="button" data-menu-sm-addcat>加入類別</button>
+              </div>
+            </div>
+
+            <div data-menu-sm-categorylist style="margin-top:10px"></div>
+
+            <div class="actions">
+              <button class="btnSmall btnOk" type="button" data-menu-sm-commit>完成此套餐（加入到模板清單）</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="muted mini" style="margin-bottom:6px">已建立的套餐模板（可刪除）</div>
+          <div data-menu-sm-templates></div>
+        </div>
+      </div>
+    </details>
   `;
 
-  if(list.length === 0){
-    html += `<div class="muted mini">（此餐廳尚未建立套餐模板）</div>`;
-    container.innerHTML = html;
-    return;
+  const pickListEl = container.querySelector("[data-menu-sm-picklist]");
+  const renderPickList = ()=>{
+    if(!pickListEl) return;
+    const ids = new Set(list.map(t=> String(t.id || "").trim()).filter(Boolean));
+    Array.from(selected).forEach(id=>{
+      if(!ids.has(id)) selected.delete(id);
+    });
+    menuSetMealCache.set(key, selected);
+    if(list.length === 0){
+      pickListEl.innerHTML = `<div class="muted mini">（此餐廳尚未建立套餐模板）</div>`;
+      return;
+    }
+    pickListEl.innerHTML = list.map(t=>{
+      const checked = selected.has(String(t.id || "").trim()) ? "checked" : "";
+      return `
+        <label class="tag" style="cursor:pointer">
+          <input type="checkbox" data-setmeal-pick="${esc(t.id)}"
+                 style="width:16px; height:16px; margin:0;" ${checked}>
+          ${esc(t.name)} <span class="muted mini">(${Number(t.price||0)})</span>
+        </label>
+      `;
+    }).join("");
+
+    pickListEl.querySelectorAll("[data-setmeal-pick]").forEach(ch=>{
+      ch.onchange = ()=>{
+        const id = String(ch.dataset.setmealPick || "").trim();
+        ch.checked ? selected.add(id) : selected.delete(id);
+        menuSetMealCache.set(key, selected);
+      };
+    });
+  };
+
+  renderPickList();
+
+  const editorWrap = container.querySelector("[data-menu-sm-editor]");
+  const nameEl = editorWrap?.querySelector("[data-menu-sm-name]");
+  const priceEl = editorWrap?.querySelector("[data-menu-sm-price]");
+  const startBtn = editorWrap?.querySelector("[data-menu-sm-start]");
+  const draftAreaEl = editorWrap?.querySelector("[data-menu-sm-draft]");
+  const titleEl = editorWrap?.querySelector("[data-menu-sm-title]");
+  const descEl = editorWrap?.querySelector("[data-menu-sm-desc]");
+  const cancelBtn = editorWrap?.querySelector("[data-menu-sm-cancel]");
+  const catNameEl = editorWrap?.querySelector("[data-menu-sm-catname]");
+  const pickCountEl = editorWrap?.querySelector("[data-menu-sm-pickcount]");
+  const addCatBtn = editorWrap?.querySelector("[data-menu-sm-addcat]");
+  const categoryListEl = editorWrap?.querySelector("[data-menu-sm-categorylist]");
+  const templatesListEl = editorWrap?.querySelector("[data-menu-sm-templates]");
+  const commitBtn = editorWrap?.querySelector("[data-menu-sm-commit]");
+
+  const showDraft = (on)=>{
+    if(draftAreaEl) draftAreaEl.style.display = on ? "" : "none";
+  };
+
+  const setEditorMode = (mode)=>{
+    const isEdit = mode === "edit";
+    if(startBtn){
+      startBtn.disabled = isEdit;
+      startBtn.textContent = isEdit ? "編輯中" : "新增套餐";
+    }
+    if(commitBtn){
+      commitBtn.textContent = isEdit
+        ? "更新此套餐（套用到模板）"
+        : "完成此套餐（加入到模板清單）";
+    }
+  };
+
+  const updateDraftHeader = ()=>{
+    const draft = addMenuSetMealDraft.get(rid);
+    if(!draft) return;
+    if(titleEl) titleEl.textContent = `套餐：${draft.name || "未命名"}`;
+    if(descEl) descEl.textContent = `套餐價 ${Number(draft.price||0)}`;
+  };
+
+  renderAddMenuSetMealTemplates(
+    rid,
+    list,
+    templatesListEl,
+    null,
+    {
+      nameEl,
+      priceEl,
+      titleEl,
+      descEl,
+      startBtn,
+      commitBtn,
+      showDraft,
+      categoryListEl
+    },
+    renderPickList
+  );
+  renderAddMenuSetMealCategoryList(rid, categoryListEl);
+
+  if(startBtn){
+    startBtn.onclick = ()=>{
+      const name = nameEl?.value.trim() || "";
+      const price = Number(priceEl?.value || 0);
+      if(!name) return alert("請輸入套餐名稱");
+      const draft = { id: uid(), name, price, categories: [] };
+      addMenuSetMealDraft.set(rid, draft);
+      addMenuSetMealEditingIndex.set(rid, null);
+      setEditorMode("create");
+      updateDraftHeader();
+      showDraft(true);
+      renderAddMenuSetMealCategoryList(rid, categoryListEl);
+    };
   }
 
-  html += `
-    <div class="kpi">
-      ${list.map(t=>{
-        const checked = selected.has(String(t.id || "").trim()) ? "checked" : "";
-        return `
-          <label class="tag" style="cursor:pointer">
-            <input type="checkbox" data-setmeal-pick="${esc(t.id)}"
-                   style="width:16px; height:16px; margin:0;" ${checked}>
-            ${esc(t.name)} <span class="muted mini">(${Number(t.price||0)})</span>
-          </label>
-        `;
-      }).join("")}
-    </div>
-  `;
-
-  container.innerHTML = html;
-
-  container.querySelectorAll("[data-setmeal-pick]").forEach(ch=>{
-    ch.onchange = ()=>{
-      const id = String(ch.dataset.setmealPick || "").trim();
-      ch.checked ? selected.add(id) : selected.delete(id);
-      menuSetMealCache.set(key, selected);
-    };
+   nameEl?.addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      startBtn?.click();
+    }
   });
+
+   priceEl?.addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      startBtn?.click();
+    }
+  });
+
+   nameEl?.addEventListener("input",(e)=>{
+    const draft = addMenuSetMealDraft.get(rid);
+    if(draft){
+      draft.name = e.target.value.trim();
+      updateDraftHeader();
+    }
+  });
+
+  priceEl?.addEventListener("input",(e)=>{
+    const draft = addMenuSetMealDraft.get(rid);
+    if(draft){
+      draft.price = Number(e.target.value || 0);
+      updateDraftHeader();
+    }
+  });
+
+  if(cancelBtn){
+    cancelBtn.onclick = ()=>{
+      addMenuSetMealDraft.set(rid, null);
+      addMenuSetMealEditingIndex.set(rid, null);
+      setEditorMode("create");
+      showDraft(false);
+      renderAddMenuSetMealCategoryList(rid, categoryListEl);
+    };
+  }
+
+  if(addCatBtn){
+    addCatBtn.onclick = ()=>{
+      const draft = addMenuSetMealDraft.get(rid);
+      if(!draft) return;
+      const n = catNameEl?.value.trim() || "";
+      const p = Number(pickCountEl?.value || 1);
+      if(!n) return alert("請輸入類別名稱");
+      draft.categories.push({ name: n, pickCount: p, options: [] });
+      if(catNameEl) catNameEl.value = "";
+      renderAddMenuSetMealCategoryList(rid, categoryListEl);
+    };
+  }
+
+  catNameEl?.addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      addCatBtn?.click();
+    }
+    };
+  
+  if(commitBtn){
+    commitBtn.onclick = async ()=>{
+      const draft = addMenuSetMealDraft.get(rid);
+      if(!draft?.name?.trim()) return alert("請輸入套餐名稱");
+      if(!draft || !draft.categories.length) return alert("至少要一個類別");
+      for(const c of draft.categories){
+        if(!c.options.length) return alert(`類別「${c.name}」沒有選項`);
+      }
+      const editIndex = addMenuSetMealEditingIndex.get(rid);
+      if(editIndex !== null && editIndex !== undefined && editIndex >= 0){
+        list[editIndex] = draft;
+      }else{
+        list.push(draft);
+      }
+      addMenuSetMealDraft.set(rid, null);
+      addMenuSetMealEditingIndex.set(rid, null);
+      setEditorMode("create");
+      showDraft(false);
+      if(nameEl) nameEl.value = "";
+      if(priceEl) priceEl.value = "";
+      renderAddMenuSetMealTemplates(
+        rid,
+        list,
+        templatesListEl,
+        null,
+        {
+          nameEl,
+          priceEl,
+          titleEl,
+          descEl,
+          startBtn,
+          commitBtn,
+          showDraft,
+          categoryListEl
+        },
+        renderPickList
+      );
+      renderPickList();
+      await saveAddMenuSetMealTemplates(rid, list);
+    };
+  }
 }
 // ✅ 餐廳管理：每道餐點 inline 編輯 optionGroups 用
 function renderMenuOptionEditor(rid, mid, container){
@@ -2976,7 +3220,7 @@ function renderAddMenuSetMealPickList(rid, templates, container){
   });
 }
 
-   function renderAddMenuSetMealTemplates(rid, templates, container, pickListEl, editor){
+  function renderAddMenuSetMealTemplates(rid, templates, container, pickListEl, editor, onTemplatesChange){
   if(!container) return;
   if(!Array.isArray(templates) || templates.length === 0){
     container.innerHTML = `<div class="muted">（尚未建立任何套餐）</div>`;
@@ -3060,9 +3304,10 @@ function renderAddMenuSetMealPickList(rid, templates, container){
         selected.delete(removed.id);
         addMenuSetMealSelected.set(rid, selected);
       }
-      renderAddMenuSetMealTemplates(rid, templates, container, pickListEl, editor);
+     renderAddMenuSetMealTemplates(rid, templates, container, pickListEl, editor, onTemplatesChange);
       if(pickListEl) renderAddMenuSetMealPickList(rid, templates, pickListEl);
       await saveAddMenuSetMealTemplates(rid, templates);
+      if(typeof onTemplatesChange === "function") onTemplatesChange(templates);
     };
   });
 }
