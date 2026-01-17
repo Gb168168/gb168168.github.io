@@ -892,6 +892,11 @@ function normalizeSetMealTemplates(raw){
         `).join("")}
       ` : "";
 
+       const qtyStep = Math.max(1, Number(m.defaultQty||1));
+      const qtyHint = qtyStep > 1
+        ? `<div class="muted mini" style="margin-top:6px">數量需為 ${qtyStep} 的倍數</div>`
+        : "";
+
       return `
         <div class="menuItem" data-mid="${esc(m.id)}">
           <div class="inline" style="justify-content:space-between">
@@ -912,7 +917,8 @@ function normalizeSetMealTemplates(raw){
           <div class="row" style="margin-top:10px">
             <div>
               <label>數量</label>
-              <input type="number" min="1" value="${Math.max(1,Number(m.defaultQty||1))}" data-mid-qty="${esc(m.id)}" ${lock}/>
+             <input type="number" min="${qtyStep}" step="${qtyStep}" value="${qtyStep}" data-mid-qty="${esc(m.id)}" ${lock}/>
+              ${qtyHint}
             </div>
             <div>
               <label>單品備註（Enter 直接加入）</label>
@@ -1087,6 +1093,12 @@ function normalizeSetMealTemplates(raw){
       return "";
     }
 
+     function isMultiple(value, step){
+      if(!Number.isFinite(value) || !Number.isFinite(step) || step <= 0) return false;
+      const quotient = value / step;
+      return Math.abs(quotient - Math.round(quotient)) < 1e-6;
+    }
+
     function addToCart(mid){
       if(!($("deptSelect").value && $("nameSelect").value)){
         return alert("請先選擇部門與姓名");
@@ -1102,7 +1114,12 @@ function normalizeSetMealTemplates(raw){
 
       const qtyEl = document.querySelector(`input[data-mid-qty="${CSS.escape(mid)}"]`);
       const noteEl = document.querySelector(`input[data-mid-note="${CSS.escape(mid)}"]`);
-      const qty = Math.max(1, Number(qtyEl?.value || 1));
+     const qtyStep = Math.max(1, Number(m.defaultQty||1));
+      const rawQty = Number(qtyEl?.value || qtyStep);
+      const qty = Number.isFinite(rawQty) ? Math.max(qtyStep, rawQty) : qtyStep;
+      if(!isMultiple(qty, qtyStep)){
+      return alert(`數量需為 ${qtyStep} 的倍數`);
+      }
       const note = (noteEl?.value || "").trim();
 
       const { chosenOptions, optSum } = readChosenOptions(mid);
