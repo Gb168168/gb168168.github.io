@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1175,7 +1175,7 @@ function cloneOptionGroups(src){
   return addMenuSetMealSelected.get(rid);
 }
 
-  function getAddMenuSetMealTemplates(rid, templates){
+ function getAddMenuSetMealTemplates(rid, templates){
   const normalized = normalizeSetMealTemplates(templates);
   addMenuSetMealTemplatesCache.set(rid, normalized);
   return addMenuSetMealTemplatesCache.get(rid);
@@ -3798,7 +3798,18 @@ menuSetMealCache.set(smKey, new Set(normalizeSetMealIds(m.setMealTemplateIds)));
           const ids = normalizeSetMealIds(menuData.setMealTemplateIds);
           menuSetMealCache.set(rowKey, new Set(ids));
 
-          const templates = getAddMenuSetMealTemplates(rid, setMealByRid.get(rid) || []);
+          let templates = [];
+          try{
+            const restSnap = await getDoc(doc(db,"restaurants", rid));
+            const restData = restSnap.exists() ? restSnap.data() : {};
+            templates = normalizeSetMealTemplates(restData.setMealTemplates);
+            setMealByRid.set(rid, templates);
+          }catch(err){
+            console.error("讀取套餐模板失敗：", err);
+            templates = setMealByRid.get(rid) || [];
+          }
+
+          templates = getAddMenuSetMealTemplates(rid, templates);
           renderMenuSetMealEditor(rid, mid, templates, box);
           row.style.display = "table-row";
         };
