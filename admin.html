@@ -964,9 +964,9 @@
     </div>
     <span class="tag" id="restShowCount">0 家</span>
   </div>
-  <div id="restShowList" class="kpi" style="margin-top:8px;">
-    <div class="muted mini">載入中…</div>
-  </div>
+ <select id="restShowList" style="margin-top:8px;">
+    <option value="">載入中…</option>
+  </select>
 </div>
 
 <!-- 🔵 開單中的餐廳 -->
@@ -3313,7 +3313,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
         if (restaurants.length === 0) {
           showCountEl.textContent = "0 家";
           openCountEl.textContent = "0 家";
-          showListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
+          showListEl.innerHTML = `<option value="">目前尚未新增餐廳</option>`;
           openListEl.innerHTML = `<option value="">目前尚未新增餐廳</option>`;
         } else {
           const visibleList = restaurants.filter(r => (r.isVisible !== false));
@@ -3332,66 +3332,65 @@ async function saveAddMenuSetMealTemplates(rid, templates){
           showCountEl.textContent = `${visibleList.length} 家`;
           openCountEl.textContent = `${openListArr.length} 家`;
 
-          const buildTag = (arr)=> arr.length
-            ? sortByCatName(arr).map(r => `
-              <span class="tag mini" style="cursor:pointer" data-goto-rid="${r.id}">
-                ${esc(r.name || "未命名")}
-                <span class="muted mini">｜${esc((r.category||"").trim() || "未分類")}</span>
-              </span>
-            `).join("")
-            : `<div class="muted mini">目前沒有符合條件的餐廳</div>`;
+          const buildGroupedOptions = (arr, placeholder, emptyText) => {
+            if (!arr.length) {
+              return `<option value="">${esc(emptyText)}</option>`;
+            }
 
-          showListEl.innerHTML = buildTag(visibleList);
-         if (openListArr.length) {
-            const openGroups = new Map();
-            sortByCatName(openListArr).forEach(r => {
+            const groups = new Map();
+            sortByCatName(arr).forEach(r => {
               const cat = (r.category || "").trim() || "未分類";
-              if (!openGroups.has(cat)) openGroups.set(cat, []);
-              openGroups.get(cat).push(r);
+              if (!groups.has(cat)) groups.set(cat, []);
+              groups.get(cat).push(r);
             });
 
-            const categoryOrder = Array.from(openGroups.keys()).sort((a,b)=> {
+            const categoryOrder = Array.from(groups.keys()).sort((a,b)=> {
               if (a === "未分類" && b !== "未分類") return 1;
               if (b === "未分類" && a !== "未分類") return -1;
               return a.localeCompare(b, "zh-Hant");
             });
 
-            const optionHtml = [
-              `<option value="">選擇餐廳…</option>`,
+            return [
+              `<option value="">${esc(placeholder)}</option>`
               ...categoryOrder.map(cat => {
-                const items = openGroups.get(cat) || [];
+                const items = groups.get(cat) || [];
                 const options = items.map(r =>
                   `<option value="${esc(r.id)}">${esc(r.name || "未命名")}</option>`
                 ).join("");
                 return `<optgroup label="${esc(cat)}">${options}</optgroup>`;
               })
             ].join("");
-
-            openListEl.innerHTML = optionHtml;
-          } else {
-            openListEl.innerHTML = `<option value="">目前沒有符合條件的餐廳</option>`;
-          }
-          // 點擊捲到該餐廳
-         showListEl.querySelectorAll("[data-goto-rid]").forEach(el => {
-            el.onclick = () => {
-              const rid = el.dataset.gotoRid;
-              const wrap = $("restaurantsWrap");
-              if (!wrap) return;
-
-              const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
-              const detail = btn?.closest("details");
-              if (detail) {
-                detail.open = true;
-                let p = detail.parentElement;
-                while (p) {
-                  if (p.tagName === "DETAILS") p.open = true;
-                  p = p.parentElement;
-
-                }
-    detail.scrollIntoView({ behavior:"smooth", block:"start" });
-              }
             };
-       });
+          
+             showListEl.innerHTML = buildGroupedOptions(
+            visibleList,
+            "選擇餐廳…",
+            "目前沒有符合條件的餐廳"
+          );
+          openListEl.innerHTML = buildGroupedOptions(
+            openListArr,
+            "選擇餐廳…",
+            "目前沒有符合條件的餐廳"
+          );
+
+          showListEl.onchange = () => {
+            const rid = showListEl.value;
+            if (!rid) return;
+            const wrap = $("restaurantsWrap");
+            if (!wrap) return;
+
+            const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
+            const detail = btn?.closest("details");
+            if (detail) {
+              detail.open = true;
+              let p = detail.parentElement;
+              while (p) {
+                if (p.tagName === "DETAILS") p.open = true;
+                p = p.parentElement;
+              }
+             detail.scrollIntoView({ behavior:"smooth", block:"start" });
+            }
+          };
                                                                 
           openListEl.onchange = () => {
             const rid = openListEl.value;
