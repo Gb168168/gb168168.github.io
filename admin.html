@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -790,7 +790,13 @@
                 </div>
               </div>
 
+              <div class="muted mini" style="margin-top:10px">已建立的選項群組（可刪除）</div>
               <div id="menuOptionGroupsList" style="margin-top:10px"></div>
+              
+              <div class="hr"></div>
+
+              <div class="muted mini" style="margin-bottom:6px">此餐點支援哪些選項（勾選）</div>
+              <div id="menuOptionGroupPickList" class="kpi"></div>
               </div>
 
              </details>
@@ -1567,23 +1573,23 @@ initCategoryDropdown();
     
     function renderGroups(){
       const wrap = $("menuOptionGroupsList");
+      const pickWrap = $("menuOptionGroupPickList");
       draftGroups.forEach(g=>{
         if(!g.id) g.id = ogUid();
       });
       if(draftGroups.length===0){
         wrap.innerHTML = `<div class="muted">（尚未加入任何選項群組：可不使用）</div>`;
+         if(pickWrap){
+          pickWrap.innerHTML = `<div class="muted">（尚未建立可勾選的選項群組）</div>`;
+        }
         return;
       }
       wrap.innerHTML = draftGroups.map((g,gi)=>{
         const choices = (g.choices||[]).map(c=> `${c.name}${Number(c.price||0)?`(+${Number(c.price||0)})`:``}`).join("、") || "—";
-        const checked = menuOptionGroupSelected.has(g.id) ? "checked" : "";
         return `
           <div class="inline" style="justify-content:space-between; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:16px; background:#fff; margin-top:10px;">
             <div>
-            <label style="display:flex; align-items:center; gap:8px; font-weight:700; margin:0;">
-                <input type="checkbox" data-og-pick="${g.id}" ${checked} style="width:16px; height:16px; margin:0;">
-                ${esc(g.name)}
-              </label>
+           <div style="font-weight:700">${esc(g.name)}</div>
               <span class="tag" style="margin-left:8px">${g.type==="single" ? "擇一(下拉)" : "加購(多選)"}</span>
               ${g.type==="single" ? `<span class="tag" style="margin-left:6px">${g.required ? "必選" : "非必選"}</span>` : ``}
               <div class="muted mini" style="margin-top:6px">選項：${esc(choices)}</div>
@@ -1601,17 +1607,29 @@ initCategoryDropdown();
         };
       });
       
-      wrap.querySelectorAll("input[data-og-pick]").forEach(box=>{
-        box.addEventListener("change", ()=>{
-          const id = box.dataset.ogPick;
-          if(!id) return;
-          if(box.checked){
-            menuOptionGroupSelected.add(id);
-          }else{
-            menuOptionGroupSelected.delete(id);
-          }
+       if(pickWrap){
+        pickWrap.innerHTML = draftGroups.map(g=>{
+          const checked = menuOptionGroupSelected.has(g.id) ? "checked" : "";
+          return `
+            <label class="tag" style="cursor:pointer; gap:6px;">
+              <input type="checkbox" data-og-pick="${g.id}" ${checked} style="width:14px; height:14px; margin:0;">
+              ${esc(g.name)}
+            </label>
+          `;
+        }).join("");
+
+        pickWrap.querySelectorAll("input[data-og-pick]").forEach(box=>{
+          box.addEventListener("change", ()=>{
+            const id = box.dataset.ogPick;
+            if(!id) return;
+            if(box.checked){
+              menuOptionGroupSelected.add(id);
+            }else{
+              menuOptionGroupSelected.delete(id);
+            }
+          });
         });
-      });
+      }
     }
 
     function showGroupDraftUI(on){ $("groupDraftArea").style.display = on ? "" : "none"; }
