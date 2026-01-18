@@ -3314,14 +3314,35 @@ async function saveAddMenuSetMealTemplates(rid, templates){
             : `<div class="muted mini">目前沒有符合條件的餐廳</div>`;
 
           showListEl.innerHTML = buildTag(visibleList);
-          openListEl.innerHTML = openListArr.length
-            ? [
-                `<option value="">選擇餐廳…</option>`,
-                ...sortByCatName(openListArr).map(r =>
-                  `<option value="${esc(r.id)}">${esc(r.name || "未命名")}｜${esc((r.category||"").trim() || "未分類")}</option>`
-                )
-              ].join("")
-            : `<option value="">目前沒有符合條件的餐廳</option>`;
+         if (openListArr.length) {
+            const openGroups = new Map();
+            sortByCatName(openListArr).forEach(r => {
+              const cat = (r.category || "").trim() || "未分類";
+              if (!openGroups.has(cat)) openGroups.set(cat, []);
+              openGroups.get(cat).push(r);
+            });
+
+            const categoryOrder = Array.from(openGroups.keys()).sort((a,b)=> {
+              if (a === "未分類" && b !== "未分類") return 1;
+              if (b === "未分類" && a !== "未分類") return -1;
+              return a.localeCompare(b, "zh-Hant");
+            });
+
+            const optionHtml = [
+              `<option value="">選擇餐廳…</option>`,
+              ...categoryOrder.map(cat => {
+                const items = openGroups.get(cat) || [];
+                const options = items.map(r =>
+                  `<option value="${esc(r.id)}">${esc(r.name || "未命名")}</option>`
+                ).join("");
+                return `<optgroup label="${esc(cat)}">${options}</optgroup>`;
+              })
+            ].join("");
+
+            openListEl.innerHTML = optionHtml;
+          } else {
+            openListEl.innerHTML = `<option value="">目前沒有符合條件的餐廳</option>`;
+          }
           // 點擊捲到該餐廳
          showListEl.querySelectorAll("[data-goto-rid]").forEach(el => {
             el.onclick = () => {
