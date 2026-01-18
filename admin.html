@@ -964,7 +964,10 @@
       <!-- VIEW: 餐廳管理 -->
       <section class="view" id="view_restaurants" style="display:none">
   <div class="card">
-          <h3>餐廳管理</h3>
+             <div class="inline" style="justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;">餐廳管理</h3>
+            <span class="tag" id="restTotalCount">0 家</span>
+          </div>
 <!-- 🔵 顯示中的餐廳 -->
 <div class="restaurant-status-grid">
   <div class="subcard" style="margin-bottom:10px;">
@@ -3310,14 +3313,16 @@ async function saveAddMenuSetMealTemplates(rid, templates){
         return;
       }
 
-      /* 🔵 更新上方兩張統計卡片：顯示中的 / 開單中的 */
+      /* 🔵 更新上方統計卡片：全部 / 顯示中的 / 開單中的 */
+      const totalCountEl = $("restTotalCount");
       const showCountEl = $("restShowCount");
       const showListEl  = $("restShowList");
       const openCountEl = $("restOpenCount");
       const openListEl  = $("restOpenList");
 
-      if (showCountEl && showListEl && openCountEl && openListEl) {
+       if (totalCountEl && showCountEl && showListEl && openCountEl && openListEl) {
         if (restaurants.length === 0) {
+          totalCountEl.textContent = "0 家";
           showCountEl.textContent = "0 家";
           openCountEl.textContent = "0 家";
           showListEl.innerHTML = `<option value="">目前尚未新增餐廳</option>`;
@@ -3336,6 +3341,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
             });
           };
 
+          totalCountEl.textContent = `${restaurants.length} 家`;
           showCountEl.textContent = `${visibleList.length} 家`;
           openCountEl.textContent = `${openListArr.length} 家`;
 
