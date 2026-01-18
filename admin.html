@@ -99,6 +99,16 @@
     .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
 
+       .restaurant-status-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:10px;
+    }
+    @media (max-width:980px){
+      .restaurant-status-grid{grid-template-columns:1fr}
+    }
+
     /* ✅ 訂餐紀錄：左小右大（只影響 view_orders） */
     #view_orders .grid{ grid-template-columns: 360px 1fr; }
     @media (max-width:980px){ #view_orders .grid{ grid-template-columns: 1fr; } }
@@ -956,31 +966,33 @@
   <div class="card">
           <h3>餐廳管理</h3>
 <!-- 🔵 顯示中的餐廳 -->
-<div class="subcard" style="margin-top:10px; margin-bottom:10px;">
-  <div class="inline" style="justify-content:space-between; align-items:center;">
-    <div>
-      <div style="font-size:13px; font-weight:800;">顯示中的餐廳</div>
-      <div class="muted mini">使用者端可見的店家</div>
+<div class="restaurant-status-grid">
+  <div class="subcard" style="margin-bottom:10px;">
+    <div class="inline" style="justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:13px; font-weight:800;">顯示中的餐廳</div>
+        <div class="muted mini">使用者端可見的店家</div>
+      </div>
+      <span class="tag" id="restShowCount">0 家</span>
     </div>
-    <span class="tag" id="restShowCount">0 家</span>
+     <select id="restShowList" style="margin-top:8px;">
+      <option value="">載入中…</option>
+    </select>
   </div>
-  <select id="restShowList" style="margin-top:8px;">
-    <option value="">載入中…</option>
-  </select>
-</div>
 
 <!-- 🔵 開單中的餐廳 -->
-<div class="subcard" style="margin-top:10px; margin-bottom:10px;">
-  <div class="inline" style="justify-content:space-between; align-items:center;">
-    <div>
-      <div style="font-size:13px; font-weight:800;">開單中的餐廳</div>
-      <div class="muted mini">目前可供訂單送出的店家</div>
+  <div class="subcard" style="margin-bottom:10px;">
+    <div class="inline" style="justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:13px; font-weight:800;">開單中的餐廳</div>
+        <div class="muted mini">目前可供訂單送出的店家</div>
+      </div>
+      <span class="tag" id="restOpenCount">0 家</span>
     </div>
-    <span class="tag" id="restOpenCount">0 家</span>
-  </div>
   <select id="restOpenList" style="margin-top:8px;">
-    <option value="">載入中…</option>
-  </select>
+      <option value="">載入中…</option>
+    </select>
+  </div>
 </div>
           <!-- 🔵 🔵 🔵 總覽卡片結束 🔵 🔵 🔵 -->
 
