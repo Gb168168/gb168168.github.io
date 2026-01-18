@@ -405,6 +405,14 @@
       align-items:center;
       justify-content:center;
       z-index:50;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+    }
+    .modalMask.is-open{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
     }
     .modalBox{
       background:#fff;
@@ -1106,7 +1114,7 @@
   </div>
 
   <!-- 🔔 未點餐彈跳視窗 -->
-  <div id="noOrderModal" class="modalMask" style="display:none">
+  <div id="noOrderModal" class="modalMask">
     <div class="modalBox">
       <h3 style="margin-top:0; margin-bottom:8px;">今日未點餐人員</h3>
       <div id="noOrderList" class="muted mini">
@@ -1119,7 +1127,7 @@
   </div>
   
   <!-- ⚠️ 結單確認彈跳視窗 -->
-<div id="closeConfirmModal" class="modalMask" style="display:none;">
+<div id="closeConfirmModal" class="modalMask">
   <div class="modalBox">
     <h3 style="margin-top:0; margin-bottom:8px;">⚠️ 確定要結單嗎？</h3>
     <p class="muted mini" style="line-height:1.5; margin-bottom:8px;">
@@ -4650,6 +4658,19 @@ async function loadOrdersByDate(dateStr){
     const noOrderModal = $("noOrderModal");
     const noOrderList = $("noOrderList");
 
+     const openModal = (modal)=>{
+      if(!modal) return;
+      modal.classList.add("is-open", "fadeIn");
+      const box = modal.querySelector(".modalBox");
+      if(box) box.classList.add("popIn");
+    };
+    const closeModal = (modal)=>{
+      if(!modal) return;
+      modal.classList.remove("is-open", "fadeIn");
+      const box = modal.querySelector(".modalBox");
+      if(box) box.classList.remove("popIn");
+    };
+
     async function checkNotOrderedForDate(dateStr, orders, showModal){
       try{
         if(!Array.isArray(orders)){
@@ -4666,7 +4687,7 @@ async function loadOrdersByDate(dateStr){
           noOrderBanner.style.display = "";
           if(showModal && noOrderModal && noOrderList){
             noOrderList.textContent = "尚未設定今日班表。請先到「班表管理」為此日期勾選上班人員。";
-            noOrderModal.style.display = "flex";
+            openModal(noOrderModal);
           }
           return;
         }
@@ -4701,7 +4722,7 @@ async function loadOrdersByDate(dateStr){
           noOrderBanner.style.display = "";
           if(showModal && noOrderModal && noOrderList){
             noOrderList.textContent = "今日所有應上班人員皆已點餐。";
-            noOrderModal.style.display = "flex";
+            openModal(noOrderModal);
           }
           return;
         }
@@ -4744,7 +4765,7 @@ async function loadOrdersByDate(dateStr){
             </ul>
             <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人。</p>
           `;
-          noOrderModal.style.display = "flex";
+            openModal(noOrderModal);
         }
       }catch(err){
         console.error(err);
@@ -4825,11 +4846,11 @@ async function updateCloseConfirmNoOrder(){
 }
 
     $("btnCloseNoOrder")?.addEventListener("click", ()=>{
-      if(noOrderModal) noOrderModal.style.display = "none";
+       closeModal(noOrderModal);
     });
     noOrderModal?.addEventListener("click", (e)=>{
       if(e.target.id === "noOrderModal"){
-        noOrderModal.style.display = "none";
+        closeModal(noOrderModal);
       }
     });
 
@@ -5129,24 +5150,13 @@ document.addEventListener("change", (e) => {
   const modal = document.getElementById("closeConfirmModal");
   if (!modal) return;
 
-  // 顯示彈跳窗在畫面正中央
-  modal.style.display = "flex";
-
-  // 加上動畫 class（對應你上面 CSS 的 .modalMask.fadeIn / .modalBox.popIn）
-  modal.classList.add("fadeIn");
-  const box = modal.querySelector(".modalBox");
-  if (box) box.classList.add("popIn");
+    openModal(modal);
 });
 
 // 「先不要」→ 關閉視窗 + 把勾勾取消
 document.getElementById("btnCancelClose")?.addEventListener("click", () => {
   const modal = document.getElementById("closeConfirmModal");
-  if (modal) {
-    modal.style.display = "none";
-    modal.classList.remove("fadeIn");
-    const box = modal.querySelector(".modalBox");
-    if (box) box.classList.remove("popIn");
-  }
+  closeModal(modal);
 
   if (pendingCloseCheckbox) {
     pendingCloseCheckbox.checked = false; // 還原成沒結單
@@ -5157,12 +5167,7 @@ document.getElementById("btnCancelClose")?.addEventListener("click", () => {
 // 「確定結單」→ 關閉視窗，但保留勾勾（真的結單）
 document.getElementById("btnConfirmClose")?.addEventListener("click", () => {
   const modal = document.getElementById("closeConfirmModal");
-  if (modal) {
-    modal.style.display = "none";
-    modal.classList.remove("fadeIn");
-    const box = modal.querySelector(".modalBox");
-    if (box) box.classList.remove("popIn");
-  }
+  closeModal(modal);
 
   // 保留 checked 狀態就好
   pendingCloseCheckbox = null;
