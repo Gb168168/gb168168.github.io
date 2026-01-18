@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -454,8 +454,6 @@
       border-radius:16px;
       background:#fff;
       margin-top:10px;
-    }
-    .schDayBlock > details{
       padding:8px 10px 10px;
     }
     .schDaySummary{
@@ -467,7 +465,6 @@
       justify-content:space-between;
       gap:8px;
     }
-    .schDaySummary::-webkit-details-marker{display:none;}
     .schDayInner{
       margin-top:8px;
     }
@@ -552,7 +549,7 @@
         ✅ 訂單：支援 Excel 匯出、支援刪整筆/刪單一道<br/>
         ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項<br/>
         ✅ 新增餐點：餐點類別支援「群組新增 + 拖曳排序」<br/>
-        ✅ 班表：每月可勾選上班人員，訂餐頁會提醒未點餐名單<br/>
+        ✅ 班表：選日期勾選上班人員，訂餐頁會提醒未點餐名單<br/>
       </p>
     </aside>
 
@@ -938,22 +935,30 @@
       <!-- VIEW: 班表管理 -->
       <section class="view" id="view_schedule" style="display:none">
         <div class="card">
-          <h3>班表管理（每月上班人員勾選）</h3>
+          <h3>班表管理（當日上班人員勾選）</h3>
 
-          <div class="inline" style="margin-top:4px; align-items:flex-end;">
+         <div class="row3" style="margin-top:4px;">
             <div>
-              <label>月份</label>
-              <input id="sch_month" type="month"/>
+              <label>年</label>
+              <select id="sch_year"></select>
             </div>
             <div>
-              <button class="primary" id="btnLoadSchedule" type="button">載入班表</button>
-              <button class="ghost" id="btnScheduleToday" type="button">跳到今天</button>
+              <label>月</label>
+              <select id="sch_month"></select>
             </div>
+            <div>
+             <label>日</label>
+              <select id="sch_day"></select>
+            </div>
+          </div>
+          <div class="actions" style="margin-top:8px;">
+            <button class="primary" id="btnLoadSchedule" type="button">載入班表</button>
+            <button class="ghost" id="btnScheduleToday" type="button">跳到今天</button>
           </div>
 
           <p class="muted mini" style="margin-top:8px">
             ✔ 勾選代表「當日上班人員」；依【部門】分段排列。<br/>
-            ✔ 日期列預設收合，點一下可展開／收合。<br/>
+            ✔ 只顯示所選日期的班表內容。<br/>
             ✔ 勾／取消勾會自動儲存到 Firestore「schedules」集合。<br/>
           </p>
 
@@ -1227,8 +1232,7 @@
     window.addEventListener("load", ()=>{
       const el = $("r_name");
       if (el) el.value = "";
-      const m = $("sch_month");
-      if(m) m.value = todayISO().slice(0,7);
+      buildScheduleSelects();
     });
 
     // ====== Views ======
@@ -2374,25 +2378,72 @@ async function refreshStaffList(){
     });
 
     /* ===============================
-       ✅ 班表管理：每月上班人員勾選（依部門分段，日期可收合）
+      ✅ 班表管理：當日上班人員勾選（依部門分段）
        =============================== */
 
-    async function loadScheduleDocsForMonth(ym){
-      try{
-        const qSch = query(colSchedules, where("month","==", ym), limit(1000));
-        const snap = await getDocs(qSch);
-        const map = new Map();
-        snap.forEach(d=>{
-          const data = d.data()||{};
-          const date = data.date || d.id;
-          const arr = Array.isArray(data.workerKeys) ? data.workerKeys : [];
-          map.set(date, arr);
-        });
-        return map;
-      }catch(err){
-        console.error(err);
-        return new Map();
+    function buildScheduleSelects(){
+      const yearSel = $("sch_year");
+      const monthSel = $("sch_month");
+      const daySel = $("sch_day");
+      if(!yearSel || !monthSel || !daySel) return;
+
+      const now = new Date();
+      const yearStart = now.getFullYear() - 1;
+      const yearEnd = now.getFullYear() + 2;
+
+      yearSel.innerHTML = "";
+      for(let y = yearStart; y <= yearEnd; y++){
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = `${y}年`;
+        yearSel.appendChild(opt);
       }
+
+      monthSel.innerHTML = "";
+      for(let m = 1; m <= 12; m++){
+        const opt = document.createElement("option");
+        opt.value = pad2(m);
+        opt.textContent = `${m}月`;
+        monthSel.appendChild(opt);
+      }
+
+      yearSel.value = String(now.getFullYear());
+      monthSel.value = pad2(now.getMonth() + 1);
+      syncScheduleDayOptions();
+      daySel.value = pad2(now.getDate());
+    }
+
+    function syncScheduleDayOptions(){
+      const year = Number($("sch_year")?.value);
+      const month = Number($("sch_month")?.value);
+      const daySel = $("sch_day");
+      if(!year || !month || !daySel) return;
+
+      const days = new Date(year, month, 0).getDate();
+      const current = Number(daySel.value) || 1;
+      daySel.innerHTML = "";
+      for(let d = 1; d <= days; d++){
+        const opt = document.createElement("option");
+        opt.value = pad2(d);
+        opt.textContent = `${d}日`;
+        daySel.appendChild(opt);
+      }
+        daySel.value = pad2(Math.min(current, days));
+    }
+
+    function getSelectedScheduleDate(){
+      const y = $("sch_year")?.value;
+      const m = $("sch_month")?.value;
+      const d = $("sch_day")?.value;
+      if(!y || !m || !d) return "";
+      return `${y}-${m}-${d}`;
+    }
+
+    async function loadScheduleKeysForDate(dateStr){
+      const snap = await getDoc(doc(db,"schedules", dateStr));
+      if(!snap.exists()) return [];
+      const data = snap.data() || {};
+      return Array.isArray(data.workerKeys) ? data.workerKeys : [];
     }
 
     async function saveScheduleForDate(dateStr){
@@ -2419,12 +2470,12 @@ async function refreshStaffList(){
       }
     }
 
-    async function renderScheduleMonth(){
+      async function renderScheduleDate(){
       const wrap = $("scheduleWrap");
       if(!wrap) return;
-      const ym = $("sch_month")?.value;
-      if(!ym){
-        wrap.innerHTML = `<div class="muted">請先選擇月份</div>`;
+    const dateStr = getSelectedScheduleDate();
+      if(!dateStr){
+        wrap.innerHTML = `<div class="muted">請先選擇日期</div>`;
         return;
       }
 
@@ -2437,9 +2488,11 @@ async function refreshStaffList(){
           return;
         }
 
-        const schMap = await loadScheduleDocsForMonth(ym);
-        const [yy,mm] = ym.split("-").map(Number);
-        const days = new Date(yy, mm, 0).getDate();
+        const workerKeys = await loadScheduleKeysForDate(dateStr);
+        const workerSet = new Set(workerKeys);
+
+        const [yy, mm, dd] = dateStr.split("-").map(Number);
+        const weekday = WEEKDAY_LABEL[new Date(yy, mm-1, dd).getDay()];
 
         // 人員依部門分組
         const deptMap = new Map();
@@ -2453,59 +2506,48 @@ async function refreshStaffList(){
           ...Array.from(deptMap.keys()).filter(d=>!DEPT_INDEX.has(d))
         ];
 
-        const blocks = [];
-        for(let d=1; d<=days; d++){
-          const dd = pad2(d);
-          const dateStr = `${ym}-${dd}`;
-          const weekday = WEEKDAY_LABEL[new Date(yy, mm-1, d).getDay()];
-          const workerKeys = schMap.get(dateStr) || [];
-          const workerSet = new Set(workerKeys);
-
           const deptHtml = orderedDepts.map(dept=>{
-            const list = deptMap.get(dept) || [];
-            const people = list.map(p=>{
-              const key = `${(p.dept||"").trim()}||${(p.name||"").trim()}`;
-              const checked = workerSet.has(key) ? "checked" : "";
-              return `
-                <label class="schStaff">
-                  <input type="checkbox" data-sch-date="${dateStr}" data-sch-key="${esc(key)}" ${checked}/>
-                  <span>${esc(p.name||"")}</span>
-                </label>
-              `;
-            }).join("") || `<div class="muted mini">（本部門尚無人員）</div>`;
-
+          const list = deptMap.get(dept) || [];
+          const people = list.map(p=>{
+            const key = `${(p.dept||"").trim()}||${(p.name||"").trim()}`;
+            const checked = workerSet.has(key) ? "checked" : "";
             return `
-              <div class="schDeptBlock">
-                <div class="schDeptTitle">${esc(dept)}</div>
-                <div class="schStaffGrid">${people}</div>
-              </div>
+                    <label class="schStaff">
+                <input type="checkbox" data-sch-date="${dateStr}" data-sch-key="${esc(key)}" ${checked}/>
+                <span>${esc(p.name||"")}</span>
+              </label>
             `;
-          }).join("");
+           }).join("") || `<div class="muted mini">（本部門尚無人員）</div>`;
 
-          blocks.push(`
-
-
-            <div class="schDayBlock">
-              <details>
-                <summary class="schDaySummary">
-                  <span>${mm}/${d}（${weekday}）</span>
-                  <span class="tag miniTag">已勾選 ${workerSet.size} 人</span>
-                </summary>
-                <div class="schDayInner" data-sch-day="${dateStr}">
-                  ${deptHtml}
-                </div>
-              </details>
+          return `
+            <div class="schDeptBlock">
+              <div class="schDeptTitle">${esc(dept)}</div>
+              <div class="schStaffGrid">${people}</div>
             </div>
-          `);
-        }
+         `;
+        }).join("");
 
-        wrap.innerHTML = blocks.join("");
+           wrap.innerHTML = `
+          <div class="schDayBlock">
+            <div class="schDaySummary">
+              <span>${mm}/${dd}（${weekday}）</span>
+              <span class="tag miniTag">已勾選 ${workerSet.size} 人</span>
+            </div>
+            <div class="schDayInner" data-sch-day="${dateStr}">
+              ${deptHtml}
+            </div>
+          </div>
+        `;;
 
-        // 預設全部收合（details 不加 open 屬性即可）
+      const countTag = wrap.querySelector(".schDaySummary .miniTag");
         wrap.querySelectorAll("input[data-sch-date]").forEach(ch=>{
           ch.addEventListener("change", ()=>{
             const dateStr = ch.dataset.schDate;
             saveScheduleForDate(dateStr);
+             if(countTag){
+              const count = wrap.querySelectorAll(`input[data-sch-date="${dateStr}"]:checked`).length;
+              countTag.textContent = `已勾選 ${count} 人`;
+            }
           });
         });
 
@@ -2515,25 +2557,35 @@ async function refreshStaffList(){
       }
     }
 
+     $("sch_year")?.addEventListener("change", ()=>{
+      syncScheduleDayOptions();
+      renderScheduleDate();
+    });
+
+    $("sch_month")?.addEventListener("change", ()=>{
+      syncScheduleDayOptions();
+      renderScheduleDate();
+    });
+
+    $("sch_day")?.addEventListener("change", ()=>{
+      renderScheduleDate();
+    });
+
     $("btnLoadSchedule")?.addEventListener("click", ()=>{
-      renderScheduleMonth();
+    renderScheduleDate();
     });
 
     $("btnScheduleToday")?.addEventListener("click", ()=>{
       const today = todayISO();
-      const ym = today.slice(0,7);
-      const inp = $("sch_month");
-      if(inp) inp.value = ym;
-      renderScheduleMonth().then(()=>{
-        const inner = document.querySelector(`[data-sch-day="${today}"]`);
-        if(inner){
-          const det = inner.closest("details");
-          if(det){
-            det.open = true;
-            det.scrollIntoView({ behavior:"smooth", block:"start" });
-          }
-        }
-      });
+       const [yy, mm, dd] = today.split("-");
+      const ySel = $("sch_year");
+      const mSel = $("sch_month");
+      const dSel = $("sch_day");
+      if(ySel) ySel.value = yy;
+      if(mSel) mSel.value = mm;
+      syncScheduleDayOptions();
+      if(dSel) dSel.value = dd;
+      renderScheduleDate();
     });
 
     /* ===============================
