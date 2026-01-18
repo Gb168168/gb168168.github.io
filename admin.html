@@ -4783,7 +4783,7 @@ async function loadOrdersByDate(dateStr){
           if(unscheduledKeys.length>0){
           const deptListHtml = renderDeptList(groupByDept(unscheduledKeys));
           bannerParts.push(`
-            <div class="alertTitle">⚠ 有 <b>${unscheduledKeys.length}</b> 位點餐人員不在班表</div>
+            <div class="alertTitle">⛔ 有 <b>${unscheduledKeys.length}</b> 位點餐人員不在班表</div>
             <ul class="noOrderDeptList">
               ${deptListHtml}
             </ul>
