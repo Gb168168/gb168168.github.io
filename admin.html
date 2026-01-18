@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理7777</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -978,9 +978,9 @@
     </div>
     <span class="tag" id="restOpenCount">0 家</span>
   </div>
-  <div id="restOpenList" class="kpi" style="margin-top:8px;">
-    <div class="muted mini">載入中…</div>
-  </div>
+  <select id="restOpenList" style="margin-top:8px;">
+    <option value="">載入中…</option>
+  </select>
 </div>
           <!-- 🔵 🔵 🔵 總覽卡片結束 🔵 🔵 🔵 -->
 
@@ -3286,7 +3286,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
           showCountEl.textContent = "0 家";
           openCountEl.textContent = "0 家";
           showListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
-          openListEl.innerHTML = `<div class="muted mini">目前尚未新增餐廳</div>`;
+          openListEl.innerHTML = `<option value="">目前尚未新增餐廳</option>`;
         } else {
           const visibleList = restaurants.filter(r => (r.isVisible !== false));
           const openListArr = restaurants.filter(r => !r.isClosed);
@@ -3314,31 +3314,55 @@ async function saveAddMenuSetMealTemplates(rid, templates){
             : `<div class="muted mini">目前沒有符合條件的餐廳</div>`;
 
           showListEl.innerHTML = buildTag(visibleList);
-          openListEl.innerHTML = buildTag(openListArr);
-
+          openListEl.innerHTML = openListArr.length
+            ? [
+                `<option value="">選擇餐廳…</option>`,
+                ...sortByCatName(openListArr).map(r =>
+                  `<option value="${esc(r.id)}">${esc(r.name || "未命名")}｜${esc((r.category||"").trim() || "未分類")}</option>`
+                )
+              ].join("")
+            : `<option value="">目前沒有符合條件的餐廳</option>`;
           // 點擊捲到該餐廳
-          [showListEl, openListEl].forEach(listEl=>{
-            listEl.querySelectorAll("[data-goto-rid]").forEach(el => {
-              el.onclick = () => {
-                const rid = el.dataset.gotoRid;
-                const wrap = $("restaurantsWrap");
-                if (!wrap) return;
+         showListEl.querySelectorAll("[data-goto-rid]").forEach(el => {
+            el.onclick = () => {
+              const rid = el.dataset.gotoRid;
+              const wrap = $("restaurantsWrap");
+              if (!wrap) return;
 
-                const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
-                const detail = btn?.closest("details");
-                if (detail) {
-                  detail.open = true;
-                  let p = detail.parentElement;
-                  while (p) {
-                    if (p.tagName === "DETAILS") p.open = true;
-                    p = p.parentElement;
-                  }
-                  detail.scrollIntoView({ behavior:"smooth", block:"start" });
+              const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
+              const detail = btn?.closest("details");
+              if (detail) {
+                detail.open = true;
+                let p = detail.parentElement;
+                while (p) {
+                  if (p.tagName === "DETAILS") p.open = true;
+                  p = p.parentElement;
+
                 }
-              };
-            });
-          });
-        }
+    detail.scrollIntoView({ behavior:"smooth", block:"start" });
+              }
+            };
+       });
+                                                                
+          openListEl.onchange = () => {
+            const rid = openListEl.value;
+            if (!rid) return;
+            const wrap = $("restaurantsWrap");
+            if (!wrap) return;
+
+            const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
+            const detail = btn?.closest("details");
+            if (detail) {
+              detail.open = true;
+              let p = detail.parentElement;
+              while (p) {
+                if (p.tagName === "DETAILS") p.open = true;
+                p = p.parentElement;
+              }
+              detail.scrollIntoView({ behavior:"smooth", block:"start" });
+            }
+          };
+      }
       }
       /* 🔵 總覽卡片更新結束 */
 
