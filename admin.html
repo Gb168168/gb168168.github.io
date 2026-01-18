@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理67</title>
+  <title>GoldBricks 呷奔👽｜管理666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -4704,13 +4704,6 @@ async function loadOrdersByDate(dateStr){
 
         const data = schSnap.data()||{};
         const workerKeys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
-        if(workerKeys.length===0){
-          noOrderBanner.className = "alertBar alertWarn";
-          noOrderBanner.textContent = "⚠ 今日班表沒有任何上班人員（未勾選）。";
-          noOrderBanner.style.display = "";
-          return;
-        }
-
         const workingSet = new Set(workerKeys);
 
         const orderedSet = new Set();
@@ -4726,7 +4719,35 @@ async function loadOrdersByDate(dateStr){
           if(!orderedSet.has(k)) missingKeys.push(k);
         });
 
-        if(missingKeys.length===0){
+           const unscheduledKeys = [];
+        orderedSet.forEach(k=>{
+          if(!workingSet.has(k)) unscheduledKeys.push(k);
+        });
+
+        const groupByDept = (keys)=> {
+          const byDept = new Map();
+          keys.forEach(k=>{
+            const [dept,name] = k.split("||");
+            const d = (dept || "未分部門");
+            if(!byDept.has(d)) byDept.set(d,[]);
+            if(name) byDept.get(d).push(name);
+          });
+          return Array.from(byDept.entries()).map(([dept,names])=>({
+            dept,
+            names,
+          }));
+        };
+        const renderDeptList = (entries)=> entries.map(({dept, names})=>{
+          const nameText = names.join("、");
+          return `
+            <li>
+              <span class="deptTag">${esc(dept)}</span>
+              <span class="deptNames">${esc(nameText)}</span>
+            </li>
+          `;
+        }).join("");
+
+        if(missingKeys.length===0 && unscheduledKeys.length===0){
           noOrderBanner.className = "alertBar alertOk";
           noOrderBanner.textContent = "✅ 今日所有應上班人員皆已點餐";
           noOrderBanner.style.display = "";
@@ -4737,46 +4758,43 @@ async function loadOrdersByDate(dateStr){
           return;
         }
 
-        const byDept = new Map();
-        missingKeys.forEach(k=>{
-          const [dept,name] = k.split("||");
-          const d = (dept || "未分部門");
-          if(!byDept.has(d)) byDept.set(d,[]);
-           if(name) byDept.get(d).push(name);
-        });
-        const deptEntries = Array.from(byDept.entries()).map(([dept,names])=>({
-          dept,
-          names,
-        }));
-        const deptListHtml = deptEntries.map(({dept, names})=>{
-          const nameText = names.join("、");
-          return `
-            <li>
-              <span class="deptTag">${esc(dept)}</span>
-              <span class="deptNames">${esc(nameText)}</span>
-            </li>
-          `;
-        }).join("");
-        
-        noOrderBanner.className = "alertBar alertWarn";
-        noOrderBanner.innerHTML = `
-          <div class="alertTitle">🔔 今日尚有 <b>${missingKeys.length}</b> 人未點餐</div>
-          <ul class="noOrderDeptList">
-            ${deptListHtml}
-          </ul>
-        `;
-        noOrderBanner.style.display = "";
-
-        if(showModal && noOrderModal && noOrderList){
-          noOrderList.innerHTML = `
-            <p class="muted">今日尚有 <b>${missingKeys.length}</b> 人未點餐：</p>
-            <ul class="noOrderDeptList mini">
+         const bannerParts = [];
+        if(workerKeys.length===0){
+          bannerParts.push(`<div class="alertTitle">⚠ 今日班表沒有任何上班人員（未勾選）。</div>`);
+        }
+        if(missingKeys.length>0){
+          const deptListHtml = renderDeptList(groupByDept(missingKeys));
+          bannerParts.push(`
+            <div class="alertTitle">🔔 今日尚有 <b>${missingKeys.length}</b> 人未點餐</div>
+            <ul class="noOrderDeptList">
               ${deptListHtml}
             </ul>
-            <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人。</p>
-          `;
-          noOrderModal.style.display = "flex";
+          `);
+          if(showModal && noOrderModal && noOrderList){
+            noOrderList.innerHTML = `
+              <p class="muted">今日尚有 <b>${missingKeys.length}</b> 人未點餐：</p>
+              <ul class="noOrderDeptList mini">
+                ${deptListHtml}
+              </ul>
+              <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人。</p>
+            `;
+            noOrderModal.style.display = "flex";
+          }
         }
+
+          if(unscheduledKeys.length>0){
+          const deptListHtml = renderDeptList(groupByDept(unscheduledKeys));
+          bannerParts.push(`
+            <div class="alertTitle">⚠ 有 <b>${unscheduledKeys.length}</b> 位點餐人員不在班表</div>
+            <ul class="noOrderDeptList">
+              ${deptListHtml}
+            </ul>
+            `);
+        }
+        
+        noOrderBanner.className = "alertBar alertWarn";
+        noOrderBanner.innerHTML = bannerParts.join("");
+        noOrderBanner.style.display = "";
       }catch(err){
         console.error(err);
         if(noOrderBanner){
