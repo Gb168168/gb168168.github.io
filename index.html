@@ -53,6 +53,12 @@
     <h1>GoldBricks Order 登入</h1>
     <div class="muted">GoldBricks 呷奔啊~~ </div>
 
+     <label>部門</label>
+    <input id="dept" type="text" autocomplete="off" placeholder="輸入 部門"/>
+
+    <label>人員</label>
+    <input id="member" type="text" autocomplete="off" placeholder="輸入 人員"/>
+
     <label>密碼</label>
     <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入 使用者 密碼"/>
 
@@ -68,9 +74,22 @@
 
 <script>
   const roleKey = "gb_role";
+ const deptEl = document.getElementById("dept");
+  const memberEl = document.getElementById("member");
   const pinEl = document.getElementById("pin");
 
   function go(){
+    const dept = (deptEl.value || "").trim();
+    const member = (memberEl.value || "").trim();
+    if(!dept || !member){
+      alert("請先輸入部門與人員");
+      if(!dept){
+        deptEl.focus();
+      }else{
+        memberEl.focus();
+      }
+      return;
+    }
     const pin = (pinEl.value || "").trim();
     if(pin === "8520"){
       localStorage.setItem(roleKey, "admin");
@@ -86,7 +105,12 @@
   }
 
   document.getElementById("btnLogin").onclick = go;
-  document.getElementById("btnClear").onclick = ()=>{ pinEl.value=""; pinEl.focus(); };
+  document.getElementById("btnClear").onclick = ()=>{
+    deptEl.value="";
+    memberEl.value="";
+    pinEl.value="";
+    deptEl.focus();
+  };
 
   // ✅ Enter 直接登入
   pinEl.addEventListener("keydown", (e)=>{
@@ -96,11 +120,12 @@
     }
   });
 
-  // 進來先聚焦
-  window.addEventListener("load", ()=> pinEl.focus());
-</script>
+  // 進來先聚焦␊
+  window.addEventListener("load", ()=> deptEl.focus());
+</script>␊
 </body>
 </html>
+
 
 
 
