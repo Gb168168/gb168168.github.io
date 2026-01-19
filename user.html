@@ -7,48 +7,64 @@
 
   <style>
     :root{
-      --bg:#f3f5f9;
-      --panel:#f7f8fc;
-      --card:#ffffff;
-      --text:#0b1220;
-      --muted:#5b6678;
+     --bg:#0b1020;
+      --panel:#0f172a;
+      --card:rgba(15,23,42,.78);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
 
-      --accent:#fb7185;
-      --accent2:#ff9a9e;
-      --accentSoft:rgba(251,113,133,.10);
+      --accent:#22d3ee;
+      --accent2:#a855f7;
+      --accentSoft:rgba(34,211,238,.12);
 
-      --border:rgba(15,23,42,.10);
-      --border2:rgba(15,23,42,.16);
-      --shadow:0 10px 22px rgba(2,6,23,.07);
+      --border:rgba(148,163,184,.22);
+      --border2:rgba(148,163,184,.35);
+      --shadow:0 18px 40px rgba(2,8,23,.45);
       --radius:18px;
 
       --ok:#16a34a;
       --warn:#f59e0b;
       --danger:#ef4444;
 
-      --focus:rgba(251,113,133,.55);
+      --focus:rgba(34,211,238,.55);
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
       background:
-        radial-gradient(1000px 520px at 20% -12%, rgba(251,113,133,.10), transparent 60%),
-        radial-gradient(900px 520px at 110% 0%, rgba(99,102,241,.08), transparent 55%),
-        linear-gradient(180deg, var(--panel) 0%, var(--bg) 60%, var(--bg) 100%);
+        radial-gradient(900px 500px at 12% -20%, rgba(34,211,238,.16), transparent 60%),
+        radial-gradient(900px 520px at 110% 0%, rgba(168,85,247,.18), transparent 55%),
+        linear-gradient(180deg, #0b1020 0%, #0c1428 55%, #0b1020 100%);
       color:var(--text);
       min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-20% -20% auto -20%;
+      height:140%;
+      background:
+        linear-gradient(transparent 31px, rgba(148,163,184,.06) 32px),
+        linear-gradient(90deg, transparent 31px, rgba(148,163,184,.06) 32px);
+      background-size:32px 32px;
+      opacity:.35;
+      pointer-events:none;
+      z-index:-1;
+      mask-image: radial-gradient(circle at top, rgba(0,0,0,.9), transparent 70%);
     }
 
     .wrap{max-width:1680px; margin:0 auto; padding:16px;}
 
     .topbar{
       position:sticky; top:0; z-index:999;
-      background: rgba(255,255,255,.92);
+      background: rgba(12,18,35,.82);
       border:1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(14px);
       padding:12px 14px;
       display:flex; align-items:center; justify-content:space-between; gap:12px;
       margin-bottom:14px;
@@ -59,13 +75,13 @@
     .pill{
       padding:8px 12px; border-radius:999px;
       border:1px solid var(--border2);
-      background:#fff; color:var(--muted);
+      background:rgba(15,23,42,.7); color:var(--muted);
       font-size:12.5px;
     }
     .tag{
       display:inline-flex; padding:5px 10px; border-radius:999px;
       border:1px solid var(--border2);
-      background:#fff; color:var(--muted);
+      background:rgba(15,23,42,.7); color:var(--muted);
       font-size:12px;
       white-space:nowrap;
     }
@@ -74,13 +90,14 @@
 
     .btn{
       padding:9px 12px; border-radius:14px; border:1px solid var(--border2);
-      background:#fff; cursor:pointer; font-weight:900;
+      background:rgba(15,23,42,.85); cursor:pointer; font-weight:900;
+      color:var(--text);
     }
     .btn:hover{filter:brightness(.99)}
     .primary{
       padding:9px 12px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      color:#fff; box-shadow: 0 12px 22px rgba(251,113,133,.15);
+      background: linear-gradient(120deg, var(--accent), var(--accent2));
+      color:#0b1120; box-shadow: 0 12px 26px rgba(34,211,238,.25);
     }
     .primary:hover{filter:saturate(1.03)}
     .danger{border-color: rgba(239,68,68,.42)}
@@ -98,7 +115,7 @@
     }
 
     .card{
-      background:var(--card);
+      background:linear-gradient(145deg, rgba(15,23,42,.92), rgba(2,6,23,.7));
       border:1px solid var(--border);
       border-radius:var(--radius);
       box-shadow: 0 8px 18px rgba(2,6,23,.06);
@@ -109,8 +126,8 @@
     label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
       width:100%; padding:11px 12px; border-radius:14px;
-      border:1px solid var(--border2); outline:none; background:#fff;
-      font-size:14px;
+      border:1px solid var(--border2); outline:none; background:rgba(15,23,42,.85);
+      font-size:14px; color:var(--text);
     }
     textarea{min-height:86px; resize:vertical}
     input:focus,select:focus,textarea:focus{
@@ -133,28 +150,28 @@
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       padding:12px;
-      background:#fff;
+      background:rgba(15,23,42,.7);
       margin-top:10px;
     }
     .listLine{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
       padding:10px 12px;
-      background:#fff;
+      background:rgba(15,23,42,.7);
       margin-top:10px;
     }
     .menuItem{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
       padding:12px 14px;
-      background:#fff;
+      background:rgba(15,23,42,.7);
       margin-top:10px;
     }
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
     @media (max-width:980px){.row{grid-template-columns:1fr}}
 
-    .priceTag{color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); border:none}
+    .priceTag{color:#0b1120; background:linear-gradient(90deg,var(--accent),var(--accent2)); border:none}
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
     .warnTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
@@ -175,7 +192,7 @@
     }
     .modal{
       width:min(440px, 100%);
-      background:#fff;
+      background:rgba(15,23,42,.95);
       border:1px solid var(--border);
       border-radius:16px;
       box-shadow: var(--shadow);
@@ -190,7 +207,7 @@
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      background:#fff;
+      background:rgba(15,23,42,.7);
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       overflow:hidden;
       padding:12px 12px;
@@ -201,14 +218,14 @@
     .rName{ font-size:15.5px; font-weight:900; }
     .rBadge{
       padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900;
-      border:1px solid rgba(15,23,42,.12); background:#fff; white-space:nowrap;
+      border:1px solid rgba(148,163,184,.2); background:rgba(15,23,42,.7); white-space:nowrap;
     }
     .rBadge.ok{color:#065f46; background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.26);}
     .rBadge.lock{color:#92400e; background:rgba(245,158,11,.16); border-color:rgba(245,158,11,.32);}
     .rMeta{ margin-top:8px; }
     .rMap{
       display:inline-block; margin-top:6px; font-size:12.5px;
-      color:#334155; text-decoration:none;
+      color:#7dd3fc; text-decoration:none;
     }
     .rMap:hover{ text-decoration:underline; }
     .rActions{ margin-top:10px; display:flex; justify-content:flex-end; gap:8px; }
@@ -231,7 +248,7 @@
     .sideBox{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      background:#fff;
+      background:rgba(15,23,42,.7);
       padding:12px;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       min-height:180px;
