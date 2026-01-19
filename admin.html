@@ -1543,18 +1543,53 @@
       const cat = normalizeRestaurantCategory(pick.category);
       const address = (pick.address || "").trim();
       const mapUrl = (pick.mapUrl || "").trim();
+      const phone = (pick.phone || "").trim();
+      const hours = (pick.businessHours || "").trim();
+      const weeklyOff = Array.isArray(pick.weeklyOff) ? pick.weeklyOff : [];
+      const weeklyOffText = weeklyOff.length ? weeklyOff.join("・") : "";
       const onlineUrl = (pick.onlineOrderUrl || "").trim();
+      const lineQrUrl = (pick.lineQrUrl || "").trim();
+      const isVisible = pick.isVisible !== false;
 
       resultEl.innerHTML = `
         <div class="randomResultTitle">🎯 ${esc(pick.name || "未命名餐廳")}</div>
         <div class="randomResultMeta">分類：${esc(cat)}</div>
+        ${phone ? `<div class="randomResultMeta">電話：${esc(phone)}</div>` : ""}
         ${address ? `<div class="randomResultMeta">地址：${esc(address)}</div>` : ""}
+        ${hours ? `<div class="randomResultMeta">營業時間：${esc(hours)}</div>` : ""}
+        ${weeklyOffText ? `<div class="randomResultMeta">公休日：${esc(weeklyOffText)}</div>` : ""}
         <div class="randomResultActions">
           ${mapUrl ? `<a class="btnSmall" href="${esc(mapUrl)}" target="_blank" rel="noopener">查看地圖</a>` : ""}
           ${onlineUrl ? `<a class="btnSmall btnOk" href="${esc(onlineUrl)}" target="_blank" rel="noopener">線上點餐</a>` : ""}
+          ${lineQrUrl ? `<a class="btnSmall" href="${esc(lineQrUrl)}" target="_blank" rel="noopener">Line QR</a>` : ""}
           <span class="tag">可抽選 ${list.length} 家</span>
         </div>
+         <div class="chkline mini" style="margin-top:10px;">
+          <label style="margin:0; display:flex; align-items:center; gap:6px;">
+            <input id="randomVisibleToggle" type="checkbox" ${isVisible ? "checked" : ""}>
+            <span>使用者顯示</span>
+          </label>
+        </div>
       `;
+      
+      const toggle = resultEl.querySelector("#randomVisibleToggle");
+      if(toggle){
+        toggle.addEventListener("change", async (event)=>{
+          const nextVisible = event.target.checked;
+          try{
+            statusPill.textContent = "更新使用者顯示中…";
+            await updateDoc(doc(db, "restaurants", pick.id), { isVisible: nextVisible });
+            const target = randomPickRestaurants.find(r => r.id === pick.id);
+            if(target) target.isVisible = nextVisible;
+            statusPill.textContent = "使用者顯示已更新 ✅";
+          }catch(err){
+            console.error(err);
+            event.target.checked = !nextVisible;
+            alert("更新使用者顯示失敗\n\n" + (err?.message || err));
+            statusPill.textContent = "更新失敗（看 console）";
+          }
+        });
+      }
     }
 
    // ✅ 餐廳管理：快取每個餐點的 optionGroups，給 inline 編輯用
