@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者6</title>
 
   <style>
     :root{
@@ -437,7 +437,17 @@ const esc = (s)=> (s ?? "").toString()
   return `${name}${p ? `(+${p})` : ""}`;
 };
 
-    const modalBackdrop = $("modalBackdrop");
+  const fmtDetailAddon = (a)=>{
+  const kind = (a?.kind || "").trim();
+  const name = (a?.name || "").trim();
+  const group = (a?.group || "").trim();
+  const label = (kind === "choice" || kind === "setmeal") ? name : (name || group);
+  if(!label) return "";
+  const p = Number(a?.price || 0);
+  return `${label}${p ? `(+${p})` : ""}`;
+};
+    
+const modalBackdrop = $("modalBackdrop");
 const modalTitle = $("modalTitle");
 const modalMessage = $("modalMessage");
 const modalActions = $("modalActions");
@@ -1536,9 +1546,11 @@ function normalizeSetMealTemplates(raw){
 
       const lines = items.map(it=>{
         const addons = Array.isArray(it.addons)?it.addons:[];
-        const addonText = addons.length
-         ? `（選項：${addons.map(a=> fmtSelectedAddon(a)).filter(Boolean).join("；")}）`
-          : "";
+         const detailAddonText = addons
+          .map(a=> fmtDetailAddon(a))
+          .filter(Boolean)
+          .join("；");
+        const addonText = detailAddonText ? `（選項：${detailAddonText}）` : "";
         return `• <b>${esc(it.name||"")}</b> × ${Number(it.qty||0)} ${it.note?`（備註：${esc(it.note)}）`:""} ${addonText}`;
       }).join("<br/>");
 
