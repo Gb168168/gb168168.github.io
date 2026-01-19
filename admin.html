@@ -312,6 +312,18 @@
     .btnOk:hover{border-color: rgba(16,185,129,.55)}
     details summary{cursor:pointer; font-weight:900}
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .shiftGroup{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+    .shiftToggle{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#fff;
+      font-size:12px;
+    }
+    .shiftToggle input{width:auto}
     .imgPrev{width:100%; max-height:220px; object-fit:cover; border-radius:14px; border:1px solid var(--border)}
     .qrPrev{width:100%; max-height:220px; object-fit:contain; border-radius:14px; border:1px solid var(--border); background:rgba(15,23,42,.02)}
     .subcard{
@@ -2415,6 +2427,19 @@ async function loadAllStaffOnce(){
   allStaffLoaded = true;
 }
 
+  function getStaffShiftKeySet(shift){
+  const set = new Set();
+  allStaffBase.forEach(s=>{
+    const dept = (s.dept || "").trim();
+    const name = (s.name || "").trim();
+    if(!dept && !name) return;
+    const key = `${dept}||${name}`;
+    if(shift === "morning" && s.shiftMorning) set.add(key);
+    if(shift === "evening" && s.shiftEvening) set.add(key);
+  });
+  return set;
+}
+
 /* ✅ 人員清單：依指定部門順序（管理部→新場→…→教育訓練） */
 async function refreshStaffList(){
   const wrap = $("staffWrap");
@@ -2453,7 +2478,17 @@ async function refreshStaffList(){
             ${list.map(p=>`
               <div class="inline" style="justify-content:space-between; padding:8px 10px; border:1px solid rgba(15,23,42,.08); border-radius:14px; margin-top:8px;">
                 <div><b>${esc(p.name||"")}</b></div>
-                <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
+                 <div class="shiftGroup">
+                  <label class="shiftToggle">
+                    <input type="checkbox" data-staff-id="${p.id}" data-staff-shift="morning" ${p.shiftMorning ? "checked" : ""}/>
+                    <span>早班</span>
+                  </label>
+                  <label class="shiftToggle">
+                    <input type="checkbox" data-staff-id="${p.id}" data-staff-shift="evening" ${p.shiftEvening ? "checked" : ""}/>
+                    <span>晚班</span>
+                  </label>
+                  <button class="btnSmall btnDanger" data-delstaff="${p.id}" type="button">刪除</button>
+                </div>
               </div>
             `).join("")}
           </div>
@@ -2477,6 +2512,28 @@ async function refreshStaffList(){
       };
     });
 
+    // 班別勾選
+    wrap.querySelectorAll("[data-staff-shift]").forEach(cb=>{
+      cb.addEventListener("change", async ()=>{
+        const staffId = cb.dataset.staffId;
+        const shift = cb.dataset.staffShift;
+        const field = shift === "morning" ? "shiftMorning" : "shiftEvening";
+        const nextValue = cb.checked;
+        try{
+          await updateDoc(doc(db,"staff", staffId), {
+            [field]: nextValue
+          });
+          const target = allStaffBase.find(s=>s.id === staffId);
+          if(target) target[field] = nextValue;
+          statusPill.textContent = "班別已更新 ✅";
+        }catch(err){
+          console.error(err);
+          cb.checked = !nextValue;
+          alert("更新班別失敗\n\n" + (err?.message || err));
+        }
+      });
+    });
+
   }catch(err){
     console.error(err);
     wrap.innerHTML = `<div class="muted">載入失敗（看 console）</div>`;
@@ -2489,7 +2546,13 @@ async function refreshStaffList(){
       if(!dept) return alert("請輸入部門");
       if(!name) return alert("請輸入人員名稱");
       try{
-        await addDoc(colStaff, { dept, name, createdAt: Date.now() });
+      await addDoc(colStaff, {
+          dept,
+          name,
+          shiftMorning: false,
+          shiftEvening: false,
+          createdAt: Date.now()
+        });
         $("s_name").value="";
         statusPill.textContent = "已新增人員 ✅";
         allStaffLoaded = false;          // 👈 讓快取下次重抓
@@ -5184,8 +5247,13 @@ async function loadOrdersByDate(dateStr){
         const data = schSnap.data()||{};
         const workerKeys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
         const workingSet = new Set(workerKeys);
-
+        const morningShiftKeys = getStaffShiftKeySet("morning");
+        const filteredWorkerKeys = morningShiftKeys.size
+          ? workerKeys.filter(k=>morningShiftKeys.has(k))
+          : workerKeys;
+        const shiftLabel = morningShiftKeys.size ? "（早班）" : "";
         const orderedSet = new Set();
+        
         for(const o of orders){
           const dept = (o.userDept || "").trim();
           const name = (o.userName || "").trim();
@@ -5194,7 +5262,7 @@ async function loadOrdersByDate(dateStr){
         }
 
         const missingKeys = [];
-        workingSet.forEach(k=>{
+        filteredWorkerKeys.forEach(k=>{
           if(!orderedSet.has(k)) missingKeys.push(k);
         });
 
@@ -5227,12 +5295,22 @@ async function loadOrdersByDate(dateStr){
         }).join("");
 
         if(missingKeys.length===0 && unscheduledKeys.length===0){
-          noOrderBanner.className = "alertBar alertOk";
-          noOrderBanner.textContent = "✅ 今日所有應上班人員皆已點餐";
-          noOrderBanner.style.display = "";
-          if(showModal && noOrderModal && noOrderList){
-            noOrderList.textContent = "今日所有應上班人員皆已點餐。";
-            noOrderModal.style.display = "flex";
+          if(morningShiftKeys.size > 0 && filteredWorkerKeys.length === 0){
+            noOrderBanner.className = "alertBar alertWarn";
+            noOrderBanner.textContent = "⚠ 今日班表沒有早班人員（已勾選早班）。";
+            noOrderBanner.style.display = "";
+            if(showModal && noOrderModal && noOrderList){
+              noOrderList.textContent = "今日班表沒有早班人員（已勾選早班）。";
+              noOrderModal.style.display = "flex";
+            }
+          }else{
+            noOrderBanner.className = "alertBar alertOk";
+            noOrderBanner.textContent = "✅ 今日所有應上班人員皆已點餐";
+            noOrderBanner.style.display = "";
+            if(showModal && noOrderModal && noOrderList){
+              noOrderList.textContent = "今日所有應上班人員皆已點餐。";
+              noOrderModal.style.display = "flex";
+            }
           }
           return;
         }
@@ -5242,20 +5320,23 @@ async function loadOrdersByDate(dateStr){
         if(workerKeys.length===0){
           bannerParts.push(`<div class="alertTitle">⚠ 今日班表沒有任何上班人員（未勾選）。</div>`);
         }
+         if(morningShiftKeys.size > 0 && filteredWorkerKeys.length === 0){
+          bannerParts.push(`<div class="alertTitle">⚠ 今日班表沒有早班人員（已勾選早班）。</div>`);
+        }
         if(missingKeys.length>0){
           const deptListHtml = renderDeptList(groupByDept(missingKeys));
           bannerParts.push(`
-            <div class="alertTitle">🔔 今日尚有 <b>${missingKeys.length}</b> 人未點餐</div>
+           <div class="alertTitle">🔔 今日尚有 <b>${missingKeys.length}</b> 人未點餐${shiftLabel}</div>
             <ul class="noOrderDeptList">
               ${deptListHtml}
             </ul>
           `);
            modalParts.push(`
-            <p class="muted">今日尚有 <b>${missingKeys.length}</b> 人未點餐：</p>
+            <p class="muted">今日尚有 <b>${missingKeys.length}</b> 人未點餐${shiftLabel}：</p>
             <ul class="noOrderDeptList mini">
               ${deptListHtml}
             </ul>
-            <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人。</p>
+            <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人${shiftLabel ? "，且需在「人員清單」勾選早班" : ""}。</p>
           `);
         }
 
