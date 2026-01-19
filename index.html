@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔啊~~｜登入</title>
+  <title>GoldBricks 呷奔啊~~｜登入1</title>
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -53,12 +53,6 @@
     <h1>GoldBricks Order 登入</h1>
     <div class="muted">GoldBricks 呷奔啊~~ </div>
 
-     <label>部門</label>
-    <input id="dept" type="text" autocomplete="off" placeholder="輸入 部門"/>
-
-    <label>人員</label>
-    <input id="member" type="text" autocomplete="off" placeholder="輸入 人員"/>
-
     <label>密碼</label>
     <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入 使用者 密碼"/>
 
@@ -74,22 +68,9 @@
 
 <script>
   const roleKey = "gb_role";
- const deptEl = document.getElementById("dept");
-  const memberEl = document.getElementById("member");
   const pinEl = document.getElementById("pin");
 
   function go(){
-    const dept = (deptEl.value || "").trim();
-    const member = (memberEl.value || "").trim();
-    if(!dept || !member){
-      alert("請先輸入部門與人員");
-      if(!dept){
-        deptEl.focus();
-      }else{
-        memberEl.focus();
-      }
-      return;
-    }
     const pin = (pinEl.value || "").trim();
     if(pin === "8520"){
       localStorage.setItem(roleKey, "admin");
@@ -105,12 +86,7 @@
   }
 
   document.getElementById("btnLogin").onclick = go;
-  document.getElementById("btnClear").onclick = ()=>{
-    deptEl.value="";
-    memberEl.value="";
-    pinEl.value="";
-    deptEl.focus();
-  };
+  document.getElementById("btnClear").onclick = ()=>{ pinEl.value=""; pinEl.focus(); };
 
   // ✅ Enter 直接登入
   pinEl.addEventListener("keydown", (e)=>{
@@ -120,11 +96,10 @@
     }
   });
 
-  // 進來先聚焦␊
-  window.addEventListener("load", ()=> deptEl.focus());
-</script>␊
+  // 進來先聚焦
+  window.addEventListener("load", ()=> pinEl.focus());
+</script>
 </body>
 </html>
-
 
 
