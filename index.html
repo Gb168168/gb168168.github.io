@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔啊~~｜登入123</title>
+  <title>GoldBricks 呷奔啊~~｜登入</title>
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -28,47 +28,12 @@
     }
     h1{margin:0; font-size:18px}
     .muted{color:var(--muted); font-size:12.5px; line-height:1.6; margin-top:6px}
-      label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px;}
+    label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px;}
     input{
       width:100%; padding:12px 12px; border-radius:14px;
       border:1px solid var(--border); outline:none; background:#fff; font-size:15px;
     }
     input:focus{border-color: rgba(251,113,133,.7)}
-    .select-wrap{
-      position:relative;
-    }
-    .select-wrap::after{
-      content:"";
-      position:absolute;
-      top:50%;
-      right:14px;
-      width:8px;
-      height:8px;
-      border-right:2px solid rgba(15,23,42,.45);
-      border-bottom:2px solid rgba(15,23,42,.45);
-      transform: translateY(-70%) rotate(45deg);
-      pointer-events:none;
-    }
-    select{
-      width:100%;
-      padding:12px 42px 12px 12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      outline:none;
-      background:#fff;
-      font-size:15px;
-      color:var(--text);
-      appearance:none;
-    }
-    select:focus{
-      border-color: rgba(251,113,133,.7);
-      box-shadow: 0 0 0 3px rgba(251,113,133,.15);
-    }
-    select:disabled{
-      background: rgba(15,23,42,.04);
-      color: rgba(15,23,42,.45);
-      cursor:not-allowed;
-    }
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px}
     .btn{
       padding:11px 12px; border-radius:14px; border:1px solid var(--border);
@@ -88,20 +53,12 @@
     <h1>GoldBricks Order 登入</h1>
     <div class="muted">GoldBricks 呷奔啊~~ </div>
 
-    <label>部門</label>
-    <div class="select-wrap">
-      <select id="dept">
-        <option value="">請選部門</option>
-      </select>
-    </div>
-    
+     <label>部門</label>
+    <input id="dept" type="text" autocomplete="off" placeholder="輸入 部門"/>
+
     <label>人員</label>
-    <div class="select-wrap">
-      <select id="member" disabled>
-        <option value="">請選人員</option>
-      </select>
-    </div>
-    
+    <input id="member" type="text" autocomplete="off" placeholder="輸入 人員"/>
+
     <label>密碼</label>
     <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入 使用者 密碼"/>
 
@@ -110,110 +67,18 @@
       <button class="btn" id="btnClear" type="button">清空</button>
     </div>
 
-     <div class="hint">
+    <div class="hint">
       點餐嘍~<br/>
-      <span id="staffStatus">人員清單載入中…</span>
     </div>
   </div>
 
-<script type="module">
- const roleKey = "gb_role";
-  const userDeptKey = "gb_user_dept";
-  const userNameKey = "gb_user_name";
-  const deptEl = document.getElementById("dept");
+<script>
+  const roleKey = "gb_role";
+ const deptEl = document.getElementById("dept");
   const memberEl = document.getElementById("member");
   const pinEl = document.getElementById("pin");
-  const staffStatusEl = document.getElementById("staffStatus");
-
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.firebasestorage.app",
-    messagingSenderId: "463709758954",
-    appId: "1:463709758954:web:429dc920f2f812d51cbe93",
-    measurementId: "G-YQK8ZCC26R"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const DEPT_ORDER = [
-    "管理部",
-    "TSE-早",
-    "FAE-早",
-    "倉管",
-    "新場",
-    "工程師",
-    "教育訓練",
-    "線上客服-早"
-  ];
-
-  let staffMap = new Map();
-  let orderedDepts = [];
-
-  const esc = (s)=> (s ?? "").toString()
-    .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
-
-  function setDeptOptions(){
-    deptEl.innerHTML = `
-      <option value="">請選部門</option>
-      ${orderedDepts.map((d)=> `<option value="${esc(d)}">${esc(d)}</option>`).join("")}
-    `;
-  }
-
-  function setMemberOptions(dept){
-    const list = staffMap.get(dept) || [];
-    memberEl.innerHTML = `
-      <option value="">請選人員</option>
-      ${list.map((name)=> `<option value="${esc(name)}">${esc(name)}</option>`).join("")}
-    `;
-    memberEl.disabled = !dept;
-  }
-
-  async function loadStaff(){
-    if(!staffStatusEl) return;
-    staffStatusEl.textContent = "人員清單載入中…";
-    try{
-      const snap = await getDocs(collection(db, "staff"));
-      const map = new Map();
-      snap.forEach((doc)=>{
-        const data = doc.data() || {};
-        const dept = (data.dept || "未分部門").trim() || "未分部門";
-        const name = (data.name || "").trim();
-        if(!name) return;
-        if(!map.has(dept)) map.set(dept, new Set());
-        map.get(dept).add(name);
-      });
-      staffMap = new Map();
-      map.forEach((names, dept)=>{
-        staffMap.set(dept, Array.from(names).sort((a,b)=> a.localeCompare(b, "zh-Hant")));
-      });
-      const extraDepts = Array.from(map.keys()).filter((d)=> !DEPT_ORDER.includes(d))
-        .sort((a,b)=> a.localeCompare(b, "zh-Hant"));
-      orderedDepts = [
-        ...DEPT_ORDER.filter((d)=> map.has(d)),
-        ...extraDepts
-      ];
-      setDeptOptions();
-      setMemberOptions(deptEl.value);
-      staffStatusEl.textContent = map.size ? "人員清單已更新。": "尚未設定人員資料。";
-    }catch(err){
-      staffStatusEl.textContent = "無法載入人員清單，請稍後再試。";
-      console.error(err);
-    }
-  }
 
   function go(){
-    const pin = (pinEl.value || "").trim();
-    if(pin === "8520"){
-      localStorage.setItem(roleKey, "admin");
-      location.href = "./admin.html";
-      return;
-    }
     const dept = (deptEl.value || "").trim();
     const member = (memberEl.value || "").trim();
     if(!dept || !member){
@@ -222,32 +87,30 @@
         deptEl.focus();
       }else{
         memberEl.focus();
-       }
+      }
       return;
     }
-     if(pin === "888"){
+    const pin = (pinEl.value || "").trim();
+    if(pin === "8520"){
+      localStorage.setItem(roleKey, "admin");
+      location.href = "./admin.html";
+      return;
+    }
+    if(pin === "888"){
       localStorage.setItem(roleKey, "user");
-      localStorage.setItem(userDeptKey, dept);
-      localStorage.setItem(userNameKey, member);
       location.href = "./user.html";
       return;
     }
     alert("密碼錯誤");
   }
 
-   document.getElementById("btnLogin").onclick = go;
+  document.getElementById("btnLogin").onclick = go;
   document.getElementById("btnClear").onclick = ()=>{
     deptEl.value="";
-    setMemberOptions("");
+    memberEl.value="";
     pinEl.value="";
-    pinEl.focus();
+    deptEl.focus();
   };
-
-  deptEl.addEventListener("change", ()=>{
-    setMemberOptions(deptEl.value.trim());
-  });
-
-  loadStaff();
 
   // ✅ Enter 直接登入
   pinEl.addEventListener("keydown", (e)=>{
@@ -258,11 +121,10 @@
   });
 
   // 進來先聚焦␊
-  window.addEventListener("load", ()=> pinEl.focus());
-</script>
+  window.addEventListener("load", ()=> deptEl.focus());
+</script>␊
 </body>
 </html>
-
 
 
 
