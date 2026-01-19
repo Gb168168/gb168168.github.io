@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -4973,11 +4973,14 @@ async function saveAddMenuSetMealTemplates(rid, templates){
     function addonText(addons, options = {}){
       const arr = Array.isArray(addons) ? addons : [];
       if(arr.length===0) return "";
-      const { hideChoiceTag = false } = options;
+      const { hideChoiceTag = false, namesOnly = false } = options;
       return arr.map(a=>{
         const p = Number(a?.price||0);
+        if(namesOnly){
+         return `${a?.name||""}${p?(" "+p):""}`;
+        }
         const group = a?.group ? `(${a.group})` : "";
-          const isChoice = a?.kind === "choice";
+        const isChoice = a?.kind === "choice";
         const isAddon = a?.kind === "addon";
         if(isChoice && hideChoiceTag){
           return `${group}${a?.name||""}${p?(" "+p):""}`;
@@ -5147,7 +5150,7 @@ async function loadOrdersByDate(dateStr){
             <tr>
               <td>${esc(x.restaurant)}</td>
               <td>${esc(x.item)}</td>
-               <td class="muted">${esc(addonText(x.addons, { hideChoiceTag: true }))}</td>
+              <td class="muted">${esc(addonText(x.addons, { namesOnly: true }))}</td>
               <td class="muted">${esc(x.note || "")}</td>
               <td>${x.qty}</td>
               <td>${x.unit}</td>
@@ -5667,7 +5670,7 @@ async function setupOrdersLive(dateStr){
 
             const rowItem = {
               itemName: it.name || "",
-              addonText: addonText(it.addons, { hideChoiceTag: true }),
+              addonText: addonText(it.addons, { namesOnly: true }),
               note: itemNoteText(it),
               amount,
             };
