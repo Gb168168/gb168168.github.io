@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔啊~~｜登入</title>
+  <title>GoldBricks 呷奔啊~~｜登入1</title>
   <style>
     :root{
       --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -145,14 +145,13 @@
     const hasDept = Boolean(deptEl.value);
     const hasMember = Boolean(memberEl.value);
     const canPin = hasDept && hasMember;
-    pinEl.disabled = !canPin;
-    loginBtn.disabled = !canPin;
+    pinEl.disabled = false;
+    loginBtn.disabled = false;
     if(canPin){
       pinEl.placeholder = "輸入 使用者 密碼";
-    }else{
-      pinEl.value = "";
-      pinEl.placeholder = "請先選部門與人員";
+      return;
     }
+    pinEl.placeholder = "管理人員可直接輸入 8520";
   }
 
   async function loadStaff(){
@@ -222,9 +221,20 @@
     }
   }
 
-  function go(){
-    const dept = (deptEl.value || "").trim();
-    const member = (memberEl.value || "").trim();
+  function go(){␊
+    const dept = (deptEl.value || "").trim();␊
+    const member = (memberEl.value || "").trim();␊
+   const pin = (pinEl.value || "").trim();
+    if(!pin){
+      alert("請輸入密碼");
+      pinEl.focus();
+      return;
+    }
+    if(pin === "8520"){
+      localStorage.setItem(roleKey, "admin");
+      location.href = "./admin.html";
+      return;
+    }
     if(!dept || !member){
       alert("請先輸入部門與人員");
       if(!dept){
@@ -234,19 +244,8 @@
       }
       return;
     }
-   const pin = (pinEl.value || "").trim();
-    if(!pin){
-      alert("請輸入密碼");
-      pinEl.focus();
-      return;
-    }
     localStorage.setItem("gb_user_dept", dept);
     localStorage.setItem("gb_user_name", member);
-    if(pin === "8520"){
-      localStorage.setItem(roleKey, "admin");
-      location.href = "./admin.html";
-      return;
-    }
     if(pin === "888"){
       localStorage.setItem(roleKey, "user");
       location.href = "./user.html";
@@ -291,3 +290,4 @@
 </script>␊
 </body>
 </html>
+
