@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1077,7 +1077,7 @@
             </div>
           </div>
           <p class="muted mini" style="margin-top:8px;">
-             選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否上班。2026 國定假日會以金色提示。
+                    選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否上班。國定假日會以金色提示。
           </p>
           <div id="scheduleMonthWrap"></div>
 
@@ -2515,22 +2515,38 @@ async function refreshStaffList(){
       ✅ 班表管理：當日上班人員勾選（依部門分段）
        =============================== */
     const scheduleMonthCache = new Map();
-      const HOLIDAYS_2026 = [
-      { date: "2026-01-01", name: "元旦" },
-      { date: "2026-02-16", name: "除夕" },
-      { date: "2026-02-17", name: "春節" },
-      { date: "2026-02-18", name: "春節" },
-      { date: "2026-02-19", name: "春節" },
-      { date: "2026-02-20", name: "春節" },
-      { date: "2026-02-28", name: "和平紀念日" },
-      { date: "2026-04-04", name: "兒童節" },
-      { date: "2026-04-05", name: "清明節" },
-      { date: "2026-05-01", name: "勞動節" },
-      { date: "2026-06-19", name: "端午節" },
-      { date: "2026-09-25", name: "中秋節" },
-      { date: "2026-10-10", name: "國慶日" }
+    const HOLIDAY_FIXED_DATES = [
+      { month: 1, day: 1, name: "元旦" },
+      { month: 2, day: 28, name: "和平紀念日" },
+      { month: 4, day: 4, name: "兒童節" },
+      { month: 4, day: 5, name: "清明節" },
+      { month: 5, day: 1, name: "勞動節" },
+      { month: 10, day: 10, name: "國慶日" }
     ];
-    const HOLIDAYS_2026_MAP = new Map(HOLIDAYS_2026.map(h => [h.date, h.name]));
+     const HOLIDAYS_BY_YEAR = {
+      2026: [
+        { date: "2026-02-16", name: "除夕" },
+        { date: "2026-02-17", name: "春節" },
+        { date: "2026-02-18", name: "春節" },
+        { date: "2026-02-19", name: "春節" },
+        { date: "2026-02-20", name: "春節" },
+        { date: "2026-06-19", name: "端午節" },
+        { date: "2026-09-25", name: "中秋節" }
+      ]
+    };
+    const holidayMapCache = new Map();
+    function getHolidayMapByYear(year){
+      if(holidayMapCache.has(year)) return holidayMapCache.get(year);
+      const map = new Map();
+      HOLIDAY_FIXED_DATES.forEach(item=>{
+        const date = `${year}-${pad2(item.month)}-${pad2(item.day)}`;
+        map.set(date, item.name);
+      });
+      const yearSpecific = HOLIDAYS_BY_YEAR[year] || [];
+      yearSpecific.forEach(item=> map.set(item.date, item.name));
+      holidayMapCache.set(year, map);
+      return map;
+    }
     const WORKDAY_COLOR = {
       bg: "rgba(16,185,129,.22)",
       border: "rgba(16,185,129,.6)",
@@ -2701,7 +2717,7 @@ async function refreshStaffList(){
           const dateStr = `${yy}-${pad2(mm)}-${pad2(d)}`;
           const keys = map.get(dateStr) || [];
           const isSelected = keys.includes(workerKey);
-          const holidayName = HOLIDAYS_2026_MAP.get(dateStr);
+          const holidayName = getHolidayMapByYear(yy).get(dateStr);
           const dayIndex = (firstDay + d - 1) % 7;
           const isWeekend = dayIndex === 0 || dayIndex === 6;
           if(isSelected) selectedCount += 1;
@@ -2730,7 +2746,7 @@ async function refreshStaffList(){
               </span>
               <span class="schLegendItem" style="color:#b45309; --legend-bg:rgba(254,243,199,.9);">
                 <span class="schLegendColor"></span>
-                2026 國定假日
+                國定假日
               </span>
             </div>
             <div class="schCalendarGrid" style="margin-top:10px">
