@@ -1,297 +1,295 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔啊~~｜登入</title>
-  <style>
-    :root{
-      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;
-      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);
-      --shadow:0 10px 30px rgba(15,23,42,.10); --radius:18px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
-      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),
-                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),
-                  var(--bg);
-      color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center;
-      padding:16px;
-    }
-    .card{
-      width:min(520px, 100%);
-      background: rgba(255,255,255,.78);
-      border:1px solid var(--border); border-radius: var(--radius);
-      box-shadow: var(--shadow); backdrop-filter: blur(10px);
-      padding:16px;
-    }
-    h1{margin:0; font-size:18px}
-    .muted{color:var(--muted); font-size:12.5px; line-height:1.6; margin-top:6px}
-    label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px;}
-    input, select{
-      width:100%; padding:12px 12px; border-radius:14px;␊
-      border:1px solid var(--border); outline:none; background:#fff; font-size:15px;␊
+<!doctype html>␊
+<html lang="zh-Hant">␊
+<head>␊
+  <meta charset="utf-8"/>␊
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>␊
+  <title>GoldBricks 呷奔啊~~｜登入</title>␊
+  <style>␊
+    :root{␊
+      --bg:#f5f4fb; --card:#fff; --text:#0f172a; --muted:#64748b;␊
+      --primary:#fb7185; --primary2:#ff9a9e; --border:rgba(15,23,42,.10);␊
+      --shadow:0 10px 30px rgba(15,23,42,.10); --radius:18px;␊
     }␊
-    input:focus, select:focus{border-color: rgba(251,113,133,.7)}
-    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px}
-    .btn{
-      padding:11px 12px; border-radius:14px; border:1px solid var(--border);
-      background:#fff; cursor:pointer; font-weight:900;
+    *{box-sizing:border-box}␊
+    body{␊
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;␊
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(251,113,133,.22), transparent 60%),␊
+                  radial-gradient(900px 500px at 100% 0%, rgba(255,154,158,.14), transparent 55%),␊
+                  var(--bg);␊
+      color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center;␊
+      padding:16px;␊
+    }␊
+    .card{␊
+      width:min(520px, 100%);␊
+      background: rgba(255,255,255,.78);␊
+      border:1px solid var(--border); border-radius: var(--radius);␊
+      box-shadow: var(--shadow); backdrop-filter: blur(10px);␊
+      padding:16px;␊
+    }␊
+    h1{margin:0; font-size:18px}␊
+    .muted{color:var(--muted); font-size:12.5px; line-height:1.6; margin-top:6px}␊
+    label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px;}␊
+    input, select{␊
+      width:100%; padding:12px 12px; border-radius:14px;
+      border:1px solid var(--border); outline:none; background:#fff; font-size:15px;
     }
-    .primary{
-      border:none; background: linear-gradient(90deg, var(--primary), var(--primary2));
-      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);
-    }
-    .hint{margin-top:10px; padding:10px 12px; border:1px dashed rgba(15,23,42,.18);
-      border-radius:14px; background: rgba(15,23,42,.02); font-size:12.5px; color:var(--muted)}
-  </style>
-</head>
-
-<body>
-  <div class="card">
-    <h1>GoldBricks Order 登入</h1>
-    <div class="muted">GoldBricks 呷奔啊~~ </div>
-
-      <label>部門</label>
-    <select id="dept">
-      <option value="">載入中…</option>
-    </select>
-
-    <label>人員</label>
-    <select id="member" disabled>
-      <option value="">請先選部門</option>
-    </select>
-
-    <label>密碼</label>
-  <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="請先選部門與人員"/>
-    
- <div class="row">
-      <button class="btn primary" id="btnLogin">登入</button>
-      <button class="btn" id="btnClear" type="button">清空</button>
-    </div>
-
-  <div class="hint">
-      <div id="staffStatus">正在載入人員清單…</div>
-      點餐嘍~<br/>
-    </div>
-  </div>
-
-<script type="module">
-  const roleKey = "gb_role";
-  const deptEl = document.getElementById("dept");
-  const memberEl = document.getElementById("member");
-  const pinEl = document.getElementById("pin");
-  const staffStatus = document.getElementById("staffStatus");
-  const loginBtn = document.getElementById("btnLogin");
-
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
-    authDomain: "goldbricks-order.firebaseapp.com",
-    projectId: "goldbricks-order",
-    storageBucket: "goldbricks-order.firebasestorage.app",
-    messagingSenderId: "463709758954",
-    appId: "1:463709758954:web:429dc920f2f812d51cbe93",
-    measurementId: "G-YQK8ZCC26R"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const colStaff = collection(db, "staff");
-
-  const esc = (s)=> (s ?? "").toString()
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;");
-
-  // ✅ 跟 admin 一樣的部門排序規則
-  const DEPT_ORDER = [
-    "管理部",
-    "TSE-早",
-    "FAE-早",
-    "倉管",
-    "新場",
-    "工程師",
-    "教育訓練",
-    "線上客服-早"
-  ];
-
-  const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
-
-  function deptRank(dept){
-    const key = (dept || "").trim();
-    return DEPT_INDEX.has(key) ? DEPT_INDEX.get(key) : 999;
-  }
-
-  let staffByDept = {};
-
-  function renderNameSelect(dept){
-    if(!dept || !staffByDept[dept]){
-      memberEl.disabled = true;
-      memberEl.innerHTML = `<option value="">請先選部門</option>`;
-      return;
-    }
-    memberEl.disabled = false;
-    memberEl.innerHTML = `<option value="">請選擇</option>` + staffByDept[dept].map(p=>
-      `<option value="${esc(p.name)}">${esc(p.name)}</option>`
-    ).join("");
-  }
-
-  function syncPinState(){
-    const hasDept = Boolean(deptEl.value);
-    const hasMember = Boolean(memberEl.value);
-    const canPin = hasDept && hasMember;
-    pinEl.disabled = false;
-    loginBtn.disabled = false;
-    if(canPin){
-      pinEl.placeholder = "輸入 使用者 密碼";
-      return;
-    }
-    pinEl.placeholder = "管理人員可直接輸入 8520";
-  }
-
-  async function loadStaff(){
-    try{
-      staffStatus.textContent = "載入人員中…";
-      const snap = await getDocs(colStaff);
-      const map = {};
-
-      snap.forEach(d=>{
-        const v = d.data() || {};
-        const dept = (v.dept || "未分部門").trim();
-        const name = (v.name || "").trim();
-        if (!name) return;
-        if (!map[dept]) map[dept] = [];
-        map[dept].push({
-          id: d.id,
-          name,
-          order: Number(v.order || 0),
-          createdAt: Number(v.createdAt || 0)
-        });
-      });
-
-      Object.keys(map).forEach(dept=>{
-        map[dept].sort((a,b)=>{
-          const ao = Number(a.order || 0);
-          const bo = Number(b.order || 0);
-          if (ao !== bo) return ao - bo;
-          const ta = Number(a.createdAt || 0);
-          const tb = Number(b.createdAt || 0);
-          if (ta !== tb) return ta - tb;
-          return (a.name || "").localeCompare((b.name || ""), "zh-Hant");
-        });
-      });
-
-      staffByDept = map;
-
-      const depts = Object.keys(map).sort((a,b)=>{
-        const ra = deptRank(a);
-        const rb = deptRank(b);
-        if (ra !== rb) return ra - rb;
-        return a.localeCompare(b, "zh-Hant");
-      });
-
-      deptEl.innerHTML =
-        `<option value="">請選擇</option>` +
-        depts.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
-
-      const savedDept = localStorage.getItem("gb_user_dept") || "";
-      const savedName = localStorage.getItem("gb_user_name") || "";
-      if (savedDept && staffByDept[savedDept]) {
-        deptEl.value = savedDept;
-        renderNameSelect(savedDept);
-        if (savedName && staffByDept[savedDept].some(x => x.name === savedName)) {
-          memberEl.value = savedName;
-        }
-      } else {
-        renderNameSelect("");
-      }
-
-      staffStatus.textContent = "人員載入完成 ✅";
-    } catch (err) {
-      console.error(err);
-      staffStatus.textContent = "人員讀取失敗";
-      alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
-    } finally {
-      syncPinState();
-    }
-  }
-
-  function go(){␊
-    const dept = (deptEl.value || "").trim();␊
-    const member = (memberEl.value || "").trim();␊
-   const pin = (pinEl.value || "").trim();
-    if(!pin){
-      alert("請輸入密碼");
-      pinEl.focus();
-      return;
-    }
-    if(pin === "8520"){
-      localStorage.setItem(roleKey, "admin");
-      location.href = "./admin.html";
-      return;
-    }
-    if(!dept || !member){
-      alert("請先輸入部門與人員");
-      if(!dept){
-        deptEl.focus();
-      }else{
-        memberEl.focus();
-      }
-      return;
-    }
-    localStorage.setItem("gb_user_dept", dept);
-    localStorage.setItem("gb_user_name", member);
-    if(pin === "888"){
-      localStorage.setItem(roleKey, "user");
-      location.href = "./user.html";
-      return;
-    }
-    alert("密碼錯誤");
-  }
-
-  loginBtn.onclick = go;
-  document.getElementById("btnClear").onclick = ()=>{
-    deptEl.value="";
-    renderNameSelect("");
-    memberEl.value="";
-    pinEl.value="";
-    syncPinState();
-    deptEl.focus();
-  };
-
-  // ✅ Enter 直接登入
-  pinEl.addEventListener("keydown", (e)=>{
-    if(e.key === "Enter"){
-      e.preventDefault();
-      go();
-    }
-  });
-
-  deptEl.addEventListener("change", ()=>{
-    renderNameSelect(deptEl.value);
-    memberEl.value = "";
-    syncPinState();
-  });
-
-  memberEl.addEventListener("change", ()=>{
-    syncPinState();
-  });
-
-  // 進來先聚焦␊
-  window.addEventListener("load", ()=>{
-    deptEl.focus();
-    renderNameSelect("");
-    syncPinState();
-    loadStaff();
-  });
-</script>␊
-</body>
-</html>
-
-
+    input:focus, select:focus{border-color: rgba(251,113,133,.7)}␊
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px}␊
+    .btn{␊
+      padding:11px 12px; border-radius:14px; border:1px solid var(--border);␊
+      background:#fff; cursor:pointer; font-weight:900;␊
+    }␊
+    .primary{␊
+      border:none; background: linear-gradient(90deg, var(--primary), var(--primary2));␊
+      color:#fff; box-shadow: 0 14px 28px rgba(251,113,133,.22);␊
+    }␊
+    .hint{margin-top:10px; padding:10px 12px; border:1px dashed rgba(15,23,42,.18);␊
+      border-radius:14px; background: rgba(15,23,42,.02); font-size:12.5px; color:var(--muted)}␊
+  </style>␊
+</head>␊
+␊
+<body>␊
+  <div class="card">␊
+    <h1>GoldBricks Order 登入</h1>␊
+    <div class="muted">GoldBricks 呷奔啊~~ </div>␊
+␊
+      <label>部門</label>␊
+    <select id="dept">␊
+      <option value="">載入中…</option>␊
+    </select>␊
+␊
+    <label>人員</label>␊
+    <select id="member" disabled>␊
+      <option value="">請先選部門</option>␊
+    </select>␊
+␊
+    <label>密碼</label>␊
+  <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="請先選部門與人員"/>␊
+    ␊
+ <div class="row">␊
+      <button class="btn primary" id="btnLogin">登入</button>␊
+      <button class="btn" id="btnClear" type="button">清空</button>␊
+    </div>␊
+␊
+  <div class="hint">␊
+      <div id="staffStatus">正在載入人員清單…</div>␊
+      點餐嘍~<br/>␊
+    </div>␊
+  </div>␊
+␊
+<script type="module">␊
+  const roleKey = "gb_role";␊
+  const deptEl = document.getElementById("dept");␊
+  const memberEl = document.getElementById("member");␊
+  const pinEl = document.getElementById("pin");␊
+  const staffStatus = document.getElementById("staffStatus");␊
+  const loginBtn = document.getElementById("btnLogin");␊
+␊
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";␊
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";␊
+␊
+  const firebaseConfig = {␊
+    apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",␊
+    authDomain: "goldbricks-order.firebaseapp.com",␊
+    projectId: "goldbricks-order",␊
+    storageBucket: "goldbricks-order.firebasestorage.app",␊
+    messagingSenderId: "463709758954",␊
+    appId: "1:463709758954:web:429dc920f2f812d51cbe93",␊
+    measurementId: "G-YQK8ZCC26R"␊
+  };␊
+␊
+  const app = initializeApp(firebaseConfig);␊
+  const db = getFirestore(app);␊
+  const colStaff = collection(db, "staff");␊
+␊
+  const esc = (s)=> (s ?? "").toString()␊
+    .replaceAll("&","&amp;")␊
+    .replaceAll("<","&lt;")␊
+    .replaceAll(">","&gt;")␊
+    .replaceAll('"',"&quot;");␊
+␊
+  // ✅ 跟 admin 一樣的部門排序規則␊
+  const DEPT_ORDER = [␊
+    "管理部",␊
+    "TSE-早",␊
+    "FAE-早",␊
+    "倉管",␊
+    "新場",␊
+    "工程師",␊
+    "教育訓練",␊
+    "線上客服-早"␊
+  ];␊
+␊
+  const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));␊
+␊
+  function deptRank(dept){␊
+    const key = (dept || "").trim();␊
+    return DEPT_INDEX.has(key) ? DEPT_INDEX.get(key) : 999;␊
+  }␊
+␊
+  let staffByDept = {};␊
+␊
+  function renderNameSelect(dept){␊
+    if(!dept || !staffByDept[dept]){␊
+      memberEl.disabled = true;␊
+      memberEl.innerHTML = `<option value="">請先選部門</option>`;␊
+      return;␊
+    }␊
+    memberEl.disabled = false;␊
+    memberEl.innerHTML = `<option value="">請選擇</option>` + staffByDept[dept].map(p=>␊
+      `<option value="${esc(p.name)}">${esc(p.name)}</option>`␊
+    ).join("");␊
+  }␊
+␊
+  function syncPinState(){␊
+    const hasDept = Boolean(deptEl.value);␊
+    const hasMember = Boolean(memberEl.value);␊
+    const canPin = hasDept && hasMember;␊
+    pinEl.disabled = false;␊
+    loginBtn.disabled = false;␊
+    if(canPin){␊
+      pinEl.placeholder = "輸入 使用者 密碼";␊
+      return;␊
+    }␊
+    pinEl.placeholder = "管理人員可直接輸入 8520";␊
+  }␊
+␊
+  async function loadStaff(){␊
+    try{␊
+      staffStatus.textContent = "載入人員中…";␊
+      const snap = await getDocs(colStaff);␊
+      const map = {};␊
+␊
+      snap.forEach(d=>{␊
+        const v = d.data() || {};␊
+        const dept = (v.dept || "未分部門").trim();␊
+        const name = (v.name || "").trim();␊
+        if (!name) return;␊
+        if (!map[dept]) map[dept] = [];␊
+        map[dept].push({␊
+          id: d.id,␊
+          name,␊
+          order: Number(v.order || 0),␊
+          createdAt: Number(v.createdAt || 0)␊
+        });␊
+      });␊
+␊
+      Object.keys(map).forEach(dept=>{␊
+        map[dept].sort((a,b)=>{␊
+          const ao = Number(a.order || 0);␊
+          const bo = Number(b.order || 0);␊
+          if (ao !== bo) return ao - bo;␊
+          const ta = Number(a.createdAt || 0);␊
+          const tb = Number(b.createdAt || 0);␊
+          if (ta !== tb) return ta - tb;␊
+          return (a.name || "").localeCompare((b.name || ""), "zh-Hant");␊
+        });␊
+      });␊
+␊
+      staffByDept = map;␊
+␊
+      const depts = Object.keys(map).sort((a,b)=>{␊
+        const ra = deptRank(a);␊
+        const rb = deptRank(b);␊
+        if (ra !== rb) return ra - rb;␊
+        return a.localeCompare(b, "zh-Hant");␊
+      });␊
+␊
+      deptEl.innerHTML =␊
+        `<option value="">請選擇</option>` +␊
+        depts.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");␊
+␊
+      const savedDept = localStorage.getItem("gb_user_dept") || "";␊
+      const savedName = localStorage.getItem("gb_user_name") || "";␊
+      if (savedDept && staffByDept[savedDept]) {␊
+        deptEl.value = savedDept;␊
+        renderNameSelect(savedDept);␊
+        if (savedName && staffByDept[savedDept].some(x => x.name === savedName)) {␊
+          memberEl.value = savedName;␊
+        }␊
+      } else {␊
+        renderNameSelect("");␊
+      }␊
+␊
+      staffStatus.textContent = "人員載入完成 ✅";␊
+    } catch (err) {␊
+      console.error(err);␊
+      staffStatus.textContent = "人員讀取失敗";␊
+      alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));␊
+    } finally {␊
+      syncPinState();␊
+    }␊
+  }␊
+␊
+  function go(){
+    const dept = (deptEl.value || "").trim();
+    const member = (memberEl.value || "").trim();
+   const pin = (pinEl.value || "").trim();␊
+    if(!pin){␊
+      alert("請輸入密碼");␊
+      pinEl.focus();␊
+      return;␊
+    }␊
+    if(pin === "8520"){␊
+      localStorage.setItem(roleKey, "admin");␊
+      location.href = "./admin.html";␊
+      return;␊
+    }␊
+    if(!dept || !member){␊
+      alert("請先輸入部門與人員");␊
+      if(!dept){␊
+        deptEl.focus();␊
+      }else{␊
+        memberEl.focus();␊
+      }␊
+      return;␊
+    }␊
+    localStorage.setItem("gb_user_dept", dept);␊
+    localStorage.setItem("gb_user_name", member);␊
+    if(pin === "888"){␊
+      localStorage.setItem(roleKey, "user");␊
+      location.href = "./user.html";␊
+      return;␊
+    }␊
+    alert("密碼錯誤");␊
+  }␊
+␊
+  loginBtn.onclick = go;␊
+  document.getElementById("btnClear").onclick = ()=>{␊
+    deptEl.value="";␊
+    renderNameSelect("");␊
+    memberEl.value="";␊
+    pinEl.value="";␊
+    syncPinState();␊
+    deptEl.focus();␊
+  };␊
+␊
+  // ✅ Enter 直接登入␊
+  pinEl.addEventListener("keydown", (e)=>{␊
+    if(e.key === "Enter"){␊
+      e.preventDefault();␊
+      go();␊
+    }␊
+  });␊
+␊
+  deptEl.addEventListener("change", ()=>{␊
+    renderNameSelect(deptEl.value);␊
+    memberEl.value = "";␊
+    syncPinState();␊
+  });␊
+␊
+  memberEl.addEventListener("change", ()=>{␊
+    syncPinState();␊
+  });␊
+␊
+  // 進來先聚焦
+  window.addEventListener("load", ()=>{␊
+    deptEl.focus();␊
+    renderNameSelect("");␊
+    syncPinState();␊
+    loadStaff();␊
+  });␊
+</script>
+</body>␊
+</html>␊
 
