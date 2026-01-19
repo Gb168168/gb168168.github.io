@@ -242,7 +242,7 @@
       <!-- LEFT -->
       <div>
         <div class="card">
-         <h2>1）選擇的部門人員</h2>
+         <h2 id="whoTitle">1）選擇的部門人員</h2>
 
           <label>部門</label>
           <select id="deptSelect">
@@ -405,9 +405,16 @@ const todayISO = ()=>{
 function setWhoLine(){
   const dept = $("deptSelect").value || "";
   const name = $("nameSelect").value || "";
-  $("whoLine").innerHTML = (dept && name)
-   ? `<span class="tag">部門人員</span> <b style="margin-left:6px">${esc(dept)} / ${esc(name)}</b>`
-    : `尚未選擇部門人員`;
+  const whoTitle = $("whoTitle");
+
+  if (dept && name) {
+    if (whoTitle) whoTitle.textContent = `1）${dept} / ${name}`;
+    $("whoLine").innerHTML = `<span class="tag">部門人員</span> <b style="margin-left:6px">${esc(dept)} / ${esc(name)}</b>`;
+    return;
+  }
+
+  if (whoTitle) whoTitle.textContent = "1）選擇的部門人員";
+  $("whoLine").textContent = "尚未選擇部門人員";
 }
 
 statusPill.textContent = "已連線 Firestore ✅";
