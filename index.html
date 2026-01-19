@@ -64,10 +64,10 @@
     </select>
 
     <label>密碼</label>
-    <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="請先選部門與人員" disabled/>
-
+  <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="請先選部門與人員"/>
+    
  <div class="row">
-      <button class="btn primary" id="btnLogin" disabled>登入</button>
+      <button class="btn primary" id="btnLogin">登入</button>
       <button class="btn" id="btnClear" type="button">清空</button>
     </div>
 
@@ -285,9 +285,12 @@
   // 進來先聚焦␊
   window.addEventListener("load", ()=>{
     deptEl.focus();
+    renderNameSelect("");
+    syncPinState();
     loadStaff();
   });
 </script>␊
 </body>
 </html>
+
 
