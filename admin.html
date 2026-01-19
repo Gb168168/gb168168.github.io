@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2521,7 +2521,10 @@ async function refreshStaffList(){
       { month: 4, day: 4, name: "兒童節" },
       { month: 4, day: 5, name: "清明節" },
       { month: 5, day: 1, name: "勞動節" },
-      { month: 10, day: 10, name: "國慶日" }
+      { month: 9, day: 28, name: "教師節" },
+      { month: 10, day: 10, name: "國慶日" },
+      { month: 10, day: 25, name: "台灣光復節" },
+      { month: 12, day: 25, name: "行憲紀念日" }
     ];
       const HOLIDAYS_BY_YEAR = {
       // 如遇到政府公告補班/調整假日，可在這裡以西元日期補充或覆寫
@@ -2579,6 +2582,11 @@ async function refreshStaffList(){
           eve.setDate(eve.getDate() - 1);
           if(eve.getFullYear() === year){
             map.set(formatDateKey(eve), "除夕");
+          }
+          const smallEve = new Date(newYearDate);
+          smallEve.setDate(smallEve.getDate() - 2);
+          if(smallEve.getFullYear() === year){
+            map.set(formatDateKey(smallEve), "小年夜");
           }
         }
       }catch(err){
