@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -161,6 +161,29 @@
     
     .menuItem b{font-size:18px; letter-spacing:.2px}
     .menuItem .tag{font-size:12.5px}
+
+      /* ===== Modal ===== */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:2000;
+      padding:16px;
+    }
+    .modal{
+      width:min(440px, 100%);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .modal h3{margin:0 0 8px; font-size:16px}
+    .modal p{margin:0; white-space:pre-wrap; line-height:1.6}
+    .modal .actions{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
 
     /* ===== Restaurant Cards ===== */
     .rGrid{display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px;}
@@ -344,6 +367,14 @@
     </div>
   </div>
 
+   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
+    <div class="modal">
+      <h3 id="modalTitle">溫馨提醒📢</h3>
+      <p id="modalMessage"></p>
+      <div class="actions" id="modalActions"></div>
+    </div>
+  </div>
+  
   <script type="module">
     // ===== Role Gate =====
     const roleKey = "gb_role";
@@ -376,6 +407,68 @@ const esc = (s)=> (s ?? "").toString()
   .replaceAll("<","&lt;")
   .replaceAll(">","&gt;")
   .replaceAll('"',"&quot;");
+
+    const modalBackdrop = $("modalBackdrop");
+const modalTitle = $("modalTitle");
+const modalMessage = $("modalMessage");
+const modalActions = $("modalActions");
+let modalBusy = false;
+
+const openDialog = ({ message, confirm = false })=>{
+  if(modalBusy) return Promise.resolve(false);
+  modalBusy = true;
+  modalTitle.textContent = "溫馨提醒📢";
+  modalMessage.textContent = message;
+  modalActions.innerHTML = "";
+
+  return new Promise((resolve)=>{
+    const close = (result)=>{
+      modalBackdrop.style.display = "none";
+      modalActions.innerHTML = "";
+      modalBackdrop.removeEventListener("click", onBackdropClick);
+      document.removeEventListener("keydown", onKeydown);
+      modalBusy = false;
+      resolve(result);
+    };
+
+    const okBtn = document.createElement("button");
+    okBtn.type = "button";
+    okBtn.className = "primary";
+    okBtn.textContent = "確定";
+    okBtn.addEventListener("click", ()=> close(true));
+
+    if(confirm){
+      const cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.className = "btn";
+      cancelBtn.textContent = "取消";
+      cancelBtn.addEventListener("click", ()=> close(false));
+      modalActions.append(cancelBtn, okBtn);
+    }else{
+      modalActions.append(okBtn);
+    }
+
+    const onBackdropClick = (e)=>{
+      if(e.target === modalBackdrop){
+        close(false);
+      }
+    };
+
+    const onKeydown = (e)=>{
+      if(e.key === "Escape") close(false);
+      if(e.key === "Enter") close(true);
+    };
+
+    modalBackdrop.addEventListener("click", onBackdropClick);
+    document.addEventListener("keydown", onKeydown);
+    modalBackdrop.style.display = "flex";
+
+    setTimeout(()=> okBtn.focus(), 0);
+  });
+};
+
+const showAlert = (message)=> openDialog({ message, confirm: false });
+const showConfirm = (message)=> openDialog({ message, confirm: true });
 
 // ✅ 跟 admin 一樣的部門排序規則
 const DEPT_ORDER = [
@@ -519,7 +612,7 @@ async function loadStaff(){
   } catch (err) {
     console.error(err);
     statusPill.textContent = "人員讀取失敗";
-    alert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
+    await showAlert("人員讀取失敗（Rules/網路）\n\n" + (err?.message || err));
   }
 }
 
@@ -566,7 +659,7 @@ async function loadStaff(){
       }catch(err){
         console.error(err);
         statusPill.textContent = "店家讀取失敗";
-        alert("店家讀取失敗（Rules/網路）\n\n" + (err?.message || err));
+        await showAlert("店家讀取失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -631,7 +724,10 @@ async function loadStaff(){
         const closed = !!r?.isClosed;
 
         const go = async ()=>{
-          if(closed) return alert("此店家已結單，無法選擇");
+         if(closed){
+            await showAlert("此店家已結單，無法選擇");
+            return;
+          }
           await pickRestaurant(rid);
           const d = card.closest("details");
           if(d) d.open = false;
@@ -692,7 +788,7 @@ function normalizeSetMealTemplates(raw){
       }catch(err){
         console.error(err);
         statusPill.textContent = "讀取店家失敗";
-        alert("讀取店家失敗（Rules/網路）\n\n" + (err?.message || err));
+        await showAlert("讀取店家失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -759,18 +855,18 @@ function normalizeSetMealTemplates(raw){
       `).join("");
 
       wrap.querySelectorAll("[data-add-mid]").forEach(btn=>{
-        btn.onclick = ()=>{
+         btn.onclick = async ()=>{
           const mid = btn.dataset.addMid;
-          addToCart(mid);
+            await addToCart(mid);
         };
       });
 
       wrap.querySelectorAll("[data-mid-note]").forEach(inp=>{
-        inp.addEventListener("keydown",(e)=>{
+       inp.addEventListener("keydown", async (e)=>{
           if(e.key==="Enter"){
             e.preventDefault();
             const mid = inp.dataset.midNote;
-            addToCart(mid);
+            await addToCart(mid);
           }
         });
       });
@@ -784,8 +880,8 @@ function normalizeSetMealTemplates(raw){
       });
 
       wrap.querySelectorAll("input[data-sm-mid]").forEach(inp=>{
-        inp.addEventListener("change", ()=>{
-          enforceSetMealPickLimit(inp);
+           inp.addEventListener("change", async ()=>{
+          await enforceSetMealPickLimit(inp);
         });
       });
     }
@@ -956,7 +1052,7 @@ function normalizeSetMealTemplates(raw){
       });
     }
 
-    function enforceSetMealPickLimit(input){
+     async function enforceSetMealPickLimit(input){
       const pickCount = Number(input.dataset.smPick || 1);
       if(pickCount <= 1) return;
       const mid = input.dataset.smMid || "";
@@ -969,7 +1065,7 @@ function normalizeSetMealTemplates(raw){
 
       if(checked.length > pickCount){
         input.checked = false;
-        alert(`此類別最多選 ${pickCount} 項`);
+      await showAlert(`此類別最多選 ${pickCount} 項`);
       }
     }
 
@@ -1108,18 +1204,31 @@ function normalizeSetMealTemplates(raw){
       return Math.abs(quotient - Math.round(quotient)) < 1e-6;
     }
 
-    function addToCart(mid){
+   async function addToCart(mid){
       if(!($("deptSelect").value && $("nameSelect").value)){
-        return alert("請先選擇部門與姓名");
+       await showAlert("請先選擇部門與姓名");
+        return;
       }
-      if(!selectedRestaurantId) return alert("請先選擇店家");
-      if(selectedRestaurant?.isClosed) return alert("此店家已結單，無法送出/加入");
+      if(!selectedRestaurantId){
+        await showAlert("請先選擇店家");
+        return;
+      }
+      if(selectedRestaurant?.isClosed){
+        await showAlert("此店家已結單，無法送出/加入");
+        return;
+      }
 
       const m = menuCache.find(x=> x.id===mid);
-      if(!m) return alert("找不到餐點");
+      if(!m){
+        await showAlert("找不到餐點");
+        return;
+      }
 
       const err = validateRequired(mid);
-      if(err) return alert(err);
+      if(err){
+        await showAlert(err);
+        return;
+      }
 
       const qtyEl = document.querySelector(`input[data-mid-qty="${CSS.escape(mid)}"]`);
       const noteEl = document.querySelector(`input[data-mid-note="${CSS.escape(mid)}"]`);
@@ -1127,7 +1236,8 @@ function normalizeSetMealTemplates(raw){
       const rawQty = Number(qtyEl?.value || qtyStep);
       const qty = Number.isFinite(rawQty) ? Math.max(qtyStep, rawQty) : qtyStep;
       if(!isMultiple(qty, qtyStep)){
-      return alert(`數量需為 ${qtyStep} 的倍數`);
+      await showAlert(`數量需為 ${qtyStep} 的倍數`);
+        return;
       }
       const note = (noteEl?.value || "").trim();
 
@@ -1232,9 +1342,18 @@ function normalizeSetMealTemplates(raw){
 
     // ===== Submit Order =====
         async function submitOrder(){
-      if(!isUserReady()) return alert("請先選擇部門 / 姓名 / 店家");
-      if(cart.length===0) return alert("購物車是空的");
-      if(isClosedNow()) return alert("此店家已結單，無法送出");
+        if(!isUserReady()){
+        await showAlert("請先選擇部門 / 姓名 / 店家");
+        return;
+      }
+      if(cart.length===0){
+        await showAlert("購物車是空的");
+        return;
+      }
+      if(isClosedNow()){
+        await showAlert("此店家已結單，無法送出");
+        return;
+      }
 
       const userDept = $("deptSelect").value;
       const userName = $("nameSelect").value;
@@ -1259,7 +1378,7 @@ function normalizeSetMealTemplates(raw){
         `以上資訊是否正確？\n` +
         `按「確定」送出訂單，按「取消」回去修改。`;
 
-      if(!confirm(confirmMsg)){
+     if(!(await showConfirm(confirmMsg))){
         statusPill.textContent = "已取消送出";
         return;
       }
@@ -1295,7 +1414,7 @@ function normalizeSetMealTemplates(raw){
       }catch(err){
         console.error(err);
         statusPill.textContent = "送出失敗";
-        alert("送出失敗（Rules/網路）\n\n" + (err?.message || err));
+        await showAlert("送出失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -1413,7 +1532,7 @@ function normalizeSetMealTemplates(raw){
       }catch(err){
         console.error(err);
         statusPill.textContent = "載入失敗";
-        alert("載入失敗（Rules/網路）\n\n" + (err?.message || err));
+        await showAlert("載入失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -1471,16 +1590,17 @@ function normalizeSetMealTemplates(raw){
       if(!o) return;
 
       if(!canDeleteByOrderDate(o.orderDate)){
-        return alert("此訂單已不可刪（非今日或今日已截單）");
+         await showAlert("此訂單已不可刪（非今日或今日已截單）");
+        return;
       }
-      if(!confirm("確定刪除這筆訂單？")) return;
+      if(!(await showConfirm("確定刪除這筆訂單？"))) return;
 
       try{
         await deleteDoc(doc(db,"orders", activeOrderId));
         await loadMyOrders();
       }catch(err){
         console.error(err);
-        alert("刪除失敗（Rules/網路）\n\n" + (err?.message || err));
+        await showAlert("刪除失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     };
 
@@ -1510,8 +1630,8 @@ function normalizeSetMealTemplates(raw){
     };
 
     $("btnSubmit").onclick = submitOrder;
-    $("btnClearCart").onclick = ()=>{
-      if(!confirm("確定清空購物車？")) return;
+     $("btnClearCart").onclick = async ()=>{
+      if(!(await showConfirm("確定清空購物車？"))) return;
       cart = [];
       renderCart();
     };
@@ -1530,9 +1650,12 @@ function normalizeSetMealTemplates(raw){
     };
 
     // ===== Switch admin =====
-    function goAdmin(){
+     async function goAdmin(){
       const pin = ($("adminPin").value || "").trim();
-      if(pin !== "8520") return alert("PIN 不正確");
+      if(pin !== "8520"){
+        await showAlert("PIN 不正確");
+        return;
+      }
       localStorage.setItem(roleKey, "admin");
       location.href = "./admin.html";
     }
