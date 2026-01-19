@@ -1019,17 +1019,17 @@
             <h3>新增人員</h3>
 
             <label>部門</label>
-            <select id="s_dept">
-              <option value="">請選部門</option>
-              <option>管理部</option>
-              <option>TSE</option>
-              <option>FAE</option>
-              <option>倉管</option>
-              <option>新場</option>
-              <option>工程師</option>
-              <option>教育訓練</option>
-              <option>線上客服</option>
-            </select>
+            <input id="s_dept" list="dept_list" placeholder="請選或輸入部門"/>
+            <datalist id="dept_list">
+              <option value="管理部"></option>
+              <option value="TSE"></option>
+              <option value="FAE"></option>
+              <option value="倉管"></option>
+              <option value="新場"></option>
+              <option value="工程師"></option>
+              <option value="教育訓練"></option>
+              <option value="線上客服"></option>
+            </datalist>
 
             <label>人員名稱</label>
             <input id="s_name" placeholder="例：小明（按 Enter 也可新增）"/>
