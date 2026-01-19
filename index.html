@@ -117,7 +117,9 @@
   </div>
 
 <script type="module">
-  const roleKey = "gb_role";
+ const roleKey = "gb_role";
+  const userDeptKey = "gb_user_dept";
+  const userNameKey = "gb_user_name";
   const deptEl = document.getElementById("dept");
   const memberEl = document.getElementById("member");
   const pinEl = document.getElementById("pin");
@@ -223,8 +225,10 @@
        }
       return;
     }
-    if(pin === "888"){
+     if(pin === "888"){
       localStorage.setItem(roleKey, "user");
+      localStorage.setItem(userDeptKey, dept);
+      localStorage.setItem(userNameKey, member);
       location.href = "./user.html";
       return;
     }
@@ -258,6 +262,7 @@
 </script>
 </body>
 </html>
+
 
 
 
