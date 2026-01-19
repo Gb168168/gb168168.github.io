@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1078,7 +1078,15 @@
 
            <div class="hr"></div>
 
-          <div class="row" style="margin-top:8px;">
+             <div class="row3" style="margin-top:8px;">
+            <div>
+              <label>班別</label>
+              <select id="sch_shift">
+                <option value="">請選班別</option>
+                <option value="morning">早班</option>
+                <option value="evening">晚班</option>
+              </select>
+            </div>
             <div>
               <label>部門</label>
               <select id="sch_dept"></select>
@@ -2968,12 +2976,24 @@ async function refreshStaffList(){
       }
     }
 
+    function getSelectedScheduleShift(){
+      const shift = ($("sch_shift")?.value || "").trim();
+      if(shift === "morning" || shift === "evening") return shift;
+      return "";
+    }
+
+    function filterScheduleStaffByShift(list){
+      const shift = getSelectedScheduleShift();
+      if(!shift) return list;
+      return list.filter(s=> shift === "morning" ? s.shiftMorning : s.shiftEvening);
+    }
+
     function buildScheduleDeptOptions(){
       const deptSel = $("sch_dept");
       if(!deptSel) return;
       const prevValue = deptSel.value || "";
       const deptMap = new Map();
-      allStaffBase.forEach(s=>{
+      filterScheduleStaffByShift(allStaffBase).forEach(s=>{
         const dept = (s.dept||"未分部門").trim() || "未分部門";
         if(!deptMap.has(dept)) deptMap.set(dept, []);
         deptMap.get(dept).push(s);
@@ -2995,10 +3015,10 @@ async function refreshStaffList(){
       if(!deptSel || !staffSel) return;
       const dept = (deptSel.value || "").trim();
       const prevValue = staffSel.value || "";
-      const list = allStaffBase.filter(s=>{
-        const d = (s.dept||"未分部門").trim() || "未分部門";
-        return dept && d === dept;
-      });
+      const list = filterScheduleStaffByShift(allStaffBase).filter(s=>{
+          const d = (s.dept||"未分部門").trim() || "未分部門";
+          return dept && d === dept;
+        });
       staffSel.innerHTML = `
         <option value="">請選人員</option>
         ${list.map(s=>`<option value="${esc(s.name||"")}">${esc(s.name||"")}</option>`).join("")}
@@ -3101,6 +3121,12 @@ async function refreshStaffList(){
 
     $("sch_day")?.addEventListener("change", ()=>{
       renderScheduleDate();
+    });
+
+     $("sch_shift")?.addEventListener("change", ()=>{
+      buildScheduleDeptOptions();
+      buildScheduleStaffOptions();
+      renderScheduleMonthCalendar();
     });
 
     $("sch_dept")?.addEventListener("change", ()=>{
