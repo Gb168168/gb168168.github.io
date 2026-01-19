@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -496,7 +496,68 @@
       font-size:11px;
       padding:3px 7px;
     }
-
+ .schMonthPanel{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+      padding:10px 12px 12px;
+      margin-top:8px;
+    }
+    .schMonthHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:14px;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+    .schMonthMeta{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:600;
+    }
+    .schCalendarGrid{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:6px;
+    }
+    .schCalWeekday{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      padding:4px 0;
+    }
+    .schCalCell{
+      min-height:42px;
+      border-radius:12px;
+      border:1px solid rgba(15,23,42,.08);
+      background:#fff;
+      font-size:13px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      cursor:pointer;
+      transition: all .15s ease;
+    }
+    .schCalCell.is-empty{
+      border:1px dashed rgba(15,23,42,.08);
+      background:rgba(15,23,42,.02);
+      cursor:default;
+    }
+    .schCalCell.is-selected{
+      border-color: rgba(251,113,133,.6);
+      background: linear-gradient(90deg, rgba(251,113,133,.18), rgba(255,154,158,.12));
+      color:#be123c;
+      box-shadow: 0 8px 18px rgba(251,113,133,.18);
+    }
+    .schCalCell span{
+      pointer-events:none;
+    }
+    
 .view{
   align-self: stretch;
   margin-top: 0;
@@ -929,7 +990,10 @@
       <!-- VIEW: 班表管理 -->
       <section class="view" id="view_schedule" style="display:none">
         <div class="card">
-          <h3>今天誰上班（勾選當日上班人員）</h3>
+          <h3>班表管理</h3>
+          <p class="muted mini" style="margin-top:6px;">
+            ✅ 保留原本「年月日」單日勾選方式；也可先選部門/人員，再用當月月曆快速選擇上班日。
+          </p>
 
          <div class="row3" style="margin-top:4px;">
             <div>
@@ -950,9 +1014,25 @@
             <button class="ghost" id="btnScheduleToday" type="button">跳到今天</button>
           </div>
 
-          <p class="muted mini" style="margin-top:8px">
-          </p>
+           <div class="hr"></div>
 
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <label>部門</label>
+              <select id="sch_dept"></select>
+            </div>
+            <div>
+              <label>人員</label>
+              <select id="sch_staff"></select>
+            </div>
+          </div>
+          <p class="muted mini" style="margin-top:8px;">
+            選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否上班。
+          </p>
+          <div id="scheduleMonthWrap"></div>
+
+          <div class="hr"></div>
+          
           <div id="scheduleWrap" style="margin-top:10px"></div>
         </div>
       </section>
@@ -1257,6 +1337,7 @@
         "訂餐紀錄";
 
       if(viewKey==="staff") refreshStaffList();
+      if(viewKey==="schedule") initSchedulePeopleSelectors();
       if(viewKey==="restaurants") refreshRestaurantsManage();
       if(viewKey==="randomPick") refreshRandomPick();
     }
@@ -2383,7 +2464,8 @@ async function refreshStaffList(){
     /* ===============================
       ✅ 班表管理：當日上班人員勾選（依部門分段）
        =============================== */
-
+    const scheduleMonthCache = new Map();
+    
     function buildScheduleSelects(){
       const yearSel = $("sch_year");
       const monthSel = $("sch_month");
@@ -2442,11 +2524,32 @@ async function refreshStaffList(){
       return `${y}-${m}-${d}`;
     }
 
+       function getSelectedScheduleMonth(){
+      const y = $("sch_year")?.value;
+      const m = $("sch_month")?.value;
+      if(!y || !m) return "";
+      return `${y}-${m}`;
+    }
+
+    function getSelectedScheduleWorkerKey(){
+      const dept = ($("sch_dept")?.value || "").trim();
+      const name = ($("sch_staff")?.value || "").trim();
+      if(!dept || !name) return "";
+      return `${dept}||${name}`;
+    }
+
     async function loadScheduleKeysForDate(dateStr){
       const snap = await getDoc(doc(db,"schedules", dateStr));
       if(!snap.exists()) return [];
       const data = snap.data() || {};
       return Array.isArray(data.workerKeys) ? data.workerKeys : [];
+    }
+
+     function updateScheduleMonthCache(dateStr, workerKeys){
+      const monthStr = dateStr.slice(0,7);
+      if(!scheduleMonthCache.has(monthStr)) return;
+      const entry = scheduleMonthCache.get(monthStr);
+      entry.set(dateStr, workerKeys);
     }
 
     async function saveScheduleForDate(dateStr){
@@ -2465,12 +2568,160 @@ async function refreshStaffList(){
           workerKeys,
           updatedAt: Date.now()
         }, { merge:true });
+        updateScheduleMonthCache(dateStr, workerKeys);
         statusPill.textContent = "班表已儲存 ✅";
       }catch(err){
         console.error(err);
         alert("儲存班表失敗\n\n" + (err?.message || err));
         statusPill.textContent = "班表儲存失敗（看 console）";
       }
+    }
+
+     async function loadScheduleMapForMonth(monthStr){
+      if(scheduleMonthCache.has(monthStr)) return scheduleMonthCache.get(monthStr);
+      const map = new Map();
+      const snap = await getDocs(query(colSchedules, where("month","==", monthStr)));
+      snap.forEach(docSnap=>{
+        const data = docSnap.data() || {};
+        const date = data.date || docSnap.id;
+        const keys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
+        map.set(date, keys);
+      });
+      scheduleMonthCache.set(monthStr, map);
+      return map;
+    }
+
+    async function renderScheduleMonthCalendar(){
+      const wrap = $("scheduleMonthWrap");
+      if(!wrap) return;
+      const monthStr = getSelectedScheduleMonth();
+      const workerKey = getSelectedScheduleWorkerKey();
+      if(!monthStr){
+        wrap.innerHTML = `<div class="muted">請先選擇年月。</div>`;
+        return;
+      }
+      if(!workerKey){
+        wrap.innerHTML = `<div class="muted">請先選擇部門與人員。</div>`;
+        return;
+      }
+      wrap.innerHTML = `<div class="muted">載入中…</div>`;
+
+      try{
+        const map = await loadScheduleMapForMonth(monthStr);
+        const [yy, mm] = monthStr.split("-").map(Number);
+        const daysInMonth = new Date(yy, mm, 0).getDate();
+        const firstDay = new Date(yy, mm-1, 1).getDay();
+        const weekdayLabels = WEEKDAY_LABEL.map(l=>`<div class="schCalWeekday">${l}</div>`).join("");
+        let selectedCount = 0;
+
+        const cells = [];
+        for(let i=0; i<firstDay; i++){
+          cells.push(`<div class="schCalCell is-empty"></div>`);
+        }
+        for(let d=1; d<=daysInMonth; d++){
+          const dateStr = `${yy}-${pad2(mm)}-${pad2(d)}`;
+          const keys = map.get(dateStr) || [];
+          const isSelected = keys.includes(workerKey);
+          if(isSelected) selectedCount += 1;
+          cells.push(`
+            <button class="schCalCell ${isSelected ? "is-selected" : ""}" type="button"
+              data-schcal-date="${dateStr}" aria-pressed="${isSelected ? "true" : "false"}">
+              <span>${d}</span>
+            </button>
+          `);
+        }
+
+        const [deptLabel, nameLabel] = workerKey.split("||");
+        wrap.innerHTML = `
+          <div class="schMonthPanel">
+            <div class="schMonthHeader">
+              <span>${yy}年 ${mm}月（${esc(deptLabel)} - ${esc(nameLabel)}）</span>
+              <span class="tag miniTag">已選 ${selectedCount} 天</span>
+            </div>
+            <div class="schMonthMeta">點選日期可切換該人員是否上班。</div>
+            <div class="schCalendarGrid" style="margin-top:10px">
+              ${weekdayLabels}
+              ${cells.join("")}
+            </div>
+          </div>
+        `;
+
+        const countTag = wrap.querySelector(".schMonthHeader .miniTag");
+        wrap.querySelectorAll("[data-schcal-date]").forEach(btn=>{
+          btn.addEventListener("click", async ()=>{
+            const dateStr = btn.dataset.schcalDate;
+            const monthMap = scheduleMonthCache.get(monthStr) || new Map();
+            const keys = monthMap.get(dateStr) ? [...monthMap.get(dateStr)] : [];
+            const exists = keys.includes(workerKey);
+            const next = !exists;
+            const nextKeys = next ? [...keys, workerKey] : keys.filter(k=>k!==workerKey);
+            btn.classList.toggle("is-selected", next);
+            btn.setAttribute("aria-pressed", next ? "true" : "false");
+            if(countTag){
+              const current = Number(countTag.textContent.replace(/[^\d]/g,"")) || 0;
+              const nextCount = Math.max(0, current + (next ? 1 : -1));
+              countTag.textContent = `已選 ${nextCount} 天`;
+            }
+            monthMap.set(dateStr, nextKeys);
+            scheduleMonthCache.set(monthStr, monthMap);
+            await setDoc(doc(db,"schedules", dateStr), {
+              date: dateStr,
+              month: monthStr,
+              workerKeys: nextKeys,
+              updatedAt: Date.now()
+            }, { merge:true });
+            statusPill.textContent = "班表已儲存 ✅";
+          });
+        });
+      }catch(err){
+        console.error(err);
+        wrap.innerHTML = `<div class="muted">班表載入失敗<br/>${esc(err?.message || err)}</div>`;
+      }
+    }
+
+    function buildScheduleDeptOptions(){
+      const deptSel = $("sch_dept");
+      if(!deptSel) return;
+      const prevValue = deptSel.value || "";
+      const deptMap = new Map();
+      allStaffBase.forEach(s=>{
+        const dept = (s.dept||"未分部門").trim() || "未分部門";
+        if(!deptMap.has(dept)) deptMap.set(dept, []);
+        deptMap.get(dept).push(s);
+      });
+      const orderedDepts = [
+        ...DEPT_ORDER.filter(d=>deptMap.has(d)),
+        ...Array.from(deptMap.keys()).filter(d=>!DEPT_INDEX.has(d))
+      ];
+      deptSel.innerHTML = `
+        <option value="">請選部門</option>
+        ${orderedDepts.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("")}
+      `;
+      if(orderedDepts.includes(prevValue)) deptSel.value = prevValue;
+    }
+
+    function buildScheduleStaffOptions(){
+      const deptSel = $("sch_dept");
+      const staffSel = $("sch_staff");
+      if(!deptSel || !staffSel) return;
+      const dept = (deptSel.value || "").trim();
+      const prevValue = staffSel.value || "";
+      const list = allStaffBase.filter(s=>{
+        const d = (s.dept||"未分部門").trim() || "未分部門";
+        return dept && d === dept;
+      });
+      staffSel.innerHTML = `
+        <option value="">請選人員</option>
+        ${list.map(s=>`<option value="${esc(s.name||"")}">${esc(s.name||"")}</option>`).join("")}
+      `;
+      if(list.some(s=>s.name === prevValue)) staffSel.value = prevValue;
+    }
+
+    async function initSchedulePeopleSelectors(){
+      await loadAllStaffOnce();
+      buildScheduleDeptOptions();
+      buildScheduleStaffOptions();
+      renderScheduleMonthCalendar();
     }
 
       async function renderScheduleDate(){
@@ -2563,15 +2814,26 @@ async function refreshStaffList(){
      $("sch_year")?.addEventListener("change", ()=>{
       syncScheduleDayOptions();
       renderScheduleDate();
+      renderScheduleMonthCalendar();
     });
 
     $("sch_month")?.addEventListener("change", ()=>{
       syncScheduleDayOptions();
       renderScheduleDate();
+      renderScheduleMonthCalendar();
     });
 
     $("sch_day")?.addEventListener("change", ()=>{
       renderScheduleDate();
+    });
+
+    $("sch_dept")?.addEventListener("change", ()=>{
+      buildScheduleStaffOptions();
+      renderScheduleMonthCalendar();
+    });
+
+    $("sch_staff")?.addEventListener("change", ()=>{
+      renderScheduleMonthCalendar();
     });
 
     $("btnLoadSchedule")?.addEventListener("click", ()=>{
