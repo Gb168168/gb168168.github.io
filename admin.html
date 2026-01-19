@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -672,7 +672,7 @@
         ✅ 訂單：支援 Excel 匯出、支援刪整筆/刪單一道<br/>
         ✅ 餐點：支援「擇一(下拉) / 加購(多選)」選項<br/>
         ✅ 新增餐點：餐點類別支援「群組新增 + 拖曳排序」<br/>
-        ✅ 班表：選日期勾選上班人員，訂餐頁會提醒未點餐名單<br/>
+        ✅ 班表：選日期勾選休假人員，訂餐頁會提醒未點餐名單<br/>
       </p>
     </aside>
 
@@ -1054,7 +1054,7 @@
         <div class="card">
           <h3>班表管理</h3>
           <p class="muted mini" style="margin-top:6px;">
-            ✅ 保留原本「年月日」單日勾選方式；也可先選部門/人員，再用當月月曆快速選擇上班日。
+            ✅ 保留原本「年月日」單日勾選方式；也可先選部門/人員，再用當月月曆快速選擇休假日。
           </p>
 
          <div class="row3" style="margin-top:4px;">
@@ -1089,7 +1089,7 @@
             </div>
           </div>
           <p class="muted mini" style="margin-top:8px;">
-                    選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否上班。國定假日會以金色提示。
+             選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否休假。國定假日會以金色提示。
           </p>
           <div id="scheduleMonthWrap"></div>
 
@@ -2942,11 +2942,11 @@ async function refreshStaffList(){
               <span>${yy}年 ${mm}月（${esc(deptLabel)} - ${esc(nameLabel)}）</span>
               <span class="tag miniTag">已選 ${selectedCount} 天</span>
             </div>
-            <div class="schMonthMeta">點選日期可切換該人員是否上班。</div>
+            <div class="schMonthMeta">點選日期可切換該人員是否休假。</div>
              <div class="schLegend">
               <span class="schLegendItem" style="color:${staffColors.text}; --legend-bg:${staffColors.bg};">
                 <span class="schLegendColor"></span>
-              上班日
+              休假日
               </span>
               <span class="schLegendItem" style="color:#b45309; --legend-bg:rgba(254,243,199,.9);">
                 <span class="schLegendColor"></span>
