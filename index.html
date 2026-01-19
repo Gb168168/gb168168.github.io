@@ -28,12 +28,47 @@
     }
     h1{margin:0; font-size:18px}
     .muted{color:var(--muted); font-size:12.5px; line-height:1.6; margin-top:6px}
-    label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px;}
+      label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px;}
     input{
       width:100%; padding:12px 12px; border-radius:14px;
       border:1px solid var(--border); outline:none; background:#fff; font-size:15px;
     }
     input:focus{border-color: rgba(251,113,133,.7)}
+    .select-wrap{
+      position:relative;
+    }
+    .select-wrap::after{
+      content:"";
+      position:absolute;
+      top:50%;
+      right:14px;
+      width:8px;
+      height:8px;
+      border-right:2px solid rgba(15,23,42,.45);
+      border-bottom:2px solid rgba(15,23,42,.45);
+      transform: translateY(-70%) rotate(45deg);
+      pointer-events:none;
+    }
+    select{
+      width:100%;
+      padding:12px 42px 12px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      outline:none;
+      background:#fff;
+      font-size:15px;
+      color:var(--text);
+      appearance:none;
+    }
+    select:focus{
+      border-color: rgba(251,113,133,.7);
+      box-shadow: 0 0 0 3px rgba(251,113,133,.15);
+    }
+    select:disabled{
+      background: rgba(15,23,42,.04);
+      color: rgba(15,23,42,.45);
+      cursor:not-allowed;
+    }
     .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px}
     .btn{
       padding:11px 12px; border-radius:14px; border:1px solid var(--border);
@@ -53,16 +88,20 @@
     <h1>GoldBricks Order 登入</h1>
     <div class="muted">GoldBricks 呷奔啊~~ </div>
 
-      <label>部門</label>
-    <select id="dept">
-      <option value="">請選部門</option>
-    </select>
-
+    <label>部門</label>
+    <div class="select-wrap">
+      <select id="dept">
+        <option value="">請選部門</option>
+      </select>
+    </div>
+    
     <label>人員</label>
-    <select id="member" disabled>
-      <option value="">請選人員</option>
-    </select>
-
+    <div class="select-wrap">
+      <select id="member" disabled>
+        <option value="">請選人員</option>
+      </select>
+    </div>
+    
     <label>密碼</label>
     <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入 使用者 密碼"/>
 
@@ -216,8 +255,9 @@
 
   // 進來先聚焦␊
   window.addEventListener("load", ()=> pinEl.focus());
-</script>␊␊
-</body>␊
-</html>␊
+</script>
+</body>
+</html>
+
 
 
