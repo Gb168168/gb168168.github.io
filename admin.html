@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理666</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2523,18 +2523,70 @@ async function refreshStaffList(){
       { month: 5, day: 1, name: "勞動節" },
       { month: 10, day: 10, name: "國慶日" }
     ];
-     const HOLIDAYS_BY_YEAR = {
-      2026: [
-        { date: "2026-02-16", name: "除夕" },
-        { date: "2026-02-17", name: "春節" },
-        { date: "2026-02-18", name: "春節" },
-        { date: "2026-02-19", name: "春節" },
-        { date: "2026-02-20", name: "春節" },
-        { date: "2026-06-19", name: "端午節" },
-        { date: "2026-09-25", name: "中秋節" }
-      ]
+      const HOLIDAYS_BY_YEAR = {
+      // 如遇到政府公告補班/調整假日，可在這裡以西元日期補充或覆寫
+      // 例如：{ date: "2027-02-05", name: "彈性放假" }
+    };
+    const LUNAR_MONTH_MAP = {
+      正月: 1,
+      二月: 2,
+      三月: 3,
+      四月: 4,
+      五月: 5,
+      六月: 6,
+      七月: 7,
+      八月: 8,
+      九月: 9,
+      十月: 10,
+      十一月: 11,
+      冬月: 11,
+      十二月: 12,
+      臘月: 12
     };
     const holidayMapCache = new Map();
+    const lunarHolidayCache = new Map();
+    const lunarFormatter = new Intl.DateTimeFormat("zh-Hant-u-ca-chinese", {
+      month: "long",
+      day: "numeric"
+    });
+
+    const formatDateKey = (date)=>
+      `${date.getFullYear()}-${pad2(date.getMonth()+1)}-${pad2(date.getDate())}`;
+
+    function getLunarHolidayMapByYear(year){
+      if(lunarHolidayCache.has(year)) return lunarHolidayCache.get(year);
+      const map = new Map();
+      try{
+        const start = new Date(year, 0, 1);
+        const end = new Date(year, 11, 31);
+        let newYearDate = null;
+        for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)){
+          const parts = lunarFormatter.formatToParts(d);
+          const monthLabel = parts.find(p=>p.type==="month")?.value;
+          const dayLabel = parts.find(p=>p.type==="day")?.value;
+          if(!monthLabel || !dayLabel) continue;
+          if(monthLabel.includes("閏")) continue;
+          const month = LUNAR_MONTH_MAP[monthLabel];
+          const day = Number(dayLabel);
+          if(!month || Number.isNaN(day)) continue;
+          if(month === 1 && day === 1) newYearDate = new Date(d);
+          if(month === 1 && day <= 4) map.set(formatDateKey(d), "春節");
+          if(month === 5 && day === 5) map.set(formatDateKey(d), "端午節");
+          if(month === 8 && day === 15) map.set(formatDateKey(d), "中秋節");
+        }
+        if(newYearDate){
+          const eve = new Date(newYearDate);
+          eve.setDate(eve.getDate() - 1);
+          if(eve.getFullYear() === year){
+            map.set(formatDateKey(eve), "除夕");
+          }
+        }
+      }catch(err){
+        console.warn("無法解析農曆假日，僅顯示固定國定假日。", err);
+      }
+      lunarHolidayCache.set(year, map);
+      return map;
+    }
     function getHolidayMapByYear(year){
       if(holidayMapCache.has(year)) return holidayMapCache.get(year);
       const map = new Map();
@@ -2542,6 +2594,8 @@ async function refreshStaffList(){
         const date = `${year}-${pad2(item.month)}-${pad2(item.day)}`;
         map.set(date, item.name);
       });
+      const lunarMap = getLunarHolidayMapByYear(year);
+      lunarMap.forEach((name, date)=> map.set(date, name));
       const yearSpecific = HOLIDAYS_BY_YEAR[year] || [];
       yearSpecific.forEach(item=> map.set(item.date, item.name));
       holidayMapCache.set(year, map);
