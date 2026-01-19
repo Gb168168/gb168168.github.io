@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者6666</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -157,7 +157,8 @@
     .priceTag{color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); border:none}
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
-
+    .warnTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
+    
     .menuItem b{font-size:18px; letter-spacing:.2px}
     .menuItem .tag{font-size:12.5px}
 
@@ -221,7 +222,7 @@
     <div class="topbar">
       <div>
         <h1>吃飯 吃飯 ~~</h1>
-        <div class="muted" id="whoLine">尚未選擇使用者</div>
+            <div class="muted" id="whoLine">尚未選擇部門人員</div>
       </div>
 
       <div class="right">
@@ -241,7 +242,7 @@
       <!-- LEFT -->
       <div>
         <div class="card">
-          <h2>1）選擇使用者（必填）</h2>
+         <h2>1）選擇的部門人員</h2>
 
           <label>部門</label>
           <select id="deptSelect">
@@ -288,6 +289,7 @@
             <button class="primary" id="btnSubmit" disabled>送出訂單</button>
             <button class="btn danger" id="btnClearCart" disabled>清空購物車</button>
             <span class="tag priceTag" id="cartTotal">總額：0</span>
+            <span class="tag" id="cartBudget">額度：140</span>
           </div>
           <div class="muted" style="margin-top:8px">※ 送出後，會出現在右側「我的訂餐紀錄」。</div>
         </div>
@@ -404,8 +406,8 @@ function setWhoLine(){
   const dept = $("deptSelect").value || "";
   const name = $("nameSelect").value || "";
   $("whoLine").innerHTML = (dept && name)
-    ? `<span class="tag">使用者</span> <b style="margin-left:6px">${esc(dept)} / ${esc(name)}</b>`
-    : `尚未選擇使用者`;
+   ? `<span class="tag">部門人員</span> <b style="margin-left:6px">${esc(dept)} / ${esc(name)}</b>`
+    : `尚未選擇部門人員`;
 }
 
 statusPill.textContent = "已連線 Firestore ✅";
@@ -1166,9 +1168,19 @@ function normalizeSetMealTemplates(raw){
 
     function renderCart(){
       const wrap = $("cartWrap");
+      const budgetLimit = 140;
       const total = cart.reduce((s,x)=> s + Number(x.lineTotal||0), 0);
       $("cartTotal").textContent = `總額：${total}`;
-
+      const budgetEl = $("cartBudget");
+      const exceed = total - budgetLimit;
+      if(exceed > 0){
+        budgetEl.textContent = `超出 ${exceed}（需補 ${exceed}）`;
+        budgetEl.classList.add("warnTag");
+      }else{
+        budgetEl.textContent = `額度：${budgetLimit}`;
+        budgetEl.classList.remove("warnTag");
+      }
+      
       const canSubmit = isUserReady() && cart.length>0 && !isClosedNow();
       $("btnSubmit").disabled = !canSubmit;
       $("btnClearCart").disabled = cart.length===0;
