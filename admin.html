@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -5326,19 +5326,23 @@ async function loadOrdersByDate(dateStr){
           noOrderBanner.textContent = "⚠ 今日尚未設定班表，無法判斷誰未點餐（請到「班表管理」設定）。";
           noOrderBanner.style.display = "";
           if(showModal && noOrderModal && noOrderList){
-            noOrderList.textContent = "尚未設定今日班表。請先到「班表管理」為此日期勾選上班人員。";
+            noOrderList.textContent = "尚未設定今日班表。請先到「班表管理」為此日期勾選休假人員。";
             noOrderModal.style.display = "flex";
           }
           return;
         }
 
         const data = schSnap.data()||{};
-        const workerKeys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
-        const workingSet = new Set(workerKeys);
+        const restKeys = Array.isArray(data.workerKeys) ? data.workerKeys : [];
+        const restSet = new Set(restKeys);
+        const allStaffKeys = allStaffBase.map(s=>`${(s.dept||"").trim()}||${(s.name||"").trim()}`)
+          .filter(k=>k !== "||");
+        const workingKeys = allStaffKeys.filter(k=>!restSet.has(k));
+        const workingSet = new Set(workingKeys);
         const morningShiftKeys = getStaffShiftKeySet("morning");
         const filteredWorkerKeys = morningShiftKeys.size
-          ? workerKeys.filter(k=>morningShiftKeys.has(k))
-          : workerKeys;
+          ? workingKeys.filter(k=>morningShiftKeys.has(k))
+          : workingKeys;
         const shiftLabel = morningShiftKeys.size ? "（早班）" : "";
         const orderedSet = new Set();
         
@@ -5391,6 +5395,14 @@ async function loadOrdersByDate(dateStr){
               noOrderList.textContent = "今日班表沒有早班人員（已勾選早班）。";
               noOrderModal.style.display = "flex";
             }
+            }else if(workingKeys.length === 0){
+            noOrderBanner.className = "alertBar alertWarn";
+            noOrderBanner.textContent = "⚠ 今日班表沒有上班人員（皆為休假）。";
+            noOrderBanner.style.display = "";
+            if(showModal && noOrderModal && noOrderList){
+              noOrderList.textContent = "今日班表沒有上班人員（皆為休假）。";
+              noOrderModal.style.display = "flex";
+            }
           }else{
             noOrderBanner.className = "alertBar alertOk";
             noOrderBanner.textContent = "✅ 今日所有應上班人員皆已點餐";
@@ -5405,8 +5417,10 @@ async function loadOrdersByDate(dateStr){
 
         const bannerParts = [];
         const modalParts = [];
-        if(workerKeys.length===0){
-          bannerParts.push(`<div class="alertTitle">⚠ 今日班表沒有任何上班人員（未勾選）。</div>`);
+         if(allStaffKeys.length===0){
+          bannerParts.push(`<div class="alertTitle">⚠ 尚未建立人員清單，無法統計未點餐。</div>`);
+        }else if(workingKeys.length===0){
+          bannerParts.push(`<div class="alertTitle">⚠ 今日班表沒有上班人員（皆為休假）。</div>`);
         }
          if(morningShiftKeys.size > 0 && filteredWorkerKeys.length === 0){
           bannerParts.push(`<div class="alertTitle">⚠ 今日班表沒有早班人員（已勾選早班）。</div>`);
@@ -5424,7 +5438,7 @@ async function loadOrdersByDate(dateStr){
             <ul class="noOrderDeptList mini">
               ${deptListHtml}
             </ul>
-            <p class="muted mini">提醒：名單來源為「班表管理」中此日期有勾選上班的人${shiftLabel ? "，且需在「人員清單」勾選早班" : ""}。</p>
+            <p class="muted mini">提醒：名單來源為「班表管理」中此日期未勾選休假的人${shiftLabel ? "，且需在「人員清單」勾選早班" : ""}。</p>
           `);
         }
 
