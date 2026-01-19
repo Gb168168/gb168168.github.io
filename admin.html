@@ -4970,13 +4970,19 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       return (it?.note ?? it?.remark ?? it?.itemNote ?? it?.memo ?? "").toString().trim();
     }
 
-    function addonText(addons){
+    function addonText(addons, options = {}){
       const arr = Array.isArray(addons) ? addons : [];
       if(arr.length===0) return "";
+      const { hideChoiceTag = false } = options;
       return arr.map(a=>{
         const p = Number(a?.price||0);
         const group = a?.group ? `(${a.group})` : "";
-        const kind = a?.kind === "choice" ? "擇一" : (a?.kind === "addon" ? "加購" : "");
+          const isChoice = a?.kind === "choice";
+        const isAddon = a?.kind === "addon";
+        if(isChoice && hideChoiceTag){
+          return `${group}${a?.name||""}${p?(" "+p):""}`;
+        }
+        const kind = isChoice ? "擇一" : (isAddon ? "加購" : "");
         const kindTxt = kind ? `[${kind}]` : "";
         return `+${kindTxt}${group}${a?.name||""}${p?(" "+p):""}`;
       }).join(" ");
@@ -5141,7 +5147,7 @@ async function loadOrdersByDate(dateStr){
             <tr>
               <td>${esc(x.restaurant)}</td>
               <td>${esc(x.item)}</td>
-              <td class="muted">${esc(addonText(x.addons))}</td>
+               <td class="muted">${esc(addonText(x.addons, { hideChoiceTag: true }))}</td>
               <td class="muted">${esc(x.note || "")}</td>
               <td>${x.qty}</td>
               <td>${x.unit}</td>
@@ -5661,7 +5667,7 @@ async function setupOrdersLive(dateStr){
 
             const rowItem = {
               itemName: it.name || "",
-              addonText: addonText(it.addons),
+              addonText: addonText(it.addons, { hideChoiceTag: true }),
               note: itemNoteText(it),
               amount,
             };
