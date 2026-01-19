@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -1240,8 +1240,13 @@ function normalizeSetMealTemplates(raw){
       const userName = $("nameSelect").value;
       const orderDate = todayISO();
 
+      const budgetLimit = 140;
       const total = cart.reduce((s,x)=> s + Number(x.lineTotal||0), 0);
+      const exceed = total - budgetLimit;
       const restaurantName = selectedRestaurant?.name || "";
+      const budgetLine = exceed > 0
+        ? `⚠️ 超出額度：${exceed}（需補 ${exceed}）\n`
+        : `額度：${budgetLimit}\n`;
 
       // ✅ 送出前再確認一次使用者資訊（部門 / 姓名 / 店家 / 總額）
       const confirmMsg =
@@ -1250,6 +1255,7 @@ function normalizeSetMealTemplates(raw){
         `姓名：${userName}\n` +
         `店家：${restaurantName}\n` +
         `預估總額：約 ${total}\n\n` +
+        budgetLine +
         `以上資訊是否正確？\n` +
         `按「確定」送出訂單，按「取消」回去修改。`;
 
