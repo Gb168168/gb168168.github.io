@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -430,6 +430,12 @@ const esc = (s)=> (s ?? "").toString()
   .replaceAll("<","&lt;")
   .replaceAll(">","&gt;")
   .replaceAll('"',"&quot;");
+  const fmtSelectedAddon = (a)=>{
+  const name = (a?.name || a?.group || "").trim();
+  if(!name) return "";
+  const p = Number(a?.price || 0);
+  return `${name}${p ? `(+${p})` : ""}`;
+};
 
     const modalBackdrop = $("modalBackdrop");
 const modalTitle = $("modalTitle");
@@ -1383,14 +1389,7 @@ function normalizeSetMealTemplates(raw){
         return;
       }
 
-      const fmtAddon = (a)=>{
-        const p = Number(a?.price||0);
-        const kind = a?.kind==="choice"
-          ? "擇一"
-          : (a?.kind==="addon" ? "加購" : (a?.kind==="setmeal" ? "套餐" : ""));
-        const group = a?.group ? `(${a.group})` : "";
-        return `${kind?`[${kind}]`:``}${group}${a?.name||""}${p?`(+${p})`:``}`;
-      };
+     const fmtAddon = (a)=> fmtSelectedAddon(a);
 
       wrap.innerHTML = cart.map((it,idx)=>`
         <div class="listLine">
@@ -1403,7 +1402,7 @@ function normalizeSetMealTemplates(raw){
             <button class="btn danger" data-del-cart="${idx}" type="button">刪除</button>
           </div>
           ${it.note ? `<div class="muted" style="margin-top:6px">備註：${esc(it.note)}</div>`:``}
-          ${(it.addons && it.addons.length) ? `<div class="muted" style="margin-top:6px">加購/擇一：${esc(it.addons.map(fmtAddon).join("；"))}</div>`:``}
+          ${(it.addons && it.addons.length) ? `<div class="muted" style="margin-top:6px">選項：${esc(it.addons.map(fmtAddon).filter(Boolean).join("；"))}</div>`:``}
         </div>
       `).join("");
 
@@ -1538,12 +1537,7 @@ function normalizeSetMealTemplates(raw){
       const lines = items.map(it=>{
         const addons = Array.isArray(it.addons)?it.addons:[];
         const addonText = addons.length
-          ? `（加購/擇一：${addons.map(a=>{
-              const p=Number(a?.price||0);
-              const k=a?.kind==="choice"?"擇一":(a?.kind==="addon"?"加購":(a?.kind==="setmeal"?"套餐":""));
-              const g=a?.group?`(${a.group})`:"";
-              return `${k?`[${k}]`:``}${g}${a?.name||""}${p?`(+${p})`:``}`;
-            }).join("；")}）`
+         ? `（選項：${addons.map(a=> fmtSelectedAddon(a)).filter(Boolean).join("；")}）`
           : "";
         return `• <b>${esc(it.name||"")}</b> × ${Number(it.qty||0)} ${it.note?`（備註：${esc(it.note)}）`:""} ${addonText}`;
       }).join("<br/>");
