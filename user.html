@@ -226,7 +226,7 @@
     .rMap:hover{ text-decoration:underline; }
     .rActions{ margin-top:10px; display:flex; justify-content:flex-end; gap:8px; }
 
-    /* ✅ 5）我的訂餐紀錄：訂單在上、明細在下面 */
+      /* ✅ 6）我的訂餐紀錄：訂單在上、明細在下面 */
     .myGrid{
       display:grid;
       grid-template-columns: 1fr;
@@ -342,7 +342,17 @@
       <!-- RIGHT -->
       <div>
         <div class="card">
-          <h2>5）我的訂餐紀錄</h2>
+            <h2>5）幫我挑要吃啥</h2>
+          <div class="inline">
+            <span class="tag">從餐點清單隨機挑選</span>
+            <button class="btn" id="btnRandomPick">隨機挑選</button>
+          </div>
+          <div class="hr"></div>
+          <div id="randomPickWrap" class="muted">請先選擇店家。</div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <h2>6）我的訂餐紀錄</h2>
           <div class="inline">
             <input id="myDate" type="date" style="width:auto; min-width:170px"/>
             <button class="btn" id="btnReloadMy">重新載入</button>
@@ -782,7 +792,7 @@ function normalizeSetMealTemplates(raw){
         
         localStorage.setItem("gb_user_rid", rid);
 
-        $("pickedRestaurantName").textContent = selectedRestaurant?.name || "未命名";
+       $("pickedRestaurantName").textContent = selectedRestaurant?.name || "未命名";
         const st = $("pickedRestaurantState");
         st.style.display = "inline-flex";
         if(selectedRestaurant?.isClosed){
@@ -796,6 +806,7 @@ function normalizeSetMealTemplates(raw){
         await loadMenu(rid);
         renderMenu();
         renderCart();
+        resetRandomPick();
 
         if(!opt.silent) statusPill.textContent = "已選擇店家 ✅";
       }catch(err){
@@ -897,6 +908,58 @@ function normalizeSetMealTemplates(raw){
           await enforceSetMealPickLimit(inp);
         });
       });
+    }
+
+     function resetRandomPick(){
+      const wrap = $("randomPickWrap");
+      if(!wrap) return;
+      if(!selectedRestaurantId){
+        wrap.innerHTML = `<div class="muted">請先選擇店家。</div>`;
+        return;
+      }
+      if(menuCache.length === 0){
+        wrap.innerHTML = `<div class="muted">此店家尚無餐點。</div>`;
+        return;
+      }
+      wrap.innerHTML = `<div class="muted">按下「隨機挑選」幫你決定吃什麼。</div>`;
+    }
+
+    function renderRandomPickResult(item){
+      const wrap = $("randomPickWrap");
+      if(!wrap) return;
+      if(!item){
+        resetRandomPick();
+        return;
+      }
+      const restaurantName = selectedRestaurant?.name || "未命名";
+      wrap.innerHTML = `
+        <div class="listLine">
+          <div class="inline" style="justify-content:space-between">
+            <div>
+              <b>${esc(item.name || "")}</b>
+              <span class="tag priceTag" style="margin-left:8px">單價：${Number(item.price || 0)}</span>
+            </div>
+            ${item.category ? `<span class="tag">${esc(item.category)}</span>` : ``}
+          </div>
+          <div class="muted" style="margin-top:6px">店家：${esc(restaurantName)}</div>
+          ${item.content ? `<div class="muted" style="margin-top:6px">內容：${esc(item.content)}</div>` : ``}
+          ${item.note ? `<div class="muted" style="margin-top:6px">提示：${esc(item.note)}</div>` : ``}
+        </div>
+      `;
+    }
+
+    function pickRandomMeal(){
+      if(!selectedRestaurantId){
+        resetRandomPick();
+        return;
+      }
+      if(menuCache.length === 0){
+        resetRandomPick();
+        return;
+      }
+      const idx = Math.floor(Math.random() * menuCache.length);
+      const picked = menuCache[idx];
+      renderRandomPickResult(picked);
     }
 
     function renderMenuItem(m){
@@ -1661,6 +1724,7 @@ function normalizeSetMealTemplates(raw){
       $("myDate").value = todayISO();
       loadMyOrders();
     };
+     $("btnRandomPick").onclick = pickRandomMeal;
 
     // ===== Switch admin =====
      async function goAdmin(){
