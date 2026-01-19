@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理666</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -533,6 +533,9 @@
       font-weight:700;
       padding:4px 0;
     }
+     .schCalWeekday.is-weekend{
+      color:#94a3b8;
+    }
     .schCalCell{
       min-height:42px;
       border-radius:12px;
@@ -557,6 +560,9 @@
       background: var(--staff-bg);
       color:var(--staff-text);
       box-shadow: 0 8px 18px var(--staff-shadow);
+    }
+     .schCalCell.is-weekend:not(.is-selected):not(.is-holiday){
+      background:#f1f5f9;
     }
     .schCalCell.is-holiday{
       border-color: rgba(245,158,11,.45);
@@ -2695,7 +2701,9 @@ async function refreshStaffList(){
         const [yy, mm] = monthStr.split("-").map(Number);
         const daysInMonth = new Date(yy, mm, 0).getDate();
         const firstDay = new Date(yy, mm-1, 1).getDay();
-        const weekdayLabels = WEEKDAY_LABEL.map(l=>`<div class="schCalWeekday">${l}</div>`).join("");
+        const weekdayLabels = WEEKDAY_LABEL.map((l, idx)=>
+          `<div class="schCalWeekday ${idx===0 || idx===6 ? "is-weekend" : ""}">${l}</div>`
+        ).join("");
         let selectedCount = 0;
         const staffColors = getStaffCalendarColors(workerKey);
         
@@ -2708,9 +2716,11 @@ async function refreshStaffList(){
           const keys = map.get(dateStr) || [];
           const isSelected = keys.includes(workerKey);
           const holidayName = HOLIDAYS_2026_MAP.get(dateStr);
+          const dayIndex = (firstDay + d - 1) % 7;
+          const isWeekend = dayIndex === 0 || dayIndex === 6;
           if(isSelected) selectedCount += 1;
           cells.push(`
-            <button class="schCalCell ${isSelected ? "is-selected" : ""} ${holidayName ? "is-holiday" : ""}" type="button"
+            <button class="schCalCell ${isSelected ? "is-selected" : ""} ${holidayName ? "is-holiday" : ""} ${isWeekend ? "is-weekend" : ""}" type="button"
               data-schcal-date="${dateStr}" aria-pressed="${isSelected ? "true" : "false"}"
               ${holidayName ? `title="${esc(holidayName)}（國定假日）"` : ""}>
               <span>${d}</span>
