@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1054,7 +1054,7 @@
         <div class="card">
           <h3>班表管理</h3>
           <p class="muted mini" style="margin-top:6px;">
-            ✅ 保留原本「年月日」單日勾選方式；也可先選部門/人員，再用當月月曆快速選擇休假日。
+             ✅ 保留原本「年月日」單日勾選方式；也可先選部門/人員，再用當月月曆快速選擇休假日（未勾選日期視為上班日）。
           </p>
 
          <div class="row3" style="margin-top:4px;">
@@ -1089,7 +1089,7 @@
             </div>
           </div>
           <p class="muted mini" style="margin-top:8px;">
-             選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否休假。國定假日會以金色提示。
+          選擇部門與人員後，會顯示當月月曆，點選日期即可切換該人員是否休假（未勾選日期視為上班日）。國定假日會以金色提示。
           </p>
           <div id="scheduleMonthWrap"></div>
 
@@ -1256,7 +1256,7 @@
   <!-- 🔔 未點餐彈跳視窗 -->
   <div id="noOrderModal" class="modalMask" style="display:none">
     <div class="modalBox">
-      <h3 style="margin-top:0; margin-bottom:8px;">今日未點餐人員</h3>
+      <h3 style="margin-top:0; margin-bottom:8px;">今日未點餐紀錄</h3>
       <div id="noOrderList" class="muted mini">
         （尚無資料）
       </div>
@@ -1275,9 +1275,9 @@
       點擊「確定結單」後，要記得儲存餐廳資料喔。
     </p>
 
-    <!-- 🔍 本日上班未點餐的人員（動態填入） -->
+      <!-- 🔍 本日上班未點餐的紀錄（動態填入） -->
     <div id="closeConfirmNoOrder" class="muted mini" style="margin-bottom:12px;">
-      本日上班未點餐人員：計算中…
+      本日上班未點餐紀錄：計算中…
     </div>
 
     <div class="actions" style="justify-content:flex-end; gap:12px;">
@@ -2654,7 +2654,7 @@ async function refreshStaffList(){
     });
 
     /* ===============================
-      ✅ 班表管理：當日上班人員勾選（依部門分段）
+      ✅ 班表管理：當日休假人員勾選（依部門分段）
        =============================== */
     const scheduleMonthCache = new Map();
     const HOLIDAY_FIXED_DATES = [
@@ -2942,7 +2942,7 @@ async function refreshStaffList(){
               <span>${yy}年 ${mm}月（${esc(deptLabel)} - ${esc(nameLabel)}）</span>
               <span class="tag miniTag">已選 ${selectedCount} 天</span>
             </div>
-            <div class="schMonthMeta">點選日期可切換該人員是否休假。</div>
+            <div class="schMonthMeta">點選日期可切換該人員是否休假（未勾選日期視為上班日）。</div>
              <div class="schLegend">
               <span class="schLegendItem" style="color:${staffColors.text}; --legend-bg:${staffColors.bg};">
                 <span class="schLegendColor"></span>
@@ -5466,7 +5466,7 @@ async function updateCloseConfirmNoOrder(){
   const box = $("closeConfirmNoOrder");
   if(!box) return;
 
-  box.textContent = "本日上班未點餐人員：計算中…";
+  box.textContent = "本日上班未點餐紀錄：計算中…";
 
   try{
     const dateStr = todayISO();
@@ -5519,7 +5519,7 @@ async function updateCloseConfirmNoOrder(){
       .map(([dept,names]) => `${dept}：${names.join("、")}`);
 
     box.innerHTML = `
-      <div style="margin-bottom:4px;">本日上班未點餐人員：</div>
+      <div style="margin-bottom:4px;">本日上班未點餐紀錄：</div>
       <ul class="mini">${lines.map(l=>`<li>${esc(l)}</li>`).join("")}</ul>
     `;
 
