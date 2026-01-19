@@ -1154,7 +1154,7 @@
         <div class="card">
           <h3>幫我想要吃啥</h3>
           <p class="muted">
-            從「全部分類與餐廳」中，隨機幫你挑一家。可先選擇餐廳分類或全選。
+               只會從「營業中」的餐廳隨機幫你挑一家。可先選擇餐廳分類或全選。
           </p>
 
           <div class="inline" style="margin-top:10px">
@@ -1441,8 +1441,52 @@
       if(options.includes(prevValue)) selectEl.value = prevValue;
     };
 
-    const getRandomPickCandidates = (category)=>{
-               let list = [...randomPickRestaurants];
+     const getWeekdayOffLabel = (date)=>{
+      const labels = ["週日公休", "週一公休", "週二公休", "週三公休", "週四公休", "週五公休", "週六公休"];
+      return labels[date.getDay()];
+    };
+
+    const parseTimeToMinutes = (timeText)=>{
+      const [h, m] = (timeText || "").split(":").map(Number);
+      if(Number.isNaN(h) || Number.isNaN(m)) return null;
+      return h * 60 + m;
+    };
+
+    const parseBusinessHoursRanges = (hoursText)=>{
+      if(!hoursText) return [];
+      const ranges = [];
+      const regex = /(\d{1,2}:\d{2})\s*[~\-–—]\s*(\d{1,2}:\d{2})/g;
+      let match;
+      while((match = regex.exec(hoursText)) !== null){
+        const start = parseTimeToMinutes(match[1]);
+        const end = parseTimeToMinutes(match[2]);
+        if(start === null || end === null) continue;
+        ranges.push({ start, end });
+      }
+      return ranges;
+    };
+
+    const isNowWithinRange = (start, end, nowMinutes)=>{
+      if(start === end) return true;
+      if(end < start){
+        return nowMinutes >= start || nowMinutes <= end;
+      }
+      return nowMinutes >= start && nowMinutes <= end;
+    };
+
+    const isRestaurantOpenNow = (restaurant, now = new Date())=>{
+      if(restaurant?.isClosed) return false;
+      const weeklyOff = Array.isArray(restaurant?.weeklyOff) ? restaurant.weeklyOff : [];
+      if(weeklyOff.includes(getWeekdayOffLabel(now))) return false;
+      const hoursText = (restaurant?.businessHours || "").trim();
+      const ranges = parseBusinessHoursRanges(hoursText);
+      if(ranges.length === 0) return true;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      return ranges.some(({ start, end }) => isNowWithinRange(start, end, nowMinutes));
+    };
+
+     const getRandomPickCandidates = (category)=>{
+      let list = randomPickRestaurants.filter(r => isRestaurantOpenNow(r));
       if(category && category !== "all"){
         list = list.filter(r => normalizeRestaurantCategory(r.category) === category);
       }
@@ -1471,7 +1515,7 @@
         buildRandomCategoryOptions(available, selectEl);
         resultEl.innerHTML = available.length
           ? `<div class="muted">目前可抽選 ${available.length} 家餐廳。</div>`
-          : `<div class="muted">目前沒有可抽選的餐廳。</div>`;
+          : `<div class="muted">目前沒有符合營業時間的餐廳。</div>`;
       }catch(err){
         console.error(err);
         resultEl.innerHTML = `<div class="muted">無法載入餐廳清單<br/>${esc(err?.message || err)}</div>`;
