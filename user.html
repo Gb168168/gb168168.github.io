@@ -105,6 +105,19 @@
       padding:14px;
     }
     .card h2{margin:0 0 10px; font-size:15px}
+       .whoTitle{
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .whoLine{
+      font-size:14.5px;
+      font-weight:600;
+      color:var(--text);
+    }
+    .menuCategoryTitle{
+      font-size:16.5px;
+      letter-spacing:.2px;
+    }
 
     label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px;}
     input,select,textarea{
@@ -245,7 +258,7 @@
     <div class="topbar">
       <div>
         <h1>吃飯 吃飯 ~~</h1>
-            <div class="muted" id="whoLine">尚未選擇部門人員</div>
+            <div class="muted whoLine" id="whoLine">尚未選擇部門人員</div>
       </div>
 
       <div class="right">
@@ -265,7 +278,7 @@
       <!-- LEFT -->
       <div>
         <div class="card">
-         <h2 id="whoTitle">1）選擇的部門人員</h2>
+              <h2 id="whoTitle" class="whoTitle">1）選擇的部門人員</h2>
 
           <label>部門</label>
           <select id="deptSelect">
@@ -845,7 +858,7 @@ function normalizeSetMealTemplates(raw){
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
         <details class="box" style="padding:10px 12px">
           <summary>
-            <b>${esc(cat)}</b>
+          <b class="menuCategoryTitle">${esc(cat)}</b>
             <span class="tag" style="margin-left:8px">${items.length} 項</span>
           </summary>
           <div style="margin-top:10px">
@@ -972,7 +985,7 @@ function normalizeSetMealTemplates(raw){
                 return `
                   <div class="box" style="margin-top:10px">
                     <div class="inline" style="justify-content:space-between">
-                      <b>${esc(c.name || "類別")}</b>
+                       <b class="menuCategoryTitle">${esc(c.name || "類別")}</b>
                       <span class="tag">選 ${pickCount}</span>
                     </div>
                     <div style="margin-top:8px">
