@@ -1271,17 +1271,19 @@ function normalizeSetMealTemplates(raw){
       return `
           <details class="menuItem" data-mid="${esc(m.id)}" data-menu-item>
           <summary>
-            <div class="inline" style="justify-content:space-between">
-              <div>
-                <b>${esc(m.name||"")}</b>
-                <span class="tag priceTag" style="margin-left:8px">單價：${Number(m.price||0)}</span>
+            <div>
+              <div class="inline" style="justify-content:space-between">
+                <div>
+                  <b>${esc(m.name||"")}</b>
+                  <span class="tag priceTag" style="margin-left:8px">單價：${Number(m.price||0)}</span>
+                </div>
               </div>
-              ${closed ? `<span class="tag lockTag">已結單</span>` : ``}
-               </div>
-            ${m.content ? `<div class="muted" style="margin-top:6px">內容：${esc(m.content)}</div>` : ``}
+              ${m.content ? `<div class="muted" style="margin-top:6px">內容：${esc(m.content)}</div>` : ``}
+            </div>
           </summary>
 
           <div style="margin-top:10px">
+             ${closed ? `<div class="inline"><span class="tag lockTag">已結單</span></div>` : ``}
             <div class="inline" style="justify-content:space-between">
               <span class="tag" style="margin-left:0">預設：${Number(m.defaultQty||1)}</span>
               <button class="primary" data-add-mid="${esc(m.id)}" ${disabled} type="button">加入</button>
