@@ -900,7 +900,7 @@ function normalizeSetMealTemplates(raw){
       }
 
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
-        <details class="box" style="padding:10px 12px">
+         <details class="box" style="padding:10px 12px" open>
           <summary>
           <b class="menuCategoryTitle">${esc(cat)}</b>
             <span class="tag" style="margin-left:8px">${items.length} 項</span>
@@ -949,16 +949,6 @@ function normalizeSetMealTemplates(raw){
         updateModeUI(mid);
       });
       
-      wrap.querySelectorAll("details[data-menu-item]").forEach(details=>{
-        details.addEventListener("toggle", ()=>{
-          if(!details.open) return;
-          const container = details.closest("[data-menu-category]");
-          if(!container) return;
-          container.querySelectorAll("details[data-menu-item]").forEach(other=>{
-            if(other !== details) other.open = false;
-          });
-        });
-      });
     }
 
      function resetRandomPick(){
@@ -1266,7 +1256,7 @@ function normalizeSetMealTemplates(raw){
         : "";
 
       return `
-         <details class="menuItem" data-mid="${esc(m.id)}" data-menu-item>
+           <details class="menuItem" data-mid="${esc(m.id)}" data-menu-item open>
           <summary>
             <div class="inline" style="justify-content:space-between">
               <div>
