@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者6</title>
 
   <style>
     :root{
@@ -336,10 +336,6 @@
       <div>
         <div class="card">
           <h2>4）餐點清單</h2>
-              <div class="inline" style="margin-top:6px">
-            <button class="btn" id="btnReloadMenu">重新載入</button>
-            <span class="muted mini">新增餐點後可點此更新</span>
-          </div>
           <div id="menuWrap" class="muted">請先選擇店家。</div>
         </div>
       </div>
@@ -784,27 +780,23 @@ async function loadStaff(){
     
 function normalizeSetMealTemplates(raw){
       if(!Array.isArray(raw)) return [];
-      return raw.map(t=>{
-        const id = (t?.id || "").trim();
-        const name = (t?.name ?? "").toString().trim();
-        return {
-          id,
-          name: name || "套餐",
-          price: Number(t?.price || 0),
-          categories: Array.isArray(t?.categories)
-            ? t.categories.map(c=>({
-                name: (c?.name || "").trim(),
-                pickCount: Math.max(1, Number(c?.pickCount || 1)),
-                options: Array.isArray(c?.options)
-                  ? c.options.map(o=>({
-                      name: (o?.name || "").trim(),
-                      addPrice: Number(o?.addPrice || 0)
-                    }))
-                  : []
-              }))
-            : []
-        };
-      }).filter(t=> t.id);
+      return raw.map(t=>({
+        id: (t?.id || "").trim(),
+        name: (t?.name || "").trim(),
+        price: Number(t?.price || 0),
+        categories: Array.isArray(t?.categories)
+          ? t.categories.map(c=>({
+              name: (c?.name || "").trim(),
+              pickCount: Math.max(1, Number(c?.pickCount || 1)),
+              options: Array.isArray(c?.options)
+                ? c.options.map(o=>({
+                    name: (o?.name || "").trim(),
+                    addPrice: Number(o?.addPrice || 0)
+                  }))
+                : []
+            }))
+          : []
+      })).filter(t=> t.id && t.name);
     }
 
     async function pickRestaurant(rid, opt={}){
@@ -869,27 +861,6 @@ function normalizeSetMealTemplates(raw){
       }
     }
 
-    async function reloadCurrentMenu(){
-      if(!selectedRestaurantId){
-        await showAlert("請先選擇店家");
-        return;
-      }
-      try{
-        statusPill.textContent = "更新餐點中…";
-        const snap = await getDoc(doc(db, "restaurants", selectedRestaurantId));
-        selectedRestaurant = snap.exists() ? snap.data() : selectedRestaurant;
-        setMealTemplates = normalizeSetMealTemplates(selectedRestaurant?.setMealTemplates);
-        await loadMenu(selectedRestaurantId);
-        renderMenu();
-        resetRandomPick();
-        statusPill.textContent = "餐點已更新 ✅";
-      }catch(err){
-        console.error(err);
-        statusPill.textContent = "餐點更新失敗";
-        await showAlert("餐點更新失敗（Rules/網路）\n\n" + (err?.message || err));
-      }
-    }
-
     function isUserReady(){
       return !!($("deptSelect").value && $("nameSelect").value && selectedRestaurantId);
     }
@@ -945,32 +916,14 @@ function normalizeSetMealTemplates(raw){
         const mid = sel.dataset.midSetmeal;
         sel.addEventListener("change", ()=>{
           updateSetMealUI(mid);
-          updateMenuRequirementState(mid);
         });
         updateSetMealUI(mid);
-        updateMenuRequirementState(mid);
       });
 
       wrap.querySelectorAll("input[data-sm-mid]").forEach(inp=>{
            inp.addEventListener("change", async ()=>{
           await enforceSetMealPickLimit(inp);
         });
-      });
-      
-      wrap.querySelectorAll("[data-mid-opt]").forEach(sel=>{
-        const mid = sel.dataset.midOpt;
-        sel.addEventListener("change", ()=>{
-          updateMenuRequirementState(mid);
-        });
-        updateMenuRequirementState(mid);
-      });
-
-      wrap.querySelectorAll("input[data-mid-addon]").forEach(inp=>{
-        const mid = inp.dataset.midAddon;
-        inp.addEventListener("change", ()=>{
-          updateMenuRequirementState(mid);
-        });
-        updateMenuRequirementState(mid);
       });
     }
 
@@ -1047,9 +1000,7 @@ function normalizeSetMealTemplates(raw){
                 <span class="tag">${(g.required!==false)?"必選":"可不選"}</span>
               </div>
               <select data-mid-opt="${esc(m.id)}" data-gi="${gi}" ${lock}>
-                 ${(g.required!==false)
-                  ? `<option value="-1">請選擇</option>`
-                  : `<option value="-1">不選擇</option>`}
+                ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
                 ${choices.map((o,oi)=>`
                   <option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>
                 `).join("")}
@@ -1098,7 +1049,6 @@ function normalizeSetMealTemplates(raw){
               <option value="${esc(t.id)}">${esc(t.name)}${Number(t.price||0)?`（+${Number(t.price||0)}）`:``}</option>
             `).join("")}
           </select>
-           ${gs.length ? `<div class="muted" style="margin-top:6px">若不選套餐，需在下方選項群組至少選一項。</div>` : ``}
         </div>
         ${setMeals.map(t=>`
           <div class="box" data-mid-setmeal-box="${esc(m.id)}" data-smid="${esc(t.id)}" style="display:none; margin-top:10px">
@@ -1139,13 +1089,8 @@ function normalizeSetMealTemplates(raw){
           </div>
         `).join("")}
       ` : "";
-      const requireOptionHint = (setMeals.length && gs.length) ? `
-        <div class="muted" data-mid-require-hint="${esc(m.id)}" style="margin-top:6px; display:none;">
-          未選套餐時，請至少選擇一項選項群組內容。
-        </div>
-      ` : "";
-      
-      const qtyStep = Math.max(1, Number(m.defaultQty||1));
+
+       const qtyStep = Math.max(1, Number(m.defaultQty||1));
       const qtyHint = qtyStep > 1
         ? `<div class="muted mini" style="margin-top:6px">數量需為 ${qtyStep} 的倍數</div>`
         : "";
@@ -1180,7 +1125,6 @@ function normalizeSetMealTemplates(raw){
           </div>
 
           ${setMealHTML}
-          ${requireOptionHint}
           ${groupsHTML}
         </div>
       `;
@@ -1303,51 +1247,6 @@ function normalizeSetMealTemplates(raw){
       return { setMeal: { id: t.id, name: t.name || "" }, setMealSum, addons };
     }
 
-    function hasOptionGroupSelection(mid){
-      const m = menuCache.find(x=> x.id===mid);
-      if(!m) return false;
-      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
-      let any = false;
-
-      gs.forEach((g,gi)=>{
-        if(any) return;
-        if(g.type === "single"){
-          const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
-          const idx = sel ? Number(sel.value) : -1;
-          if(Number.isFinite(idx) && idx >= 0) any = true;
-          return;
-        }
-        if(g.type === "addon"){
-          const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
-          els.forEach(el=>{ if(el.checked) any = true; });
-        }
-      });
-
-      return any;
-    }
-
-    function updateMenuRequirementState(mid){
-      const m = menuCache.find(x=> x.id===mid);
-      if(!m) return;
-      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
-      const hasOptionGroups = gs.some(g=> g.type === "single" || g.type === "addon");
-      const hasSetMeals = Array.isArray(m.setMealTemplateIds) && m.setMealTemplateIds.length > 0;
-      const shouldRequire = hasSetMeals && hasOptionGroups;
-
-      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
-      const smid = (sel?.value || "").trim();
-      const needsOption = shouldRequire && !smid && !hasOptionGroupSelection(mid);
-
-      const btn = document.querySelector(`button[data-add-mid="${CSS.escape(mid)}"]`);
-      const hint = document.querySelector(`[data-mid-require-hint="${CSS.escape(mid)}"]`);
-      const closed = !!selectedRestaurant?.isClosed;
-      const userOK = !!($("deptSelect").value && $("nameSelect").value);
-      const locked = closed || !userOK || needsOption;
-
-      if(btn) btn.disabled = locked;
-      if(hint) hint.style.display = needsOption ? "block" : "none";
-    }
-
     function validateRequired(mid){
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
@@ -1374,11 +1273,6 @@ function normalizeSetMealTemplates(raw){
       
       const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
       const smid = (sel?.value || "").trim();
-      const hasSetMeals = Array.isArray(m.setMealTemplateIds) && m.setMealTemplateIds.length > 0;
-      const hasOptionGroups = gs.some(g=> g.type === "single" || g.type === "addon");
-      if(hasSetMeals && !smid && hasOptionGroups && !hasOptionGroupSelection(mid)){
-        return "未選套餐時，請至少選擇一項選項群組內容";
-      }
       if(smid){
         const t = setMealTemplates.find(x=> x.id === smid);
         if(!t) return "找不到套餐";
@@ -1833,7 +1727,6 @@ function normalizeSetMealTemplates(raw){
     });
 
     $("btnReloadMy").onclick = loadMyOrders;
-    $("btnReloadMenu").onclick = reloadCurrentMenu;
     $("btnToday").onclick = ()=>{
       $("myDate").value = todayISO();
       loadMyOrders();
