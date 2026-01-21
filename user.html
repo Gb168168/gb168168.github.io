@@ -911,6 +911,19 @@ function normalizeSetMealTemplates(raw){
         </details>
       `).join("");
 
+       const menuItems = Array.from(wrap.querySelectorAll("details[data-menu-item]"));
+      menuItems.forEach(detail=>{
+        detail.addEventListener("toggle", ()=>{
+          if(detail.open){
+            menuItems.forEach(other=>{
+              if(other !== detail){
+                other.open = false;
+              }
+            });
+          }
+        });
+      });
+
       wrap.querySelectorAll("[data-add-mid]").forEach(btn=>{
          btn.onclick = async ()=>{
           const mid = btn.dataset.addMid;
@@ -1256,7 +1269,7 @@ function normalizeSetMealTemplates(raw){
         : "";
 
       return `
-           <details class="menuItem" data-mid="${esc(m.id)}" data-menu-item open>
+          <details class="menuItem" data-mid="${esc(m.id)}" data-menu-item>
           <summary>
             <div class="inline" style="justify-content:space-between">
               <div>
