@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者6</title>
 
   <style>
     :root{
@@ -900,12 +900,12 @@ function normalizeSetMealTemplates(raw){
       }
 
       wrap.innerHTML = Array.from(map.entries()).map(([cat, items])=>`
-         <details class="box" style="padding:10px 12px" open>
+          <details class="box" style="padding:10px 12px">
           <summary>
-          <b class="menuCategoryTitle">${esc(cat)}</b>
+            <b class="menuCategoryTitle">${esc(cat)}</b>
             <span class="tag" style="margin-left:8px">${items.length} 項</span>
           </summary>
-           <div style="margin-top:10px" data-menu-category="${esc(cat)}">
+             <b class="menuCategoryTitle">${esc(cat)}</b>
             ${items.map(m=> renderMenuItem(m)).join("")}
           </div>
         </details>
