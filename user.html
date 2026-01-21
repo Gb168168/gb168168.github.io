@@ -780,23 +780,27 @@ async function loadStaff(){
     
 function normalizeSetMealTemplates(raw){
       if(!Array.isArray(raw)) return [];
-      return raw.map(t=>({
-        id: (t?.id || "").trim(),
-        name: (t?.name || "").trim(),
-        price: Number(t?.price || 0),
-        categories: Array.isArray(t?.categories)
-          ? t.categories.map(c=>({
-              name: (c?.name || "").trim(),
-              pickCount: Math.max(1, Number(c?.pickCount || 1)),
-              options: Array.isArray(c?.options)
-                ? c.options.map(o=>({
-                    name: (o?.name || "").trim(),
-                    addPrice: Number(o?.addPrice || 0)
-                  }))
-                : []
-            }))
-          : []
-      })).filter(t=> t.id && t.name);
+      return raw.map(t=>{
+        const id = (t?.id || "").trim();
+        const name = (t?.name ?? "").toString().trim();
+        return {
+          id,
+          name: name || "套餐",
+          price: Number(t?.price || 0),
+          categories: Array.isArray(t?.categories)
+            ? t.categories.map(c=>({
+                name: (c?.name || "").trim(),
+                pickCount: Math.max(1, Number(c?.pickCount || 1)),
+                options: Array.isArray(c?.options)
+                  ? c.options.map(o=>({
+                      name: (o?.name || "").trim(),
+                      addPrice: Number(o?.addPrice || 0)
+                    }))
+                  : []
+              }))
+            : []
+        };
+      }).filter(t=> t.id);
     }
 
     async function pickRestaurant(rid, opt={}){
