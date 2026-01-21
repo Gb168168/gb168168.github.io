@@ -1415,7 +1415,7 @@ function normalizeSetMealTemplates(raw){
           `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"]:checked`
         );
 
-        onst pick = { categoryName: c.name || "", items: [] };
+       const pick = { categoryName: c.name || "", items: [] };
         
         inputs.forEach(inp=>{
           const oi = Number(inp.dataset.smOi);
