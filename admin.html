@@ -3896,10 +3896,9 @@ async function saveAddMenuSetMealTemplates(rid, templates){
 
   // ✅ 記錄目前有展開的餐廳（以 data-saver 的 rid 為主）
   const openRids = new Set();
-  wrap.querySelectorAll("details").forEach(d=>{
+  wrap.querySelectorAll('details[data-restaurant-card="true"]').forEach(d=>{
     if(!d.open) return;
-    const btn = d.querySelector("button[data-saver]");
-    const rid = btn?.dataset?.saver;
+    const rid = d.dataset.rid;
     if(rid) openRids.add(rid);
   });
 
@@ -4324,7 +4323,7 @@ async function saveAddMenuSetMealTemplates(rid, templates){
 
           // 🔽🔽🔽 這整段 inner.push 改成新的 🔽🔽🔽
           inner.push(`
-            <details style="border:1px solid rgba(15,23,42,.14); border-radius:16px; padding:12px; background:#ffffff; margin-top:12px;">
+              <details data-restaurant-card="true" data-rid="${r.id}" style="border:1px solid rgba(15,23,42,.14); border-radius:16px; padding:12px; background:#ffffff; margin-top:12px;">
               <summary class="inline" style="cursor:pointer; justify-content:space-between; align-items:center; gap:8px;">
                 <div>
                   <span style="font-size:15px; font-weight:700;">${esc(r.name||"未命名")}</span>
@@ -4611,9 +4610,9 @@ async function saveAddMenuSetMealTemplates(rid, templates){
 
       // ✅ 把剛剛已經展開的餐廳再打開
        openRids.forEach(rid=>{
-        const btn = wrap.querySelector(`button[data-saver="${rid}"]`);
-        if(!btn) return;
-        let d = btn.closest("details");
+        const card = wrap.querySelector(`details[data-restaurant-card="true"][data-rid="${rid}"]`);
+        if(!card) return;
+        let d = card;
         while(d){
           if(d.tagName === "DETAILS") d.open = true;
           d = d.parentElement?.closest("details");
