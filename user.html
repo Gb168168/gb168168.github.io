@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -336,6 +336,10 @@
       <div>
         <div class="card">
           <h2>4）餐點清單</h2>
+              <div class="inline" style="margin-top:6px">
+            <button class="btn" id="btnReloadMenu">重新載入</button>
+            <span class="muted mini">新增餐點後可點此更新</span>
+          </div>
           <div id="menuWrap" class="muted">請先選擇店家。</div>
         </div>
       </div>
@@ -862,6 +866,27 @@ function normalizeSetMealTemplates(raw){
         console.error(err);
         statusPill.textContent = "餐點讀取失敗";
         menuCache = [];
+      }
+    }
+
+    async function reloadCurrentMenu(){
+      if(!selectedRestaurantId){
+        await showAlert("請先選擇店家");
+        return;
+      }
+      try{
+        statusPill.textContent = "更新餐點中…";
+        const snap = await getDoc(doc(db, "restaurants", selectedRestaurantId));
+        selectedRestaurant = snap.exists() ? snap.data() : selectedRestaurant;
+        setMealTemplates = normalizeSetMealTemplates(selectedRestaurant?.setMealTemplates);
+        await loadMenu(selectedRestaurantId);
+        renderMenu();
+        resetRandomPick();
+        statusPill.textContent = "餐點已更新 ✅";
+      }catch(err){
+        console.error(err);
+        statusPill.textContent = "餐點更新失敗";
+        await showAlert("餐點更新失敗（Rules/網路）\n\n" + (err?.message || err));
       }
     }
 
@@ -1808,6 +1833,7 @@ function normalizeSetMealTemplates(raw){
     });
 
     $("btnReloadMy").onclick = loadMyOrders;
+    $("btnReloadMenu").onclick = reloadCurrentMenu;
     $("btnToday").onclick = ()=>{
       $("myDate").value = todayISO();
       loadMyOrders();
