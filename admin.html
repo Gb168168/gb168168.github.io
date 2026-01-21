@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2341,6 +2341,10 @@ renderSetMealPickList();
 
   // ✅ 套餐：把勾選的套餐 id 一起帶進餐點
   const setMealTemplateIds = Array.from(menuSetMealSelected);
+
+  if(setMealTemplateIds.length === 0 && optionGroups.length === 0){
+    return alert("未選套餐時，請至少選擇一個選項群組");
+  }
 
   menuQueue.push({ category, name, content, price, defaultQty, optionGroups, setMealTemplateIds });
 
@@ -4867,6 +4871,10 @@ async function saveAddMenuSetMealTemplates(rid, templates){
 
             const optionGroups = cloneOptionGroups(getAddMenuOptionGroups(rid));
             const setMealTemplateIds = Array.from(getAddMenuSetMealSelected(rid));
+
+            if(setMealTemplateIds.length === 0 && optionGroups.length === 0){
+              return alert("未選套餐時，請至少選擇一個選項群組");
+            }
             
             const menuCol = collection(db, "restaurants", rid, "menu");
             await addDoc(menuCol, {
