@@ -1017,7 +1017,7 @@ function normalizeSetMealTemplates(raw){
               </div>
               <select data-sm-child-opt="${esc(meta.mid)}" data-smid="${esc(meta.smid)}"
                 data-sm-cat="${meta.ci}" data-sm-oi="${meta.oi}" data-sm-gi="${gi}" ${meta.disabled || ""}>
-                ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
+                ${(g.required!==false) ? `<option value="-1">請選擇</option>` : `<option value="-1">不選擇</option>`}
                 ${choices.map((o,oi)=>`
                   <option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>
                 `).join("")}
@@ -1130,7 +1130,7 @@ function normalizeSetMealTemplates(raw){
                 <span class="tag">${(g.required!==false)?"必選":"可不選"}</span>
               </div>
               <select data-mid-opt="${esc(m.id)}" data-gi="${gi}" ${lock}>
-                ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
+                ${(g.required!==false) ? `<option value="-1">請選擇</option>` : `<option value="-1">不選擇</option>`}
                 ${choices.map((o,oi)=>`
                   <option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>
                 `).join("")}
