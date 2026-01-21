@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者6</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -580,6 +580,21 @@ function groupEnabled(g){
   return true;
 }
 
+  function cloneOptionGroups(src){
+  const arr = Array.isArray(src) ? src : [];
+  return arr.map(g => ({
+    name: g.name || "",
+    type: g.type === "addon" ? "addon" : "single",
+    required: !!g.required,
+    choices: Array.isArray(g.choices)
+      ? g.choices.map(c => ({
+          name: c.name || "",
+          price: Number(c.price || 0)
+        }))
+      : []
+  }));
+}
+    
   // ===== Staff =====
 async function loadStaff(){
   try{
@@ -791,7 +806,8 @@ function normalizeSetMealTemplates(raw){
               options: Array.isArray(c?.options)
                 ? c.options.map(o=>({
                     name: (o?.name || "").trim(),
-                    addPrice: Number(o?.addPrice || 0)
+                    addPrice: Number(o?.addPrice || 0),
+                    optionGroups: cloneOptionGroups(o?.optionGroups)
                   }))
                 : []
             }))
@@ -921,9 +937,16 @@ function normalizeSetMealTemplates(raw){
       });
 
       wrap.querySelectorAll("input[data-sm-mid]").forEach(inp=>{
-           inp.addEventListener("change", async ()=>{
+          inp.addEventListener("change", async ()=>{
           await enforceSetMealPickLimit(inp);
+          updateSetMealChildUI(inp.dataset.smMid || "", inp.dataset.smid || "");
         });
+      });
+      
+      wrap.querySelectorAll("input[data-mid-mode]").forEach(inp=>{
+        const mid = inp.dataset.midMode;
+        inp.addEventListener("change", ()=> updateModeUI(mid));
+        updateModeUI(mid);
       });
     }
 
@@ -977,6 +1000,113 @@ function normalizeSetMealTemplates(raw){
       const idx = Math.floor(Math.random() * menuCache.length);
       const picked = menuCache[idx];
       renderRandomPickResult(picked);
+    }
+
+     function renderChildOptionGroups(groups, meta){
+      const list = (Array.isArray(groups) ? groups : []).filter(groupEnabled);
+      if(list.length === 0) return "";
+
+      return list.map((g,gi)=>{
+        const choices = Array.isArray(g.choices) ? g.choices : [];
+        if(g.type === "single"){
+          return `
+            <div class="box" style="margin-top:8px">
+              <div class="inline" style="justify-content:space-between">
+                <b>${esc(g.name||"選項")}</b>
+                <span class="tag">${(g.required!==false)?"必選":"可不選"}</span>
+              </div>
+              <select data-sm-child-opt="${esc(meta.mid)}" data-smid="${esc(meta.smid)}"
+                data-sm-cat="${meta.ci}" data-sm-oi="${meta.oi}" data-sm-gi="${gi}" ${meta.disabled || ""}>
+                ${(g.required!==false) ? `` : `<option value="-1">不選擇</option>`}
+                ${choices.map((o,oi)=>`
+                  <option value="${oi}">${esc(o.name||"")}${Number(o.price||0)?` (+${Number(o.price||0)})`:``}</option>
+                `).join("")}
+              </select>
+            </div>
+          `;
+        }
+
+        if(g.type === "addon"){
+          return `
+            <div class="box" style="margin-top:8px">
+              <div class="inline" style="justify-content:space-between">
+                <b>${esc(g.name||"加購")}</b>
+                <span class="tag">多選 / ${(g.required===true)?"必選":"可不選"}</span>
+              </div>
+              <div style="margin-top:8px">
+                ${choices.map((o,oi)=>{
+                  const price = Number(o.price||0);
+                  const label = `${esc(o.name||"")}${price?`（+${price}）`:""}`;
+                  return `
+                    <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
+                      <input type="checkbox"
+                        data-sm-child-addon="${esc(meta.mid)}" data-smid="${esc(meta.smid)}"
+                        data-sm-cat="${meta.ci}" data-sm-oi="${meta.oi}" data-sm-gi="${gi}" data-sm-coi="${oi}" ${meta.disabled || ""}/>
+                      <span>${label}</span>
+                    </label>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        return "";
+      }).join("");
+    }
+
+    function getMenuMode(mid){
+      const selected = document.querySelector(`input[data-mid-mode="${CSS.escape(mid)}"]:checked`);
+      return selected ? selected.value : "single";
+    }
+
+    function clearSetMealSelections(mid){
+      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
+      if(sel) sel.value = "";
+      document.querySelectorAll(`[data-mid-setmeal-box="${CSS.escape(mid)}"]`).forEach(box=>{
+        box.style.display = "none";
+        box.querySelectorAll("input[type='checkbox'], input[type='radio']").forEach(inp=>{
+          inp.checked = false;
+        });
+        box.querySelectorAll("select").forEach(select=>{
+          select.selectedIndex = select.options.length ? 0 : -1;
+        });
+      });
+    }
+
+    function updateSetMealChildUI(mid, smid){
+      if(!smid) return;
+      document.querySelectorAll(`[data-sm-child-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"]`).forEach(box=>{
+        const ci = box.dataset.smCat;
+        const oi = box.dataset.smOi;
+        const input = document.querySelector(
+          `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"][data-sm-oi="${oi}"]`
+        );
+        const active = !!input?.checked;
+        box.style.display = active ? "block" : "none";
+        if(!active){
+          box.querySelectorAll("input[type='checkbox']").forEach(inp=>{ inp.checked = false; });
+          box.querySelectorAll("select").forEach(select=>{
+            select.selectedIndex = select.options.length ? 0 : -1;
+          });
+        }
+      });
+    }
+
+    function updateModeUI(mid){
+      const mode = getMenuMode(mid);
+      const singleWrap = document.querySelector(`[data-mid-single-wrap="${CSS.escape(mid)}"]`);
+      const upgradeWrap = document.querySelector(`[data-mid-upgrade-wrap="${CSS.escape(mid)}"]`);
+
+      if(singleWrap) singleWrap.style.display = mode === "single" ? "block" : "none";
+      if(upgradeWrap) upgradeWrap.style.display = mode === "upgrade" ? "block" : "none";
+
+      if(mode === "single"){
+        clearSetMealSelections(mid);
+        return;
+      }
+
+      updateSetMealUI(mid);
     }
 
     function renderMenuItem(m){
@@ -1037,14 +1167,34 @@ function normalizeSetMealTemplates(raw){
         return "";
       }).join("");
 
-         const setMealHTML = setMeals.length ? `
+       const modeName = `mode_${esc(m.id)}`;
+       const modeHTML = setMeals.length ? `
         <div class="box" style="margin-top:10px">
           <div class="inline" style="justify-content:space-between">
-            <b>套餐選項</b>
-            <span class="tag">可選擇</span>
+           <b>點法</b>
+            <span class="tag">先選單點 / 升級</span>
+          </div>
+          <div style="margin-top:8px">
+            <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
+              <input type="radio" name="${modeName}" data-mid-mode="${esc(m.id)}" value="single" checked ${disabled}/>
+              <span>單點</span>
+            </label>
+            <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
+              <input type="radio" name="${modeName}" data-mid-mode="${esc(m.id)}" value="upgrade" ${disabled}/>
+              <span>升級套餐</span>
+            </label>
+          </div>
+        </div>
+      ` : "";
+
+      const setMealHTML = setMeals.length ? `
+        <div class="box" style="margin-top:10px">
+          <div class="inline" style="justify-content:space-between">
+            <b>升級套餐</b>
+            <span class="tag">選套餐模板</span>
           </div>
           <select data-mid-setmeal="${esc(m.id)}" ${disabled}>
-            <option value="">不使用套餐</option>
+             <option value="">請選套餐</option>
             ${setMeals.map(t=>`
               <option value="${esc(t.id)}">${esc(t.name)}${Number(t.price||0)?`（+${Number(t.price||0)}）`:``}</option>
             `).join("")}
@@ -1072,13 +1222,22 @@ function normalizeSetMealTemplates(raw){
                       ${(Array.isArray(c.options)?c.options:[]).map((o,oi)=>{
                         const price = Number(o.addPrice||0);
                         const label = `${esc(o.name||"")}${price?`（+${price}）`:""}`;
+                        const childGroupsHTML = renderChildOptionGroups(o.optionGroups, { mid: m.id, smid: t.id, ci, oi, disabled });
+                        const childBox = childGroupsHTML
+                          ? `<div class="box" data-sm-child-mid="${esc(m.id)}" data-smid="${esc(t.id)}" data-sm-cat="${ci}" data-sm-oi="${oi}" style="display:none; margin-top:8px">
+                              ${childGroupsHTML}
+                             </div>`
+                          : "";
                         return `
-                          <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
-                            <input type="${inputType}" name="${groupName}"
-                              data-sm-mid="${esc(m.id)}" data-smid="${esc(t.id)}" data-sm-cat="${ci}" data-sm-oi="${oi}" data-sm-pick="${pickCount}"
-                              ${disabled}/>
-                            <span>${label}</span>
-                          </label>
+                           <div style="margin-top:8px">
+                            <label class="inline" style="margin:8px 0; cursor:pointer; gap:10px">
+                              <input type="${inputType}" name="${groupName}"
+                                data-sm-mid="${esc(m.id)}" data-smid="${esc(t.id)}" data-sm-cat="${ci}" data-sm-oi="${oi}" data-sm-pick="${pickCount}"
+                                ${disabled}/>
+                              <span>${label}</span>
+                            </label>
+                            ${childBox}
+                          </div>
                         `;
                       }).join("")}
                     </div>
@@ -1124,8 +1283,13 @@ function normalizeSetMealTemplates(raw){
             </div>
           </div>
 
-          ${setMealHTML}
-          ${groupsHTML}
+          ${modeHTML}
+          <div data-mid-upgrade-wrap="${esc(m.id)}" style="display:none">
+            ${setMealHTML}
+          </div>
+          <div data-mid-single-wrap="${esc(m.id)}">
+            ${groupsHTML}
+          </div>
         </div>
       `;
     }
@@ -1141,8 +1305,13 @@ function normalizeSetMealTemplates(raw){
           box.querySelectorAll("input[type='checkbox'], input[type='radio']").forEach(inp=>{
             inp.checked = false;
           });
+           box.querySelectorAll("select").forEach(select=>{
+           select.selectedIndex = select.options.length ? 0 : -1;
+          });
         }
       });
+       
+     updateSetMealChildUI(mid, chosen);
     }
 
      async function enforceSetMealPickLimit(input){
@@ -1162,12 +1331,14 @@ function normalizeSetMealTemplates(raw){
       }
     }
 
-    function readChosenOptions(mid){
+    function readChosenOptions(mid, mode){
+      if(mode !== "single") return { chosenOptions: {}, optSum: 0, singleSelections: [] };
       const m = menuCache.find(x=> x.id===mid);
       const gs = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
 
       const chosen = {};
       let optSum = 0;
+      const singleSelections = [];
 
       gs.forEach((g,gi)=>{
         if(g.type !== "single") return;
@@ -1177,14 +1348,23 @@ function normalizeSetMealTemplates(raw){
 
         if(Number.isFinite(idx) && idx >= 0){
           const o = (Array.isArray(g.choices)?g.choices:[])[idx];
-          if(o) optSum += Number(o.price||0);
+          if(o){
+            const price = Number(o.price||0);
+            optSum += price;
+            singleSelections.push({
+              groupName: g.name || "",
+              choiceName: o.name || "",
+              price
+            });
+          }
         }
       });
 
-      return { chosenOptions: chosen, optSum };
+      return { chosenOptions: chosen, optSum, singleSelections };
     }
 
-    function readChosenAddons(mid){
+    function readChosenAddons(mid, mode){
+      if(mode !== "single") return { addons: [], addonSum: 0 };
       const m = menuCache.find(x=> x.id===mid);
       const gs = (Array.isArray(m?.optionGroups) ? m.optionGroups : []).filter(groupEnabled);
 
@@ -1209,16 +1389,22 @@ function normalizeSetMealTemplates(raw){
       return { addons, addonSum };
     }
 
-    function readChosenSetMeal(mid){
+   function readChosenSetMeal(mid, mode){
+      if(mode !== "upgrade") return { setMeal: null, setMealSum: 0, addons: [], upgrade: null };
+     
       const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
       const smid = (sel?.value || "").trim();
-      if(!smid) return { setMeal: null, setMealSum: 0, addons: [] };
+      if(!smid) return { setMeal: null, setMealSum: 0, addons: [], upgrade: null };
 
       const t = setMealTemplates.find(x=> x.id === smid);
-      if(!t) return { setMeal: null, setMealSum: 0, addons: [] };
+      if(!t) return { setMeal: null, setMealSum: 0, addons: [], upgrade: null };
 
       const addons = [];
       let setMealSum = Number(t.price || 0);
+      const upgrade = {
+        extraPrice: Number(t.price || 0),
+        picks: []
+      };
 
       if(Number(t.price || 0)){
         addons.push({ kind:"setmeal", group:"套餐", name:t.name || "", price:Number(t.price||0) });
@@ -1229,11 +1415,19 @@ function normalizeSetMealTemplates(raw){
           `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"]:checked`
         );
 
+        onst pick = { categoryName: c.name || "", items: [] };
+        
         inputs.forEach(inp=>{
           const oi = Number(inp.dataset.smOi);
           const opt = (Array.isArray(c.options)?c.options:[])[oi];
           if(!opt) return;
           const price = Number(opt.addPrice||0);
+          const item = {
+            itemName: opt.name || "",
+            price,
+            childSelections: []
+          };
+
           addons.push({
             kind:"setmeal",
             group:`${t.name || "套餐"} / ${c.name || "類別"}`,
@@ -1241,50 +1435,140 @@ function normalizeSetMealTemplates(raw){
             price
           });
           setMealSum += price;
+          
+          const childGroups = (Array.isArray(opt.optionGroups) ? opt.optionGroups : []).filter(groupEnabled);
+          childGroups.forEach((g,gi)=>{
+            if(g.type === "single"){
+              const sel = document.querySelector(
+                `select[data-sm-child-opt="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"][data-sm-oi="${oi}"][data-sm-gi="${gi}"]`
+              );
+              const idx = sel ? Number(sel.value) : -1;
+              if(!Number.isFinite(idx) || idx < 0) return;
+              const choice = (Array.isArray(g.choices)?g.choices:[])[idx];
+              if(!choice) return;
+              const cPrice = Number(choice.price||0);
+              item.childSelections.push({
+                groupName: g.name || "",
+                choiceName: choice.name || "",
+                price: cPrice
+              });
+              addons.push({
+                kind:"setmeal",
+                group:`${opt.name || "配餐"} / ${g.name || "子選項"}`,
+                name: choice.name || "",
+                price: cPrice
+              });
+              setMealSum += cPrice;
+            }
+
+            if(g.type === "addon"){
+              const els = document.querySelectorAll(
+                `input[data-sm-child-addon="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"][data-sm-oi="${oi}"][data-sm-gi="${gi}"]:checked`
+              );
+              els.forEach(el=>{
+                const choiceIndex = Number(el.dataset.smCoi);
+                const choice = (Array.isArray(g.choices)?g.choices:[])[choiceIndex];
+                if(!choice) return;
+                const cPrice = Number(choice.price||0);
+                item.childSelections.push({
+                  groupName: g.name || "",
+                  choiceName: choice.name || "",
+                  price: cPrice
+                });
+                addons.push({
+                  kind:"setmeal",
+                  group:`${opt.name || "配餐"} / ${g.name || "子選項"}`,
+                  name: choice.name || "",
+                  price: cPrice
+                });
+                setMealSum += cPrice;
+              });
+            }
+          });
+
+          pick.items.push(item);
         });
+        
+        if(pick.items.length){
+          upgrade.picks.push(pick);
+        }
       });
 
-      return { setMeal: { id: t.id, name: t.name || "" }, setMealSum, addons };
+     return { setMeal: { id: t.id, name: t.name || "" }, setMealSum, addons, upgrade };
     }
 
     function validateRequired(mid){
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
 
-      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
+      const mode = getMenuMode(mid);
 
-      for(let gi=0; gi<gs.length; gi++){
-        const g = gs[gi]||{};
-        if(g.type==="single" && g.required!==false){
-          const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
-          const idx = sel ? Number(sel.value) : -1;
-          if(!Number.isFinite(idx) || idx < 0) return `請先選擇「${g.name||"選項"}」`;
-          const o = (Array.isArray(g.choices)?g.choices:[])[idx];
-          if(!o) return `請先選擇「${g.name||"選項"}」`;
-        }
+       if(mode === "single"){
+        const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
 
-        if(g.type==="addon" && g.required===true){
-          const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
-          let any = false;
-          els.forEach(el=>{ if(el.checked) any = true; });
-          if(!any) return `請先選擇「${g.name||"加購"}」`;
+        for(let gi=0; gi<gs.length; gi++){
+          const g = gs[gi]||{};
+          if(g.type==="single" && g.required!==false){
+            const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
+            const idx = sel ? Number(sel.value) : -1;
+            if(!Number.isFinite(idx) || idx < 0) return `請先選擇「${g.name||"選項"}」`;
+            const o = (Array.isArray(g.choices)?g.choices:[])[idx];
+            if(!o) return `請先選擇「${g.name||"選項"}」`;
+          }
+
+          if(g.type==="addon" && g.required===true){
+            const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
+            let any = false;
+            els.forEach(el=>{ if(el.checked) any = true; });
+            if(!any) return `請先選擇「${g.name||"加購"}」`;
+          }
         }
       }
       
-      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
-      const smid = (sel?.value || "").trim();
-      if(smid){
+      if(mode === "upgrade"){
+        const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
+        const smid = (sel?.value || "").trim();
+        if(!smid) return "請先選擇升級套餐";
+
         const t = setMealTemplates.find(x=> x.id === smid);
         if(!t) return "找不到套餐";
 
         for(let ci=0; ci<(t.categories||[]).length; ci++){
           const c = t.categories[ci] || {};
           const pickCount = Math.max(1, Number(c.pickCount||1));
-          const els = document.querySelectorAll(
+          const els = Array.from(document.querySelectorAll(
             `input[data-sm-mid="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"]:checked`
-          );
+           ));
           if(els.length !== pickCount){
             return `請選擇套餐「${c.name||"類別"}」（需選 ${pickCount}）`;
+          }
+          
+          for(const el of els){
+            const oi = Number(el.dataset.smOi);
+            const opt = (Array.isArray(c.options)?c.options:[])[oi];
+            if(!opt) continue;
+            const childGroups = (Array.isArray(opt.optionGroups) ? opt.optionGroups : []).filter(groupEnabled);
+            for(let gi=0; gi<childGroups.length; gi++){
+              const g = childGroups[gi] || {};
+              if(g.type === "single" && g.required !== false){
+                const sel = document.querySelector(
+                  `select[data-sm-child-opt="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"][data-sm-oi="${oi}"][data-sm-gi="${gi}"]`
+                );
+                const idx = sel ? Number(sel.value) : -1;
+                if(!Number.isFinite(idx) || idx < 0){
+                  return `請先選擇「${opt.name||"配餐"} / ${g.name||"子選項"}」`;
+                }
+              }
+
+              if(g.type === "addon" && g.required === true){
+                const addonEls = document.querySelectorAll(
+                  `input[data-sm-child-addon="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"][data-sm-oi="${oi}"][data-sm-gi="${gi}"]:checked`
+                );
+                if(addonEls.length === 0){
+                  return `請先選擇「${opt.name||"配餐"} / ${g.name||"子選項"}」`;
+                }
+              }
+            }
           }
         }
       }
@@ -1334,9 +1618,10 @@ function normalizeSetMealTemplates(raw){
       }
       const note = (noteEl?.value || "").trim();
 
-      const { chosenOptions, optSum } = readChosenOptions(mid);
-      const { addons, addonSum } = readChosenAddons(mid);
-      const { setMeal, setMealSum, addons: setMealAddons } = readChosenSetMeal(mid);
+      const mode = getMenuMode(mid);
+      const { chosenOptions, optSum, singleSelections } = readChosenOptions(mid, mode);
+      const { addons, addonSum } = readChosenAddons(mid, mode);
+      const { setMeal, setMealSum, addons: setMealAddons, upgrade } = readChosenSetMeal(mid, mode);
       
       const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
       Object.entries(chosenOptions).forEach(([giStr, oi])=>{
@@ -1358,12 +1643,16 @@ function normalizeSetMealTemplates(raw){
       cart.push({
         mid: m.id,
         name: m.name || "",
+        mode,
         qty,
         note,
         price: base,
         addons: combinedAddons,
         setMeal,
+        singleSelections,
+        upgrade,
         unit,
+        finalPrice: unit,
         lineTotal,
         createdAt: Date.now()
       });
@@ -1478,11 +1767,17 @@ function normalizeSetMealTemplates(raw){
         createdAt: Date.now(),
         orderNote: ($("orderNote").value || "").trim(),
         items: cart.map(it=>({
+          mainName: it.name,
           name: it.name,
           qty: it.qty,
           note: it.note,
           price: it.price,
-          addons: it.addons || []
+          addons: it.addons || [],
+          mode: it.mode || "single",
+          singleSelections: Array.isArray(it.singleSelections) ? it.singleSelections : [],
+          upgrade: it.upgrade || null,
+          setMeal: it.setMeal || null,
+          finalPrice: Number(it.finalPrice || it.unit || 0)
         })),
         total
       };
