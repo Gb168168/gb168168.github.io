@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -905,7 +905,7 @@ function normalizeSetMealTemplates(raw){
           <b class="menuCategoryTitle">${esc(cat)}</b>
             <span class="tag" style="margin-left:8px">${items.length} 項</span>
           </summary>
-          <div style="margin-top:10px">
+           <div style="margin-top:10px" data-menu-category="${esc(cat)}">
             ${items.map(m=> renderMenuItem(m)).join("")}
           </div>
         </details>
@@ -947,6 +947,17 @@ function normalizeSetMealTemplates(raw){
         const mid = inp.dataset.midMode;
         inp.addEventListener("change", ()=> updateModeUI(mid));
         updateModeUI(mid);
+      });
+      
+      wrap.querySelectorAll("details[data-menu-item]").forEach(details=>{
+        details.addEventListener("toggle", ()=>{
+          if(!details.open) return;
+          const container = details.closest("[data-menu-category]");
+          if(!container) return;
+          container.querySelectorAll("details[data-menu-item]").forEach(other=>{
+            if(other !== details) other.open = false;
+          });
+        });
       });
     }
 
@@ -1255,41 +1266,45 @@ function normalizeSetMealTemplates(raw){
         : "";
 
       return `
-        <div class="menuItem" data-mid="${esc(m.id)}">
-          <div class="inline" style="justify-content:space-between">
-            <div>
-              <b>${esc(m.name||"")}</b>
-              <span class="tag priceTag" style="margin-left:8px">單價：${Number(m.price||0)}</span>
-              <span class="tag" style="margin-left:6px">預設：${Number(m.defaultQty||1)}</span>
-            </div>
-            <div class="inline">
+         <details class="menuItem" data-mid="${esc(m.id)}" data-menu-item>
+          <summary>
+            <div class="inline" style="justify-content:space-between">
+              <div>
+                <b>${esc(m.name||"")}</b>
+                <span class="tag priceTag" style="margin-left:8px">單價：${Number(m.price||0)}</span>
+              </div>
               ${closed ? `<span class="tag lockTag">已結單</span>` : ``}
+               </div>
+            ${m.content ? `<div class="muted" style="margin-top:6px">內容：${esc(m.content)}</div>` : ``}
+          </summary>
+
+          <div style="margin-top:10px">
+            <div class="inline" style="justify-content:space-between">
+              <span class="tag" style="margin-left:0">預設：${Number(m.defaultQty||1)}</span>
               <button class="primary" data-add-mid="${esc(m.id)}" ${disabled} type="button">加入</button>
             </div>
-          </div>
 
-          ${m.content ? `<div class="muted" style="margin-top:6px">內容：${esc(m.content)}</div>` : ``}
           ${m.note ? `<div class="muted" style="margin-top:6px">提示：${esc(m.note)}</div>` : ``}
 
-          <div class="row" style="margin-top:10px">
-            <div>
-              <label>數量</label>
-             <input type="number" min="${qtyStep}" step="${qtyStep}" value="${qtyStep}" data-mid-qty="${esc(m.id)}" ${lock}/>
-              ${qtyHint}
+         <div class="row" style="margin-top:10px">
+              <div>
+                <label>數量</label>
+               <input type="number" min="${qtyStep}" step="${qtyStep}" value="${qtyStep}" data-mid-qty="${esc(m.id)}" ${lock}/>
+                ${qtyHint}
+              </div>
+              <div>
+                <label>單品備註（Enter 直接加入）</label>
+                <input placeholder="例：不要蔥" data-mid-note="${esc(m.id)}" ${lock}/>
+              </div>
             </div>
-            <div>
-              <label>單品備註（Enter 直接加入）</label>
-              <input placeholder="例：不要蔥" data-mid-note="${esc(m.id)}" ${lock}/>
-            </div>
-          </div>
 
-          ${modeHTML}
-          <div data-mid-upgrade-wrap="${esc(m.id)}" style="display:none">
-            ${setMealHTML}
-          </div>
-          <div data-mid-single-wrap="${esc(m.id)}">
-            ${groupsHTML}
-          </div>
+             ${modeHTML}
+            <div data-mid-upgrade-wrap="${esc(m.id)}" style="display:none">
+              ${setMealHTML}
+            </div>
+            <div data-mid-single-wrap="${esc(m.id)}">
+              ${groupsHTML}
+            </div>
         </div>
       `;
     }
