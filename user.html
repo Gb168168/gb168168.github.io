@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -1055,6 +1055,7 @@ function normalizeSetMealTemplates(raw){
               <option value="${esc(t.id)}">${esc(t.name)}${Number(t.price||0)?`（+${Number(t.price||0)}）`:``}</option>
             `).join("")}
           </select>
+           ${gs.length ? `<div class="muted" style="margin-top:6px">若不選套餐，需在下方選項群組至少選一項。</div>` : ``}
         </div>
         ${setMeals.map(t=>`
           <div class="box" data-mid-setmeal-box="${esc(m.id)}" data-smid="${esc(t.id)}" style="display:none; margin-top:10px">
@@ -1253,6 +1254,29 @@ function normalizeSetMealTemplates(raw){
       return { setMeal: { id: t.id, name: t.name || "" }, setMealSum, addons };
     }
 
+    function hasOptionGroupSelection(mid){
+      const m = menuCache.find(x=> x.id===mid);
+      if(!m) return false;
+      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
+      let any = false;
+
+      gs.forEach((g,gi)=>{
+        if(any) return;
+        if(g.type === "single"){
+          const sel = document.querySelector(`select[data-mid-opt="${CSS.escape(mid)}"][data-gi="${gi}"]`);
+          const idx = sel ? Number(sel.value) : -1;
+          if(Number.isFinite(idx) && idx >= 0) any = true;
+          return;
+        }
+        if(g.type === "addon"){
+          const els = document.querySelectorAll(`input[data-mid-addon="${CSS.escape(mid)}"][data-gi="${gi}"]`);
+          els.forEach(el=>{ if(el.checked) any = true; });
+        }
+      });
+
+      return any;
+    }
+
     function validateRequired(mid){
       const m = menuCache.find(x=> x.id===mid);
       if(!m) return "找不到餐點";
@@ -1279,6 +1303,11 @@ function normalizeSetMealTemplates(raw){
       
       const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
       const smid = (sel?.value || "").trim();
+      const hasSetMeals = Array.isArray(m.setMealTemplateIds) && m.setMealTemplateIds.length > 0;
+      const hasOptionGroups = gs.some(g=> g.type === "single" || g.type === "addon");
+      if(hasSetMeals && !smid && hasOptionGroups && !hasOptionGroupSelection(mid)){
+        return "未選套餐時，請至少選擇一項選項群組內容";
+      }
       if(smid){
         const t = setMealTemplates.find(x=> x.id === smid);
         if(!t) return "找不到套餐";
