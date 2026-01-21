@@ -920,14 +920,32 @@ function normalizeSetMealTemplates(raw){
         const mid = sel.dataset.midSetmeal;
         sel.addEventListener("change", ()=>{
           updateSetMealUI(mid);
+          updateMenuRequirementState(mid);
         });
         updateSetMealUI(mid);
+        updateMenuRequirementState(mid);
       });
 
       wrap.querySelectorAll("input[data-sm-mid]").forEach(inp=>{
            inp.addEventListener("change", async ()=>{
           await enforceSetMealPickLimit(inp);
         });
+      });
+      
+      wrap.querySelectorAll("[data-mid-opt]").forEach(sel=>{
+        const mid = sel.dataset.midOpt;
+        sel.addEventListener("change", ()=>{
+          updateMenuRequirementState(mid);
+        });
+        updateMenuRequirementState(mid);
+      });
+
+      wrap.querySelectorAll("input[data-mid-addon]").forEach(inp=>{
+        const mid = inp.dataset.midAddon;
+        inp.addEventListener("change", ()=>{
+          updateMenuRequirementState(mid);
+        });
+        updateMenuRequirementState(mid);
       });
     }
 
@@ -1096,8 +1114,13 @@ function normalizeSetMealTemplates(raw){
           </div>
         `).join("")}
       ` : "";
-
-       const qtyStep = Math.max(1, Number(m.defaultQty||1));
+      const requireOptionHint = (setMeals.length && gs.length) ? `
+        <div class="muted" data-mid-require-hint="${esc(m.id)}" style="margin-top:6px; display:none;">
+          未選套餐時，請至少選擇一項選項群組內容。
+        </div>
+      ` : "";
+      
+      const qtyStep = Math.max(1, Number(m.defaultQty||1));
       const qtyHint = qtyStep > 1
         ? `<div class="muted mini" style="margin-top:6px">數量需為 ${qtyStep} 的倍數</div>`
         : "";
@@ -1132,6 +1155,7 @@ function normalizeSetMealTemplates(raw){
           </div>
 
           ${setMealHTML}
+          ${requireOptionHint}
           ${groupsHTML}
         </div>
       `;
@@ -1275,6 +1299,28 @@ function normalizeSetMealTemplates(raw){
       });
 
       return any;
+    }
+
+    function updateMenuRequirementState(mid){
+      const m = menuCache.find(x=> x.id===mid);
+      if(!m) return;
+      const gs = (Array.isArray(m.optionGroups)?m.optionGroups:[]).filter(groupEnabled);
+      const hasOptionGroups = gs.some(g=> g.type === "single" || g.type === "addon");
+      const hasSetMeals = Array.isArray(m.setMealTemplateIds) && m.setMealTemplateIds.length > 0;
+      const shouldRequire = hasSetMeals && hasOptionGroups;
+
+      const sel = document.querySelector(`select[data-mid-setmeal="${CSS.escape(mid)}"]`);
+      const smid = (sel?.value || "").trim();
+      const needsOption = shouldRequire && !smid && !hasOptionGroupSelection(mid);
+
+      const btn = document.querySelector(`button[data-add-mid="${CSS.escape(mid)}"]`);
+      const hint = document.querySelector(`[data-mid-require-hint="${CSS.escape(mid)}"]`);
+      const closed = !!selectedRestaurant?.isClosed;
+      const userOK = !!($("deptSelect").value && $("nameSelect").value);
+      const locked = closed || !userOK || needsOption;
+
+      if(btn) btn.disabled = locked;
+      if(hint) hint.style.display = needsOption ? "block" : "none";
     }
 
     function validateRequired(mid){
