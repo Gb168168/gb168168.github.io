@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -1002,6 +1002,9 @@ function normalizeSetMealTemplates(raw){
         return;
       }
       const restaurantName = selectedRestaurant?.name || "未命名";
+       const jumpButton = item.id
+        ? `<button class="btn" type="button" data-jump-mid="${esc(item.id)}">跳至該選項</button>`
+        : "";
       wrap.innerHTML = `
         <div class="listLine">
           <div class="inline" style="justify-content:space-between">
@@ -1014,8 +1017,27 @@ function normalizeSetMealTemplates(raw){
           <div class="muted" style="margin-top:6px">店家：${esc(restaurantName)}</div>
           ${item.content ? `<div class="muted" style="margin-top:6px">內容：${esc(item.content)}</div>` : ``}
           ${item.note ? `<div class="muted" style="margin-top:6px">提示：${esc(item.note)}</div>` : ``}
+            ${jumpButton ? `<div class="inline" style="justify-content:flex-end; margin-top:10px">${jumpButton}</div>` : ``}
         </div>
       `;
+       const jumpBtn = wrap.querySelector("[data-jump-mid]");
+      if(jumpBtn){
+        jumpBtn.addEventListener("click", async ()=>{
+          const mid = jumpBtn.dataset.jumpMid || "";
+          await jumpToMenuItem(mid);
+        });
+      }
+    }
+
+    async function jumpToMenuItem(mid){
+      if(!mid) return;
+      const target = document.querySelector(`details.menuItem[data-mid="${CSS.escape(mid)}"]`);
+      if(!target){
+        await showAlert("找不到該餐點，請重新整理或再次挑選");
+        return;
+      }
+      target.open = true;
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function pickRandomMeal(){
