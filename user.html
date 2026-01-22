@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者6</title>
 
   <style>
     :root{
@@ -1036,8 +1036,14 @@ function normalizeSetMealTemplates(raw){
         await showAlert("找不到該餐點，請重新整理或再次挑選");
         return;
       }
+       const categoryDetail = target.closest("details.box");
+      if(categoryDetail){
+        categoryDetail.open = true;
+      }
       target.open = true;
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+       requestAnimationFrame(()=>{
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     }
 
     function pickRandomMeal(){
