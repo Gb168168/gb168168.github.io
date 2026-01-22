@@ -911,6 +911,10 @@ function normalizeSetMealTemplates(raw){
         </details>
       `).join("");
 
+       wrap.querySelectorAll("details").forEach((detail)=>{
+        detail.open = false;
+      });
+
       wrap.querySelectorAll("[data-add-mid]").forEach(btn=>{
          btn.onclick = async ()=>{
           const mid = btn.dataset.addMid;
