@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1335,6 +1335,15 @@
                   <div class="pill" style="height:42px; display:flex; align-items:center;">
                     同品項彙總（跨所有人）
                   </div>
+                </div>
+
+                    <div>
+                  <label>餐別顯示</label>
+                  <select id="ordersMealFilter" style="min-width:140px">
+                    <option value="all">午餐＋晚餐</option>
+                    <option value="lunch">只顯示午餐</option>
+                    <option value="dinner">只顯示晚餐</option>
+                  </select>
                 </div>
 
                 <div>
@@ -5733,12 +5742,21 @@ async function loadOrdersByDate(dateStr){
       }
     }
 
+     function getSelectedOrdersMealFilter(){
+      const raw = ($("ordersMealFilter")?.value || "all").toLowerCase();
+      return raw === "lunch" || raw === "dinner" ? raw : "all";
+    }
+
     function renderOrdersSummaryAndList(orders){
    const MEAL_SECTIONS = [
         { key: "lunch", label: "午餐" },
         { key: "dinner", label: "晚餐" }
       ];
-
+      const mealFilter = getSelectedOrdersMealFilter();
+      const visibleSections = mealFilter === "all"
+        ? MEAL_SECTIONS
+        : MEAL_SECTIONS.filter(section => section.key === mealFilter);
+      
       const getMealPeriod = (order)=>{
         const raw = String(
           order.mealType || order.meal || order.mealPeriod || order.period || ""
@@ -5838,7 +5856,7 @@ async function loadOrdersByDate(dateStr){
         `;
       };
 
-      const summaryHTML = MEAL_SECTIONS.map(section=>{
+       const summaryHTML = visibleSections.map(section=>{
         const list = groupOrders.get(section.key) || [];
         return buildSummarySection(section, list);
       }).join("");
@@ -5978,7 +5996,7 @@ async function loadOrdersByDate(dateStr){
         `;
          };
 
-      const detailHTML = MEAL_SECTIONS.map(section=>{
+      const detailHTML = visibleSections.map(section=>{
         const list = groupOrders.get(section.key) || [];
         return buildDetailSection(section, list);
       }).join("");
@@ -6359,6 +6377,14 @@ async function setupOrdersLive(dateStr){
         statusPill.textContent = "讀取失敗（看 console）";
       }
     };
+
+     $("ordersMealFilter")?.addEventListener("change", ()=>{
+      if(!Array.isArray(lastLoadedOrders) || lastLoadedOrders.length === 0) return;
+      const { summaryHTML, detailHTML } = renderOrdersSummaryAndList(lastLoadedOrders);
+      $("ordersSummaryOut").innerHTML = summaryHTML;
+      $("ordersDetailOut").innerHTML = detailHTML;
+      bindOrderDeleteButtons();
+    });
 
     $("btnExportExcel").onclick = async ()=>{
       const date = $("o_date").value;
