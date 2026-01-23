@@ -1337,12 +1337,11 @@
                   </div>
                 </div>
 
-                    <div>
+                <div>
                   <label>餐別顯示</label>
                   <select id="ordersMealFilter" style="min-width:140px">
-                    <option value="all">午餐＋晚餐</option>
-                    <option value="lunch">只顯示午餐</option>
-                    <option value="dinner">只顯示晚餐</option>
+                     <option value="lunch">午餐</option>
+                    <option value="dinner">晚餐</option>
                   </select>
                 </div>
 
@@ -5743,8 +5742,8 @@ async function loadOrdersByDate(dateStr){
     }
 
      function getSelectedOrdersMealFilter(){
-      const raw = ($("ordersMealFilter")?.value || "all").toLowerCase();
-      return raw === "lunch" || raw === "dinner" ? raw : "all";
+      const raw = ($("ordersMealFilter")?.value || "lunch").toLowerCase();
+      return raw === "dinner" ? "dinner" : "lunch";
     }
 
     function renderOrdersSummaryAndList(orders){
@@ -5753,9 +5752,7 @@ async function loadOrdersByDate(dateStr){
         { key: "dinner", label: "晚餐" }
       ];
       const mealFilter = getSelectedOrdersMealFilter();
-      const visibleSections = mealFilter === "all"
-        ? MEAL_SECTIONS
-        : MEAL_SECTIONS.filter(section => section.key === mealFilter);
+      const visibleSections = MEAL_SECTIONS.filter(section => section.key === mealFilter);
       
       const getMealPeriod = (order)=>{
         const raw = String(
