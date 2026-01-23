@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者999</title>
 
   <style>
     :root{
@@ -339,6 +339,7 @@
         <span class="pill" id="statusPill">連線中…</span>
 
         <button class="btn" id="btnLogout">清除所有</button>
+        <button class="btn" id="btnAdminEasterEgg" aria-label="管理者捷徑">👽</button>
       </div>
     </div>
 
@@ -2508,6 +2509,15 @@ function normalizeSetMealTemplates(raw){
       loadMyOrders();
     };
      $("btnRandomPick").onclick = pickRandomMeal;
+
+    let adminEggClicks = 0;
+    $("btnAdminEasterEgg").onclick = ()=>{
+      adminEggClicks += 1;
+      if(adminEggClicks >= 5){
+        adminEggClicks = 0;
+        location.href = "./admin.html";
+      }
+    };
 
     $("btnLogout").onclick = ()=>{
       clearAllClientState();
