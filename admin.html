@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -5734,96 +5734,143 @@ async function loadOrdersByDate(dateStr){
     }
 
     function renderOrdersSummaryAndList(orders){
-      const agg = new Map();
-      let grandTotal = 0;
-
-      for(const o of orders){
-        const items = Array.isArray(o.items) ? o.items : [];
-        let orderTotal = Number(o.total||0);
-        if(!orderTotal) orderTotal = calcOrderTotal(items);
-        grandTotal += orderTotal;
-
-        for(const it of items){
-          const rName = o.restaurantName || "";
-          const unit = Number(it.price||0);
-          const addons = Array.isArray(it.addons) ? it.addons : [];
-          const aKey = addonsKey(addons);
-          const note = itemNoteText(it);
-          const key = `${rName}__${it.name||""}__${unit}__${aKey}__note:${note}`;
-
-          if(!agg.has(key)){
-            agg.set(key, { restaurant: rName, item: it.name||"", unit, addons, note, qty: 0 });
-          }
-          agg.get(key).qty += Number(it.qty||0);
-        }
-      }
-
-      // ===== 左：同品項彙總 =====
-      const summaryRows = Array.from(agg.values())
-        .sort((a,b)=> b.qty-a.qty)
-        .map(x=>{
-          const unitAddon = addonUnitSum(x.addons);
-          const addonAmt = unitAddon * x.qty;
-          const itemAmt = x.unit * x.qty;
-          const total = (x.unit + unitAddon) * x.qty;
-          return `
-            <tr>
-              <td>${esc(x.restaurant)}</td>
-              <td>${esc(x.item)}</td>
-              <td class="muted">${esc(addonText(x.addons, { namesOnly: true }))}</td>
-              <td class="muted">${esc(x.note || "")}</td>
-              <td>${x.qty}</td>
-              <td>${x.unit}</td>
-              <td>${addonAmt}</td>
-              <td>${itemAmt}</td>
-              <td>${total}</td>
-            </tr>
-          `;
-        }).join("");
-
-      const summaryHTML = `
-        <div class="inline" style="justify-content:space-between; margin-bottom:10px">
-          <span class="tag">共 ${orders.length} 筆訂單</span>
-          <span class="tag">訂單總加總：${grandTotal}</span>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>餐廳</th>
-              <th>品項</th>
-              <th>加購/擇一</th>
-              <th>餐點備註</th>
-              <th>數量</th>
-              <th>單價</th>
-              <th>加購金額</th>
-              <th>品項金額</th>
-              <th>小計</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${summaryRows || `<tr><td colspan="9" class="muted">此日期沒有訂單</td></tr>`}
-          </tbody>
-        </table>
-      `;
-
-      // ===== 右：訂單明細（依部門分組） =====
-      const detailOrders = sortOrdersForDetails(orders);
-
-      const deptMap = new Map();
-      for (const o of detailOrders) {
-        const dept = (o.userDept || "未分部門").trim() || "未分部門";
-        if (!deptMap.has(dept)) deptMap.set(dept, []);
-        deptMap.get(dept).push(o);
-      }
-
-      const orderedDepts = [
-        ...DEPT_ORDER.filter(d => deptMap.has(d)),
-        ...Array.from(deptMap.keys()).filter(d => !DEPT_INDEX.has(d))
+   const MEAL_SECTIONS = [
+        { key: "lunch", label: "午餐" },
+        { key: "dinner", label: "晚餐" }
       ];
 
-      const detailHTML = orderedDepts.map(dept=>{
-        const list = deptMap.get(dept) || [];
+      const getMealPeriod = (order)=>{
+        const raw = String(
+          order.mealType || order.meal || order.mealPeriod || order.period || ""
+        ).trim().toLowerCase();
+        if(raw){
+          if(raw.includes("晚") || raw.includes("dinner") || raw.includes("evening")) return "dinner";
+          if(raw.includes("午") || raw.includes("lunch") || raw.includes("noon")) return "lunch";
+        }
+         const createdAt = Number(order.createdAt || 0);
+        if(createdAt){
+          const hour = new Date(createdAt).getHours();
+          return hour >= 15 ? "dinner" : "lunch";
+        }
+        return "lunch";
+      };
+
+      const groupOrders = new Map(MEAL_SECTIONS.map(section=>[section.key, []]));
+      for(const order of orders){
+        const key = getMealPeriod(order);
+        (groupOrders.get(key) || groupOrders.get("lunch")).push(order);
+      }
+
+      const buildSummarySection = (section, list)=>{
+        const agg = new Map();
+        let grandTotal = 0;
+
+     for(const o of list){
+          const items = Array.isArray(o.items) ? o.items : [];
+          let orderTotal = Number(o.total||0);
+          if(!orderTotal) orderTotal = calcOrderTotal(items);
+          grandTotal += orderTotal;
+       
+       for(const it of items){
+            const rName = o.restaurantName || "";
+            const unit = Number(it.price||0);
+            const addons = Array.isArray(it.addons) ? it.addons : [];
+            const aKey = addonsKey(addons);
+            const note = itemNoteText(it);
+            const key = `${rName}__${it.name||""}__${unit}__${aKey}__note:${note}`;
+
+            if(!agg.has(key)){
+              agg.set(key, { restaurant: rName, item: it.name||"", unit, addons, note, qty: 0 });
+            }
+            agg.get(key).qty += Number(it.qty||0);
+          }
+        }
+
+       const summaryRows = Array.from(agg.values())
+          .sort((a,b)=> b.qty-a.qty)
+          .map(x=>{
+            const unitAddon = addonUnitSum(x.addons);
+            const addonAmt = unitAddon * x.qty;
+            const itemAmt = x.unit * x.qty;
+            const total = (x.unit + unitAddon) * x.qty;
+            return `
+              <tr>
+                <td>${esc(x.restaurant)}</td>
+                <td>${esc(x.item)}</td>
+                <td class="muted">${esc(addonText(x.addons, { namesOnly: true }))}</td>
+                <td class="muted">${esc(x.note || "")}</td>
+                <td>${x.qty}</td>
+                <td>${x.unit}</td>
+                <td>${addonAmt}</td>
+                <td>${itemAmt}</td>
+                <td>${total}</td>
+              </tr>
+            `;
+          }).join("");
+
+      return `
+          <div style="margin-top:12px">
+            <div class="inline" style="justify-content:space-between; margin-bottom:10px">
+              <span class="tag">${esc(section.label)}</span>
+              <span class="tag">共 ${list.length} 筆訂單</span>
+              <span class="tag">訂單總加總：${grandTotal}</span>
+            </div>
+            
+     <table>
+              <thead>
+                <tr>
+                  <th>餐廳</th>
+                  <th>品項</th>
+                  <th>加購/擇一</th>
+                  <th>餐點備註</th>
+                  <th>數量</th>
+                  <th>單價</th>
+                  <th>加購金額</th>
+                  <th>品項金額</th>
+                  <th>小計</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${summaryRows || `<tr><td colspan="9" class="muted">此日期沒有${esc(section.label)}訂單</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      };
+
+      const summaryHTML = MEAL_SECTIONS.map(section=>{
+        const list = groupOrders.get(section.key) || [];
+        return buildSummarySection(section, list);
+      }).join("");
+
+      const buildDetailSection = (section, list)=>{
+        const detailOrders = sortOrdersForDetails(list);
+        const deptMap = new Map();
+        for (const o of detailOrders) {
+          const dept = (o.userDept || "未分部門").trim() || "未分部門";
+          if (!deptMap.has(dept)) deptMap.set(dept, []);
+          deptMap.get(dept).push(o);
+        }
+
+        const orderedDepts = [
+          ...DEPT_ORDER.filter(d => deptMap.has(d)),
+          ...Array.from(deptMap.keys()).filter(d => !DEPT_INDEX.has(d))
+        ];
+
+        if(orderedDepts.length === 0){
+          return `
+            <div style="margin-top:12px">
+              <div class="inline" style="justify-content:space-between; margin-bottom:10px">
+                <span class="tag">${esc(section.label)}</span>
+                <span class="tag">共 0 筆訂單</span>
+              </div>
+              <div class="muted">此日期沒有${esc(section.label)}訂單</div>
+            </div>
+          `;
+        }
+
+        const detailHTML = orderedDepts.map(dept=>{
+          const list = deptMap.get(dept) || [];
 
         const deptInner = list.map(o=>{
           const name = o.userName || "";
@@ -5907,17 +5954,33 @@ async function loadOrdersByDate(dateStr){
           `;
         }).join("");
 
+          return `
+            <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:rgba(255,255,255,.9); margin-top:10px;">
+              <summary>
+                <span style="font-size:14.5px">${esc(dept)}</span>
+                <span class="tag" style="margin-left:8px">${list.length} 筆訂單</span>
+              </summary>
+              <div style="margin-top:10px">
+                ${deptInner || `<div class="muted">（此部門沒有訂單）</div>`}
+              </div>
+            </details>
+          `;
+        }).join("");
+        
         return `
-          <details style="border:1px solid rgba(15,23,42,.10); border-radius:16px; padding:10px 12px; background:rgba(255,255,255,.9); margin-top:10px;">
-            <summary>
-              <span style="font-size:14.5px">${esc(dept)}</span>
-              <span class="tag" style="margin-left:8px">${list.length} 筆訂單</span>
-            </summary>
-            <div style="margin-top:10px">
-              ${deptInner || `<div class="muted">（此部門沒有訂單）</div>`}
+        <div style="margin-top:12px">
+            <div class="inline" style="justify-content:space-between; margin-bottom:10px">
+              <span class="tag">${esc(section.label)}</span>
+              <span class="tag">共 ${list.length} 筆訂單</span>
             </div>
-          </details>
+          ${detailHTML}
+          </div>
         `;
+         };
+
+      const detailHTML = MEAL_SECTIONS.map(section=>{
+        const list = groupOrders.get(section.key) || [];
+        return buildDetailSection(section, list);
       }).join("");
 
       return { summaryHTML, detailHTML };
