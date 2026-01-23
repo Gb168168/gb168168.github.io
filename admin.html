@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理7</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -5574,6 +5574,22 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       return (it?.note ?? it?.remark ?? it?.itemNote ?? it?.memo ?? "").toString().trim();
     }
 
+    function normalizeOrderCoPartners(order){
+      const list = Array.isArray(order?.coPartners) ? order.coPartners : [];
+      if(list.length) return list;
+      if(order?.coDept || order?.coName){
+        return [{ dept: order.coDept || "", name: order.coName || "" }];
+      }
+      return [];
+    }
+
+    function formatCoPartnerList(partners = []){
+      return partners
+        .filter(p=>p?.dept && p?.name)
+        .map(p=> `${esc(p.dept)} / ${esc(p.name)}`)
+        .join("、");
+    }
+
     function addonText(addons, options = {}){
       const arr = Array.isArray(addons) ? addons : [];
       if(arr.length===0) return "";
@@ -5821,14 +5837,14 @@ async function loadOrdersByDate(dateStr){
           const totalLabel = exceed > 0 ? `總額 ${total}（超出 ${exceed}）` : `總額 ${total}`;
           const totalTagClass = exceed > 0 ? "tag exceedTag" : "tag";
           const coOrderEnabled = Boolean(o.coOrderEnabled);
-          const coDept = (o.coDept || "").trim();
-          const coName = (o.coName || "").trim();
-          const coText = [coDept, coName].filter(Boolean).join(" / ");
+          const coPartners = coOrderEnabled ? normalizeOrderCoPartners(o) : [];
+          const coText = formatCoPartnerList(coPartners);
+          const coCount = coOrderEnabled ? Number(o.coOrderCount || coPartners.length || 2) : 0;
           const coLine = coOrderEnabled && coText
-            ? `<div class="muted mini" style="margin-top:6px">共同點餐：${esc(coText)}</div>`
+            ? `<div class="muted mini" style="margin-top:6px">共同點餐（${coCount}人）：${coText}</div>`
             : "";
           const coTag = coOrderEnabled && coText
-            ? `<span class="tag" style="margin-left:6px">共同點餐：${esc(coText)}</span>`
+            ? `<span class="tag" style="margin-left:6px">共同點餐 ${coCount}人：${coText}</span>`
             : "";
           
           return `
@@ -6324,8 +6340,9 @@ async function setupOrdersLive(dateStr){
 
           const items = Array.isArray(o.items) ? o.items : [];
           const coOrderEnabled = Boolean(o.coOrderEnabled);
-          const coDept = coOrderEnabled ? (o.coDept || "").trim() : "";
-          const coName = coOrderEnabled ? (o.coName || "").trim() : "";
+          const coPartners = coOrderEnabled ? normalizeOrderCoPartners(o) : [];
+          const coDept = coPartners.map(p=> (p?.dept || "").trim()).filter(Boolean).join("、");
+          const coName = coPartners.map(p=> (p?.name || "").trim()).filter(Boolean).join("、");
           for(const it of items){
             const qty = Number(it.qty || 0);
             const unit = Number(it.price || 0);
