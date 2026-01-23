@@ -24,6 +24,63 @@
       color:var(--text);
       min-height:100vh;
     }
+     body.is-locked{
+      overflow:hidden;
+    }
+    body.is-locked .layout{
+      display:none;
+    }
+    .adminGate{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.65)),
+        url("./assets/admin-gate.svg");
+      background-size:cover;
+      background-position:center;
+      padding:24px;
+      z-index:9999;
+    }
+    .adminGate[hidden]{
+      display:none;
+    }
+    .adminGate__card{
+      width:min(420px, 92vw);
+      background:rgba(255,255,255,.9);
+      border-radius:24px;
+      border:1px solid var(--border);
+      box-shadow:0 24px 60px rgba(15,23,42,.2);
+      padding:22px;
+      text-align:center;
+      backdrop-filter: blur(10px);
+    }
+    .adminGate__title{
+      font-size:18px;
+      margin:0 0 10px;
+      font-weight:900;
+    }
+    .adminGate__hint{
+      margin:6px 0 0;
+      font-size:12.5px;
+      color:var(--muted);
+    }
+    .adminGate__error{
+      min-height:20px;
+      margin:10px 0 0;
+      color:#dc2626;
+      font-size:12.5px;
+      font-weight:700;
+    }
+    .adminGate__actions{
+      display:flex;
+      gap:10px;
+      margin-top:14px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
 .layout{
   display:grid;
   grid-template-columns: 300px 1fr;
@@ -701,7 +758,19 @@
 
   </style>
 </head>
-<body>
+<body class="is-locked">
+  <div id="adminGate" class="adminGate" hidden aria-hidden="true">
+    <div class="adminGate__card" role="dialog" aria-labelledby="adminGateTitle" aria-describedby="adminGateHint">
+      <p class="adminGate__title" id="adminGateTitle">請輸入管理密碼</p>
+      <input id="adminGateInput" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="輸入 777"/>
+      <div class="adminGate__actions">
+        <button class="primary" type="button" id="adminGateBtn">進入管理畫面</button>
+        <button class="ghost" type="button" id="adminGateBack">返回首頁</button>
+      </div>
+      <p class="adminGate__hint" id="adminGateHint">輸入正確後才會進入管理者畫面</p>
+      <p class="adminGate__error" id="adminGateError" role="alert"></p>
+    </div>
+  </div>
 
   <div class="layout">
     <aside class="sidebar">
@@ -1371,6 +1440,24 @@
   <script type="module">
     const roleKey = "gb_role";
    const adminCode = "777";
+    const adminGate = document.getElementById("adminGate");
+    const adminInput = document.getElementById("adminGateInput");
+    const adminBtn = document.getElementById("adminGateBtn");
+    const adminBack = document.getElementById("adminGateBack");
+    const adminError = document.getElementById("adminGateError");
+    const showGate = () => {
+      document.body.classList.add("is-locked");
+      adminGate?.removeAttribute("hidden");
+      adminGate?.setAttribute("aria-hidden", "false");
+      adminError.textContent = "";
+      adminInput.value = "";
+      adminInput.focus();
+    };
+    const hideGate = () => {
+      document.body.classList.remove("is-locked");
+      adminGate?.setAttribute("hidden", "");
+      adminGate?.setAttribute("aria-hidden", "true");
+    };
     const storedRole = localStorage.getItem(roleKey);
     if (storedRole !== "admin") {
       const params = new URLSearchParams(window.location.search);
@@ -1378,17 +1465,33 @@
       if (queryCode === adminCode) {
         localStorage.setItem(roleKey, "admin");
         window.history.replaceState({}, "", window.location.pathname);
+        hideGate();
       } else {
-        const inputCode = window.prompt("請輸入管理密碼");
-        if (inputCode === adminCode) {
-          localStorage.setItem(roleKey, "admin");
-          window.location.reload();
-        } else {
-          window.location.href = "./index.html";
-        }
+     showGate();
       }
+      } else {
+      hideGate();
     }
-
+const verifyAdminCode = () => {
+      if (adminInput.value.trim() === adminCode) {
+        localStorage.setItem(roleKey, "admin");
+        hideGate();
+      } else {
+        adminError.textContent = "密碼錯誤，請再試一次。";
+        adminInput.value = "";
+        adminInput.focus();
+      }
+    };
+    adminBtn?.addEventListener("click", verifyAdminCode);
+    adminInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        verifyAdminCode();
+      }
+    });
+    adminBack?.addEventListener("click", () => {
+      window.location.href = "./index.html";
+    });
+    
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc,
