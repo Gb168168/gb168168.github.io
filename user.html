@@ -339,7 +339,7 @@
         <span class="pill" id="statusPill">連線中…</span>
 
         <button class="btn" id="btnLogout">清除所有</button>
-        <button class="btn" id="btnAdminEasterEgg" aria-label="管理者捷徑">👽</button>
+        <button class="btn" id="btnAdminEasterEgg" aria-label="管理者捷徑（連點三下或長按2秒）">👽</button>
       </div>
     </div>
 
@@ -2511,14 +2511,57 @@ function normalizeSetMealTemplates(raw){
      $("btnRandomPick").onclick = pickRandomMeal;
 
     let adminEggClicks = 0;
-    $("btnAdminEasterEgg").onclick = ()=>{
-      adminEggClicks += 1;
-      if(adminEggClicks >= 5){
-        adminEggClicks = 0;
-        location.href = "./admin.html";
+     let adminEggClickTimer = null;
+    let adminEggLongPressTimer = null;
+    let adminEggLongPressTriggered = false;
+    const adminEggButton = $("btnAdminEasterEgg");
+    const goAdmin = ()=>{
+      location.href = "./admin.html";
+    };
+    const resetAdminEggClicks = ()=>{
+      adminEggClicks = 0;
+      if(adminEggClickTimer){
+        clearTimeout(adminEggClickTimer);
+        adminEggClickTimer = null;
       }
     };
 
+    adminEggButton.addEventListener("click", ()=>{
+      if(adminEggLongPressTriggered){
+        adminEggLongPressTriggered = false;
+        return;
+      }
+      adminEggClicks += 1;
+       if(adminEggClicks >= 3){
+        resetAdminEggClicks();
+        goAdmin();
+        return;
+      }
+      if(adminEggClickTimer) clearTimeout(adminEggClickTimer);
+      adminEggClickTimer = setTimeout(()=>{ adminEggClicks = 0; }, 900);
+    });
+
+    adminEggButton.addEventListener("pointerdown", (event)=>{
+      if(event.pointerType === "mouse" && event.button !== 0) return;
+      adminEggLongPressTriggered = false;
+      if(adminEggLongPressTimer) clearTimeout(adminEggLongPressTimer);
+      adminEggLongPressTimer = setTimeout(()=>{
+        adminEggLongPressTriggered = true;
+        resetAdminEggClicks();
+        goAdmin();
+      }, 2000);
+    });
+
+    const clearAdminEggLongPress = ()=>{
+      if(adminEggLongPressTimer){
+        clearTimeout(adminEggLongPressTimer);
+        adminEggLongPressTimer = null;
+      }
+    };
+    adminEggButton.addEventListener("pointerup", clearAdminEggLongPress);
+    adminEggButton.addEventListener("pointerleave", clearAdminEggLongPress);
+    adminEggButton.addEventListener("pointercancel", clearAdminEggLongPress);
+    
     $("btnLogout").onclick = ()=>{
       clearAllClientState();
       location.href = "./index.html";
