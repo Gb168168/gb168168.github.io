@@ -2371,7 +2371,7 @@ function normalizeSetMealTemplates(raw){
      $("btnRandomPick").onclick = pickRandomMeal;
 
     $("btnLogout").onclick = ()=>{
-      localStorage.removeItem(roleKey);
+      localStorage.clear();
       location.href = "./index.html";
     };
 
