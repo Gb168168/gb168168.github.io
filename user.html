@@ -524,7 +524,7 @@ const getCoPartnersFromDOM = ()=>{
   });
 };
 
-  const getSelectedCoPartnersMap = (excludeIndex = null)=>{
+  const getSelectedCoPartnersMap = (excludeIndex = null, includeBase = false)=>{
   const map = new Map();
   document.querySelectorAll(".coPartnerRow").forEach(row=>{
     const index = Number(row.dataset.index || 0);
@@ -535,6 +535,14 @@ const getCoPartnersFromDOM = ()=>{
     if(!map.has(dept)) map.set(dept, new Set());
     map.get(dept).add(name);
   });
+  if(includeBase){
+    const baseDept = $("deptSelect")?.value || "";
+    const baseName = $("nameSelect")?.value || "";
+    if(baseDept && baseName){
+      if(!map.has(baseDept)) map.set(baseDept, new Set());
+      map.get(baseDept).add(baseName);
+    }
+  }
   return map;
 };
 
@@ -866,7 +874,7 @@ async function loadStaff(){
         const dept = row.querySelector("[data-role='co-dept']")?.value || "";
         const nameSel = row.querySelector("[data-role='co-name']");
         if(!nameSel || !dept) return;
-        const taken = getSelectedCoPartnersMap(index).get(dept) || new Set();
+        const taken = getSelectedCoPartnersMap(index, true).get(dept) || new Set();
         Array.from(nameSel.options).forEach(opt=>{
           if(!opt.value) return;
           opt.disabled = taken.has(opt.value);
@@ -2382,7 +2390,8 @@ function normalizeSetMealTemplates(raw){
       const dept = $("deptSelect").value || "";
       renderNameSelect(dept);
       setWhoLine();
-
+      updateCoPartnerNameAvailability();
+      
       $("nameSelect").value = "";
       localStorage.setItem("gb_user_dept", dept);
       localStorage.removeItem("gb_user_name");
@@ -2396,6 +2405,7 @@ function normalizeSetMealTemplates(raw){
       const name = $("nameSelect").value || "";
       localStorage.setItem("gb_user_name", name);
       setWhoLine();
+      updateCoPartnerNameAvailability();
 
       renderCart();
       loadMyOrders();
