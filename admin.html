@@ -1289,7 +1289,7 @@
             </div>
 
             <p class="muted" style="margin-top:10px">
-              Excel 欄位：部門、姓名、餐廳、品項、加購/擇一、餐點備註、數量、單價、加購金額、品項金額、品項小計、訂單總額、下單時間、整單備註
+                Excel 欄位：部門、姓名、共同點餐部門、共同點餐人員、品項、加購/擇一、餐點備註、金額、應收
             </p>
           </div>
 
@@ -5700,8 +5700,15 @@ async function loadOrdersByDate(dateStr){
           const exceed = total - budgetLimit;
           const totalLabel = exceed > 0 ? `總額 ${total}（超出 ${exceed}）` : `總額 ${total}`;
           const totalTagClass = exceed > 0 ? "tag exceedTag" : "tag";
-          const coLine = o.coOrderEnabled
-            ? `<div class="muted mini" style="margin-top:6px">共同點餐：${esc(o.coDept||"")} / ${esc(o.coName||"")}</div>`
+          const coOrderEnabled = Boolean(o.coOrderEnabled);
+          const coDept = (o.coDept || "").trim();
+          const coName = (o.coName || "").trim();
+          const coText = [coDept, coName].filter(Boolean).join(" / ");
+          const coLine = coOrderEnabled && coText
+            ? `<div class="muted mini" style="margin-top:6px">共同點餐：${esc(coText)}</div>`
+            : "";
+          const coTag = coOrderEnabled && coText
+            ? `<span class="tag" style="margin-left:6px">共同點餐：${esc(coText)}</span>`
             : "";
           
           return `
@@ -5711,6 +5718,7 @@ async function loadOrdersByDate(dateStr){
                 <span class="tag" style="margin-left:8px">${items.length} 道</span>
                 <span class="${totalTagClass}" style="margin-left:6px">${totalLabel}</span>
                 <span class="tag" style="margin-left:6px">${esc(time)}</span>
+                ${coTag}
               </summary>
 
               ${orderNote ? `<div class="muted mini" style="margin-top:8px">整單備註：${esc(orderNote)}</div>` : ``}
@@ -6195,6 +6203,9 @@ async function setupOrdersLive(dateStr){
           const rObj = p.restMap.get(restaurant);
 
           const items = Array.isArray(o.items) ? o.items : [];
+          const coOrderEnabled = Boolean(o.coOrderEnabled);
+          const coDept = coOrderEnabled ? (o.coDept || "").trim() : "";
+          const coName = coOrderEnabled ? (o.coName || "").trim() : "";
           for(const it of items){
             const qty = Number(it.qty || 0);
             const unit = Number(it.price || 0);
@@ -6206,6 +6217,8 @@ async function setupOrdersLive(dateStr){
               addonText: addonText(it.addons, { namesOnly: true }),
               note: itemNoteText(it),
               amount,
+              coDept,
+              coName,
             };
 
             rObj.items.push(rowItem);
@@ -6288,6 +6301,8 @@ async function setupOrdersLive(dateStr){
                 "人數": firstLineOfPerson ? personNo : "",
                 "部門": (firstLineOfPerson && showDept) ? p.dept : "",
                 "姓名": firstLineOfPerson ? p.name : "",
+                "共同點餐部門": "",
+                "共同點餐人員": "",
                 "品項": "",
                 "加購/擇一": "",
                 "餐點備註": "",
@@ -6303,6 +6318,8 @@ async function setupOrdersLive(dateStr){
                 "人數": (firstLineOfPerson && idx===0) ? personNo : "",
                 "部門": (firstLineOfPerson && idx===0 && showDept) ? p.dept : "",
                 "姓名": (firstLineOfPerson && idx===0) ? p.name : "",
+                "共同點餐部門": it.coDept || "",
+                "共同點餐人員": it.coName || "",
                 "品項": it.itemName,
                 "加購/擇一": it.addonText,
                 "餐點備註": it.note,
@@ -6317,7 +6334,7 @@ async function setupOrdersLive(dateStr){
           lastDeptDetail = p.dept;
         }
 
-        const detailHeader = ["人數","部門","姓名","品項","加購/擇一","餐點備註","金額","應收"];
+        const detailHeader = ["人數","部門","姓名","共同點餐部門","共同點餐人員","品項","加購/擇一","餐點備註","金額","應收"];
         const wsDetail = XLSX.utils.json_to_sheet(detailRows, { header: detailHeader });
         wsDetail["!freeze"] = { xSplit: 0, ySplit: 1 };
         const rangeD = XLSX.utils.decode_range(wsDetail["!ref"]);
@@ -6326,6 +6343,8 @@ async function setupOrdersLive(dateStr){
           { wch: 6 },
           { wch: 10 },
           { wch: 12 },
+          { wch: 14 },
+          { wch: 16 },
           { wch: 24 },
           { wch: 28 },
           { wch: 18 },
