@@ -305,11 +305,6 @@
       <div class="right">
         <span class="pill" id="statusPill">連線中…</span>
 
-        <div class="inline">
-          <input id="adminPin" placeholder="輸入密碼" style="width:220px"/>
-          <button class="btn" id="btnGoAdmin">切換</button>
-        </div>
-
         <button class="btn" id="btnLogout">登出</button>
       </div>
     </div>
@@ -2374,21 +2369,6 @@ function normalizeSetMealTemplates(raw){
       loadMyOrders();
     };
      $("btnRandomPick").onclick = pickRandomMeal;
-
-    // ===== Switch admin =====
-     async function goAdmin(){
-      const pin = ($("adminPin").value || "").trim();
-      if(pin !== "8520"){
-        await showAlert("PIN 不正確");
-        return;
-      }
-      localStorage.setItem(roleKey, "admin");
-      location.href = "./admin.html";
-    }
-    $("btnGoAdmin").onclick = goAdmin;
-    $("adminPin").addEventListener("keydown",(e)=>{
-      if(e.key==="Enter") goAdmin();
-    });
 
     $("btnLogout").onclick = ()=>{
       localStorage.removeItem(roleKey);
