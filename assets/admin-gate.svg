@@ -1,3 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="259" height="194" viewBox="0 0 259 194">
-  <image width="259" height="194" href="data:image/png;base64,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" />
+<svg xmlns="http://www.w3.org/2000/svg" width="259" height="194" viewBox="0 0 259 194" fill="none">
+  <rect width="259" height="194" fill="#F8F3FF"/>
+  <g transform="translate(0 2)">
+    <ellipse cx="129.5" cy="126" rx="84" ry="58" fill="#FFE1C7"/>
+    <ellipse cx="129.5" cy="134" rx="70" ry="44" fill="#FFF2E6"/>
+    <path d="M67 80 L94 40 L120 84 Z" fill="#FFE1C7" stroke="#F3C7A6" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M139 84 L165 40 L192 80 Z" fill="#FFE1C7" stroke="#F3C7A6" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M82 74 L96 50 L110 76 Z" fill="#FFB6C1"/>
+    <path d="M149 76 L163 50 L177 74 Z" fill="#FFB6C1"/>
+    <circle cx="101" cy="118" r="10" fill="#3B2F2F"/>
+    <circle cx="158" cy="118" r="10" fill="#3B2F2F"/>
+    <circle cx="98" cy="114" r="3" fill="#FFFFFF"/>
+    <circle cx="155" cy="114" r="3" fill="#FFFFFF"/>
+    <path d="M120 132 L139 132 L129.5 144 Z" fill="#FF8FA3"/>
+    <path d="M129.5 144 C124 144 119 148 117 152" stroke="#3B2F2F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M129.5 144 C135 144 140 148 142 152" stroke="#3B2F2F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M52 126 C74 118 94 118 116 126" stroke="#D7A78F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M52 138 C74 132 94 132 116 138" stroke="#D7A78F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M143 126 C165 118 185 118 207 126" stroke="#D7A78F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M143 138 C165 132 185 132 207 138" stroke="#D7A78F" stroke-width="3" stroke-linecap="round"/>
+    <path d="M90 160 C110 174 149 174 169 160" stroke="#F3C7A6" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="82" cy="158" r="6" fill="#FFD1DC"/>
+    <circle cx="177" cy="158" r="6" fill="#FFD1DC"/>
+    <path d="M68 96 C58 104 52 114 50 126" stroke="#F3C7A6" stroke-width="6" stroke-linecap="round"/>
+    <path d="M190 96 C200 104 206 114 208 126" stroke="#F3C7A6" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <g opacity="0.5">
+    <circle cx="38" cy="40" r="6" fill="#C7B3FF"/>
+    <circle cx="226" cy="54" r="5" fill="#C7B3FF"/>
+    <circle cx="214" cy="154" r="4" fill="#C7B3FF"/>
+  </g>
 </svg>
