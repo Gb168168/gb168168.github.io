@@ -1928,7 +1928,7 @@ function normalizeSetMealTemplates(raw){
         <div class="muted">
           <div class="inline" style="justify-content:space-between; margin-bottom:6px">
             <b>${esc(order.restaurantName||"")}</b>
-            ${locked ? `<span class="tag lockTag">已截單/非今日（不可刪）</span>` : ``}
+            ${locked ? `<span class="tag lockTag">已截單/請聯繫管理員</span>` : ``}
           </div>
 
           ${order.orderNote ? `<div style="margin:6px 0">整筆備註：${esc(order.orderNote)}</div>` : ``}
@@ -2014,7 +2014,7 @@ function normalizeSetMealTemplates(raw){
               <span class="tag priceTag">總額：${Number(o.total||0)}</span>
             </div>
             <div class="muted" style="margin-top:6px">
-              ${locked ? `⚠ 已截單/非今日（不可刪）` : `可刪（今日且未截單）`}
+              ${locked ? `⚠ 已截單/請聯繫管理員` : `可刪（今日且未截單）`}
             </div>
           </div>
         `;
