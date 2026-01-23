@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -312,6 +312,14 @@
     .btnOk:hover{border-color: rgba(16,185,129,.55)}
     details summary{cursor:pointer; font-weight:900}
     .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .saveFeedback{
+      font-size:12.5px;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .saveFeedback.success{color:#16a34a}
+    .saveFeedback.error{color:#ef4444}
+    button:disabled{opacity:.6; cursor:not-allowed}
     .shiftGroup{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
     .shiftToggle{
       display:inline-flex;
@@ -4431,7 +4439,10 @@ async function saveAddMenuSetMealTemplates(rid, templates){
                   return `
                     <div class="inline" style="justify-content:space-between; align-items:center; gap:10px; margin-top:6px;">
                       <div class="muted mini">可先編輯多筆餐點後再一次儲存</div>
-                      <button class="btnSmall btnOk" type="button" data-saveallmenu="${r.id}">一次編輯全儲存</button>
+                            <div class="inline" style="gap:8px;">
+                        <span class="saveFeedback" data-saveallmenu-status="${r.id}">尚未儲存</span>
+                        <button class="btnSmall btnOk" type="button" data-saveallmenu="${r.id}">一次編輯全儲存</button>
+                      </div>
                     </div>
                     ${menuGroupTables}
                   `;
@@ -5025,6 +5036,16 @@ async function saveAddMenuSetMealTemplates(rid, templates){
        wrap.querySelectorAll("button[data-saveallmenu]").forEach(btn=>{
         btn.onclick = async ()=>{
           const rid = btn.dataset.saveallmenu;
+          const feedback = wrap.querySelector(`[data-saveallmenu-status="${rid}"]`);
+          const originalText = btn.textContent;
+          const setFeedback = (text, tone)=>{
+            if(!feedback) return;
+            feedback.textContent = text;
+            feedback.classList.remove("success", "error");
+            if(tone){
+              feedback.classList.add(tone);
+            }
+          };
           const rowInputs = wrap.querySelectorAll(`[data-rid="${rid}"][data-mid]`);
           const mids = new Set();
           rowInputs.forEach(el=>{
@@ -5037,6 +5058,9 @@ async function saveAddMenuSetMealTemplates(rid, templates){
           }
 
           try{
+            btn.disabled = true;
+            btn.textContent = "儲存中…";
+            setFeedback("批次儲存中…");
             statusPill.textContent = "餐點批次儲存中…";
             let batch = writeBatch(db);
             let count = 0;
@@ -5081,10 +5105,15 @@ async function saveAddMenuSetMealTemplates(rid, templates){
             });
 
             statusPill.textContent = "餐點已全數儲存 ✅";
+            setFeedback("已儲存 ✅", "success");
           }catch(err){
             console.error(err);
             alert("批次儲存餐點失敗\n\n" + (err?.message || err));
             statusPill.textContent = "批次儲存失敗（看 console）";
+            setFeedback("儲存失敗", "error");
+          }finally{
+            btn.disabled = false;
+            btn.textContent = originalText;
           }
         };
       });
