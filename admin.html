@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -373,6 +373,55 @@
     }
     @media (max-width:980px){
       #view_orders .ordersTopBar .dateBox{ min-width:100%; }
+    }
+    #view_orders .ordersTopBar .rightCtl{
+      display:flex;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-left:auto;
+    }
+    #view_orders .ordersTopBar .notifyToggle{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:8px 10px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+    }
+    #view_orders .ordersTopBar .notifyToggle input{
+      width:18px;
+      height:18px;
+      margin:0;
+      accent-color: var(--primary);
+    }
+    .orderNoticeWrap{
+      position:fixed;
+      top:16px;
+      right:16px;
+      z-index:9999;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      pointer-events:none;
+    }
+    .orderNotice{
+      background:#fff;
+      border:1px solid rgba(251,113,133,.45);
+      border-radius:16px;
+      padding:10px 12px;
+      box-shadow: 0 12px 24px rgba(15,23,42,.12);
+      min-width:220px;
+      max-width:320px;
+      font-size:13px;
+      animation: noticePop 0.25s ease-out;
+    }
+    .orderNotice strong{display:block; margin-bottom:2px}
+    @keyframes noticePop{
+      from{transform:translateY(-6px); opacity:0;}
+      to{transform:translateY(0); opacity:1;}
     }
 
     /* 🔔 未點餐提醒條 */
@@ -1227,6 +1276,15 @@
                   </div>
                 </div>
               </div>
+               <div class="rightCtl">
+                <div>
+                  <label>新單通知</label>
+                  <div class="notifyToggle">
+                    <input id="toggleOrderSound" type="checkbox" checked/>
+                    <span id="orderSoundLabel" class="muted mini">音效開啟</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <p class="muted" style="margin-top:10px">
@@ -1296,12 +1354,15 @@
       本日上班未點餐紀錄：計算中…
     </div>
 
-    <div class="actions" style="justify-content:flex-end; gap:12px;">
+  <div class="actions" style="justify-content:flex-end; gap:12px;">
       <button class="ghost" type="button" id="btnCancelClose">先不要</button>
       <button class="primary" type="button" id="btnConfirmClose">確定結單</button>
     </div>
   </div>
 </div>
+
+  <div id="orderNoticeWrap" class="orderNoticeWrap" aria-live="polite"></div>
+  <audio id="orderSound" preload="auto" src="https://media.vocaroo.com/mp3/1jvLB1tLkiX5"></audio>
 
 
   <!-- ✅ Excel 匯出用（SheetJS） -->
@@ -5297,7 +5358,42 @@ async function saveAddMenuSetMealTemplates(rid, templates){
 
     let lastLoadedOrders = [];
     let ordersUnsub = null;
+    let ordersLiveReady = false;
 
+    const orderSound = $("orderSound");
+    const orderSoundToggle = $("toggleOrderSound");
+    const orderSoundLabel = $("orderSoundLabel");
+    const orderNoticeWrap = $("orderNoticeWrap");
+
+    const loadOrderSoundPref = ()=>{
+      const saved = localStorage.getItem("gb_order_sound");
+      return saved === null ? true : saved === "1";
+    };
+    const setOrderSoundPref = (enabled)=>{
+      localStorage.setItem("gb_order_sound", enabled ? "1" : "0");
+      if(orderSoundToggle) orderSoundToggle.checked = enabled;
+      if(orderSoundLabel) orderSoundLabel.textContent = enabled ? "音效開啟" : "音效關閉";
+    };
+    setOrderSoundPref(loadOrderSoundPref());
+    orderSoundToggle?.addEventListener("change", (e)=>{
+      setOrderSoundPref(e.target.checked);
+    });
+
+    function pushOrderNotice(title, detail){
+      if(!orderNoticeWrap) return;
+      const notice = document.createElement("div");
+      notice.className = "orderNotice";
+      notice.innerHTML = `<strong>${esc(title)}</strong>${esc(detail || "")}`;
+      orderNoticeWrap.prepend(notice);
+      setTimeout(()=> notice.remove(), 5000);
+    }
+
+    function playOrderSound(){
+      if(!orderSoundToggle?.checked || !orderSound) return;
+      orderSound.currentTime = 0;
+      orderSound.play().catch(()=>{});
+    }
+    
     function dayRangeMs(dateStr){
       const start = new Date(dateStr + "T00:00:00").getTime();
       const end   = new Date(dateStr + "T23:59:59.999").getTime();
@@ -5897,6 +5993,7 @@ async function setupOrdersLive(dateStr){
     ordersUnsub();
     ordersUnsub = null;
   }
+  ordersLiveReady = false;
 
   const { start, end } = dayRangeMs(dateStr);
 
@@ -5914,6 +6011,10 @@ async function setupOrdersLive(dateStr){
     qOrders,
     (snap)=>{
       (async ()=>{
+         const addedOrders = snap.docChanges()
+          .filter(change=> change.type === "added")
+          .map(change=> ({ id: change.doc.id, data: change.doc.data() || {} }));
+
         const orders = [];
         snap.forEach(d=>{
           const v = d.data() || {};
@@ -5941,6 +6042,18 @@ async function setupOrdersLive(dateStr){
 
         // 檢查「未點餐的人員」
         await checkNotOrderedForDate(dateStr, orders, false);
+        
+        const shouldNotify = ordersLiveReady && addedOrders.length > 0;
+        if(shouldNotify){
+          addedOrders.forEach(({ data })=>{
+            const user = (data.userName || "").trim();
+            const rest = (data.restaurantName || "").trim();
+            const info = [user, rest].filter(Boolean).join(" / ") || "有新訂單";
+            pushOrderNotice("🔔 新訂單", info);
+          });
+          playOrderSound();
+        }
+        ordersLiveReady = true;
       })().catch(console.error);
     },
     (err)=>{
