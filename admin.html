@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1362,7 +1362,6 @@
 </div>
 
   <div id="orderNoticeWrap" class="orderNoticeWrap" aria-live="polite"></div>
-  <audio id="orderSound" preload="auto" src="https://drive.google.com/file/d/1HRB8ImS4P9dkYfrieeIZCfGjY_af0uwA/view?usp=drive_link"></audio>
 
 
   <!-- ✅ Excel 匯出用（SheetJS） -->
@@ -5360,11 +5359,24 @@ async function saveAddMenuSetMealTemplates(rid, templates){
     let ordersUnsub = null;
     let ordersLiveReady = false;
 
-    const orderSound = $("orderSound");
     const orderSoundToggle = $("toggleOrderSound");
     const orderSoundLabel = $("orderSoundLabel");
     const orderNoticeWrap = $("orderNoticeWrap");
+    let orderAudioCtx = null;
 
+    const getOrderAudioContext = ()=>{
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if(!AudioCtx) return null;
+      if(!orderAudioCtx) orderAudioCtx = new AudioCtx();
+      return orderAudioCtx;
+    };
+
+    const unlockOrderAudio = ()=>{
+      const ctx = getOrderAudioContext();
+      if(!ctx) return;
+      if(ctx.state === "suspended") ctx.resume().catch(()=>{});
+    };
+    
     const loadOrderSoundPref = ()=>{
       const saved = localStorage.getItem("gb_order_sound");
       return saved === null ? true : saved === "1";
@@ -5377,7 +5389,16 @@ async function saveAddMenuSetMealTemplates(rid, templates){
     setOrderSoundPref(loadOrderSoundPref());
     orderSoundToggle?.addEventListener("change", (e)=>{
       setOrderSoundPref(e.target.checked);
+      if(e.target.checked) unlockOrderAudio();
     });
+
+    const unlockOnce = ()=>{
+      unlockOrderAudio();
+      document.removeEventListener("click", unlockOnce);
+      document.removeEventListener("keydown", unlockOnce);
+    };
+    document.addEventListener("click", unlockOnce);
+    document.addEventListener("keydown", unlockOnce);
 
     function pushOrderNotice(title, detail){
       if(!orderNoticeWrap) return;
@@ -5389,9 +5410,37 @@ async function saveAddMenuSetMealTemplates(rid, templates){
     }
 
     function playOrderSound(){
-      if(!orderSoundToggle?.checked || !orderSound) return;
-      orderSound.currentTime = 0;
-      orderSound.play().catch(()=>{});
+    if(!orderSoundToggle?.checked) return;
+      const ctx = getOrderAudioContext();
+      if(!ctx) return;
+      if(ctx.state === "suspended") ctx.resume().catch(()=>{});
+
+      const scheduleBeep = (startTime, frequency, duration)=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(frequency, startTime);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration + 0.05);
+      };
+
+      const base = ctx.currentTime + 0.02;
+      const pattern = [
+        { frequency: 880, duration: 0.12, gap: 0.05 },
+        { frequency: 660, duration: 0.12, gap: 0.05 },
+        { frequency: 990, duration: 0.14, gap: 0.08 },
+      ];
+
+      let t = base;
+      pattern.forEach(({ frequency, duration, gap })=>{
+        scheduleBeep(t, frequency, duration);
+        t += duration + gap;
+      });
     }
     
     function dayRangeMs(dateStr){
@@ -6067,6 +6116,16 @@ async function setupOrdersLive(dateStr){
     }
   );
 }
+
+    // ✅ 進入後台即啟用：確保任何頁面都能收到新訂單通知
+    (async ()=>{
+      try{
+        await loadAllStaffOnce();
+        await setupOrdersLive(todayISO());
+      }catch(err){
+        console.error(err);
+      }
+    })();
 
     $("btnLoadOrders").onclick = async ()=>{
       const date = $("o_date").value;
