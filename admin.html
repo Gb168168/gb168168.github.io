@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理7</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -5582,6 +5582,40 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       return (it?.note ?? it?.remark ?? it?.itemNote ?? it?.memo ?? "").toString().trim();
     }
 
+     function formatSetMealText(it){
+      const upgrade = it?.upgrade || null;
+      if(!upgrade) return "";
+      const lines = [];
+      const setMealName = (it?.setMeal?.name || "").toString().trim();
+      if(setMealName) lines.push(`套餐：${setMealName}`);
+
+      const picks = Array.isArray(upgrade.picks) ? upgrade.picks : [];
+      picks.forEach(pick=>{
+        const catName = (pick?.categoryName || "類別").toString().trim() || "類別";
+        const items = Array.isArray(pick?.items) ? pick.items : [];
+        const itemText = items.map(item=>{
+          const name = (item?.itemName || "").toString().trim();
+          const price = Number(item?.price || 0);
+          const childSelections = Array.isArray(item?.childSelections) ? item.childSelections : [];
+          const childText = childSelections.map(sel=>{
+            const g = (sel?.groupName || "").toString().trim();
+            const c = (sel?.choiceName || "").toString().trim();
+            const p = Number(sel?.price || 0);
+            const base = [g, c].filter(Boolean).join("：");
+            return `${base}${p ? `+${p}` : ""}`;
+          }).filter(Boolean).join("、");
+          const priceText = price ? `+${price}` : "";
+          const childBlock = childText ? `（${childText}）` : "";
+          return `${name}${priceText}${childBlock}`;
+        }).filter(Boolean).join("、");
+        if(itemText){
+          lines.push(`${catName}：${itemText}`);
+        }
+      });
+
+      return lines.join("\n").trim();
+    }
+
     function normalizeOrderCoPartners(order){
       const list = Array.isArray(order?.coPartners) ? order.coPartners : [];
       if(list.length) return list;
@@ -5930,6 +5964,7 @@ async function loadOrdersByDate(dateStr){
                     <tr>
                       <th>品項</th>
                       <th>加購/擇一</th>
+                      <th>套餐選項</th>
                       <th>餐點備註</th>
                       <th>數量</th>
                       <th>單價</th>
@@ -5943,10 +5978,12 @@ async function loadOrdersByDate(dateStr){
                       const unit = Number(it.price||0);
                       const unitAddon = addonUnitSum(it.addons);
                       const sub = (unit + unitAddon) * qty;
+                      const setMealText = formatSetMealText(it);
                       return `
                         <tr>
                           <td><b>${esc(it.name||"")}</b></td>
                           <td class="muted">${esc(addonText(it.addons))}</td>
+                          <td class="muted">${setMealText ? esc(setMealText).replace(/\n/g,"<br/>") : ""}</td>
                           <td class="muted">${esc(itemNoteText(it))}</td>
                           <td>${qty}</td>
                           <td>${unit}</td>
@@ -6438,6 +6475,7 @@ async function setupOrdersLive(dateStr){
             const rowItem = {
               itemName: it.name || "",
               addonText: addonText(it.addons, { namesOnly: true }),
+              setMealText: formatSetMealText(it),
               note: itemNoteText(it),
               amount,
               coDept,
@@ -6528,6 +6566,7 @@ async function setupOrdersLive(dateStr){
                 "共同點餐人員": "",
                 "品項": "",
                 "加購/擇一": "",
+                "套餐選項": "",
                 "餐點備註": "",
                 "金額": 0,
                 "應收": receivableThisRest
@@ -6545,6 +6584,7 @@ async function setupOrdersLive(dateStr){
                 "共同點餐人員": it.coName || "",
                 "品項": it.itemName,
                 "加購/擇一": it.addonText,
+                "套餐選項": it.setMealText || "",
                 "餐點備註": it.note,
                 "金額": it.amount,
                 "應收": idx === 0 ? receivableThisRest : ""
@@ -6557,7 +6597,7 @@ async function setupOrdersLive(dateStr){
           lastDeptDetail = p.dept;
         }
 
-        const detailHeader = ["人數","部門","姓名","共同點餐部門","共同點餐人員","品項","加購/擇一","餐點備註","金額","應收"];
+        const detailHeader = ["人數","部門","姓名","共同點餐部門","共同點餐人員","品項","加購/擇一","套餐選項","餐點備註","金額","應收"];
         const wsDetail = XLSX.utils.json_to_sheet(detailRows, { header: detailHeader });
         wsDetail["!freeze"] = { xSplit: 0, ySplit: 1 };
         const rangeD = XLSX.utils.decode_range(wsDetail["!ref"]);
@@ -6569,6 +6609,7 @@ async function setupOrdersLive(dateStr){
           { wch: 14 },
           { wch: 16 },
           { wch: 24 },
+          { wch: 28 },
           { wch: 28 },
           { wch: 18 },
           { wch: 10 },
