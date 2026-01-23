@@ -421,8 +421,14 @@
   <script type="module">
     // ===== Role Gate =====
     const roleKey = "gb_role";
-    if (!localStorage.getItem(roleKey)) localStorage.setItem(roleKey, "user");
-    if (localStorage.getItem(roleKey) !== "user") location.href = "./index.html";
+    const storedRole = localStorage.getItem(roleKey);
+    if (!storedRole) {
+      localStorage.setItem(roleKey, "user");
+    } else if (storedRole === "admin") {
+      location.href = "./admin.html";
+    } else if (storedRole !== "user") {
+      localStorage.setItem(roleKey, "user");
+    }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
