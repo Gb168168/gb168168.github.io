@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -165,6 +165,10 @@
       margin-top:10px;
       box-shadow: 0 4px 10px rgba(2,6,23,.04);
     }
+     .menuItem.added{
+      border-color: rgba(34,197,94,.35);
+      box-shadow: 0 10px 18px rgba(34,197,94,.12);
+    }
     .menuItemSummary{
       padding:14px 16px;
       display:block;
@@ -191,6 +195,35 @@
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
     .warnTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
+
+    .menuFeedback{
+      display:none;
+      align-items:center;
+      gap:6px;
+      padding:8px 12px;
+      margin:10px 0 4px;
+      border-radius:999px;
+      border:1px solid rgba(22,163,74,.28);
+      background:rgba(22,163,74,.12);
+      color:#065f46;
+      font-weight:700;
+      font-size:15px;
+      box-shadow: 0 8px 16px rgba(22,163,74,.08);
+    }
+    .menuFeedback.show{
+      display:inline-flex;
+      animation: popIn .32s ease-out;
+    }
+    .addSuccess{
+      background:rgba(22,163,74,.12);
+      color:#065f46;
+      border-color: rgba(22,163,74,.35);
+    }
+
+    @keyframes popIn{
+      0%{transform:translateY(-6px); opacity:0}
+      100%{transform:translateY(0); opacity:1}
+    }
     
     .menuItem b{font-size:21px; letter-spacing:.2px}
     .menuItem .tag{font-size:15px}
@@ -388,6 +421,7 @@
       <div>
         <div class="card">
           <h2>4）餐點清單</h2>
+          <div id="menuFeedback" class="menuFeedback" aria-live="polite"></div>
           <div id="menuWrap" class="muted">請先選擇店家。</div>
         </div>
       </div>
@@ -586,7 +620,9 @@ const modalTitle = $("modalTitle");
 const modalMessage = $("modalMessage");
 const modalActions = $("modalActions");
 let modalBusy = false;
-
+const menuFeedback = $("menuFeedback");
+let menuFeedbackTimer = null;
+    
 const openDialog = ({ message, confirm = false })=>{
   if(modalBusy) return Promise.resolve(false);
   modalBusy = true;
@@ -1921,10 +1957,38 @@ function normalizeSetMealTemplates(raw){
       return "";
     }
 
-     function isMultiple(value, step){
+  function isMultiple(value, step){
       if(!Number.isFinite(value) || !Number.isFinite(step) || step <= 0) return false;
       const quotient = value / step;
       return Math.abs(quotient - Math.round(quotient)) < 1e-6;
+    }
+
+    function showMenuFeedback(mid, name){
+      if(menuFeedback){
+        menuFeedback.textContent = `已加入「${name || "餐點"}」到購物車`;
+        menuFeedback.classList.add("show");
+        if(menuFeedbackTimer) clearTimeout(menuFeedbackTimer);
+        menuFeedbackTimer = setTimeout(()=>{
+          menuFeedback.classList.remove("show");
+        }, 1400);
+      }
+
+      const item = document.querySelector(`details.menuItem[data-mid="${CSS.escape(mid)}"]`);
+      if(item){
+        item.classList.add("added");
+        setTimeout(()=> item.classList.remove("added"), 700);
+      }
+
+      const btn = document.querySelector(`button[data-add-mid="${CSS.escape(mid)}"]`);
+      if(btn){
+        const prev = btn.textContent;
+        btn.textContent = "已加入 ✓";
+        btn.classList.add("addSuccess");
+        setTimeout(()=>{
+          btn.textContent = prev;
+          btn.classList.remove("addSuccess");
+        }, 900);
+      }
     }
 
    async function addToCart(mid){
@@ -2005,6 +2069,7 @@ function normalizeSetMealTemplates(raw){
 
       if(noteEl) noteEl.value = "";
       renderCart();
+      showMenuFeedback(mid, m.name || "");
     }
 
     function isClosedNow(){
