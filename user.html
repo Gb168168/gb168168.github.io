@@ -524,6 +524,20 @@ const getCoPartnersFromDOM = ()=>{
   });
 };
 
+  const getSelectedCoPartnersMap = (excludeIndex = null)=>{
+  const map = new Map();
+  document.querySelectorAll(".coPartnerRow").forEach(row=>{
+    const index = Number(row.dataset.index || 0);
+    if(index === excludeIndex) return;
+    const dept = row.querySelector("[data-role='co-dept']")?.value || "";
+    const name = row.querySelector("[data-role='co-name']")?.value || "";
+    if(!dept || !name) return;
+    if(!map.has(dept)) map.set(dept, new Set());
+    map.get(dept).add(name);
+  });
+  return map;
+};
+
 const getCoOrderState = ()=>{
   const enabled = !!$("coOrderToggle")?.checked;
   const count = enabled ? getCoOrderCount() : 1;
@@ -823,7 +837,7 @@ async function loadStaff(){
       ).join("");
     }
 
-      function renderCoNameSelectForIndex(index, dept){
+    function renderCoNameSelectForIndex(index, dept){
       const nameSel = document.querySelector(`.coPartnerRow[data-index="${index}"] [data-role="co-name"]`);
       if(!nameSel) return;
       if(!dept || !staffByDept[dept]){
@@ -843,6 +857,26 @@ async function loadStaff(){
       setWhoLine();
       renderCart();
       renderMenu();
+    }
+
+    function updateCoPartnerNameAvailability(){
+      let needsSave = false;
+      document.querySelectorAll(".coPartnerRow").forEach(row=>{
+        const index = Number(row.dataset.index || 0);
+        const dept = row.querySelector("[data-role='co-dept']")?.value || "";
+        const nameSel = row.querySelector("[data-role='co-name']");
+        if(!nameSel || !dept) return;
+        const taken = getSelectedCoPartnersMap(index).get(dept) || new Set();
+        Array.from(nameSel.options).forEach(opt=>{
+          if(!opt.value) return;
+          opt.disabled = taken.has(opt.value);
+        });
+        if(nameSel.value && taken.has(nameSel.value)){
+          nameSel.value = "";
+          needsSave = true;
+        }
+      });
+      if(needsSave) saveCoPartnerState();
     }
 
     function getStoredCoPartners(){
@@ -888,6 +922,8 @@ async function loadStaff(){
         }
       });
 
+       updateCoPartnerNameAvailability();
+
       wrap.querySelectorAll("[data-role='co-dept']").forEach((sel)=>{
         sel.addEventListener("change", ()=>{
           const row = sel.closest(".coPartnerRow");
@@ -896,12 +932,14 @@ async function loadStaff(){
           const nameSel = row?.querySelector("[data-role='co-name']");
           if(nameSel) nameSel.value = "";
           saveCoPartnerState();
+          updateCoPartnerNameAvailability();
         });
       });
 
       wrap.querySelectorAll("[data-role='co-name']").forEach((sel)=>{
         sel.addEventListener("change", ()=>{
           saveCoPartnerState();
+          updateCoPartnerNameAvailability();
         });
       });
     }
@@ -2313,6 +2351,32 @@ function normalizeSetMealTemplates(raw){
       }
     };
 
+    function clearAllClientState(){
+      localStorage.clear();
+      sessionStorage.clear();
+      cart = [];
+      myOrdersCache = [];
+      activeOrderId = "";
+      selectedRestaurantId = "";
+      selectedRestaurant = null;
+      menuCache = [];
+      setMealTemplates = [];
+      $("orderNote").value = "";
+      $("deptSelect").value = "";
+      renderNameSelect("");
+      if($("coOrderToggle")){
+        $("coOrderToggle").checked = false;
+      }
+      if($("coOrderCount")){
+        $("coOrderCount").value = String(CO_ORDER_DEFAULT);
+      }
+      updateCoOrderUI([]);
+      clearDetail();
+      $("myOrdersWrap").innerHTML = `<div class="muted">請先選擇部門與姓名。</div>`;
+      renderCart();
+      renderMenu();
+    }
+
     // ===== Events =====
     $("deptSelect").onchange = ()=>{
       const dept = $("deptSelect").value || "";
@@ -2371,7 +2435,7 @@ function normalizeSetMealTemplates(raw){
      $("btnRandomPick").onclick = pickRandomMeal;
 
     $("btnLogout").onclick = ()=>{
-      localStorage.clear();
+      clearAllClientState();
       location.href = "./index.html";
     };
 
