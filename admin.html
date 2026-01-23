@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理7</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1370,7 +1370,24 @@
 
   <script type="module">
     const roleKey = "gb_role";
-    if (localStorage.getItem(roleKey) !== "admin") location.href = "./index.html";
+   const adminCode = "777";
+    const storedRole = localStorage.getItem(roleKey);
+    if (storedRole !== "admin") {
+      const params = new URLSearchParams(window.location.search);
+      const queryCode = params.get("admin");
+      if (queryCode === adminCode) {
+        localStorage.setItem(roleKey, "admin");
+        window.history.replaceState({}, "", window.location.pathname);
+      } else {
+        const inputCode = window.prompt("請輸入管理密碼");
+        if (inputCode === adminCode) {
+          localStorage.setItem(roleKey, "admin");
+          window.location.reload();
+        } else {
+          window.location.href = "./index.html";
+        }
+      }
+    }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
