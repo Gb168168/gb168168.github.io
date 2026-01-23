@@ -279,6 +279,17 @@
       background:#fff;
     }
     .coOrderFields .muted{font-size:14px}
+      .coPartnerRow{
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:12px;
+      padding:10px 12px;
+      margin-top:10px;
+      background:#fff;
+    }
+    .coPartnerRow .muted{
+      font-size:14px;
+      margin-bottom:6px;
+    }
   </style>
 </head>
 
@@ -322,20 +333,19 @@
 
           <label class="inline start" style="margin-top:12px">
             <input type="checkbox" id="coOrderToggle"/>
-            <span>共同點餐（2 人共享 280 額度）</span>
+            <span>共同點餐（最多 4 人共享額度）</span>
           </label>
 
           <div class="coOrderFields" id="coOrderFields" style="display:none">
             <div class="muted">選擇一起點餐的夥伴，可同部門或不同部門。</div>
-            <label>共同點餐部門</label>
-            <select id="coDeptSelect" disabled>
-              <option value="">請先選擇</option>
+            <label>共同點餐人數</label>
+            <select id="coOrderCount" disabled>
+              <option value="2">2 人</option>
+              <option value="3">3 人</option>
+              <option value="4">4 人</option>
             </select>
 
-            <label>共同點餐姓名</label>
-            <select id="coNameSelect" disabled>
-              <option value="">請先選部門</option>
-            </select>
+       <div id="coPartnerFields"></div>
           </div>
           
           <div class="hr"></div>
@@ -501,16 +511,57 @@ const fmtDetailAddon = (a)=>{
   return `${label}${p ? `(+${p})` : ""}`;
 };
 
+  const CO_ORDER_MIN = 2;
+const CO_ORDER_MAX = 4;
+const CO_ORDER_DEFAULT = 2;
+
+const getCoOrderCount = ()=>{
+  const raw = Number($("coOrderCount")?.value || CO_ORDER_DEFAULT);
+  if(!Number.isFinite(raw)) return CO_ORDER_DEFAULT;
+  return Math.min(Math.max(raw, CO_ORDER_MIN), CO_ORDER_MAX);
+};
+
+const getCoPartnersFromDOM = ()=>{
+  return Array.from(document.querySelectorAll(".coPartnerRow")).map(row=>{
+    const dept = row.querySelector("[data-role='co-dept']")?.value || "";
+    const name = row.querySelector("[data-role='co-name']")?.value || "";
+    return { dept, name };
+  });
+};
+
 const getCoOrderState = ()=>{
   const enabled = !!$("coOrderToggle")?.checked;
-  const dept = $("coDeptSelect")?.value || "";
-  const name = $("coNameSelect")?.value || "";
-  return { enabled, dept, name };
+  const count = enabled ? getCoOrderCount() : 1;
+  const partners = enabled ? getCoPartnersFromDOM() : [];
+  const complete = !enabled || (partners.length === Math.max(count - 1, 0)
+    && partners.every(p=> p.dept && p.name));
+  return { enabled, count, partners, complete };
 };
 
 const getBudgetLimit = ()=>{
-  const { enabled } = getCoOrderState();
-  return enabled ? 280 : 140;
+  const { enabled, count } = getCoOrderState();
+  return enabled ? 140 * count : 140;
+};
+
+const formatCoPartnerList = (partners = [])=>{
+  return partners
+    .filter(p=>p?.dept && p?.name)
+    .map(p=> `${esc(p.dept)} / ${esc(p.name)}`)
+    .join("、");
+};
+
+const normalizeOrderCoPartners = (order)=>{
+  const list = Array.isArray(order?.coPartners) ? order.coPartners : [];
+  if(list.length) return list;
+  if(order?.coDept || order?.coName){
+    return [{ dept: order.coDept || "", name: order.coName || "" }];
+  }
+  return [];
+};
+
+const isUserInCoOrder = (order, dept, name)=>{
+  if(!dept || !name) return false;
+  return normalizeOrderCoPartners(order).some(p=> p?.dept === dept && p?.name === name);
 };
     
 const modalBackdrop = $("modalBackdrop");
@@ -608,10 +659,15 @@ function setWhoLine(){
   
   if (dept && name) {
     const baseLine = `${esc(dept)} / ${esc(name)}`;
-    const coLine = (coState.enabled && coState.dept && coState.name)
-      ? ` ＋ ${esc(coState.dept)} / ${esc(coState.name)}`
+    const coPartners = (coState.partners || [])
+      .filter(p=>p.dept && p.name)
+      .map(p=> `${esc(p.dept)} / ${esc(p.name)}`);
+    const coLine = (coState.enabled && coPartners.length)
+      ? ` ＋ ${coPartners.join("、")}`
       : "";
-    if (whoTitle) whoTitle.textContent = coLine ? `1）共同點餐` : `1）${dept} / ${name}`;
+   if (whoTitle) {
+      whoTitle.textContent = coState.enabled ? `1）共同點餐（${coState.count} 人）` : `1）${dept} / ${name}`;
+    }
     $("whoLine").innerHTML = `<span class="tag">部門人員</span> <b style="margin-left:6px">${baseLine}${coLine}</b>`;
     return;
   }
@@ -629,6 +685,7 @@ statusPill.textContent = "已連線 Firestore ✅";
 
     // ===== State =====
     let staffByDept = {};
+    let deptOptions = [];
     let restaurants = [];
     let selectedRestaurantId = "";
     let selectedRestaurant = null;
@@ -713,23 +770,22 @@ async function loadStaff(){
       return a.localeCompare(b, "zh-Hant");
     });
 
+    deptOptions = depts;
     const deptSel = $("deptSelect");
     deptSel.innerHTML =
       `<option value="">請選擇</option>` +
       depts.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
 
-    const coDeptSel = $("coDeptSelect");
-    if(coDeptSel){
-      coDeptSel.innerHTML =
-        `<option value="">請選擇</option>` +
-        depts.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("");
-    }
-
     const savedDept = localStorage.getItem("gb_user_dept") || "";
     const savedName = localStorage.getItem("gb_user_name") || "";
     const savedCoEnabled = localStorage.getItem("gb_user_co_enabled") === "1";
-    const savedCoDept = localStorage.getItem("gb_user_co_dept") || "";
-    const savedCoName = localStorage.getItem("gb_user_co_name") || "";
+   const savedCoCount = Number(localStorage.getItem("gb_user_co_count") || CO_ORDER_DEFAULT);
+    let savedCoPartners = [];
+    try{
+      savedCoPartners = JSON.parse(localStorage.getItem("gb_user_co_partners") || "[]");
+    }catch{
+      savedCoPartners = [];
+    }
     
     if (savedDept && staffByDept[savedDept]) {
       deptSel.value = savedDept;
@@ -744,14 +800,10 @@ async function loadStaff(){
 
      if($("coOrderToggle")){
       $("coOrderToggle").checked = savedCoEnabled;
-      updateCoOrderUI();
-      if(savedCoEnabled && savedCoDept && staffByDept[savedCoDept]){
-        $("coDeptSelect").value = savedCoDept;
-        renderCoNameSelect(savedCoDept);
-        if(savedCoName && staffByDept[savedCoDept].some(x => x.name === savedCoName)){
-          $("coNameSelect").value = savedCoName;
-        }
+    if($("coOrderCount")){
+        $("coOrderCount").value = String(Math.min(Math.max(savedCoCount || CO_ORDER_DEFAULT, CO_ORDER_MIN), CO_ORDER_MAX));
       }
+      updateCoOrderUI(savedCoPartners);
     }
 
     setWhoLine();
@@ -776,8 +828,8 @@ async function loadStaff(){
       ).join("");
     }
 
-     function renderCoNameSelect(dept){
-      const nameSel = $("coNameSelect");
+      function renderCoNameSelectForIndex(index, dept){
+      const nameSel = document.querySelector(`.coPartnerRow[data-index="${index}"] [data-role="co-name"]`);
       if(!nameSel) return;
       if(!dept || !staffByDept[dept]){
         nameSel.disabled = true;
@@ -790,27 +842,96 @@ async function loadStaff(){
       ).join("");
     }
 
-    function updateCoOrderUI(){
+     function saveCoPartnerState(){
+      const partners = getCoPartnersFromDOM();
+      localStorage.setItem("gb_user_co_partners", JSON.stringify(partners));
+      setWhoLine();
+      renderCart();
+      renderMenu();
+    }
+
+    function getStoredCoPartners(){
+      try{
+        const stored = JSON.parse(localStorage.getItem("gb_user_co_partners") || "[]");
+        return Array.isArray(stored) ? stored : [];
+      }catch{
+        return [];
+      }
+    }
+
+    function renderCoPartnerFields(count, partners = []){
+      const wrap = $("coPartnerFields");
+      if(!wrap) return;
+      const totalPartners = Math.max(count - 1, 0);
+      wrap.innerHTML = "";
+      for(let i=0; i<totalPartners; i++){
+        wrap.insertAdjacentHTML("beforeend", `
+          <div class="coPartnerRow" data-index="${i}">
+            <div class="muted">夥伴 ${i + 1}</div>
+            <label>共同點餐部門</label>
+            <select data-role="co-dept">
+              <option value="">請選擇</option>
+              ${deptOptions.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("")}
+            </select>
+
+            <label>共同點餐姓名</label>
+            <select data-role="co-name" disabled>
+              <option value="">請先選部門</option>
+            </select>
+          </div>
+        `);
+      }
+
+      partners.slice(0, totalPartners).forEach((p, i)=>{
+        const deptSel = document.querySelector(`.coPartnerRow[data-index="${i}"] [data-role="co-dept"]`);
+        if(!deptSel) return;
+        deptSel.value = p?.dept || "";
+        renderCoNameSelectForIndex(i, p?.dept || "");
+        const nameSel = document.querySelector(`.coPartnerRow[data-index="${i}"] [data-role="co-name"]`);
+        if(nameSel){
+          nameSel.value = p?.name || "";
+        }
+      });
+
+      wrap.querySelectorAll("[data-role='co-dept']").forEach((sel)=>{
+        sel.addEventListener("change", ()=>{
+          const row = sel.closest(".coPartnerRow");
+          const index = Number(row?.dataset.index || 0);
+          renderCoNameSelectForIndex(index, sel.value || "");
+          const nameSel = row?.querySelector("[data-role='co-name']");
+          if(nameSel) nameSel.value = "";
+          saveCoPartnerState();
+        });
+      });
+
+      wrap.querySelectorAll("[data-role='co-name']").forEach((sel)=>{
+        sel.addEventListener("change", ()=>{
+          saveCoPartnerState();
+        });
+      });
+    }
+
+    function updateCoOrderUI(savedPartners = []){
       const fields = $("coOrderFields");
       const toggle = $("coOrderToggle");
-      const coDeptSel = $("coDeptSelect");
-      const coNameSel = $("coNameSelect");
-      if(!fields || !toggle || !coDeptSel || !coNameSel) return;
+      const countSel = $("coOrderCount");
+      if(!fields || !toggle || !countSel) return;
 
       const enabled = toggle.checked;
       fields.style.display = enabled ? "block" : "none";
-      coDeptSel.disabled = !enabled;
-      coNameSel.disabled = !enabled;
+      countSel.disabled = !enabled;
 
-      if(!enabled){
-        coDeptSel.value = "";
-        coNameSel.value = "";
-        renderCoNameSelect("");
+     if(enabled){
+        renderCoPartnerFields(getCoOrderCount(), savedPartners);
+      }else{
+        $("coPartnerFields").innerHTML = "";
       }
 
       localStorage.setItem("gb_user_co_enabled", enabled ? "1" : "0");
-      localStorage.setItem("gb_user_co_dept", coDeptSel.value || "");
-      localStorage.setItem("gb_user_co_name", coNameSel.value || "");
+      localStorage.setItem("gb_user_co_count", String(getCoOrderCount()));
+      if(!enabled){
+      localStorage.setItem("gb_user_co_partners", "[]");
+      }
       setWhoLine();
       renderCart();
       renderMenu();
@@ -1013,8 +1134,8 @@ function normalizeSetMealTemplates(raw){
          const dept = $("deptSelect").value;
       const name = $("nameSelect").value;
       if(!dept || !name || !selectedRestaurantId) return false;
-      const { enabled, dept: coDept, name: coName } = getCoOrderState();
-      if(enabled && (!coDept || !coName)) return false;
+      const { enabled, complete } = getCoOrderState();
+      if(enabled && !complete) return false;
       return true;
     }
 
@@ -1916,9 +2037,9 @@ function normalizeSetMealTemplates(raw){
 
       const userDept = $("deptSelect").value;
       const userName = $("nameSelect").value;
-      const { enabled: coEnabled, dept: coDept, name: coName } = getCoOrderState();
-      if(coEnabled && (!coDept || !coName)){
-        await showAlert("請先選擇共同點餐的部門與姓名");
+      const { enabled: coEnabled, count: coCount, partners: coPartners, complete } = getCoOrderState();
+      if(coEnabled && !complete){
+        await showAlert(`請先完成共同點餐夥伴（共 ${coCount} 人）`);
         return;
       }
       const orderDate = todayISO();
@@ -1929,9 +2050,10 @@ function normalizeSetMealTemplates(raw){
       const restaurantName = selectedRestaurant?.name || "";
       const budgetLine = exceed > 0
         ? `⚠️ 超出額度：${exceed}（需補 ${exceed}）\n`
-        : `額度：${budgetLimit}\n`;
- const coLine = coEnabled
-        ? `共同點餐：${coDept} / ${coName}\n`
+       : `額度：${budgetLimit}\n`;
+      const coPartnerLine = formatCoPartnerList(coPartners);
+      const coLine = coEnabled
+        ? `共同點餐（${coCount}人）：${coPartnerLine}\n`
         : "";
           
       // ✅ 送出前再確認一次使用者資訊（部門 / 姓名 / 店家 / 總額）
@@ -1955,8 +2077,10 @@ function normalizeSetMealTemplates(raw){
         userDept,
         userName,
         coOrderEnabled: coEnabled,
-        coDept: coDept || "",
-        coName: coName || "",
+        coOrderCount: coCount,
+        coPartners,
+        coDept: coPartners?.[0]?.dept || "",
+        coName: coPartners?.[0]?.name || "",
         restaurantId: selectedRestaurantId,
         restaurantName,
         orderDate,
@@ -2038,8 +2162,10 @@ function normalizeSetMealTemplates(raw){
 
       $("btnDeleteFromDetail").disabled = locked;
 
-         const coInfo = order.coOrderEnabled
-        ? `<div style="margin:6px 0">共同點餐：${esc(order.coDept||"")} / ${esc(order.coName||"")}</div>`
+      const coPartners = normalizeOrderCoPartners(order);
+      const coPartnerLine = formatCoPartnerList(coPartners);
+      const coInfo = order.coOrderEnabled
+        ? `<div style="margin:6px 0">共同點餐（${Number(order.coOrderCount || coPartners.length || 2)}人）：${coPartnerLine}</div>`
         : "";
       const lines = items.map(it=>{
         const addons = Array.isArray(it.addons)?it.addons:[];
@@ -2091,9 +2217,9 @@ function normalizeSetMealTemplates(raw){
         const rows = [];
         snap.forEach(d=> rows.push({ id:d.id, ...d.data() }));
 
-         const mine = rows.filter(o=>
+        const mine = rows.filter(o=>
           (o.userDept===dept && o.userName===name) ||
-          (o.coDept===dept && o.coName===name)
+          isUserInCoOrder(o, dept, name)
         )
           .sort((a,b)=> Number(b.createdAt||0) - Number(a.createdAt||0));
 
@@ -2135,8 +2261,9 @@ function normalizeSetMealTemplates(raw){
 
       wrap.innerHTML = list.map(o=>{
         const locked = !canDeleteByOrderDate(o.orderDate, o.restaurantId);
+        const coCount = Number(o.coOrderCount || normalizeOrderCoPartners(o).length || 2);
         const coBadge = o.coOrderEnabled
-          ? `<span class="tag" style="margin-left:8px">共同點餐</span>`
+          ? `<span class="tag" style="margin-left:8px">共同點餐 ${coCount}人</span>`
           : "";
         return `
           <div class="listLine orderRow" data-oid="${esc(o.id)}" role="button" tabindex="0" aria-label="查看訂單明細">
@@ -2217,26 +2344,14 @@ function normalizeSetMealTemplates(raw){
     };
 
     $("coOrderToggle").onchange = ()=>{
-      updateCoOrderUI();
+      updateCoOrderUI(getStoredCoPartners());
     };
 
-    $("coDeptSelect").onchange = ()=>{
-      const dept = $("coDeptSelect").value || "";
-      renderCoNameSelect(dept);
-      $("coNameSelect").value = "";
-      localStorage.setItem("gb_user_co_dept", dept);
-      localStorage.removeItem("gb_user_co_name");
-      setWhoLine();
-      renderCart();
-      renderMenu();
-    };
-
-    $("coNameSelect").onchange = ()=>{
-      const name = $("coNameSelect").value || "";
-      localStorage.setItem("gb_user_co_name", name);
-      setWhoLine();
-      renderCart();
-      renderMenu();
+   $("coOrderCount").onchange = ()=>{
+      const count = getCoOrderCount();
+      localStorage.setItem("gb_user_co_count", String(count));
+      renderCoPartnerFields(count, getStoredCoPartners());
+      saveCoPartnerState();
     };
 
     $("btnSubmit").onclick = submitOrder;
