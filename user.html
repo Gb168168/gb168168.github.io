@@ -1874,13 +1874,15 @@ function normalizeSetMealTemplates(raw){
     }
 
     // ✅ 刪除規則（三條）
-    function isTodayClosed(){
-      return restaurants.some(r => r && r.isClosed === true);
+   function isRestaurantClosed(restaurantId){
+      if(!restaurantId) return false;
+      const match = restaurants.find(r => r && r.id === restaurantId);
+      return !!match?.isClosed;
     }
-    function canDeleteByOrderDate(orderDate){
+     function canDeleteByOrderDate(orderDate, restaurantId){
       const t = todayISO();
       if(String(orderDate||"").trim() !== t) return false;
-      return !isTodayClosed();
+      return !isRestaurantClosed(restaurantId);
     }
 
     function clearDetail(){
@@ -1896,7 +1898,7 @@ function normalizeSetMealTemplates(raw){
       activeOrderId = order.id;
 
       const items = Array.isArray(order.items)?order.items:[];
-      const locked = !canDeleteByOrderDate(order.orderDate);
+      const locked = !canDeleteByOrderDate(order.orderDate, order.restaurantId);
 
       $("detailDate").style.display = "inline-flex";
       $("detailDate").textContent = order.orderDate || "";
@@ -1995,7 +1997,7 @@ function normalizeSetMealTemplates(raw){
       }
 
       wrap.innerHTML = list.map(o=>{
-        const locked = !canDeleteByOrderDate(o.orderDate);
+        const locked = !canDeleteByOrderDate(o.orderDate, o.restaurantId);
         return `
           <div class="listLine orderRow" data-oid="${esc(o.id)}" role="button" tabindex="0" aria-label="查看訂單明細">
             <div class="inline" style="justify-content:space-between">
@@ -2033,7 +2035,7 @@ function normalizeSetMealTemplates(raw){
       const o = myOrdersCache.find(x=>x.id===activeOrderId);
       if(!o) return;
 
-      if(!canDeleteByOrderDate(o.orderDate)){
+      if(!canDeleteByOrderDate(o.orderDate, o.restaurantId)){
          await showAlert("此訂單已不可刪（非今日或今日已截單）");
         return;
       }
