@@ -452,19 +452,13 @@
         </div>
 
         <div class="card" style="margin-top:14px">
-          <h2>3）購物車 </h2>
-          <div id="cartWrap" class="muted">尚未加入餐點。</div>
-
-          <label style="margin-top:12px">整筆備註</label>
-          <input id="orderNote" placeholder="例：請一起裝袋 / 不要餐具"/>
-
-          <div class="inline" style="margin-top:12px">
-            <button class="primary" id="btnSubmit" disabled>送出訂單</button>
-            <button class="btn danger" id="btnClearCart" disabled>清空購物車</button>
-            <span class="tag priceTag" id="cartTotal">總額：0</span>
-            <span class="tag" id="cartBudget">額度：140</span>
+         <h2>3）幫我挑要吃啥</h2>
+          <div class="inline">
+            <span class="tag">從餐點清單隨機挑選</span>
+            <button class="btn" id="btnRandomPick">隨機挑選</button>
           </div>
-          <div class="muted" style="margin-top:8px">※ 送出後，會出現在右側「我的訂餐紀錄」。</div>
+         <div class="hr"></div>
+         <div id="randomPickWrap" class="muted">請先選擇店家。</div>
         </div>
       </div>
 
@@ -480,13 +474,19 @@
       <!-- RIGHT -->
       <div>
         <div class="card">
-            <h2>5）幫我挑要吃啥</h2>
-          <div class="inline">
-            <span class="tag">從餐點清單隨機挑選</span>
-            <button class="btn" id="btnRandomPick">隨機挑選</button>
+            <h2>5）購物車 </h2>
+          <div id="cartWrap" class="muted">尚未加入餐點。</div>
+
+          <label style="margin-top:12px">整筆備註</label>
+          <input id="orderNote" placeholder="例：請一起裝袋 / 不要餐具"/>
+
+          <div class="inline" style="margin-top:12px">
+            <button class="primary" id="btnSubmit" disabled>送出訂單</button>
+            <button class="btn danger" id="btnClearCart" disabled>清空購物車</button>
+            <span class="tag priceTag" id="cartTotal">總額：0</span>
+            <span class="tag" id="cartBudget">額度：140</span>
           </div>
-          <div class="hr"></div>
-          <div id="randomPickWrap" class="muted">請先選擇店家。</div>
+          <div class="muted" style="margin-top:8px">※ 送出後，會出現在右側「我的訂餐紀錄」。</div>
         </div>
 
         <div class="card" style="margin-top:14px">
