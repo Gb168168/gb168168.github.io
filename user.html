@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者99</title>
+  <title>GoldBricks 呷奔🍚｜使用者9</title>
 
   <style>
     :root{
@@ -1045,6 +1045,7 @@ function groupEnabled(g){
     type: g.type === "addon" ? "addon" : "single",
     required: !!g.required,
     enabled: g.enabled === false ? false : true,
+    useInOptionName: !!g.useInOptionName,
     choices: Array.isArray(g.choices)
       ? g.choices.map(c => ({
           name: c.name || "",
@@ -1422,6 +1423,17 @@ function normalizeSetMealTemplates(raw){
             }))
           : []
       })).filter(t=> t.id && t.name);
+    }
+
+    function setMealOptionDisplayName(option){
+      const base = (option?.name || "").toString().trim();
+      const groups = (Array.isArray(option?.optionGroups) ? option.optionGroups : [])
+        .filter(g => g?.useInOptionName)
+        .map(g => (g?.name || "").toString().trim())
+        .filter(Boolean);
+      if(!groups.length) return base;
+      const suffix = groups.join(" / ");
+      return `${base}${base ? " " : ""}(${suffix})`;
     }
 
     async function pickRestaurant(rid, opt={}){
@@ -1883,7 +1895,8 @@ function normalizeSetMealTemplates(raw){
                     <div style="margin-top:8px">
                       ${(Array.isArray(c.options)?c.options:[]).map((o,oi)=>{
                         const price = Number(o.addPrice||0);
-                        const label = `${esc(o.name||"")}${price?`（+${price}）`:""}`;
+                        const displayName = setMealOptionDisplayName(o) || o.name || "";
+                        const label = `${esc(displayName)}${price?`（+${price}）`:""}`;
                         const childGroupsHTML = renderChildOptionGroups(o.optionGroups, { mid: m.id, smid: t.id, ci, oi, disabled });
                         const childBox = childGroupsHTML
                           ? `<div class="box" data-sm-child-mid="${esc(m.id)}" data-smid="${esc(t.id)}" data-sm-cat="${ci}" data-sm-oi="${oi}" style="display:none; margin-top:8px">
@@ -2090,8 +2103,9 @@ function normalizeSetMealTemplates(raw){
           const opt = (Array.isArray(c.options)?c.options:[])[oi];
           if(!opt) return;
           const price = Number(opt.addPrice||0);
+          const optionDisplayName = setMealOptionDisplayName(opt) || opt.name || "";
           const item = {
-            itemName: opt.name || "",
+            itemName: optionDisplayName,
             price,
             childSelections: []
           };
@@ -2099,7 +2113,7 @@ function normalizeSetMealTemplates(raw){
           addons.push({
             kind:"setmeal",
             group:`${t.name || "套餐"} / ${c.name || "類別"}`,
-            name: opt.name || "",
+            name: optionDisplayName,
             price
           });
           setMealSum += price;
@@ -2120,9 +2134,9 @@ function normalizeSetMealTemplates(raw){
                 choiceName: choice.name || "",
                 price: cPrice
               });
-              addons.push({
+                addons.push({
                 kind:"setmeal",
-                group:`${opt.name || "配餐"} / ${g.name || "子選項"}`,
+                group:`${optionDisplayName || "配餐"} / ${g.name || "子選項"}`,
                 name: choice.name || "",
                 price: cPrice
               });
@@ -2144,11 +2158,11 @@ function normalizeSetMealTemplates(raw){
                   price: cPrice
                 });
                 addons.push({
-                  kind:"setmeal",
-                  group:`${opt.name || "配餐"} / ${g.name || "子選項"}`,
-                  name: choice.name || "",
-                  price: cPrice
-                });
+                kind:"setmeal",
+                group:`${optionDisplayName || "配餐"} / ${g.name || "子選項"}`,
+                name: choice.name || "",
+                price: cPrice
+              });
                 setMealSum += cPrice;
               });
             }
@@ -2215,6 +2229,7 @@ function normalizeSetMealTemplates(raw){
             const oi = Number(el.dataset.smOi);
             const opt = (Array.isArray(c.options)?c.options:[])[oi];
             if(!opt) continue;
+            const optionDisplayName = setMealOptionDisplayName(opt) || opt.name || "配餐";
             const childGroups = (Array.isArray(opt.optionGroups) ? opt.optionGroups : []).filter(groupEnabled);
             for(let gi=0; gi<childGroups.length; gi++){
               const g = childGroups[gi] || {};
@@ -2224,7 +2239,7 @@ function normalizeSetMealTemplates(raw){
                 );
                 const idx = sel ? Number(sel.value) : -1;
                 if(!Number.isFinite(idx) || idx < 0){
-                  return `請先選擇「${opt.name||"配餐"} / ${g.name||"子選項"}」`;
+                  return `請先選擇「${optionDisplayName} / ${g.name||"子選項"}」`;
                 }
               }
 
@@ -2233,7 +2248,7 @@ function normalizeSetMealTemplates(raw){
                   `input[data-sm-child-addon="${CSS.escape(mid)}"][data-smid="${CSS.escape(smid)}"][data-sm-cat="${ci}"][data-sm-oi="${oi}"][data-sm-gi="${gi}"]:checked`
                 );
                 if(addonEls.length === 0){
-                  return `請先選擇「${opt.name||"配餐"} / ${g.name||"子選項"}」`;
+                  return `請先選擇「${optionDisplayName} / ${g.name||"子選項"}」`;
                 }
               }
             }
