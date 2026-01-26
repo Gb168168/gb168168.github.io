@@ -3,15 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者9</title>
+  <title>GoldBricks 呷奔🍚｜使用者999</title>
 
   <style>
     :root{
       --bg:#f3f5f9;
       --panel:#f7f8fc;
       --card:#ffffff;
-      --cardTint:#fdf7f9;
-      --cardSoft:#f2f5ff;
       --text:#0b1220;
       --muted:#5b6678;
 
@@ -101,7 +99,7 @@
     }
 
     .card{
-      background:linear-gradient(180deg, var(--card) 0%, var(--cardTint) 100%);
+      background:var(--card);
       border:1px solid var(--border);
       border-radius:var(--radius);
       box-shadow: 0 8px 18px rgba(2,6,23,.06);
@@ -149,21 +147,21 @@
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       padding:14px;
-      background:rgba(241,245,249,.7);
+      background:#fff;
       margin-top:10px;
     }
     .listLine{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
       padding:12px 14px;
-      background:rgba(248,250,252,.85);
+      background:#fff;
       margin-top:10px;
     }
     .menuItem{
       border:1px solid rgba(15,23,42,.08);
       border-radius:14px;
       padding:0;
-      background:var(--cardSoft);
+      background:#fff;
       margin-top:10px;
       box-shadow: 0 4px 10px rgba(2,6,23,.04);
     }
@@ -174,7 +172,7 @@
     .menuItemSummary{
       padding:14px 16px;
       display:block;
-      background: rgba(226,232,240,.5);
+      background: rgba(15,23,42,.02);
     }
     .menuItemSummaryRow{
       display:flex;
@@ -207,13 +205,8 @@
       box-shadow: 0 12px 22px rgba(34,197,94,.24);
       animation:none;
     }
-     .menuItem[open]{
-      background:linear-gradient(180deg, rgba(236,253,245,.9) 0%, rgba(209,250,229,.7) 100%);
-      border-color: rgba(16,185,129,.45);
-      box-shadow: 0 12px 20px rgba(16,185,129,.18);
-    }
     .menuItem[open] .menuItemSummary{
-      background: rgba(16,185,129,.14);
+      background: rgba(34,197,94,.08);
     }
     @keyframes pulseGlow{
       0%,100%{transform:translateY(0); box-shadow:0 10px 20px rgba(251,113,133,.22)}
@@ -223,11 +216,7 @@
     .inline.start{align-items:flex-start}
     @media (max-width:980px){.row{grid-template-columns:1fr}}
 
-     .priceTag{
-      color:#4c1d95;
-      background:linear-gradient(90deg, rgba(216,180,254,.45), rgba(233,213,255,.9));
-      border:1px solid rgba(167,139,250,.38);
-    }
+    .priceTag{color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); border:none}
     .lockTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
     .okTag{color:#065f46; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.26)}
     .warnTag{color:#92400e; background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.32)}
@@ -277,7 +266,7 @@
     }
     .modal{
       width:min(440px, 100%);
-      background:linear-gradient(180deg, #fff 0%, rgba(248,250,252,.9) 100%);
+      background:#fff;
       border:1px solid var(--border);
       border-radius:16px;
       box-shadow: var(--shadow);
@@ -292,7 +281,7 @@
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      background:linear-gradient(180deg, #fff 0%, rgba(248,250,252,.85) 100%);
+      background:#fff;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       overflow:hidden;
       padding:14px 14px;
@@ -333,7 +322,7 @@
     .sideBox{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      background:rgba(248,250,252,.9);
+      background:#fff;
       padding:14px;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       min-height:180px;
@@ -345,7 +334,7 @@
       border:1px dashed rgba(15,23,42,.16);
       border-radius:14px;
       padding:12px;
-      background:rgba(254,242,242,.7);
+      background:#fff;
     }
     .coOrderFields .muted{font-size:14px}
       .coPartnerRow{
