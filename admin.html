@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2199,11 +2199,15 @@ function renderChildOptionGroupsEditor(groups, key){
         ${list.map((g,gi)=>{
           const checked = g.enabled === false ? "" : "checked";
           const label = (g.name || `群組${gi + 1}`).trim();
+          const typeLabel = g.type === "addon"
+            ? "加購"
+            : `擇一${g.required ? "/必選" : ""}`;
           return `
             <label class="tag" style="cursor:pointer; gap:6px;">
               <input type="checkbox" data-sm-child-role="pick-group" data-sm-child-group="${esc(`${key}|${gi}`)}" ${checked}
                 style="width:14px; height:14px; margin:0;">
               ${esc(label || `群組${gi + 1}`)}
+              <span class="muted mini">(${typeLabel})</span>
             </label>
           `;
         }).join("")}
