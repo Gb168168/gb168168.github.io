@@ -1030,6 +1030,7 @@ statusPill.textContent = "已連線 Firestore ✅";
    // ✅ 群組啟用條件（超寬鬆版：只要有 choices 就顯示）
 function groupEnabled(g){
   if(!g || typeof g !== "object") return false;
+  if(g.enabled === false) return false;
   const choices = Array.isArray(g.choices) ? g.choices : [];
   // 沒選項就不用畫
   if(choices.length === 0) return false;
@@ -1043,6 +1044,7 @@ function groupEnabled(g){
     name: g.name || "",
     type: g.type === "addon" ? "addon" : "single",
     required: !!g.required,
+    enabled: g.enabled === false ? false : true,
     choices: Array.isArray(g.choices)
       ? g.choices.map(c => ({
           name: c.name || "",
