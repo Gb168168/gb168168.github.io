@@ -276,6 +276,28 @@
     .modal p{margin:0; white-space:pre-wrap; line-height:1.6}
     .modal .actions{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
 
+      .menu-modal .modal{
+      width:min(860px, 100%);
+      max-height:calc(100vh - 40px);
+      overflow:auto;
+      padding:18px;
+    }
+    .menu-modal .modalHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .menu-modal .modalMeta{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .menu-modal .modalBody{
+      margin-top:12px;
+    }
+
     /* ===== Restaurant Cards ===== */
     .rGrid{display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px;}
     .rCard{
@@ -503,11 +525,25 @@
     </div>
   </div>
 
-   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
+    <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
     <div class="modal">
       <h3 id="modalTitle">溫馨提醒📢</h3>
       <p id="modalMessage"></p>
       <div class="actions" id="modalActions"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop menu-modal" id="menuModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="menuModalTitle">
+    <div class="modal">
+      <div class="modalHeader">
+        <h3 id="menuModalTitle">餐點內容</h3>
+        <button class="btn" type="button" id="menuModalClose">關閉</button>
+      </div>
+      <div class="modalMeta" id="menuModalMeta"></div>
+      <div class="modalBody" id="menuModalBody"></div>
+      <div class="actions">
+        <button class="primary" type="button" id="menuModalConfirm">知道了</button>
+      </div>
     </div>
   </div>
   
@@ -648,6 +684,14 @@ const modalActions = $("modalActions");
 let modalBusy = false;
 const menuFeedback = $("menuFeedback");
 let menuFeedbackTimer = null;
+
+const menuModalBackdrop = $("menuModalBackdrop");
+const menuModalTitle = $("menuModalTitle");
+const menuModalMeta = $("menuModalMeta");
+const menuModalBody = $("menuModalBody");
+const menuModalClose = $("menuModalClose");
+const menuModalConfirm = $("menuModalConfirm");
+let activeMenuModal = null;
     
 const openDialog = ({ message, confirm = false })=>{
   if(modalBusy) return Promise.resolve(false);
@@ -704,6 +748,74 @@ const openDialog = ({ message, confirm = false })=>{
 
 const showAlert = (message)=> openDialog({ message, confirm: false });
 const showConfirm = (message)=> openDialog({ message, confirm: true });
+
+const setMenuModalMeta = (item)=>{
+  if(!menuModalMeta) return;
+  if(!item){
+    menuModalMeta.innerHTML = "";
+    return;
+  }
+  const parts = [];
+  parts.push(`<span class="tag priceTag">單價：${Number(item.price||0)}</span>`);
+  parts.push(`<span class="tag">預設：${Number(item.defaultQty||1)}</span>`);
+  if(item.content){
+    parts.push(`<span class="tag">內容：${esc(item.content)}</span>`);
+  }
+  if(item.note){
+    parts.push(`<span class="tag warnTag">提示：${esc(item.note)}</span>`);
+  }
+  menuModalMeta.innerHTML = parts.join("");
+};
+
+const closeMenuModal = ()=>{
+  if(!activeMenuModal) return;
+  const { body, placeholder } = activeMenuModal;
+  if(placeholder?.parentNode){
+    placeholder.replaceWith(body);
+  }
+  menuModalBody.innerHTML = "";
+  menuModalBackdrop.style.display = "none";
+  document.removeEventListener("keydown", onMenuModalKeydown);
+  activeMenuModal = null;
+};
+
+const onMenuModalKeydown = (e)=>{
+  if(e.key === "Escape") closeMenuModal();
+};
+
+const openMenuModal = (detail)=>{
+  if(!detail || !menuModalBackdrop) return;
+  const body = detail.querySelector(".menuItemBody");
+  if(!body) return;
+  if(activeMenuModal) closeMenuModal();
+  const placeholder = document.createElement("div");
+  placeholder.className = "menuModalPlaceholder";
+  body.replaceWith(placeholder);
+  menuModalBody.innerHTML = "";
+  menuModalBody.appendChild(body);
+
+  const mid = detail.dataset.mid || "";
+  const item = menuCache.find(x=> x.id === mid);
+  menuModalTitle.textContent = item?.name || "餐點內容";
+  setMenuModalMeta(item);
+
+  menuModalBackdrop.style.display = "flex";
+  document.addEventListener("keydown", onMenuModalKeydown);
+  activeMenuModal = { body, placeholder };
+  setTimeout(()=> menuModalClose?.focus(), 0);
+};
+
+if(menuModalClose){
+  menuModalClose.addEventListener("click", closeMenuModal);
+}
+if(menuModalConfirm){
+  menuModalConfirm.addEventListener("click", closeMenuModal);
+}
+if(menuModalBackdrop){
+  menuModalBackdrop.addEventListener("click", (e)=>{
+    if(e.target === menuModalBackdrop) closeMenuModal();
+  });
+}
 
 // ✅ 跟 admin 一樣的部門排序規則
 const DEPT_ORDER = [
@@ -1276,13 +1388,20 @@ function normalizeSetMealTemplates(raw){
         detail.open = false;
       });
 
-       wrap.querySelectorAll("details[data-menu-item]").forEach((detail)=>{
-        detail.addEventListener("toggle", ()=>{
-          if(!detail.open) return;
-          wrap.querySelectorAll("details[data-menu-item]").forEach(other=>{
-            if(other !== detail) other.open = false;
+      wrap.querySelectorAll("details[data-menu-item]").forEach((detail)=>{
+        const summary = detail.querySelector("summary");
+        if(summary){
+          summary.addEventListener("click", (event)=>{
+            event.preventDefault();
+            openMenuModal(detail);
           });
-        });
+           summary.addEventListener("keydown", (event)=>{
+            if(event.key === "Enter" || event.key === " "){
+              event.preventDefault();
+              openMenuModal(detail);
+            }
+          });
+        }
       });
 
       wrap.querySelectorAll("[data-add-mid]").forEach(btn=>{
@@ -1380,13 +1499,13 @@ function normalizeSetMealTemplates(raw){
         await showAlert("找不到該餐點，請重新整理或再次挑選");
         return;
       }
-       const categoryDetail = target.closest("details.box");
+        const categoryDetail = target.closest("details.box");
       if(categoryDetail){
         categoryDetail.open = true;
       }
-      target.open = true;
-       requestAnimationFrame(()=>{
+     requestAnimationFrame(()=>{
         target.scrollIntoView({ behavior: "smooth", block: "start" });
+        openMenuModal(target);
       });
     }
 
@@ -1664,7 +1783,7 @@ function normalizeSetMealTemplates(raw){
                 <b>${esc(m.name||"")}</b>
                 <span class="tag priceTag" style="margin-left:8px">單價：${Number(m.price||0)}</span>
               </div>
-              <span class="tag expandHint" style="margin-left:auto">點擊展開</span>
+              <span class="tag expandHint" style="margin-left:auto">點擊查看</span>
             </div>
            ${m.content ? `<div class="muted" style="margin-top:6px">內容：${esc(m.content)}</div>` : ``}
           </summary>
