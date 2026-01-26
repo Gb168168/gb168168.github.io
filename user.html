@@ -2071,6 +2071,7 @@ function normalizeSetMealTemplates(raw){
       if(noteEl) noteEl.value = "";
       renderCart();
       showMenuFeedback(mid, m.name || "");
+      await showAlert(`已加入「${m.name || "餐點"}」到購物車\n點餐完畢需至購物車送出訂單`);
     }
 
     function isClosedNow(){
