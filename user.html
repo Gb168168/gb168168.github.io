@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者999</title>
+  <title>GoldBricks 呷奔🍚｜使用者9</title>
 
   <style>
     :root{
@@ -373,6 +373,65 @@
       font-size:14px;
       margin-bottom:6px;
     }
+    
+    .assistive{
+      position:fixed;
+      right:22px;
+      bottom:22px;
+      z-index:1200;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:12px;
+      pointer-events:none;
+    }
+    .assistive *{pointer-events:auto}
+    .assistive-btn{
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      border:none;
+      cursor:pointer;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      color:#fff;
+      font-size:22px;
+      box-shadow:0 16px 26px rgba(251,113,133,.25);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .assistive-menu{
+      min-width:210px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      box-shadow: var(--shadow);
+      display:none;
+      flex-direction:column;
+      gap:8px;
+    }
+    .assistive-menu.show{display:flex}
+    .assistive-link{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      text-decoration:none;
+      color:var(--text);
+      font-weight:600;
+    }
+    .assistive-link:hover{
+      background:var(--accentSoft);
+      border-color:rgba(251,113,133,.28);
+    }
+    .assistive-note{
+      font-size:13px;
+      color:var(--muted);
+      text-align:right;
+    }
   </style>
 </head>
 
@@ -397,7 +456,7 @@
 
       <!-- LEFT -->
       <div>
-        <div class="card">
+        <div class="card" id="section-dept">
               <h2 id="whoTitle" class="whoTitle">1）選擇的部門人員</h2>
 
           <label>部門</label>
@@ -431,7 +490,7 @@
           <div class="muted">必須先選「部門 + 姓名」才能點餐。</div>
         </div>
 
-        <div class="card" style="margin-top:14px">
+       <div class="card" id="section-restaurant" style="margin-top:14px">
           <h2>2）店家列表</h2>
 
           <details class="box">
@@ -451,7 +510,7 @@
           </div>
         </div>
 
-        <div class="card" style="margin-top:14px">
+        <div class="card" id="section-random" style="margin-top:14px">
          <h2>3）幫我挑要吃啥</h2>
           <div class="inline">
             <span class="tag">從餐點清單隨機挑選</span>
@@ -464,7 +523,7 @@
 
       <!-- MIDDLE -->
       <div>
-        <div class="card">
+        <div class="card" id="section-menu">
           <h2>4）餐點清單</h2>
           <div id="menuFeedback" class="menuFeedback" aria-live="polite"></div>
           <div id="menuWrap" class="muted">請先選擇店家。</div>
@@ -473,7 +532,7 @@
 
       <!-- RIGHT -->
       <div>
-        <div class="card">
+        <div class="card" id="section-cart">
             <h2>5）購物車 </h2>
           <div id="cartWrap" class="muted">尚未加入餐點。</div>
 
@@ -489,7 +548,7 @@
           <div class="muted" style="margin-top:8px">※ 送出後，會出現在右側「我的訂餐紀錄」。</div>
         </div>
 
-        <div class="card" style="margin-top:14px">
+        <div class="card" id="section-orders" style="margin-top:14px">
           <h2>6）我的訂餐紀錄</h2>
           <div class="inline">
             <input id="myDate" type="date" style="width:auto; min-width:170px"/>
@@ -550,7 +609,63 @@
     </div>
   </div>
   
+  <div class="assistive" aria-label="浮動功能選單">
+    <div class="assistive-menu" id="assistiveMenu" aria-hidden="true">
+      <a class="assistive-link" href="#section-dept">部門人員</a>
+      <a class="assistive-link" href="#section-restaurant">店家列表</a>
+      <a class="assistive-link" href="#section-random">幫我挑要吃啥</a>
+      <a class="assistive-link" href="#section-menu">餐點清單</a>
+      <a class="assistive-link" href="#section-cart">購物車</a>
+      <a class="assistive-link" href="#section-orders">訂餐紀錄</a>
+      <div class="assistive-note">點按即可快速跳轉</div>
+    </div>
+    <button class="assistive-btn" id="assistiveToggle" type="button" aria-expanded="false" aria-controls="assistiveMenu">☰</button>
+  </div>
+  
   <script type="module">
+     // ===== Floating Assistive Menu =====
+    const assistiveToggle = document.getElementById("assistiveToggle");
+    const assistiveMenu = document.getElementById("assistiveMenu");
+    const closeAssistive = () => {
+      assistiveMenu.classList.remove("show");
+      assistiveMenu.setAttribute("aria-hidden", "true");
+      assistiveToggle.setAttribute("aria-expanded", "false");
+    };
+    const openAssistive = () => {
+      assistiveMenu.classList.add("show");
+      assistiveMenu.setAttribute("aria-hidden", "false");
+      assistiveToggle.setAttribute("aria-expanded", "true");
+    };
+    assistiveToggle?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (assistiveMenu.classList.contains("show")) {
+        closeAssistive();
+      } else {
+        openAssistive();
+      }
+    });
+    assistiveMenu?.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest("a")) {
+        closeAssistive();
+      }
+    });
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (
+        assistiveMenu.classList.contains("show") &&
+        target instanceof HTMLElement &&
+        !target.closest(".assistive")
+      ) {
+        closeAssistive();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAssistive();
+      }
+    });
+
     // ===== Role Gate =====
     const roleKey = "gb_role";
     const storedRole = localStorage.getItem(roleKey);
