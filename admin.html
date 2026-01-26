@@ -1812,6 +1812,7 @@ function cloneOptionGroups(src){
     name: g.name || "",
     type: g.type === "addon" ? "addon" : "single",
     required: !!g.required,
+    enabled: g.enabled === false ? false : true,
     choices: Array.isArray(g.choices)
       ? g.choices.map(c => ({
           name: c.name || "",
@@ -2081,7 +2082,9 @@ const uid = () =>
 let setMealTemplates = [];          // 已建立的套餐模板（全店）
 let activeSetMealDraft = null;      // 正在編輯中的套餐
 let menuSetMealSelected = new Set();// 此餐點勾選的套餐 id
-
+const setMealChildDetailOpen = new Set();
+const addMenuSetMealChildDetailOpen = new Map();
+    
 function normalizeSetMealTemplates(raw){
   if(!Array.isArray(raw)) return [];
   return raw.map(t=>({
@@ -2189,6 +2192,24 @@ function renderSetMealPickList(){
 
 function renderChildOptionGroupsEditor(groups, key){
   const list = Array.isArray(groups) ? groups : [];
+  const enabledWrap = list.length
+    ? `
+      <div class="muted mini" style="margin:6px 0 4px">此支援哪些（勾選）</div>
+      <div class="kpi" style="margin-bottom:6px">
+        ${list.map((g,gi)=>{
+          const checked = g.enabled === false ? "" : "checked";
+          const label = (g.name || `群組${gi + 1}`).trim();
+          return `
+            <label class="tag" style="cursor:pointer; gap:6px;">
+              <input type="checkbox" data-sm-child-role="pick-group" data-sm-child-group="${esc(`${key}|${gi}`)}" ${checked}
+                style="width:14px; height:14px; margin:0;">
+              ${esc(label || `群組${gi + 1}`)}
+            </label>
+          `;
+        }).join("")}
+      </div>
+    `
+    : `<div class="muted mini" style="margin-bottom:6px">此支援哪些（勾選）：尚未建立群組</div>`;
   const addBtn = `
     <div class="actions" style="margin:4px 0 10px; justify-content:flex-start;">
       <button class="btnSmall btnOk" type="button" data-sm-child-role="add-group" data-sm-child-key="${esc(key)}">新增子選項群組</button>
@@ -2196,7 +2217,7 @@ function renderChildOptionGroupsEditor(groups, key){
   `;
 
   if(list.length === 0){
-    return `${addBtn}<div class="muted mini">尚未設定子必選 / 加購。</div>`;
+   return `${addBtn}${enabledWrap}<div class="muted mini">尚未設定子必選 / 加購。</div>`;
   }
 
   const groupsHTML = list.map((g,gi)=>{
@@ -2264,7 +2285,7 @@ function renderChildOptionGroupsEditor(groups, key){
     `;
   }).join("");
 
-  return `${addBtn}${groupsHTML}`;
+  return `${addBtn}${enabledWrap}${groupsHTML}`;
 }
 
 function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
@@ -2293,7 +2314,7 @@ function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
       const { ci, oi } = parseGroupKey(key);
       const groups = ensureGroups(draft, ci, oi);
       if(!groups) return;
-      groups.push({ name:"", type:"single", required:true, choices:[] });
+      groups.push({ name:"", type:"single", required:true, choices:[], enabled: true });
       rerender();
     };
   });
@@ -2331,6 +2352,17 @@ function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
       const groups = ensureGroups(draft, ci, oi);
       if(!groups?.[gi]) return;
       groups[gi].required = !!e.target.checked;
+    });
+  });
+
+    container.querySelectorAll('[data-sm-child-role="pick-group"]').forEach(ch=>{
+    ch.addEventListener("change", e=>{
+      const key = e.target.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      groups[gi].enabled = !!e.target.checked;
     });
   });
 
@@ -2401,6 +2433,37 @@ function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
       rerender();
     };
   });
+  
+  container.querySelectorAll('[data-sm-child-role="new-c-name"], [data-sm-child-role="new-c-price"]').forEach(input=>{
+    input.addEventListener("keydown",(e)=>{
+      if(e.key !== "Enter") return;
+      e.preventDefault();
+      const key = e.target.dataset.smChildGroup;
+      const targetBtn = e.target.closest(".optBox")?.querySelector(
+        `[data-sm-child-role="add-choice"][data-sm-child-group="${CSS.escape(key || "")}"]`
+      );
+      targetBtn?.click();
+    });
+  });
+}
+
+function getSetMealChildDetailOpenSet(rid){
+  if(!addMenuSetMealChildDetailOpen.has(rid)){
+    addMenuSetMealChildDetailOpen.set(rid, new Set());
+  }
+  return addMenuSetMealChildDetailOpen.get(rid);
+}
+
+function syncSetMealChildDetails(container, stateSet){
+  if(!container || !stateSet) return;
+  container.querySelectorAll('details[data-sm-child-detail]').forEach(detail=>{
+    const key = detail.dataset.smChildDetail || "";
+    if(stateSet.has(key)) detail.open = true;
+    detail.addEventListener("toggle", ()=>{
+      if(detail.open) stateSet.add(key);
+      else stateSet.delete(key);
+    });
+  });
 }
     
 /* ===== 套餐草稿（類別 / 選項） ===== */
@@ -2421,7 +2484,7 @@ function renderSetMealCategoryList(){
           <div>${esc(o.name)} <span class="tag">+${Number(o.addPrice||0)}</span></div>
           <button class="btnSmall btnDanger" data-sm-delopt="${ci}|${oi}">刪除</button>
         </div>
-        <details class="fold" style="margin-top:6px">
+        <details class="fold" style="margin-top:6px" data-sm-child-detail="${esc(`${ci}|${oi}`)}">
           <summary>子必選 / 加購（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
           <div data-sm-child-editor="${esc(`${ci}|${oi}`)}">
             ${renderChildOptionGroupsEditor(o.optionGroups, `${ci}|${oi}`)}
@@ -2488,6 +2551,7 @@ function renderSetMealCategoryList(){
   });
 
   bindSetMealChildOptionGroupEditors(wrap, ()=>activeSetMealDraft, renderSetMealCategoryList);
+  syncSetMealChildDetails(wrap, setMealChildDetailOpen);
 }
 
 /* ===== 事件 ===== */
@@ -3682,8 +3746,8 @@ async function loadMenusOfRestaurant(rid){
       return names.length ? names.join("、") : "—";
     }
 
-    function optionGroupsSummary(groups){
-      const gs = Array.isArray(groups) ? groups : [];
+  function optionGroupsSummary(groups){
+      const gs = (Array.isArray(groups) ? groups : []).filter(g => g?.enabled !== false);
       if(gs.length===0) return "—";
       return gs.map(g=>{
         const t = g.type==="single" ? "擇一" : "加購";
@@ -4224,7 +4288,7 @@ function renderAddMenuSetMealCategoryList(rid, container){
           <div>${esc(o.name)} <span class="tag">+${Number(o.addPrice||0)}</span></div>
           <button class="btnSmall btnDanger" type="button" data-add-sm-delopt="${ci}|${oi}">刪除</button>
         </div>
-        <details class="fold" style="margin-top:6px">
+        <details class="fold" style="margin-top:6px" data-sm-child-detail="${esc(`${ci}|${oi}`)}">
           <summary>子必選 / 加購（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
           <div data-sm-child-editor="${esc(`${ci}|${oi}`)}">
             ${renderChildOptionGroupsEditor(o.optionGroups, `${ci}|${oi}`)}
@@ -4291,6 +4355,7 @@ function renderAddMenuSetMealCategoryList(rid, container){
   });
   
   bindSetMealChildOptionGroupEditors(container, ()=>addMenuSetMealDraft.get(rid), ()=>renderAddMenuSetMealCategoryList(rid, container));
+  syncSetMealChildDetails(container, getSetMealChildDetailOpenSet(rid));
 }
 
 async function saveAddMenuSetMealTemplates(rid, templates){
