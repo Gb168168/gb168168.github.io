@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理7</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2389,7 +2389,7 @@ function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
       const { ci, oi, gi } = parseGroupKey(key);
       const groups = ensureGroups(draft, ci, oi);
       if(!groups?.[gi]) return;
-      const box = btn.closest(`[data-sm-child-group="${CSS.escape(key)}"]`);
+      const box = btn.closest(".optBox");
       const nameEl = box?.querySelector('[data-sm-child-role="new-c-name"]');
       const priceEl = box?.querySelector('[data-sm-child-role="new-c-price"]');
       const name = (nameEl?.value || "").trim();
