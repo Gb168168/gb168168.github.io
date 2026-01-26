@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者999</title>
+  <title>GoldBricks 呷奔🍚｜使用者9</title>
 
   <style>
     :root{
       --bg:#f3f5f9;
       --panel:#f7f8fc;
       --card:#ffffff;
+      --cardTint:#fdf7f9;
+      --cardSoft:#f2f5ff;
       --text:#0b1220;
       --muted:#5b6678;
 
@@ -99,7 +101,7 @@
     }
 
     .card{
-      background:var(--card);
+      background:linear-gradient(180deg, var(--card) 0%, var(--cardTint) 100%);
       border:1px solid var(--border);
       border-radius:var(--radius);
       box-shadow: 0 8px 18px rgba(2,6,23,.06);
@@ -147,21 +149,21 @@
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
       padding:14px;
-      background:#fff;
+      background:rgba(241,245,249,.7);
       margin-top:10px;
     }
     .listLine{
       border:1px solid rgba(15,23,42,.10);
       border-radius:14px;
       padding:12px 14px;
-      background:#fff;
+      background:rgba(248,250,252,.85);
       margin-top:10px;
     }
     .menuItem{
       border:1px solid rgba(15,23,42,.08);
       border-radius:14px;
       padding:0;
-      background:#fff;
+      background:var(--cardSoft);
       margin-top:10px;
       box-shadow: 0 4px 10px rgba(2,6,23,.04);
     }
@@ -172,7 +174,7 @@
     .menuItemSummary{
       padding:14px 16px;
       display:block;
-      background: rgba(15,23,42,.02);
+      background: rgba(226,232,240,.5);
     }
     .menuItemSummaryRow{
       display:flex;
@@ -266,7 +268,7 @@
     }
     .modal{
       width:min(440px, 100%);
-      background:#fff;
+      background:linear-gradient(180deg, #fff 0%, rgba(248,250,252,.9) 100%);
       border:1px solid var(--border);
       border-radius:16px;
       box-shadow: var(--shadow);
@@ -281,7 +283,7 @@
     .rCard{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      background:#fff;
+      background:linear-gradient(180deg, #fff 0%, rgba(248,250,252,.85) 100%);
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       overflow:hidden;
       padding:14px 14px;
@@ -322,7 +324,7 @@
     .sideBox{
       border:1px solid rgba(15,23,42,.10);
       border-radius:16px;
-      background:#fff;
+      background:rgba(248,250,252,.9);
       padding:14px;
       box-shadow: 0 8px 18px rgba(2,6,23,.05);
       min-height:180px;
@@ -334,7 +336,7 @@
       border:1px dashed rgba(15,23,42,.16);
       border-radius:14px;
       padding:12px;
-      background:#fff;
+      background:rgba(254,242,242,.7);
     }
     .coOrderFields .muted{font-size:14px}
       .coPartnerRow{
