@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者9</title>
+  <title>GoldBricks 呷奔🍚｜使用者99</title>
 
   <style>
     :root{
@@ -626,6 +626,14 @@
      // ===== Floating Assistive Menu =====
     const assistiveToggle = document.getElementById("assistiveToggle");
     const assistiveMenu = document.getElementById("assistiveMenu");
+    const topbar = document.querySelector(".topbar");
+    const getHeaderOffset = () => (topbar?.offsetHeight || 0) + 12;
+    const scrollToWithOffset = (element) => {
+      if (!element) return;
+      const headerOffset = getHeaderOffset();
+      const targetTop = element.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({ top: targetTop, behavior: "smooth" });
+    };
     const closeAssistive = () => {
       assistiveMenu.classList.remove("show");
       assistiveMenu.setAttribute("aria-hidden", "true");
@@ -649,6 +657,19 @@
       if (target instanceof HTMLElement && target.closest("a")) {
         closeAssistive();
       }
+    });
+     document.querySelectorAll(".assistive-link").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const anchor = event.currentTarget;
+        if (!(anchor instanceof HTMLAnchorElement)) return;
+        const hash = anchor.getAttribute("href");
+        if (!hash || !hash.startsWith("#")) return;
+        const target = document.querySelector(hash);
+        if (!(target instanceof HTMLElement)) return;
+        event.preventDefault();
+        scrollToWithOffset(target);
+        history.pushState(null, "", hash);
+      });
     });
     document.addEventListener("click", (event) => {
       const target = event.target;
@@ -1621,8 +1642,8 @@ function normalizeSetMealTemplates(raw){
       if(categoryDetail){
         categoryDetail.open = true;
       }
-     requestAnimationFrame(()=>{
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      requestAnimationFrame(() => {
+        scrollToWithOffset(target);
         openMenuModal(target);
       });
     }
