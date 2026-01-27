@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1066,11 +1066,6 @@
       </div>
     </div>
 
-    <div id="setMealSubOptionArea" style="margin-top:10px; display:none">
-      <div class="muted mini" style="margin-bottom:6px">套餐子選項</div>
-      <div id="setMealCategoryList" style="margin-top:10px"></div>
-    </div>
-
     <!-- 套餐編輯區（草稿） -->
     <div id="setMealDraftArea" style="margin-top:10px; display:none">
       <div class="optBox">
@@ -1100,6 +1095,8 @@
             <button class="btnSmall btnOk" id="btnAddSetMealCategory" type="button">加入類別</button>
           </div>
         </div>
+
+        <div id="setMealCategoryList" style="margin-top:10px"></div>
 
         <div class="actions">
           <button class="btnSmall btnOk" id="btnCommitSetMeal" type="button">完成此套餐（加入到模板清單）</button>
@@ -1816,7 +1813,6 @@ function cloneOptionGroups(src){
     type: g.type === "addon" ? "addon" : "single",
     required: !!g.required,
     enabled: g.enabled === false ? false : true,
-    useInOptionName: !!g.useInOptionName,
     choices: Array.isArray(g.choices)
       ? g.choices.map(c => ({
           name: c.name || "",
@@ -2086,6 +2082,8 @@ const uid = () =>
 let setMealTemplates = [];          // 已建立的套餐模板（全店）
 let activeSetMealDraft = null;      // 正在編輯中的套餐
 let menuSetMealSelected = new Set();// 此餐點勾選的套餐 id
+const setMealChildDetailOpen = new Set();
+const addMenuSetMealChildDetailOpen = new Map();
     
 function normalizeSetMealTemplates(raw){
   if(!Array.isArray(raw)) return [];
@@ -2109,181 +2107,9 @@ function normalizeSetMealTemplates(raw){
   })).filter(t=> t.id && t.name);
 }
 
-  function setMealOptionDisplayName(option){
-  const base = (option?.name || "").toString().trim();
-  const groups = (Array.isArray(option?.optionGroups) ? option.optionGroups : [])
-    .filter(g => g?.useInOptionName)
-    .map(g => (g?.name || "").toString().trim())
-    .filter(Boolean);
-  if(!groups.length) return base;
-  const suffix = groups.join(" / ");
-  return `${base}${base ? " " : ""}(${suffix})`;
-}
-
-function ensureSetMealOptionGroups(option){
-  if(!option) return [];
-  if(!Array.isArray(option.optionGroups)) option.optionGroups = [];
-  return option.optionGroups;
-}
-
-function buildSetMealOptionGroupEditor(prefix, option, ci, oi){
-  const groups = ensureSetMealOptionGroups(option);
-  const attr = name => `data-${prefix}-${name}`;
-  const groupRows = groups.map((g,gi)=>{
-    const choiceRows = (Array.isArray(g.choices) ? g.choices : []).map((c,coi)=>`
-      <div class="inline" style="justify-content:space-between; gap:10px; margin-top:6px">
-        <div>${esc(c.name || "—")} <span class="tag">+${Number(c.price||0)}</span></div>
-        <button class="btnSmall btnDanger" type="button" ${attr("og-cdel")}="${ci}|${oi}|${gi}|${coi}">刪除</button>
-      </div>
-    `).join("") || `<div class="muted mini" style="margin-top:6px">尚未加入選項</div>`;
-
-    return `
-      <div style="margin-top:10px; padding:10px; border:1px solid rgba(15,23,42,.08); border-radius:12px; background:#fff">
-        <div class="inline" style="justify-content:space-between; gap:10px; align-items:flex-start">
-          <div>
-            <b>${esc(g.name || "子選項群組")}</b>
-            <span class="tag" style="margin-left:6px">${g.type==="addon" ? "加購" : "擇一"}</span>
-            ${g.type==="single" ? `<span class="tag" style="margin-left:6px">${g.required===false ? "可不選" : "必選"}</span>` : ""}
-          </div>
-          <button class="btnSmall btnDanger" type="button" ${attr("og-del")}="${ci}|${oi}|${gi}">刪除群組</button>
-        </div>
-        <label class="inline" style="margin-top:8px; gap:6px;">
-          <input type="checkbox" style="width:16px; height:16px;" ${g.useInOptionName ? "checked" : ""} ${attr("og-toggle")}="${ci}|${oi}|${gi}">
-          套用在選項名稱內
-        </label>
-        <div class="optRow" style="margin-top:8px">
-          <input ${attr("og-cname")}="${ci}|${oi}|${gi}" placeholder="子選項名稱">
-          <input ${attr("og-cprice")}="${ci}|${oi}|${gi}" type="number" min="0" placeholder="加價">
-          <button class="btnSmall btnOk" type="button" ${attr("og-cadd")}="${ci}|${oi}|${gi}">加入子選項</button>
-        </div>
-        ${choiceRows}
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <details style="margin-top:8px">
-      <summary>子選項群組 ${groups.length ? `（${groups.length}）` : ""}</summary>
-      <div class="muted mini" style="margin-top:6px">勾選「套用在選項名稱內」會顯示在套餐類別的選項名稱內。</div>
-      <div class="optRow" style="margin-top:8px; align-items:flex-end">
-        <input ${attr("og-name")}="${ci}|${oi}" placeholder="群組名稱">
-        <select ${attr("og-type")}="${ci}|${oi}">
-          <option value="single">擇一（下拉）</option>
-          <option value="addon">加購（多選）</option>
-        </select>
-        <label class="inline" style="gap:6px; margin:0;">
-          <input type="checkbox" style="width:16px; height:16px;" ${attr("og-required")}="${ci}|${oi}" checked>
-          必選
-        </label>
-        <label class="inline" style="gap:6px; margin:0;">
-          <input type="checkbox" style="width:16px; height:16px;" ${attr("og-use")}="${ci}|${oi}">
-          套用在選項名稱內
-        </label>
-        <button class="btnSmall btnOk" type="button" ${attr("og-add")}="${ci}|${oi}">新增群組</button>
-      </div>
-      ${groupRows || `<div class="muted mini" style="margin-top:8px">尚無子選項群組</div>`}
-    </details>
-  `;
-}
-
-function bindSetMealOptionGroupEditor(container, getOption, prefix, rerender){
-  const attr = name => `data-${prefix}-${name}`;
-
-  container.querySelectorAll(`[${attr("og-add")}]`).forEach(btn=>{
-    btn.onclick = ()=>{
-      const key = btn.getAttribute(attr("og-add")) || "";
-      const [ci,oi] = key.split("|").map(Number);
-      const option = getOption(ci, oi);
-      if(!option) return;
-      const nameEl = container.querySelector(`[${attr("og-name")}="${key}"]`);
-      const typeEl = container.querySelector(`[${attr("og-type")}="${key}"]`);
-      const requiredEl = container.querySelector(`[${attr("og-required")}="${key}"]`);
-      const useEl = container.querySelector(`[${attr("og-use")}="${key}"]`);
-      const name = (nameEl?.value || "").trim();
-      if(!name) return alert("請輸入群組名稱");
-      const type = typeEl?.value === "addon" ? "addon" : "single";
-      const required = type === "single" ? !!requiredEl?.checked : false;
-      const useInOptionName = !!useEl?.checked;
-      ensureSetMealOptionGroups(option).push({
-        name,
-        type,
-        required,
-        enabled: true,
-        useInOptionName,
-        choices: []
-      });
-      if(nameEl) nameEl.value = "";
-      if(typeEl) typeEl.value = "single";
-      if(requiredEl) requiredEl.checked = true;
-      if(useEl) useEl.checked = false;
-      rerender();
-    };
-  });
-
-  container.querySelectorAll(`[${attr("og-del")}]`).forEach(btn=>{
-    btn.onclick = ()=>{
-      const key = btn.getAttribute(attr("og-del")) || "";
-      const [ci,oi,gi] = key.split("|").map(Number);
-      const option = getOption(ci, oi);
-      if(!option) return;
-      const groups = ensureSetMealOptionGroups(option);
-      groups.splice(gi,1);
-      rerender();
-    };
-  });
-
-  container.querySelectorAll(`[${attr("og-toggle")}]`).forEach(box=>{
-    box.onchange = ()=>{
-      const key = box.getAttribute(attr("og-toggle")) || "";
-      const [ci,oi,gi] = key.split("|").map(Number);
-      const option = getOption(ci, oi);
-      if(!option) return;
-      const groups = ensureSetMealOptionGroups(option);
-      if(!groups[gi]) return;
-      groups[gi].useInOptionName = box.checked;
-      rerender();
-    };
-  });
-
-  container.querySelectorAll(`[${attr("og-cadd")}]`).forEach(btn=>{
-    btn.onclick = ()=>{
-      const key = btn.getAttribute(attr("og-cadd")) || "";
-      const [ci,oi,gi] = key.split("|").map(Number);
-      const option = getOption(ci, oi);
-      if(!option) return;
-      const nameEl = container.querySelector(`[${attr("og-cname")}="${key}"]`);
-      const priceEl = container.querySelector(`[${attr("og-cprice")}="${key}"]`);
-      const name = (nameEl?.value || "").trim();
-      const price = Number(priceEl?.value || 0);
-      if(!name) return alert("請輸入子選項名稱");
-      const groups = ensureSetMealOptionGroups(option);
-      if(!groups[gi]) return;
-      if(!Array.isArray(groups[gi].choices)) groups[gi].choices = [];
-      groups[gi].choices.push({ name, price });
-      if(nameEl) nameEl.value = "";
-      if(priceEl) priceEl.value = "";
-      rerender();
-    };
-  });
-
-  container.querySelectorAll(`[${attr("og-cdel")}]`).forEach(btn=>{
-    btn.onclick = ()=>{
-      const key = btn.getAttribute(attr("og-cdel")) || "";
-      const [ci,oi,gi,coi] = key.split("|").map(Number);
-      const option = getOption(ci, oi);
-      if(!option) return;
-      const groups = ensureSetMealOptionGroups(option);
-      if(!groups[gi] || !Array.isArray(groups[gi].choices)) return;
-      groups[gi].choices.splice(coi,1);
-      rerender();
-    };
-  });
-}
-
 /* ===== UI helpers ===== */
 function showSetMealDraftUI(on){
   $("setMealDraftArea").style.display = on ? "" : "none";
-  $("setMealSubOptionArea").style.display = on ? "" : "none";
 }
 
 /* ===== 套餐模板列表 ===== */
@@ -2300,8 +2126,9 @@ function renderSetMealTemplates(){
     const cats = (t.categories||[]).map(c=>{
       const opts = (c.options||[])
         .map(o=>{
-          const displayName = setMealOptionDisplayName(o);
-          return `${esc(displayName || o.name || "—")}${Number(o.addPrice||0) ? `(+${o.addPrice})` : ""}`;
+          const childSummary = optionGroupsSummary(o.optionGroups);
+          const childText = childSummary !== "—" ? `［${esc(childSummary)}］` : "";
+          return `${o.name}${Number(o.addPrice||0) ? `(+${o.addPrice})` : ""}${childText}`;
         })
         .join("、") || "—";
       return `${c.name}（選${c.pickCount}）：${opts}`;
@@ -2363,6 +2190,282 @@ function renderSetMealPickList(){
   });
 }
 
+function renderChildOptionGroupsEditor(groups, key){
+  const list = Array.isArray(groups) ? groups : [];
+  const enabledWrap = list.length
+    ? `
+      <div class="muted mini" style="margin:6px 0 4px">此支援哪些（勾選）</div>
+      <div class="kpi" style="margin-bottom:6px">
+        ${list.map((g,gi)=>{
+          const checked = g.enabled === false ? "" : "checked";
+          const label = (g.name || `群組${gi + 1}`).trim();
+          return `
+            <label class="tag" style="cursor:pointer; gap:6px;">
+              <input type="checkbox" data-sm-child-role="pick-group" data-sm-child-group="${esc(`${key}|${gi}`)}" ${checked}
+                style="width:14px; height:14px; margin:0;">
+              ${esc(label || `群組${gi + 1}`)}
+            </label>
+          `;
+        }).join("")}
+      </div>
+    `
+    : `<div class="muted mini" style="margin-bottom:6px">此支援哪些（勾選）：尚未建立群組</div>`;
+  const addBtn = `
+    <div class="actions" style="margin:4px 0 10px; justify-content:flex-start;">
+      <button class="btnSmall btnOk" type="button" data-sm-child-role="add-group" data-sm-child-key="${esc(key)}">新增子選項群組</button>
+    </div>
+  `;
+
+  if(list.length === 0){
+   return `${addBtn}${enabledWrap}<div class="muted mini">尚未設定子必選 / 加購。</div>`;
+  }
+
+  const groupsHTML = list.map((g,gi)=>{
+    const choices = Array.isArray(g.choices) ? g.choices : [];
+    const rows = choices.length
+      ? choices.map((c,ci)=>`
+          <tr data-sm-child-choice="${esc(`${key}|${gi}|${ci}`)}">
+            <td><input data-sm-child-role="c-name" data-sm-child-choice="${esc(`${key}|${gi}|${ci}`)}" value="${esc(c.name||"")}"></td>
+            <td><input data-sm-child-role="c-price" data-sm-child-choice="${esc(`${key}|${gi}|${ci}`)}" type="number" min="0" value="${Number(c.price||0)}"></td>
+            <td style="width:1%; white-space:nowrap;">
+              <button class="btnSmall btnDanger" type="button" data-sm-child-role="del-choice" data-sm-child-choice="${esc(`${key}|${gi}|${ci}`)}">刪除</button>
+            </td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="3" class="muted mini">尚未加入子選項</td></tr>`;
+
+    return `
+      <div class="optBox" data-sm-child-group="${esc(`${key}|${gi}`)}" style="margin-bottom:10px;">
+        <div class="row3">
+          <div>
+            <label>群組名稱
+              <input data-sm-child-role="g-name" data-sm-child-group="${esc(`${key}|${gi}`)}" value="${esc(g.name||"")}">
+            </label>
+          </div>
+          <div>
+            <label>類型
+              <select data-sm-child-role="g-type" data-sm-child-group="${esc(`${key}|${gi}`)}">
+                <option value="single" ${g.type==="addon"?"":"selected"}>擇一（下拉）</option>
+                <option value="addon" ${g.type==="addon"?"selected":""}>加購（多選）</option>
+              </select>
+            </label>
+          </div>
+          <div style="display:flex; align-items:flex-end; gap:10px;">
+            <label style="margin:0; display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" data-sm-child-role="g-required" data-sm-child-group="${esc(`${key}|${gi}`)}"
+                style="width:18px; height:18px;" ${(g.type==="single" && g.required) ? "checked":""}>
+              必選（擇一用）
+            </label>
+            <button class="btnSmall btnDanger" type="button" data-sm-child-role="del-group" data-sm-child-group="${esc(`${key}|${gi}`)}">刪除此群組</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+          <thead>
+            <tr>
+              <th>選項名稱</th>
+              <th>加價</th>
+              <th style="width:1%;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr>
+              <td><input data-sm-child-role="new-c-name" data-sm-child-group="${esc(`${key}|${gi}`)}" placeholder="例：原味 / 辣味"></td>
+              <td><input data-sm-child-role="new-c-price" data-sm-child-group="${esc(`${key}|${gi}`)}" type="number" min="0" placeholder="0"></td>
+              <td>
+                <button class="btnSmall btnOk" type="button" data-sm-child-role="add-choice" data-sm-child-group="${esc(`${key}|${gi}`)}">新增選項</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }).join("");
+
+  return `${addBtn}${enabledWrap}${groupsHTML}`;
+}
+
+function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
+  if(!container) return;
+
+  const parseGroupKey = (key)=>{
+    const [ci, oi, gi] = String(key || "").split("|").map(Number);
+    return { ci, oi, gi };
+  };
+  const parseChoiceKey = (key)=>{
+    const [ci, oi, gi, choiceIndex] = String(key || "").split("|").map(Number);
+    return { ci, oi, gi, choiceIndex };
+  };
+
+  const ensureGroups = (draft, ci, oi)=>{
+    if(!draft?.categories?.[ci]?.options?.[oi]) return null;
+    const opt = draft.categories[ci].options[oi];
+    if(!Array.isArray(opt.optionGroups)) opt.optionGroups = [];
+    return opt.optionGroups;
+  };
+
+  container.querySelectorAll('[data-sm-child-role="add-group"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.smChildKey;
+      const draft = getDraft();
+      const { ci, oi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups) return;
+      groups.push({ name:"", type:"single", required:true, choices:[], enabled: true });
+      rerender();
+    };
+  });
+
+  container.querySelectorAll('[data-sm-child-role="g-name"]').forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      const key = e.target.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      groups[gi].name = e.target.value;
+    });
+  });
+
+  container.querySelectorAll('[data-sm-child-role="g-type"]').forEach(sel=>{
+    sel.addEventListener("change", e=>{
+      const key = e.target.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      const v = e.target.value === "addon" ? "addon" : "single";
+      groups[gi].type = v;
+      if(v !== "single") groups[gi].required = false;
+      rerender();
+    });
+  });
+
+  container.querySelectorAll('[data-sm-child-role="g-required"]').forEach(ch=>{
+    ch.addEventListener("change", e=>{
+      const key = e.target.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      groups[gi].required = !!e.target.checked;
+    });
+  });
+
+    container.querySelectorAll('[data-sm-child-role="pick-group"]').forEach(ch=>{
+    ch.addEventListener("change", e=>{
+      const key = e.target.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      groups[gi].enabled = !!e.target.checked;
+    });
+  });
+
+  container.querySelectorAll('[data-sm-child-role="del-group"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      groups.splice(gi,1);
+      rerender();
+    };
+  });
+
+  container.querySelectorAll('[data-sm-child-role="c-name"]').forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      const key = e.target.dataset.smChildChoice;
+      const draft = getDraft();
+      const { ci, oi, gi, choiceIndex } = parseChoiceKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]?.choices?.[choiceIndex]) return;
+      groups[gi].choices[choiceIndex].name = e.target.value;
+    });
+  });
+
+  container.querySelectorAll('[data-sm-child-role="c-price"]').forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      const key = e.target.dataset.smChildChoice;
+      const draft = getDraft();
+      const { ci, oi, gi, choiceIndex } = parseChoiceKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]?.choices?.[choiceIndex]) return;
+      let v = Number(e.target.value || 0);
+      if(isNaN(v) || v < 0) v = 0;
+      groups[gi].choices[choiceIndex].price = v;
+    });
+  });
+
+  container.querySelectorAll('[data-sm-child-role="del-choice"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.smChildChoice;
+      const draft = getDraft();
+      const { ci, oi, gi, choiceIndex } = parseChoiceKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]?.choices?.[choiceIndex]) return;
+      groups[gi].choices.splice(choiceIndex,1);
+      rerender();
+    };
+  });
+
+  container.querySelectorAll('[data-sm-child-role="add-choice"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.smChildGroup;
+      const draft = getDraft();
+      const { ci, oi, gi } = parseGroupKey(key);
+      const groups = ensureGroups(draft, ci, oi);
+      if(!groups?.[gi]) return;
+      const box = btn.closest(".optBox");
+      const nameEl = box?.querySelector('[data-sm-child-role="new-c-name"]');
+      const priceEl = box?.querySelector('[data-sm-child-role="new-c-price"]');
+      const name = (nameEl?.value || "").trim();
+      const price = Number(priceEl?.value || 0);
+      if(!name) return alert("請輸入選項名稱");
+      if(isNaN(price) || price < 0) return alert("加價需為 0 或正數");
+      if(!Array.isArray(groups[gi].choices)) groups[gi].choices = [];
+      groups[gi].choices.push({ name, price });
+      rerender();
+    };
+  });
+  
+  container.querySelectorAll('[data-sm-child-role="new-c-name"], [data-sm-child-role="new-c-price"]').forEach(input=>{
+    input.addEventListener("keydown",(e)=>{
+      if(e.key !== "Enter") return;
+      e.preventDefault();
+      const key = e.target.dataset.smChildGroup;
+      const targetBtn = e.target.closest(".optBox")?.querySelector(
+        `[data-sm-child-role="add-choice"][data-sm-child-group="${CSS.escape(key || "")}"]`
+      );
+      targetBtn?.click();
+    });
+  });
+}
+
+function getSetMealChildDetailOpenSet(rid){
+  if(!addMenuSetMealChildDetailOpen.has(rid)){
+    addMenuSetMealChildDetailOpen.set(rid, new Set());
+  }
+  return addMenuSetMealChildDetailOpen.get(rid);
+}
+
+function syncSetMealChildDetails(container, stateSet){
+  if(!container || !stateSet) return;
+  container.querySelectorAll('details[data-sm-child-detail]').forEach(detail=>{
+    const key = detail.dataset.smChildDetail || "";
+    if(stateSet.has(key)) detail.open = true;
+    detail.addEventListener("toggle", ()=>{
+      if(detail.open) stateSet.add(key);
+      else stateSet.delete(key);
+    });
+  });
+}
+    
 /* ===== 套餐草稿（類別 / 選項） ===== */
 function renderSetMealCategoryList(){
   const wrap = $("setMealCategoryList");
@@ -2375,18 +2478,20 @@ function renderSetMealCategoryList(){
   }
 
   wrap.innerHTML = t.categories.map((c,ci)=>{
-     const opts = c.options.map((o,oi)=>{
-      const editor = buildSetMealOptionGroupEditor("sm", o, ci, oi);
-      return `
+    const opts = c.options.map((o,oi)=>`
         <div style="margin-top:6px">
         <div class="inline" style="justify-content:space-between">
-            <div>${esc(setMealOptionDisplayName(o) || o.name || "—")} <span class="tag">+${Number(o.addPrice||0)}</span></div>
-            <button class="btnSmall btnDanger" data-sm-delopt="${ci}|${oi}">刪除</button>
-          </div>
-          ${editor}
+          <div>${esc(o.name)} <span class="tag">+${Number(o.addPrice||0)}</span></div>
+          <button class="btnSmall btnDanger" data-sm-delopt="${ci}|${oi}">刪除</button>
         </div>
-      `;
-    }).join("");
+        <details class="fold" style="margin-top:6px" data-sm-child-detail="${esc(`${ci}|${oi}`)}">
+          <summary>子必選 / 加購（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
+          <div data-sm-child-editor="${esc(`${ci}|${oi}`)}">
+            ${renderChildOptionGroupsEditor(o.optionGroups, `${ci}|${oi}`)}
+          </div>
+        </details>
+      </div>
+    `).join("");
 
     return `
       <div style="margin-top:10px; padding:10px; border:1px dashed rgba(15,23,42,.2); border-radius:12px">
@@ -2444,13 +2549,9 @@ function renderSetMealCategoryList(){
       renderSetMealCategoryList();
     };
   });
-  
-  bindSetMealOptionGroupEditor(
-    wrap,
-    (ci,oi)=> activeSetMealDraft?.categories?.[ci]?.options?.[oi],
-    "sm",
-    renderSetMealCategoryList
-  );
+
+  bindSetMealChildOptionGroupEditors(wrap, ()=>activeSetMealDraft, renderSetMealCategoryList);
+  syncSetMealChildDetails(wrap, setMealChildDetailOpen);
 }
 
 /* ===== 事件 ===== */
@@ -2806,7 +2907,7 @@ renderSetMealPickList();
                 ? c.options.map(o=>({
                     name: o.name,
                     addPrice: Number(o.addPrice || 0),
-                    optionGroups: cloneOptionGroups(o?.optionGroups)
+                    optionGroups: cloneOptionGroups(o.optionGroups)
                   }))
                 : []
             }))
@@ -4133,8 +4234,9 @@ function renderAddMenuSetMealPickList(rid, templates, container){
     const cats = (t.categories||[]).map(c=>{
       const opts = (c.options||[])
           .map(o=>{
-          const displayName = setMealOptionDisplayName(o);
-          return `${esc(displayName || o.name || "—")}${Number(o.addPrice||0) ? `(+${o.addPrice})` : ""}`;
+          const childSummary = optionGroupsSummary(o.optionGroups);
+          const childText = childSummary !== "—" ? `［${esc(childSummary)}］` : "";
+          return `${esc(o.name)}${Number(o.addPrice||0) ? `(+${o.addPrice})` : ""}${childText}`;
         })
         .join("、") || "—";
       return `${esc(c.name)}（選${Number(c.pickCount||1)}）：${opts}`;
@@ -4180,18 +4282,20 @@ function renderAddMenuSetMealCategoryList(rid, container){
   }
 
   container.innerHTML = t.categories.map((c,ci)=>{
-   const opts = c.options.map((o,oi)=>{
-      const editor = buildSetMealOptionGroupEditor("add-sm", o, ci, oi);
-      return `
-        <div style="margin-top:6px">
-          <div class="inline" style="justify-content:space-between">
-            <div>${esc(setMealOptionDisplayName(o) || o.name || "—")} <span class="tag">+${Number(o.addPrice||0)}</span></div>
-            <button class="btnSmall btnDanger" type="button" data-add-sm-delopt="${ci}|${oi}">刪除</button>
-          </div>
-          ${editor}
+    const opts = c.options.map((o,oi)=>`
+     <div style="margin-top:6px">
+        <div class="inline" style="justify-content:space-between">
+          <div>${esc(o.name)} <span class="tag">+${Number(o.addPrice||0)}</span></div>
+          <button class="btnSmall btnDanger" type="button" data-add-sm-delopt="${ci}|${oi}">刪除</button>
         </div>
-      `;
-    }).join("");
+        <details class="fold" style="margin-top:6px" data-sm-child-detail="${esc(`${ci}|${oi}`)}">
+          <summary>子必選 / 加購（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
+          <div data-sm-child-editor="${esc(`${ci}|${oi}`)}">
+            ${renderChildOptionGroupsEditor(o.optionGroups, `${ci}|${oi}`)}
+          </div>
+        </details>
+      </div>
+    `).join("");
 
     return `
       <div style="margin-top:10px; padding:10px; border:1px dashed rgba(15,23,42,.2); border-radius:12px">
@@ -4250,12 +4354,8 @@ function renderAddMenuSetMealCategoryList(rid, container){
     };
   });
   
-  bindSetMealOptionGroupEditor(
-    container,
-    (ci,oi)=> t?.categories?.[ci]?.options?.[oi],
-    "add-sm",
-    ()=> renderAddMenuSetMealCategoryList(rid, container)
-  );
+  bindSetMealChildOptionGroupEditors(container, ()=>addMenuSetMealDraft.get(rid), ()=>renderAddMenuSetMealCategoryList(rid, container));
+  syncSetMealChildDetails(container, getSetMealChildDetailOpenSet(rid));
 }
 
 async function saveAddMenuSetMealTemplates(rid, templates){
@@ -4268,13 +4368,13 @@ async function saveAddMenuSetMealTemplates(rid, templates){
         ? t.categories.map(c=>({
             name: String(c.name || ""),
             pickCount: Math.max(1, Number(c.pickCount || 1)),
-             options: Array.isArray(c.options)
-                  ? c.options.map(o=>({
-                      name: String(o.name || ""),
-                      addPrice: Number(o.addPrice || 0),
-                      optionGroups: cloneOptionGroups(o?.optionGroups)
-                    }))
-                  : []
+            options: Array.isArray(c.options)
+              ? c.options.map(o=>({
+                  name: String(o.name || ""),
+                  addPrice: Number(o.addPrice || 0),
+                  optionGroups: cloneOptionGroups(o.optionGroups)
+                }))
+              : []
           }))
         : []
     })).filter(t=> t.id && t.name);
