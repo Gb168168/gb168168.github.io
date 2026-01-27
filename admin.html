@@ -1523,6 +1523,18 @@ const verifyAdminCode = () => {
     const esc = (s)=> (s??"").toString()
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 
+     // ✅ 管理者輸入欄位按 Enter 後，保持焦點回到原欄位
+    const refocusAfterEnter = (event)=>{
+      if(event.key !== "Enter") return;
+      const target = event.target;
+      if(!(target instanceof HTMLElement)) return;
+      if(!target.matches("input, textarea, select")) return;
+      requestAnimationFrame(()=>{
+        if(document.contains(target)) target.focus();
+      });
+    };
+    document.addEventListener("keydown", refocusAfterEnter, true);
+
     const pad2 = (n)=> String(n).padStart(2,"0");
     const todayISO = ()=>{
       const d = new Date();
