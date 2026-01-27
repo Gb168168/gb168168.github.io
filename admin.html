@@ -2194,7 +2194,6 @@ function renderChildOptionGroupsEditor(groups, key){
   const list = Array.isArray(groups) ? groups : [];
   const enabledWrap = list.length
     ? `
-      <div class="muted mini" style="margin:6px 0 4px">此支援哪些（勾選）</div>
       <div class="kpi" style="margin-bottom:6px">
         ${list.map((g,gi)=>{
           const checked = g.enabled === false ? "" : "checked";
@@ -2209,7 +2208,7 @@ function renderChildOptionGroupsEditor(groups, key){
         }).join("")}
       </div>
     `
-    : `<div class="muted mini" style="margin-bottom:6px">此支援哪些（勾選）：尚未建立群組</div>`;
+    : `<div class="muted mini" style="margin-bottom:6px">尚未建立群組</div>`;
   const addBtn = `
     <div class="actions" style="margin:4px 0 10px; justify-content:flex-start;">
       <button class="btnSmall btnOk" type="button" data-sm-child-role="add-group" data-sm-child-key="${esc(key)}">新增子選項群組</button>
