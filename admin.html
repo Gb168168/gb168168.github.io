@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理7</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -207,6 +207,7 @@
     .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px}
     .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--muted); font-size:12px }
     .tag.exceedTag{border-color: rgba(239,68,68,.45); color:#b91c1c; background: rgba(239,68,68,.08); font-weight:900}
+    .tag.plainTag{border:0; background:transparent; padding:0; color:var(--text)}
 /* === 未點餐：長條＋框框（像「開單中的餐廳」） === */
 .missStrip{
   border:1px dashed rgba(15,23,42,.18);
@@ -2211,7 +2212,7 @@ function renderChildOptionGroupsEditor(groups, key){
           const checked = g.enabled === false ? "" : "checked";
           const label = (g.name || `群組${gi + 1}`).trim();
           return `
-            <label class="tag" style="cursor:pointer; gap:6px;">
+            <label class="tag plainTag" style="cursor:pointer; gap:6px;">
               <input type="checkbox" data-sm-child-role="pick-group" data-sm-child-group="${esc(`${key}|${gi}`)}" ${checked}
                 style="width:14px; height:14px; margin:0;">
               ${esc(label || `群組${gi + 1}`)}
