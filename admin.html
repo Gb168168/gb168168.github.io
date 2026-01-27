@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理7</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1825,7 +1825,6 @@ function cloneOptionGroups(src){
     name: g.name || "",
     type: g.type === "addon" ? "addon" : "single",
     required: !!g.required,
-    enabled: g.enabled === false ? false : true,
     choices: Array.isArray(g.choices)
       ? g.choices.map(c => ({
           name: c.name || "",
@@ -2205,23 +2204,6 @@ function renderSetMealPickList(){
 
 function renderChildOptionGroupsEditor(groups, key){
   const list = Array.isArray(groups) ? groups : [];
-  const enabledWrap = list.length
-    ? `
-      <div class="kpi" style="margin-bottom:6px">
-        ${list.map((g,gi)=>{
-          const checked = g.enabled === false ? "" : "checked";
-          const label = (g.name || `群組${gi + 1}`).trim();
-          return `
-            <label class="tag plainTag" style="cursor:pointer; gap:6px;">
-              <input type="checkbox" data-sm-child-role="pick-group" data-sm-child-group="${esc(`${key}|${gi}`)}" ${checked}
-                style="width:14px; height:14px; margin:0;">
-              ${esc(label || `群組${gi + 1}`)}
-            </label>
-          `;
-        }).join("")}
-      </div>
-    `
-    : `<div class="muted mini" style="margin-bottom:6px">尚未建立群組</div>`;
   const addBtn = `
     <div class="actions" style="margin:4px 0 10px; justify-content:flex-start;">
       <button class="btnSmall btnOk" type="button" data-sm-child-role="add-group" data-sm-child-key="${esc(key)}">新增子選項群組</button>
@@ -2229,7 +2211,7 @@ function renderChildOptionGroupsEditor(groups, key){
   `;
 
   if(list.length === 0){
-   return `${addBtn}${enabledWrap}<div class="muted mini">尚未設定子選項。</div>`;
+   return `${addBtn}<div class="muted mini">尚未設定子選項。</div>`;
   }
 
   const groupsHTML = list.map((g,gi)=>{
@@ -2297,7 +2279,7 @@ function renderChildOptionGroupsEditor(groups, key){
     `;
   }).join("");
 
-  return `${addBtn}${enabledWrap}${groupsHTML}`;
+  return `${addBtn}${groupsHTML}`;
 }
 
 function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
@@ -2326,7 +2308,7 @@ function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
       const { ci, oi } = parseGroupKey(key);
       const groups = ensureGroups(draft, ci, oi);
       if(!groups) return;
-      groups.push({ name:"", type:"single", required:true, choices:[], enabled: true });
+      groups.push({ name:"", type:"single", required:true, choices:[] });
       rerender();
     };
   });
@@ -2364,17 +2346,6 @@ function bindSetMealChildOptionGroupEditors(container, getDraft, rerender){
       const groups = ensureGroups(draft, ci, oi);
       if(!groups?.[gi]) return;
       groups[gi].required = !!e.target.checked;
-    });
-  });
-
-    container.querySelectorAll('[data-sm-child-role="pick-group"]').forEach(ch=>{
-    ch.addEventListener("change", e=>{
-      const key = e.target.dataset.smChildGroup;
-      const draft = getDraft();
-      const { ci, oi, gi } = parseGroupKey(key);
-      const groups = ensureGroups(draft, ci, oi);
-      if(!groups?.[gi]) return;
-      groups[gi].enabled = !!e.target.checked;
     });
   });
 
@@ -3759,7 +3730,7 @@ async function loadMenusOfRestaurant(rid){
     }
 
   function optionGroupsSummary(groups){
-      const gs = (Array.isArray(groups) ? groups : []).filter(g => g?.enabled !== false);
+      const gs = Array.isArray(groups) ? groups : [];
       if(gs.length===0) return "—";
       return gs.map(g=>{
         const t = g.type==="single" ? "擇一" : "加購";
