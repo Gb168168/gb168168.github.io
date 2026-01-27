@@ -182,6 +182,19 @@
 }
 }
 
+    #view_staffRecord .staffRecordAdjust{
+  max-width: 140px;
+}
+#view_staffRecord .staffRecordItems{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:12.5px;
+}
+#view_staffRecord .staffRecordItems span{
+  display:block;
+}
+
     .card{
       background:#fff; border:1px solid var(--border); border-radius:var(--radius);
       box-shadow: 0 8px 25px rgba(15,23,42,.07);
@@ -785,6 +798,7 @@
 
       <div class="nav">
         <button class="navBtn" data-view="staff">管理人員</button>
+        <button class="navBtn" data-view="staffRecord">人員記錄</button>
         <button class="navBtn" data-view="schedule">班表管理</button>
         <button class="navBtn" data-view="addRestaurant">新增餐廳</button>
         <button class="navBtn" data-view="restaurants">餐廳管理</button>
@@ -1177,6 +1191,53 @@
         </div>
       </section>
 
+         <!-- VIEW: 人員記錄 -->
+      <section class="view" id="view_staffRecord" style="display:none">
+        <div class="card">
+          <h3>人員記錄</h3>
+          <div class="row3" style="margin-top:4px;">
+            <div>
+              <label>開始日期</label>
+              <input id="staffRecordStart" type="date"/>
+            </div>
+            <div>
+              <label>結束日期</label>
+              <input id="staffRecordEnd" type="date"/>
+            </div>
+            <div>
+              <label>部門</label>
+              <select id="staffRecordDept">
+                <option value="all">全部部門</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row3" style="margin-top:6px;">
+            <div>
+              <label>餐別</label>
+              <select id="staffRecordMeal">
+                <option value="all">午餐 + 晚餐</option>
+                <option value="lunch">只看午餐</option>
+                <option value="dinner">只看晚餐</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <div class="actions" style="margin:0;">
+                <button class="primary" id="btnLoadStaffRecord" type="button">載入紀錄</button>
+                <button class="ghost" id="btnStaffRecordToday" type="button">跳到今天</button>
+              </div>
+            </div>
+          </div>
+
+          <p class="muted" style="margin-top:10px;">
+            ✅ 顯示每位人員點餐內容與系統累計金額，並可手動調整差額。
+          </p>
+
+          <div class="hr"></div>
+          <div id="staffRecordOut" class="muted">請設定條件後按「載入紀錄」。</div>
+        </div>
+      </section>
+      
       <!-- VIEW: 班表管理 -->
       <section class="view" id="view_schedule" style="display:none">
         <div class="card">
@@ -1587,12 +1648,10 @@ const verifyAdminCode = () => {
     });
 
     // ====== Views ======
-
-
-
     const pageTitle = $("pageTitle");
     const views = {
       staff: $("view_staff"),
+      staffRecord: $("view_staffRecord"),
       schedule: $("view_schedule"),
       addRestaurant: $("view_addRestaurant"),
       restaurants: $("view_restaurants"),
@@ -1610,6 +1669,7 @@ const verifyAdminCode = () => {
       document.querySelectorAll(".navBtn[data-view]").forEach(b=> b.classList.toggle("active", b.dataset.view===viewKey));
       pageTitle.textContent =
         viewKey==="staff" ? "新增人員" :
+        viewKey==="staffRecord" ? "人員記錄" :
         viewKey==="schedule" ? "班表管理" :
         viewKey==="addRestaurant" ? "新增餐廳" :
         viewKey==="restaurants" ? "餐廳管理" :
@@ -1617,6 +1677,7 @@ const verifyAdminCode = () => {
         "訂餐紀錄";
 
       if(viewKey==="staff") refreshStaffList();
+      if(viewKey==="staffRecord") initStaffRecordView();
       if(viewKey==="schedule") initSchedulePeopleSelectors();
       if(viewKey==="restaurants") refreshRestaurantsManage();
       if(viewKey==="randomPick") refreshRandomPick();
@@ -1635,6 +1696,7 @@ const verifyAdminCode = () => {
 
     const colRestaurants = collection(db, "restaurants");
     const colStaff = collection(db, "staff");
+    const colStaffBalances = collection(db, "staffBalances");
     const colOrders = collection(db, "orders");
     const colSchedules = collection(db, "schedules");
 
@@ -3789,6 +3851,302 @@ function renderMenuSetMealEditor(rid, mid, templates, container){
     };
   });
 }
+
+let staffRecordInited = false;
+let staffBalancesCache = new Map();
+
+function buildStaffRecordBalanceId(staff){
+  const dept = (staff?.dept || "").trim();
+  const name = (staff?.name || "").trim();
+  if(staff?.id) return staff.id;
+  const safeDept = encodeURIComponent(dept || "unknown");
+  const safeName = encodeURIComponent(name || "unknown");
+  return `unlisted-${safeDept}-${safeName}`;
+}
+
+async function loadStaffBalances(){
+  const map = new Map();
+  const snap = await getDocs(colStaffBalances);
+  snap.forEach(docSnap=>{
+    map.set(docSnap.id, docSnap.data() || {});
+  });
+  staffBalancesCache = map;
+  return map;
+}
+
+async function buildStaffRecordDeptOptions(){
+  const deptSelect = $("staffRecordDept");
+  if(!deptSelect) return;
+  await loadAllStaffOnce();
+
+  const prev = deptSelect.value || "all";
+  const deptSet = new Set();
+  allStaffBase.forEach(s=>{
+    const dept = (s.dept || "").trim();
+    if(dept) deptSet.add(dept);
+  });
+  const ordered = [
+    ...DEPT_ORDER.filter(d => deptSet.has(d)),
+    ...Array.from(deptSet).filter(d => !DEPT_INDEX.has(d)).sort((a,b)=> a.localeCompare(b, "zh-Hant"))
+  ];
+
+  deptSelect.innerHTML = `
+    <option value="all">全部部門</option>
+    ${ordered.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join("")}
+  `;
+  if(ordered.includes(prev)) deptSelect.value = prev;
+}
+
+async function initStaffRecordView(){
+  if(!staffRecordInited){
+    const startInput = $("staffRecordStart");
+    const endInput = $("staffRecordEnd");
+    const today = todayISO();
+    if(startInput && !startInput.value) startInput.value = today;
+    if(endInput && !endInput.value) endInput.value = today;
+
+    $("btnLoadStaffRecord")?.addEventListener("click", ()=> loadStaffRecord());
+    $("btnStaffRecordToday")?.addEventListener("click", ()=>{
+      if(startInput) startInput.value = today;
+      if(endInput) endInput.value = today;
+      loadStaffRecord();
+    });
+    staffRecordInited = true;
+  }
+  await buildStaffRecordDeptOptions();
+}
+
+async function loadOrdersByRange(startDate, endDate){
+  const startRange = dayRangeMs(startDate);
+  const endRange = dayRangeMs(endDate);
+  const start = Math.min(startRange.start, endRange.start);
+  const end = Math.max(startRange.end, endRange.end);
+
+  const snap = await getDocs(query(
+    colOrders,
+    where("createdAt", ">=", start),
+    where("createdAt", "<=", end),
+    orderBy("createdAt", "desc"),
+    limit(5000)
+  ));
+
+  const orders = [];
+  snap.forEach(d=>{
+    orders.push({
+      id: d.id,
+      ...(d.data() || {})
+    });
+  });
+  return orders;
+}
+
+function buildStaffRecordItemsHTML(itemsMap){
+  const list = Array.from(itemsMap.values());
+  if(!list.length){
+    return `<span class="muted">尚無點餐</span>`;
+  }
+  return `
+    <div class="staffRecordItems">
+      ${list.sort((a,b)=> b.qty - a.qty).map(item=>{
+        const parts = [item.addonsText, item.setMealText, item.noteText].filter(Boolean);
+        const extra = parts.length ? `（${parts.join(" / ")}）` : "";
+        return `<span>${esc(item.restaurant)}／${esc(item.name)}${extra} × ${item.qty}</span>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+async function loadStaffRecord(){
+  const out = $("staffRecordOut");
+  if(!out) return;
+  const startDate = $("staffRecordStart")?.value;
+  const endDate = $("staffRecordEnd")?.value;
+  const deptFilter = $("staffRecordDept")?.value || "all";
+  const mealFilter = ($("staffRecordMeal")?.value || "all").toLowerCase();
+
+  if(!startDate || !endDate){
+    alert("請先選擇開始與結束日期");
+    return;
+  }
+
+  out.innerHTML = `<div class="muted">載入中…</div>`;
+
+  try{
+    await loadAllStaffOnce();
+    const staffKeyMap = new Map();
+    allStaffBase.forEach(s=>{
+      const key = `${(s.dept || "").trim()}||${(s.name || "").trim()}`;
+      staffKeyMap.set(key, s);
+    });
+
+    const [orders, balances] = await Promise.all([
+      loadOrdersByRange(startDate, endDate),
+      loadStaffBalances()
+    ]);
+
+    const records = new Map();
+    const ensureRecord = (staff)=>{
+      const key = buildStaffRecordBalanceId(staff);
+      if(!records.has(key)){
+        records.set(key, {
+          key,
+          staff,
+          total: 0,
+          items: new Map()
+        });
+      }
+      return records.get(key);
+    };
+
+    const allowMeal = (order)=>{
+      if(mealFilter === "all") return true;
+      return getOrderMealPeriod(order) === mealFilter;
+    };
+
+    for(const order of orders){
+      if(!allowMeal(order)) continue;
+      const dept = (order.userDept || "未分部門").trim() || "未分部門";
+      const name = (order.userName || "未命名").trim() || "未命名";
+      if(deptFilter !== "all" && deptFilter !== dept) continue;
+
+      const staff = staffKeyMap.get(`${dept}||${name}`) || { dept, name };
+      const record = ensureRecord(staff);
+      const items = Array.isArray(order.items) ? order.items : [];
+      let orderTotal = Number(order.total || 0);
+      if(!orderTotal) orderTotal = calcOrderTotal(items);
+      record.total += orderTotal;
+
+      for(const it of items){
+        const addons = Array.isArray(it.addons) ? it.addons : [];
+        const addonsText = addonText(addons, { namesOnly: true });
+        const noteText = itemNoteText(it);
+        const setMealText = formatSetMealText(it);
+        const key = `${order.restaurantName || ""}__${it.name || ""}__${addonsKey(addons)}__${noteText}__${setMealText}`;
+        if(!record.items.has(key)){
+          record.items.set(key, {
+            restaurant: order.restaurantName || "",
+            name: it.name || "",
+            qty: 0,
+            addonsText: addonsText ? `加購:${addonsText}` : "",
+            noteText: noteText ? `備註:${noteText}` : "",
+            setMealText: setMealText || ""
+          });
+        }
+        record.items.get(key).qty += Number(it.qty || 0);
+      }
+    }
+
+    const filteredStaff = allStaffBase.filter(s=>{
+      if(deptFilter === "all") return true;
+      return (s.dept || "").trim() === deptFilter;
+    });
+    filteredStaff.forEach(staff=> ensureRecord(staff));
+
+    const byDept = new Map();
+    const addToDept = (record)=>{
+      const dept = (record.staff?.dept || "未分部門").trim() || "未分部門";
+      if(deptFilter !== "all" && deptFilter !== dept) return;
+      if(!byDept.has(dept)) byDept.set(dept, []);
+      byDept.get(dept).push(record);
+    };
+    records.forEach(record=> addToDept(record));
+
+    if(byDept.size === 0){
+      out.innerHTML = `<div class="muted">此條件沒有資料。</div>`;
+      return;
+    }
+
+    const orderedDepts = [
+      ...DEPT_ORDER.filter(d => byDept.has(d)),
+      ...Array.from(byDept.keys()).filter(d => !DEPT_INDEX.has(d))
+    ];
+
+    const staffOrderIndex = new Map(allStaffBase.map((s, idx)=> [s.id, idx]));
+
+    out.innerHTML = orderedDepts.map(dept=>{
+      const list = byDept.get(dept) || [];
+      list.sort((a,b)=>{
+        const ra = staffOrderIndex.has(a.staff?.id) ? staffOrderIndex.get(a.staff.id) : 9999;
+        const rb = staffOrderIndex.has(b.staff?.id) ? staffOrderIndex.get(b.staff.id) : 9999;
+        if(ra !== rb) return ra - rb;
+        return (a.staff?.name || "").localeCompare((b.staff?.name || ""), "zh-Hant");
+      });
+
+      const rows = list.map(record=>{
+        const balanceId = record.key;
+        const balance = balances.get(balanceId) || {};
+        const manual = Number(balance.manualAdjustment || 0);
+        const total = Number(record.total || 0);
+        const diff = total + manual;
+        return `
+          <tr>
+            <td><b>${esc(record.staff?.name || "未命名")}</b></td>
+            <td>${buildStaffRecordItemsHTML(record.items)}</td>
+            <td>${total.toFixed(0)}</td>
+            <td>
+              <input class="staffRecordAdjust" type="number" step="1" data-balance-id="${esc(balanceId)}" value="${manual}"/>
+            </td>
+            <td><span data-balance-total>${diff.toFixed(0)}</span></td>
+            <td>
+              <button class="btnSmall btnOk" data-save-balance="${esc(balanceId)}" type="button">儲存</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      return `
+        <div class="card" style="margin-bottom:14px;">
+          <div class="inline" style="justify-content:space-between; margin-bottom:8px;">
+            <div><b>${esc(dept)}</b></div>
+            <span class="tag">人員 ${list.length}</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>人員</th>
+                <th>點餐內容</th>
+                <th>系統累計</th>
+                <th>手動調整</th>
+                <th>累計差額</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }).join("");
+
+    out.querySelectorAll("[data-save-balance]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const row = btn.closest("tr");
+        const input = row?.querySelector("input[data-balance-id]");
+        if(!input) return;
+        const balanceId = btn.dataset.saveBalance;
+        const manual = Number(input.value || 0);
+        try{
+          statusPill.textContent = "儲存差額中…";
+          await setDoc(doc(db, "staffBalances", balanceId), {
+            manualAdjustment: manual,
+            updatedAt: Date.now()
+          }, { merge: true });
+          statusPill.textContent = "差額已更新 ✅";
+          const totalCell = row.querySelector("[data-balance-total]");
+          const systemTotal = Number(row.children[2]?.textContent || 0);
+          if(totalCell) totalCell.textContent = (systemTotal + manual).toFixed(0);
+        }catch(err){
+          console.error(err);
+          alert("更新差額失敗\n\n" + (err?.message || err));
+          statusPill.textContent = "差額更新失敗";
+        }
+      });
+    });
+
+  }catch(err){
+    console.error(err);
+    out.innerHTML = `<div class="muted">讀取失敗<br/>${esc(err?.message || err)}</div>`;
+  }
+}
 // ✅ 餐廳管理：每道餐點 inline 編輯 optionGroups 用
 function renderMenuOptionEditor(rid, mid, container){
   if(!container) return;
@@ -5823,6 +6181,22 @@ async function loadOrdersByDate(dateStr){
       }
     }
 
+     function getOrderMealPeriod(order){
+      const raw = String(
+        order.mealType || order.meal || order.mealPeriod || order.period || ""
+      ).trim().toLowerCase();
+      if(raw){
+        if(raw.includes("晚") || raw.includes("dinner") || raw.includes("evening")) return "dinner";
+        if(raw.includes("午") || raw.includes("lunch") || raw.includes("noon")) return "lunch";
+      }
+      const createdAt = Number(order.createdAt || 0);
+      if(createdAt){
+        const hour = new Date(createdAt).getHours();
+        return hour >= 15 ? "dinner" : "lunch";
+      }
+      return "lunch";
+    }
+
      function getSelectedOrdersMealFilter(){
       const raw = ($("ordersMealFilter")?.value || "lunch").toLowerCase();
       return raw === "dinner" ? "dinner" : "lunch";
@@ -5835,26 +6209,10 @@ async function loadOrdersByDate(dateStr){
       ];
       const mealFilter = getSelectedOrdersMealFilter();
       const visibleSections = MEAL_SECTIONS.filter(section => section.key === mealFilter);
-      
-      const getMealPeriod = (order)=>{
-        const raw = String(
-          order.mealType || order.meal || order.mealPeriod || order.period || ""
-        ).trim().toLowerCase();
-        if(raw){
-          if(raw.includes("晚") || raw.includes("dinner") || raw.includes("evening")) return "dinner";
-          if(raw.includes("午") || raw.includes("lunch") || raw.includes("noon")) return "lunch";
-        }
-         const createdAt = Number(order.createdAt || 0);
-        if(createdAt){
-          const hour = new Date(createdAt).getHours();
-          return hour >= 15 ? "dinner" : "lunch";
-        }
-        return "lunch";
-      };
 
       const groupOrders = new Map(MEAL_SECTIONS.map(section=>[section.key, []]));
       for(const order of orders){
-        const key = getMealPeriod(order);
+        const key = getOrderMealPeriod(order);
         (groupOrders.get(key) || groupOrders.get("lunch")).push(order);
       }
 
