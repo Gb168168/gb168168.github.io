@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者9</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -1029,7 +1029,6 @@ statusPill.textContent = "已連線 Firestore ✅";
 
    // ✅ 群組啟用條件（超寬鬆版：只要有 choices 就顯示）
 function groupEnabled(g){
-  if(!g || typeof g !== "object") return false;
   if(g.enabled === false) return false;
   const choices = Array.isArray(g.choices) ? g.choices : [];
   // 沒選項就不用畫
@@ -1044,7 +1043,6 @@ function groupEnabled(g){
     name: g.name || "",
     type: g.type === "addon" ? "addon" : "single",
     required: !!g.required,
-    enabled: g.enabled === false ? false : true,
     useInOptionName: !!g.useInOptionName,
     choices: Array.isArray(g.choices)
       ? g.choices.map(c => ({
