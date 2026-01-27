@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1066,6 +1066,11 @@
       </div>
     </div>
 
+    <div id="setMealSubOptionArea" style="margin-top:10px; display:none">
+      <div class="muted mini" style="margin-bottom:6px">套餐子選項</div>
+      <div id="setMealCategoryList" style="margin-top:10px"></div>
+    </div>
+
     <!-- 套餐編輯區（草稿） -->
     <div id="setMealDraftArea" style="margin-top:10px; display:none">
       <div class="optBox">
@@ -1095,8 +1100,6 @@
             <button class="btnSmall btnOk" id="btnAddSetMealCategory" type="button">加入類別</button>
           </div>
         </div>
-
-        <div id="setMealCategoryList" style="margin-top:10px"></div>
 
         <div class="actions">
           <button class="btnSmall btnOk" id="btnCommitSetMeal" type="button">完成此套餐（加入到模板清單）</button>
@@ -2280,6 +2283,7 @@ function bindSetMealOptionGroupEditor(container, getOption, prefix, rerender){
 /* ===== UI helpers ===== */
 function showSetMealDraftUI(on){
   $("setMealDraftArea").style.display = on ? "" : "none";
+  $("setMealSubOptionArea").style.display = on ? "" : "none";
 }
 
 /* ===== 套餐模板列表 ===== */
