@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2228,7 +2228,7 @@ function renderChildOptionGroupsEditor(groups, key){
   `;
 
   if(list.length === 0){
-   return `${addBtn}${enabledWrap}<div class="muted mini">尚未設定子必選 / 加購。</div>`;
+   return `${addBtn}${enabledWrap}<div class="muted mini">尚未設定子選項。</div>`;
   }
 
   const groupsHTML = list.map((g,gi)=>{
@@ -2496,7 +2496,7 @@ function renderSetMealCategoryList(){
           <button class="btnSmall btnDanger" data-sm-delopt="${ci}|${oi}">刪除</button>
         </div>
         <details class="fold" style="margin-top:6px" data-sm-child-detail="${esc(`${ci}|${oi}`)}">
-          <summary>子必選 / 加購（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
+         <summary>子選項（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
           <div data-sm-child-editor="${esc(`${ci}|${oi}`)}">
             ${renderChildOptionGroupsEditor(o.optionGroups, `${ci}|${oi}`)}
           </div>
@@ -4300,7 +4300,7 @@ function renderAddMenuSetMealCategoryList(rid, container){
           <button class="btnSmall btnDanger" type="button" data-add-sm-delopt="${ci}|${oi}">刪除</button>
         </div>
         <details class="fold" style="margin-top:6px" data-sm-child-detail="${esc(`${ci}|${oi}`)}">
-          <summary>子必選 / 加購（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
+           <summary>子選項（${esc(optionGroupsSummary(o.optionGroups))}）</summary>
           <div data-sm-child-editor="${esc(`${ci}|${oi}`)}">
             ${renderChildOptionGroupsEditor(o.optionGroups, `${ci}|${oi}`)}
           </div>
