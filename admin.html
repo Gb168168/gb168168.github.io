@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1638,6 +1638,7 @@ const verifyAdminCode = () => {
       "教育訓練",
       "線上客服"
     ];
+    const STAFF_RECORD_EXCLUDED_DEPTS = new Set(["線上客服-早", "FAE-早", "TSE-早"]);
     const DEPT_INDEX = new Map(DEPT_ORDER.map((d,i)=>[d,i]));
     function deptRank(dept){
       return DEPT_INDEX.has(dept) ? DEPT_INDEX.get(dept) : 999;
@@ -3889,7 +3890,7 @@ async function buildStaffRecordDeptOptions(){
   const deptSet = new Set();
   allStaffBase.forEach(s=>{
     const dept = (s.dept || "").trim();
-    if(dept) deptSet.add(dept);
+    if(dept && !STAFF_RECORD_EXCLUDED_DEPTS.has(dept)) deptSet.add(dept);
   });
   const ordered = [
     ...DEPT_ORDER.filter(d => deptSet.has(d)),
@@ -4022,10 +4023,11 @@ async function loadStaffRecord(){
     };
 
     for(const order of orders){
-      if(!allowMeal(order)) continue;
-      const dept = (order.userDept || "未分部門").trim() || "未分部門";
-      const name = (order.userName || "未命名").trim() || "未命名";
-      if(deptFilter !== "all" && deptFilter !== dept) continue;
+    if(!allowMeal(order)) continue;
+    const dept = (order.userDept || "未分部門").trim() || "未分部門";
+    if(STAFF_RECORD_EXCLUDED_DEPTS.has(dept)) continue;
+    const name = (order.userName || "未命名").trim() || "未命名";
+    if(deptFilter !== "all" && deptFilter !== dept) continue;
 
       const staff = staffKeyMap.get(`${dept}||${name}`) || { dept, name };
       const record = ensureRecord(staff);
@@ -4040,8 +4042,10 @@ async function loadStaffRecord(){
     }
 
     const filteredStaff = allStaffBase.filter(s=>{
+      const dept = (s.dept || "").trim();
+      if(STAFF_RECORD_EXCLUDED_DEPTS.has(dept)) return false;
       if(deptFilter === "all") return true;
-      return (s.dept || "").trim() === deptFilter;
+      return dept === deptFilter;
     });
     filteredStaff.forEach(staff=> ensureRecord(staff));
 
