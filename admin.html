@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1225,6 +1225,7 @@
               <div class="actions" style="margin:0;">
                 <button class="primary" id="btnLoadStaffRecord" type="button">載入紀錄</button>
                 <button class="ghost" id="btnStaffRecordToday" type="button">跳到今天</button>
+                <button class="ghost" id="btnStaffRecordExport" type="button">匯出差額Excel</button>
               </div>
             </div>
               <div style="display:flex; align-items:flex-end;">
@@ -3861,7 +3862,8 @@ function renderMenuSetMealEditor(rid, mid, templates, container){
 
 let staffRecordInited = false;
 let staffBalancesCache = new Map();
-
+let staffRecordExportData = null;
+    
 function buildStaffRecordBalanceId(staff){
   const dept = (staff?.dept || "").trim();
   const name = (staff?.name || "").trim();
@@ -3917,6 +3919,9 @@ async function initStaffRecordView(){
       if(startInput) startInput.value = today;
       if(endInput) endInput.value = today;
       loadStaffRecord();
+    });
+    $("btnStaffRecordExport")?.addEventListener("click", ()=>{
+      exportStaffRecordExcel();
     });
     $("staffRecordDiffOnly")?.addEventListener("change", ()=> loadStaffRecord());
     staffRecordInited = true;
@@ -4069,7 +4074,8 @@ async function loadStaffRecord(){
    ]));
 
     const staffOrderIndex = new Map(allStaffBase.map((s, idx)=> [s.id, idx]));
-
+    const exportRows = [];
+    
       records.forEach(record=>{
       const diffs = [];
       let systemTotal = 0;
@@ -4111,6 +4117,25 @@ async function loadStaffRecord(){
         return "";
       }
 
+        filteredRows.forEach(({ record, manual, systemTotal, diff })=>{
+        const staffDept = (record.staff?.dept || "未分部門").trim() || "未分部門";
+        const staffName = (record.staff?.name || "未命名").trim() || "未命名";
+        const diffs = Array.isArray(record.diffs) ? record.diffs : [];
+        const rowsForStaff = diffs.length > 0 ? diffs : [{ date: "", diff: 0 }];
+
+        rowsForStaff.forEach((item, idx)=>{
+          exportRows.push({
+            "部門": idx === 0 ? staffDept : "",
+            "姓名": idx === 0 ? staffName : "",
+            "差額日期": item.date || "",
+            "當日差額": Number(item.diff || 0),
+            "系統累計": idx === 0 ? Number(systemTotal || 0) : "",
+            "手動調整": idx === 0 ? Number(manual || 0) : "",
+            "累計差額": idx === 0 ? Number(diff || 0) : "",
+          });
+        });
+      });
+       
       const rows = filteredRows.map(({ record, balanceId, manual, systemTotal, diff })=>{
         return `
           <tr>
@@ -4159,6 +4184,14 @@ async function loadStaffRecord(){
     }
 
     out.innerHTML = deptCards.join("");
+    staffRecordExportData = {
+      rows: exportRows,
+      startDate,
+      endDate,
+      deptFilter,
+      mealFilter,
+      showDiffOnly
+    };
 
     out.querySelectorAll("[data-save-balance]").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
@@ -4188,6 +4221,49 @@ async function loadStaffRecord(){
   }catch(err){
     console.error(err);
     out.innerHTML = `<div class="muted">讀取失敗<br/>${esc(err?.message || err)}</div>`;
+  }
+}
+    
+function exportStaffRecordExcel(){
+  if(!staffRecordExportData || !Array.isArray(staffRecordExportData.rows)){
+    alert("請先載入人員記錄再匯出。");
+    return;
+  }
+  const { rows, startDate, endDate, deptFilter, mealFilter, showDiffOnly } = staffRecordExportData;
+  if(rows.length === 0){
+    alert("此條件沒有資料可匯出。");
+    return;
+  }
+
+  try{
+    const header = ["部門","姓名","差額日期","當日差額","系統累計","手動調整","累計差額"];
+    const ws = XLSX.utils.json_to_sheet(rows, { header });
+    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:range.e.r,c:range.e.c} }) };
+    ws["!cols"] = [
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "差額紀錄");
+
+    const deptLabel = deptFilter === "all" ? "全部部門" : deptFilter;
+    const mealLabel = mealFilter === "all" ? "午晚餐" : (mealFilter === "lunch" ? "午餐" : "晚餐");
+    const diffLabel = showDiffOnly ? "僅差額" : "全部";
+    const filename = `GoldBricks_差額_${deptLabel}_${mealLabel}_${diffLabel}_${startDate}_${endDate}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    statusPill.textContent = "差額 Excel 已匯出 ✅";
+  }catch(err){
+    console.error(err);
+    alert("匯出失敗\n\n" + (err?.message || err));
+    statusPill.textContent = "匯出失敗（看 console）";
   }
 }
 // ✅ 餐廳管理：每道餐點 inline 編輯 optionGroups 用
