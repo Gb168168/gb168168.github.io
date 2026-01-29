@@ -1230,7 +1230,7 @@
           </div>
 
           <p class="muted" style="margin-top:10px;">
-            ✅ 顯示每位人員點餐內容與系統累計金額，並可手動調整差額。
+            ✅ 顯示每位人員差額日期與當日差額（超出 140 的金額），並可手動調整累計差額。
           </p>
 
           <div class="hr"></div>
@@ -3940,17 +3940,17 @@ async function loadOrdersByRange(startDate, endDate){
   return orders;
 }
 
-function buildStaffRecordItemsHTML(itemsMap){
-  const list = Array.from(itemsMap.values());
-  if(!list.length){
-    return `<span class="muted">尚無點餐</span>`;
+function buildStaffRecordDiffsHTML(diffs, type){
+  if(!diffs.length){
+    return `<span class="muted">無差額</span>`;
   }
   return `
     <div class="staffRecordItems">
-      ${list.sort((a,b)=> b.qty - a.qty).map(item=>{
-        const parts = [item.addonsText, item.setMealText, item.noteText].filter(Boolean);
-        const extra = parts.length ? `（${parts.join(" / ")}）` : "";
-        return `<span>${esc(item.restaurant)}／${esc(item.name)}${extra} × ${item.qty}</span>`;
+     ${diffs.map(item=>{
+        if(type === "date"){
+          return `<span>${esc(item.date)}</span>`;
+        }
+        return `<span>${Number(item.diff).toFixed(0)}</span>`;
       }).join("")}
     </div>
   `;
@@ -3991,11 +3991,21 @@ async function loadStaffRecord(){
         records.set(key, {
           key,
           staff,
-          total: 0,
-          items: new Map()
+         dailyTotals: new Map(),
+          systemTotal: 0,
+          diffs: []
         });
       }
       return records.get(key);
+    };
+
+     const getOrderDateKey = (order)=>{
+      if(typeof order?.date === "string" && order.date){
+        return order.date;
+      }
+      const ms = toMs(order?.createdAt);
+      if(!ms) return "";
+      return formatDateKey(new Date(ms));
     };
 
     const allowMeal = (order)=>{
@@ -4011,29 +4021,14 @@ async function loadStaffRecord(){
 
       const staff = staffKeyMap.get(`${dept}||${name}`) || { dept, name };
       const record = ensureRecord(staff);
-      const items = Array.isArray(order.items) ? order.items : [];
       let orderTotal = Number(order.total || 0);
-      if(!orderTotal) orderTotal = calcOrderTotal(items);
-      record.total += orderTotal;
-
-      for(const it of items){
-        const addons = Array.isArray(it.addons) ? it.addons : [];
-        const addonsText = addonText(addons, { namesOnly: true });
-        const noteText = itemNoteText(it);
-        const setMealText = formatSetMealText(it);
-        const key = `${order.restaurantName || ""}__${it.name || ""}__${addonsKey(addons)}__${noteText}__${setMealText}`;
-        if(!record.items.has(key)){
-          record.items.set(key, {
-            restaurant: order.restaurantName || "",
-            name: it.name || "",
-            qty: 0,
-            addonsText: addonsText ? `加購:${addonsText}` : "",
-            noteText: noteText ? `備註:${noteText}` : "",
-            setMealText: setMealText || ""
-          });
-        }
-        record.items.get(key).qty += Number(it.qty || 0);
+     if(!orderTotal){
+        const items = Array.isArray(order.items) ? order.items : [];
+        orderTotal = calcOrderTotal(items);
       }
+      const dateKey = getOrderDateKey(order) || "未知日期";
+      const dailyTotal = record.dailyTotals.get(dateKey) || 0;
+      record.dailyTotals.set(dateKey, dailyTotal + orderTotal);
     }
 
     const filteredStaff = allStaffBase.filter(s=>{
@@ -4063,7 +4058,23 @@ async function loadStaffRecord(){
 
     const staffOrderIndex = new Map(allStaffBase.map((s, idx)=> [s.id, idx]));
 
-    out.innerHTML = orderedDepts.map(dept=>{
+      records.forEach(record=>{
+      const diffs = [];
+      let systemTotal = 0;
+      Array.from(record.dailyTotals.entries())
+        .sort((a,b)=> a[0].localeCompare(b[0]))
+        .forEach(([date, total])=>{
+          const diff = Math.max(0, Number(total) - 140);
+          if(diff > 0){
+            diffs.push({ date, diff });
+            systemTotal += diff;
+          }
+        });
+      record.diffs = diffs;
+      record.systemTotal = systemTotal;
+    });
+
+     out.innerHTML = orderedDepts.map(dept=>{
       const list = byDept.get(dept) || [];
       list.sort((a,b)=>{
         const ra = staffOrderIndex.has(a.staff?.id) ? staffOrderIndex.get(a.staff.id) : 9999;
@@ -4071,18 +4082,19 @@ async function loadStaffRecord(){
         if(ra !== rb) return ra - rb;
         return (a.staff?.name || "").localeCompare((b.staff?.name || ""), "zh-Hant");
       });
-
+       
       const rows = list.map(record=>{
         const balanceId = record.key;
         const balance = balances.get(balanceId) || {};
         const manual = Number(balance.manualAdjustment || 0);
-        const total = Number(record.total || 0);
-        const diff = total + manual;
+        const systemTotal = Number(record.systemTotal || 0);
+        const diff = systemTotal + manual;
         return `
           <tr>
             <td><b>${esc(record.staff?.name || "未命名")}</b></td>
-            <td>${buildStaffRecordItemsHTML(record.items)}</td>
-            <td>${total.toFixed(0)}</td>
+            <td>${buildStaffRecordDiffsHTML(record.diffs, "date")}</td>
+            <td>${buildStaffRecordDiffsHTML(record.diffs, "diff")}</td>
+            <td>${systemTotal.toFixed(0)}</td>
             <td>
               <input class="staffRecordAdjust" type="number" step="1" data-balance-id="${esc(balanceId)}" value="${manual}"/>
             </td>
@@ -4104,7 +4116,8 @@ async function loadStaffRecord(){
             <thead>
               <tr>
                 <th>人員</th>
-                <th>點餐內容</th>
+                <th>差額日期</th>
+                <th>當日差額</th>
                 <th>系統累計</th>
                 <th>手動調整</th>
                 <th>累計差額</th>
@@ -4132,7 +4145,7 @@ async function loadStaffRecord(){
           }, { merge: true });
           statusPill.textContent = "差額已更新 ✅";
           const totalCell = row.querySelector("[data-balance-total]");
-          const systemTotal = Number(row.children[2]?.textContent || 0);
+          const systemTotal = Number(row.children[3]?.textContent || 0);
           if(totalCell) totalCell.textContent = (systemTotal + manual).toFixed(0);
         }catch(err){
           console.error(err);
