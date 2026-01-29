@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -575,6 +575,7 @@
 
                 <div class="inline" style="justify-content:flex-end; margin-top:12px; gap:8px">
                   <span class="tag priceTag" id="detailTotal" style="display:none">總額：0</span>
+                  <span class="tag" id="detailDiff" style="display:none">差額：0</span>
                   <button class="btn danger" id="btnDeleteFromDetail" disabled>刪除</button>
                 </div>
               </div>
@@ -2550,12 +2551,18 @@ function normalizeSetMealTemplates(raw){
       $("orderDetailWrap").innerHTML = `<div class="muted">點上方任一筆訂單查看明細。</div>`;
       $("btnDeleteFromDetail").disabled = true;
       $("detailTotal").style.display = "none";
+      $("detailDiff").style.display = "none";
       $("detailDate").style.display = "none";
     }
 
     function setDetail(order){
       if(!order){ clearDetail(); return; }
       activeOrderId = order.id;
+
+      const budgetLimit = getBudgetLimit();
+      const total = Number(order.total || 0);
+      const diff = total - budgetLimit;
+      const diffText = diff > 0 ? `+${diff}` : `${diff}`;
 
       const items = Array.isArray(order.items)?order.items:[];
       const locked = !canDeleteByOrderDate(order.orderDate, order.restaurantId);
@@ -2564,8 +2571,12 @@ function normalizeSetMealTemplates(raw){
       $("detailDate").textContent = order.orderDate || "";
 
       $("detailTotal").style.display = "inline-flex";
-      $("detailTotal").textContent = `總額：${Number(order.total||0)}`;
+      $("detailTotal").textContent = `總額：${total}`;
 
+      $("detailDiff").style.display = "inline-flex";
+      $("detailDiff").textContent = `差額：${diffText}`;
+      $("detailDiff").classList.toggle("warnTag", diff > 0);
+      
       $("btnDeleteFromDetail").disabled = locked;
 
       const coPartners = normalizeOrderCoPartners(order);
@@ -2671,6 +2682,11 @@ function normalizeSetMealTemplates(raw){
         const coBadge = o.coOrderEnabled
           ? `<span class="tag" style="margin-left:8px">共同點餐 ${coCount}人</span>`
           : "";
+        const total = Number(o.total || 0);
+        const budgetLimit = getBudgetLimit();
+        const diff = total - budgetLimit;
+        const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+        const diffClass = diff > 0 ? "tag warnTag" : "tag";
         return `
           <div class="listLine orderRow" data-oid="${esc(o.id)}" role="button" tabindex="0" aria-label="查看訂單明細">
             <div class="inline" style="justify-content:space-between">
@@ -2679,7 +2695,10 @@ function normalizeSetMealTemplates(raw){
                 <span class="tag" style="margin-left:8px">${esc(o.orderDate||"")}</span>
                  ${coBadge}
               </div>
-              <span class="tag priceTag">總額：${Number(o.total||0)}</span>
+              <span class="tag priceTag">總額：${total}</span>
+            </div>
+            <div class="inline" style="justify-content:flex-end; margin-top:6px">
+              <span class="${diffClass}">差額：${diffText}</span>
             </div>
             <div class="muted" style="margin-top:6px">
               ${locked ? `⚠ 已截單/請聯繫管理員` : `可刪（今日且未截單）`}
