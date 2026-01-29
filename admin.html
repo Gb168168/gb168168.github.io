@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -6173,6 +6173,16 @@ async function saveAddMenuSetMealTemplates(rid, templates){
       return [];
     }
 
+    const ORDER_BUDGET_UNIT = 140;
+
+    function getOrderBudgetLimit(order){
+      const coOrderEnabled = Boolean(order?.coOrderEnabled);
+      if(!coOrderEnabled) return ORDER_BUDGET_UNIT;
+      const partners = normalizeOrderCoPartners(order);
+      const count = Math.max(1, Number(order?.coOrderCount || 0), partners.length + 1);
+      return ORDER_BUDGET_UNIT * count;
+    }
+
     function formatCoPartnerList(partners = []){
       return partners
         .filter(p=>p?.dept && p?.name)
@@ -6481,6 +6491,7 @@ async function loadOrdersByDate(dateStr){
           const coCount = coOrderEnabled
             ? Math.max(1, Number(o.coOrderCount || 0), coPartners.length + 1)
             : 0;
+          const budgetLimit = getOrderBudgetLimit(o);
           const exceed = total - budgetLimit;
           const totalLabel = exceed > 0 ? `總額 ${total}（超出 ${exceed}）` : `總額 ${total}`;
           const totalTagClass = exceed > 0 ? "tag exceedTag" : "tag";
