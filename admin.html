@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -6476,14 +6476,15 @@ async function loadOrdersByDate(dateStr){
           const orderNote = (o.orderNote || o.remark || "");
           const items = Array.isArray(o.items) ? o.items : [];
           const total = Number(o.total||0) || calcOrderTotal(items);
-          const budgetLimit = o.coOrderEnabled ? 280 : 140;
+          const coOrderEnabled = Boolean(o.coOrderEnabled);
+          const coPartners = coOrderEnabled ? normalizeOrderCoPartners(o) : [];
+          const coCount = coOrderEnabled
+            ? Math.max(1, Number(o.coOrderCount || 0), coPartners.length + 1)
+            : 0;
           const exceed = total - budgetLimit;
           const totalLabel = exceed > 0 ? `總額 ${total}（超出 ${exceed}）` : `總額 ${total}`;
           const totalTagClass = exceed > 0 ? "tag exceedTag" : "tag";
-          const coOrderEnabled = Boolean(o.coOrderEnabled);
-          const coPartners = coOrderEnabled ? normalizeOrderCoPartners(o) : [];
           const coText = formatCoPartnerList(coPartners);
-          const coCount = coOrderEnabled ? Number(o.coOrderCount || coPartners.length || 2) : 0;
           const coLine = coOrderEnabled && coText
             ? `<div class="muted mini" style="margin-top:6px">共同點餐（${coCount}人）：${coText}</div>`
             : "";
