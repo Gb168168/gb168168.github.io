@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1226,6 +1226,12 @@
                 <button class="primary" id="btnLoadStaffRecord" type="button">載入紀錄</button>
                 <button class="ghost" id="btnStaffRecordToday" type="button">跳到今天</button>
               </div>
+            </div>
+              <div style="display:flex; align-items:flex-end;">
+              <label class="chkline" style="margin:0;">
+                <input id="staffRecordDiffOnly" type="checkbox"/>
+                只顯示有差額
+              </label>
             </div>
           </div>
 
@@ -3911,6 +3917,7 @@ async function initStaffRecordView(){
       if(endInput) endInput.value = today;
       loadStaffRecord();
     });
+    $("staffRecordDiffOnly")?.addEventListener("change", ()=> loadStaffRecord());
     staffRecordInited = true;
   }
   await buildStaffRecordDeptOptions();
@@ -3963,7 +3970,8 @@ async function loadStaffRecord(){
   const endDate = $("staffRecordEnd")?.value;
   const deptFilter = $("staffRecordDept")?.value || "all";
   const mealFilter = ($("staffRecordMeal")?.value || "all").toLowerCase();
-
+  const showDiffOnly = Boolean($("staffRecordDiffOnly")?.checked);
+  
   if(!startDate || !endDate){
     alert("請先選擇開始與結束日期");
     return;
@@ -4051,10 +4059,10 @@ async function loadStaffRecord(){
       return;
     }
 
-    const orderedDepts = [
+    const orderedDepts = Array.from(new Set([
       ...DEPT_ORDER.filter(d => byDept.has(d)),
       ...Array.from(byDept.keys()).filter(d => !DEPT_INDEX.has(d))
-    ];
+   ]));
 
     const staffOrderIndex = new Map(allStaffBase.map((s, idx)=> [s.id, idx]));
 
@@ -4074,7 +4082,7 @@ async function loadStaffRecord(){
       record.systemTotal = systemTotal;
     });
 
-     out.innerHTML = orderedDepts.map(dept=>{
+     const deptCards = orderedDepts.map(dept=>{
       const list = byDept.get(dept) || [];
       list.sort((a,b)=>{
         const ra = staffOrderIndex.has(a.staff?.id) ? staffOrderIndex.get(a.staff.id) : 9999;
@@ -4082,13 +4090,24 @@ async function loadStaffRecord(){
         if(ra !== rb) return ra - rb;
         return (a.staff?.name || "").localeCompare((b.staff?.name || ""), "zh-Hant");
       });
-       
-      const rows = list.map(record=>{
+      
+      const rowsData = list.map(record=>{
         const balanceId = record.key;
         const balance = balances.get(balanceId) || {};
         const manual = Number(balance.manualAdjustment || 0);
         const systemTotal = Number(record.systemTotal || 0);
         const diff = systemTotal + manual;
+        return { record, balanceId, manual, systemTotal, diff };
+      });
+      const filteredRows = showDiffOnly
+        ? rowsData.filter(item => item.diff !== 0)
+        : rowsData;
+
+      if(filteredRows.length === 0){
+        return "";
+      }
+
+      const rows = filteredRows.map(({ record, balanceId, manual, systemTotal, diff })=>{
         return `
           <tr>
             <td><b>${esc(record.staff?.name || "未命名")}</b></td>
@@ -4110,7 +4129,7 @@ async function loadStaffRecord(){
         <div class="card" style="margin-bottom:14px;">
           <div class="inline" style="justify-content:space-between; margin-bottom:8px;">
             <div><b>${esc(dept)}</b></div>
-            <span class="tag">人員 ${list.length}</span>
+            <span class="tag">人員 ${filteredRows.length}</span>
           </div>
           <table>
             <thead>
@@ -4128,7 +4147,14 @@ async function loadStaffRecord(){
           </table>
         </div>
       `;
-    }).join("");
+     }).filter(Boolean);
+
+    if(deptCards.length === 0){
+      out.innerHTML = `<div class="muted">此條件沒有資料。</div>`;
+      return;
+    }
+
+    out.innerHTML = deptCards.join("");
 
     out.querySelectorAll("[data-save-balance]").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
