@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -4028,22 +4028,45 @@ async function loadStaffRecord(){
     };
 
     for(const order of orders){
-    if(!allowMeal(order)) continue;
-    const dept = (order.userDept || "未分部門").trim() || "未分部門";
-    if(STAFF_RECORD_EXCLUDED_DEPTS.has(dept)) continue;
-    const name = (order.userName || "未命名").trim() || "未命名";
-    if(deptFilter !== "all" && deptFilter !== dept) continue;
+     if(!allowMeal(order)) continue;
 
-      const staff = staffKeyMap.get(`${dept}||${name}`) || { dept, name };
-      const record = ensureRecord(staff);
       let orderTotal = Number(order.total || 0);
-     if(!orderTotal){
+      if(!orderTotal){
         const items = Array.isArray(order.items) ? order.items : [];
         orderTotal = calcOrderTotal(items);
       }
+      
       const dateKey = getOrderDateKey(order) || "未知日期";
-      const dailyTotal = record.dailyTotals.get(dateKey) || 0;
-      record.dailyTotals.set(dateKey, dailyTotal + orderTotal);
+     const coOrderEnabled = Boolean(order.coOrderEnabled);
+      const coPartners = coOrderEnabled ? normalizeOrderCoPartners(order) : [];
+      const participants = [
+        { dept: (order.userDept || "未分部門"), name: (order.userName || "未命名") },
+        ...coPartners
+      ].map(p=>({
+        dept: (p?.dept || "未分部門").trim() || "未分部門",
+        name: (p?.name || "未命名").trim() || "未命名"
+      })).filter(p=>p.name);
+
+      const splitCount = coOrderEnabled
+        ? Math.max(1, Number(order.coOrderCount || 0), participants.length)
+        : 1;
+      const perPersonTotal = orderTotal / splitCount;
+
+      const targetList = participants.length ? participants : [{
+        dept: (order.userDept || "未分部門").trim() || "未分部門",
+        name: (order.userName || "未命名").trim() || "未命名"
+      }];
+
+      for(const person of targetList){
+        const dept = person.dept;
+        if(STAFF_RECORD_EXCLUDED_DEPTS.has(dept)) continue;
+        if(deptFilter !== "all" && deptFilter !== dept) continue;
+        const name = person.name || "未命名";
+        const staff = staffKeyMap.get(`${dept}||${name}`) || { dept, name };
+        const record = ensureRecord(staff);
+        const dailyTotal = record.dailyTotals.get(dateKey) || 0;
+        record.dailyTotals.set(dateKey, dailyTotal + perPersonTotal);
+      }
     }
 
     const filteredStaff = allStaffBase.filter(s=>{
