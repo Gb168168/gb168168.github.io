@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者666</title>
+  <title>GoldBricks 呷奔🍚｜使用者66</title>
 
   <style>
     :root{
@@ -2814,7 +2814,15 @@ function normalizeSetMealTemplates(raw){
     };
 
     function clearAllClientState(){
+      const preservedCutoff = localStorage.getItem(CUTOFF_TIME_KEY);
+      const preservedRole = localStorage.getItem(roleKey);
       localStorage.clear();
+      if(preservedCutoff){
+        localStorage.setItem(CUTOFF_TIME_KEY, preservedCutoff);
+      }
+      if(preservedRole){
+        localStorage.setItem(roleKey, preservedRole);
+      }
       sessionStorage.clear();
       cart = [];
       myOrdersCache = [];
