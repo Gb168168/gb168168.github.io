@@ -2562,7 +2562,7 @@ function normalizeSetMealTemplates(raw){
       const budgetLimit = getBudgetLimit();
       const total = Number(order.total || 0);
       const diff = total - budgetLimit;
-      const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+       const diffText = `${Math.abs(diff)}`;
 
       const items = Array.isArray(order.items)?order.items:[];
       const locked = !canDeleteByOrderDate(order.orderDate, order.restaurantId);
