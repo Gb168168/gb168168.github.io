@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理77</title>
+  <title>GoldBricks 呷奔👽｜管理777</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1443,11 +1443,20 @@
                     <span id="orderSoundLabel" class="muted mini">音效開啟</span>
                   </div>
                 </div>
-                   <div class="cutoffSetting">
+                <div class="cutoffSetting">
                   <label>結單時間</label>
                   <div class="cutoffControl">
                     <input id="cutoffTime" type="time" aria-label="結單時間"/>
                     <button class="btnSmall btnOk" id="btnSaveCutoff" type="button">儲存</button>
+                    <button class="btnSmall" id="btnClearCutoff" type="button">清除</button>
+                  </div>
+                </div>
+                <div class="cutoffSetting">
+                  <label>清除時間</label>
+                  <div class="cutoffControl">
+                    <input id="cutoffClearTime" type="time" aria-label="清除時間"/>
+                    <button class="btnSmall btnOk" id="btnSaveCutoffClear" type="button">儲存</button>
+                    <button class="btnSmall" id="btnClearCutoffClear" type="button">清除</button>
                   </div>
                   <div id="cutoffFeedback" class="saveFeedback"></div>
                 </div>
@@ -1668,10 +1677,18 @@ const verifyAdminCode = () => {
     const statusPill = $("statusPill");
     statusPill.textContent = "已連線 Firestore";
     const CUTOFF_TIME_KEY = "gb_order_cutoff_time";
+    const CUTOFF_CLEAR_TIME_KEY = "gb_order_cutoff_clear_time";
+    const AUTO_CUTOFF_CLOSE_KEY = "gb_order_cutoff_last_close_date";
+    const AUTO_CUTOFF_CLEAR_KEY = "gb_order_cutoff_last_clear_date";
     const cutoffInput = $("cutoffTime");
     const cutoffSaveBtn = $("btnSaveCutoff");
+    const cutoffClearBtn = $("btnClearCutoff");
+    const cutoffClearInput = $("cutoffClearTime");
+    const cutoffClearSaveBtn = $("btnSaveCutoffClear");
+    const cutoffClearClearBtn = $("btnClearCutoffClear");
     const cutoffFeedback = $("cutoffFeedback");
     let cutoffFeedbackTimer = null;
+    let cutoffAutomationRunning = false;
     const setCutoffFeedback = (message, state = "")=>{
       if(!cutoffFeedback) return;
       cutoffFeedback.textContent = message;
@@ -1685,30 +1702,52 @@ const verifyAdminCode = () => {
         }, 3000);
       }
     };
-    const loadCutoffTime = ()=>{
-      if(!cutoffInput) return;
-      const saved = localStorage.getItem(CUTOFF_TIME_KEY) || "";
-      cutoffInput.value = saved;
-      if(saved){
-        if(cutoffFeedback){
-          cutoffFeedback.textContent = `目前設定：${saved}`;
-        }
-      }
+     const syncCutoffSummary = ()=>{
+      if(!cutoffFeedback) return;
+      const cutoff = localStorage.getItem(CUTOFF_TIME_KEY) || "";
+      const clear = localStorage.getItem(CUTOFF_CLEAR_TIME_KEY) || "";
+      const parts = [];
+      if(cutoff) parts.push(`結單 ${cutoff}`);
+      if(clear) parts.push(`清除 ${clear}`);
+      cutoffFeedback.textContent = parts.length ? `目前設定：${parts.join(" / ")}` : "";
     };
-    const saveCutoffTime = ()=>{
-      if(!cutoffInput) return;
-      const value = cutoffInput.value.trim();
+    const saveTimeSetting = (inputEl, key, label)=>{
+      if(!inputEl) return;
+      const value = inputEl.value.trim();
       if(!value){
-        localStorage.removeItem(CUTOFF_TIME_KEY);
-        setCutoffFeedback("已清除結單時間", "success");
+        localStorage.removeItem(key);
+        setCutoffFeedback(`已清除${label}`, "success");
+        syncCutoffSummary();
         return;
       }
-      localStorage.setItem(CUTOFF_TIME_KEY, value);
-      setCutoffFeedback(`已儲存：${value}`, "success");
+      localStorage.setItem(key, value);
+      setCutoffFeedback(`已儲存${label}：${value}`, "success");
+      syncCutoffSummary();
     };
-    cutoffSaveBtn?.addEventListener("click", saveCutoffTime);
-    cutoffInput?.addEventListener("change", saveCutoffTime);
+    const clearTimeSetting = (inputEl, key, label)=>{
+      if(!inputEl) return;
+      inputEl.value = "";
+      localStorage.removeItem(key);
+      setCutoffFeedback(`已清除${label}`, "success");
+      syncCutoffSummary();
+    };
+     const loadCutoffTime = ()=>{
+      if(cutoffInput){
+        cutoffInput.value = localStorage.getItem(CUTOFF_TIME_KEY) || "";
+      }
+      if(cutoffClearInput){
+        cutoffClearInput.value = localStorage.getItem(CUTOFF_CLEAR_TIME_KEY) || "";
+      }
+      syncCutoffSummary();
+    };
+    cutoffSaveBtn?.addEventListener("click", ()=> saveTimeSetting(cutoffInput, CUTOFF_TIME_KEY, "結單時間"));
+    cutoffClearBtn?.addEventListener("click", ()=> clearTimeSetting(cutoffInput, CUTOFF_TIME_KEY, "結單時間"));
+    cutoffInput?.addEventListener("change", ()=> saveTimeSetting(cutoffInput, CUTOFF_TIME_KEY, "結單時間"));
+    cutoffClearSaveBtn?.addEventListener("click", ()=> saveTimeSetting(cutoffClearInput, CUTOFF_CLEAR_TIME_KEY, "清除時間"));
+    cutoffClearClearBtn?.addEventListener("click", ()=> clearTimeSetting(cutoffClearInput, CUTOFF_CLEAR_TIME_KEY, "清除時間"));
+    cutoffClearInput?.addEventListener("change", ()=> saveTimeSetting(cutoffClearInput, CUTOFF_CLEAR_TIME_KEY, "清除時間"));
     loadCutoffTime();
+
     
     // ✅ 強制移除「餐廳名稱預設值」（避免瀏覽器記住）
     window.addEventListener("load", ()=>{
@@ -1801,6 +1840,95 @@ const verifyAdminCode = () => {
       if(Number.isNaN(h) || Number.isNaN(m)) return null;
       return h * 60 + m;
     };
+
+     const parseTimeToMinutesSafe = (timeText)=>{
+      if(!timeText) return null;
+      const minutes = parseTimeToMinutes(timeText);
+      return Number.isFinite(minutes) ? minutes : null;
+    };
+    const updateRestaurantClosedState = async (shouldClose)=>{
+      const snap = await getDocs(query(colRestaurants, limit(1200)));
+      const docs = snap.docs.map(d=>({ id: d.id, ref: d.ref, data: d.data() || {} }));
+      const targets = docs.filter(({ data })=> !!data.isClosed !== shouldClose);
+      if(targets.length === 0) return 0;
+
+      let batch = writeBatch(db);
+      let count = 0;
+      for(const target of targets){
+        batch.update(target.ref, { isClosed: shouldClose });
+        count += 1;
+        if(count % 450 === 0){
+          await batch.commit();
+          batch = writeBatch(db);
+        }
+      }
+      if(count % 450 !== 0){
+        await batch.commit();
+      }
+      return count;
+    };
+    const runCutoffAutomation = async ()=>{
+      if(cutoffAutomationRunning) return;
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const todayKey = todayISO();
+      const cutoffTime = localStorage.getItem(CUTOFF_TIME_KEY) || "";
+      const clearTime = localStorage.getItem(CUTOFF_CLEAR_TIME_KEY) || "";
+      const cutoffMinutes = parseTimeToMinutesSafe(cutoffTime);
+      const clearMinutes = parseTimeToMinutesSafe(clearTime);
+      const actions = [];
+
+      if(cutoffMinutes !== null && nowMinutes >= cutoffMinutes){
+        const lastClose = localStorage.getItem(AUTO_CUTOFF_CLOSE_KEY);
+        if(lastClose !== todayKey){
+          actions.push({ type: "close", minutes: cutoffMinutes });
+        }
+      }
+      if(clearMinutes !== null && nowMinutes >= clearMinutes){
+        const lastClear = localStorage.getItem(AUTO_CUTOFF_CLEAR_KEY);
+        if(lastClear !== todayKey){
+          actions.push({ type: "clear", minutes: clearMinutes });
+        }
+      }
+      if(actions.length === 0) return;
+
+      actions.sort((a,b)=>{
+        if(a.minutes !== b.minutes) return a.minutes - b.minutes;
+        if(a.type === b.type) return 0;
+        return a.type === "clear" ? -1 : 1;
+      });
+
+      cutoffAutomationRunning = true;
+      try{
+        for(const action of actions){
+          if(action.type === "close"){
+            statusPill.textContent = "結單時間到，正在自動結單…";
+            const count = await updateRestaurantClosedState(true);
+            localStorage.setItem(AUTO_CUTOFF_CLOSE_KEY, todayKey);
+            if(count > 0 && views.restaurants?.style.display !== "none"){
+              await refreshRestaurantsManage();
+            }
+            statusPill.textContent = "自動結單完成 ✅";
+          }else if(action.type === "clear"){
+            statusPill.textContent = "清除時間到，正在自動開單…";
+            const count = await updateRestaurantClosedState(false);
+            localStorage.setItem(AUTO_CUTOFF_CLEAR_KEY, todayKey);
+            if(count > 0 && views.restaurants?.style.display !== "none"){
+              await refreshRestaurantsManage();
+            }
+            statusPill.textContent = "自動開單完成 ✅";
+          }
+        }
+      }catch(err){
+        console.error(err);
+        statusPill.textContent = "自動結單/清除失敗（看 console）";
+      }finally{
+        cutoffAutomationRunning = false;
+      }
+    };
+
+    runCutoffAutomation();
+    setInterval(runCutoffAutomation, 30000);
 
     const parseBusinessHoursRanges = (hoursText)=>{
       if(!hoursText) return [];
