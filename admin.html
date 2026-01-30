@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理777</title>
+  <title>GoldBricks 呷奔👽｜管理77</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -462,6 +462,18 @@
       align-items:center;
       gap:8px;
       font-size:13px;
+    }
+     #view_orders .cutoffSetting{
+      min-width:200px;
+    }
+    #view_orders .cutoffControl{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    #view_orders .cutoffControl input{
+      min-width:120px;
     }
     #view_orders .ordersTopBar .notifyToggle input{
       width:18px;
@@ -1423,13 +1435,21 @@
                   </div>
                 </div>
               </div>
-               <div class="rightCtl">
+              <div class="rightCtl">
                 <div>
                   <label>新單通知</label>
                   <div class="notifyToggle">
                     <input id="toggleOrderSound" type="checkbox" checked/>
                     <span id="orderSoundLabel" class="muted mini">音效開啟</span>
                   </div>
+                </div>
+                   <div class="cutoffSetting">
+                  <label>結單時間</label>
+                  <div class="cutoffControl">
+                    <input id="cutoffTime" type="time" aria-label="結單時間"/>
+                    <button class="btnSmall btnOk" id="btnSaveCutoff" type="button">儲存</button>
+                  </div>
+                  <div id="cutoffFeedback" class="saveFeedback"></div>
                 </div>
               </div>
             </div>
@@ -1647,7 +1667,49 @@ const verifyAdminCode = () => {
 
     const statusPill = $("statusPill");
     statusPill.textContent = "已連線 Firestore";
-
+    const CUTOFF_TIME_KEY = "gb_order_cutoff_time";
+    const cutoffInput = $("cutoffTime");
+    const cutoffSaveBtn = $("btnSaveCutoff");
+    const cutoffFeedback = $("cutoffFeedback");
+    let cutoffFeedbackTimer = null;
+    const setCutoffFeedback = (message, state = "")=>{
+      if(!cutoffFeedback) return;
+      cutoffFeedback.textContent = message;
+      cutoffFeedback.classList.toggle("success", state === "success");
+      cutoffFeedback.classList.toggle("error", state === "error");
+      if(cutoffFeedbackTimer) clearTimeout(cutoffFeedbackTimer);
+      if(message){
+        cutoffFeedbackTimer = setTimeout(()=> {
+          cutoffFeedback.textContent = "";
+          cutoffFeedback.classList.remove("success", "error");
+        }, 3000);
+      }
+    };
+    const loadCutoffTime = ()=>{
+      if(!cutoffInput) return;
+      const saved = localStorage.getItem(CUTOFF_TIME_KEY) || "";
+      cutoffInput.value = saved;
+      if(saved){
+        if(cutoffFeedback){
+          cutoffFeedback.textContent = `目前設定：${saved}`;
+        }
+      }
+    };
+    const saveCutoffTime = ()=>{
+      if(!cutoffInput) return;
+      const value = cutoffInput.value.trim();
+      if(!value){
+        localStorage.removeItem(CUTOFF_TIME_KEY);
+        setCutoffFeedback("已清除結單時間", "success");
+        return;
+      }
+      localStorage.setItem(CUTOFF_TIME_KEY, value);
+      setCutoffFeedback(`已儲存：${value}`, "success");
+    };
+    cutoffSaveBtn?.addEventListener("click", saveCutoffTime);
+    cutoffInput?.addEventListener("change", saveCutoffTime);
+    loadCutoffTime();
+    
     // ✅ 強制移除「餐廳名稱預設值」（避免瀏覽器記住）
     window.addEventListener("load", ()=>{
       const el = $("r_name");
