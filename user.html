@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔🍚｜使用者66</title>
+  <title>GoldBricks 呷奔🍚｜使用者666</title>
 
   <style>
     :root{
@@ -62,6 +62,25 @@
       border:1px solid var(--border2);
       background:#fff; color:var(--muted);
       font-size:15px;
+    }
+     .cutoffTimer{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-weight:700;
+      color:#9f1239;
+      border-color: rgba(251,113,133,.4);
+      background: rgba(251,113,133,.08);
+    }
+    .cutoffTimer.is-overdue{
+      color:var(--danger);
+      border-color: rgba(239,68,68,.4);
+      background: rgba(239,68,68,.08);
+    }
+    .cutoffTimer.is-idle{
+      color:var(--muted);
+      border-color: var(--border2);
+      background:#fff;
     }
     .tag{
       display:inline-flex; padding:5px 10px; border-radius:999px;
@@ -445,6 +464,7 @@
       </div>
 
       <div class="right">
+        <span class="pill cutoffTimer is-idle" id="cutoffTimer">結單時間未設定</span>
         <span class="pill" id="statusPill">連線中…</span>
 
         <button class="btn" id="btnLogout">清除所有</button>
@@ -720,6 +740,56 @@
 
 const $ = (id)=> document.getElementById(id);
 const statusPill = $("statusPill");
+const cutoffTimer = $("cutoffTimer");
+const CUTOFF_TIME_KEY = "gb_order_cutoff_time";
+const pad2 = (value)=> String(value).padStart(2, "0");
+const getCutoffDate = (timeStr)=>{
+  if(!timeStr) return null;
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  if(!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  const now = new Date();
+  const cutoff = new Date(now);
+  cutoff.setHours(hours, minutes, 0, 0);
+  return cutoff;
+};
+const setCutoffTimerState = (state)=>{
+  if(!cutoffTimer) return;
+  cutoffTimer.classList.toggle("is-overdue", state === "overdue");
+  cutoffTimer.classList.toggle("is-idle", state === "idle");
+};
+const updateCutoffTimer = ()=>{
+  if(!cutoffTimer) return;
+  const timeStr = localStorage.getItem(CUTOFF_TIME_KEY) || "";
+  if(!timeStr){
+    cutoffTimer.textContent = "結單時間未設定";
+    setCutoffTimerState("idle");
+    return;
+  }
+  const cutoff = getCutoffDate(timeStr);
+  if(!cutoff){
+    cutoffTimer.textContent = "結單時間格式錯誤";
+    setCutoffTimerState("idle");
+    return;
+  }
+  const diff = cutoff.getTime() - Date.now();
+  if(diff <= 0){
+    cutoffTimer.textContent = `結單時間已過（${timeStr}）`;
+    setCutoffTimerState("overdue");
+    return;
+  }
+  const hours = Math.floor(diff / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  cutoffTimer.textContent = `結單倒數 ${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}（${timeStr}）`;
+  setCutoffTimerState("active");
+};
+updateCutoffTimer();
+setInterval(updateCutoffTimer, 1000);
+window.addEventListener("storage", (event)=>{
+  if(event.key === CUTOFF_TIME_KEY){
+    updateCutoffTimer();
+  }
+});
 const esc = (s)=> (s ?? "").toString()
   .replaceAll("&","&amp;")
   .replaceAll("<","&lt;")
