@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理10</title>
+  <title>GoldBricks 呷奔👽｜管理11</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2920,6 +2920,8 @@ renderSetMealPickList();
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
     const AI_MENU_IMPORT_KEY = "gb_gemini_api_key";
+    const AI_MENU_MODEL_KEY = "gb_gemini_model";
+    const AI_MENU_DEFAULT_CATEGORY_KEY = "gb_ai_default_category";
 
     function resizeImageToDataUrl(file, maxWidth = 1400, quality = 0.82){
       return new Promise((resolve, reject)=>{
@@ -3139,13 +3141,31 @@ renderSetMealPickList();
     const aiImageInput = $("ai_menuImage");
     const aiModelInput = $("ai_model");
     const aiStoredKey = localStorage.getItem(AI_MENU_IMPORT_KEY) || "";
+    const aiStoredModel = localStorage.getItem(AI_MENU_MODEL_KEY) || "";
+    const aiStoredDefaultCategory = localStorage.getItem(AI_MENU_DEFAULT_CATEGORY_KEY) || "";
+
     if(aiApiKeyInput && aiStoredKey) aiApiKeyInput.value = aiStoredKey;
+    if(aiModelInput && aiStoredModel) aiModelInput.value = aiStoredModel;
+    if(aiDefaultCategory && aiStoredDefaultCategory) aiDefaultCategory.value = aiStoredDefaultCategory;
+    
     aiApiKeyInput?.addEventListener("change", ()=>{
       const key = aiApiKeyInput.value.trim();
       if(key) localStorage.setItem(AI_MENU_IMPORT_KEY, key);
       else localStorage.removeItem(AI_MENU_IMPORT_KEY);
     });
 
+    aiModelInput?.addEventListener("change", ()=>{
+      const model = (aiModelInput.value || "").trim();
+      if(model) localStorage.setItem(AI_MENU_MODEL_KEY, model);
+      else localStorage.removeItem(AI_MENU_MODEL_KEY);
+    });
+
+    aiDefaultCategory?.addEventListener("change", ()=>{
+      const category = (aiDefaultCategory.value || "").trim();
+      if(category) localStorage.setItem(AI_MENU_DEFAULT_CATEGORY_KEY, category);
+      else localStorage.removeItem(AI_MENU_DEFAULT_CATEGORY_KEY);
+    });
+    
     $("btnAiImportMenu").onclick = async ()=>{
       const key = (aiApiKeyInput?.value || "").trim();
       if(!key) return alert("請先填入 Gemini API Key");
