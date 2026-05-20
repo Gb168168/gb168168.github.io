@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理6</title>
+  <title>GoldBricks 呷奔👽｜管理7</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -7705,5 +7705,52 @@ document.getElementById("btnConfirmClose")?.addEventListener("click", () => {
 });
 
 </script>
+<div id="ai-menu-block" style="border:2px dashed #888; padding:16px; margin:16px 0; border-radius:8px;">
+  <h3>📸 AI 菜單辨識(測試)</h3>
+  <input type="file" id="ai-menu-img" accept="image/*">
+  <button type="button" onclick="recognizeMenu()">開始辨識</button>
+  <pre id="ai-menu-result" style="background:#f4f4f4; padding:8px; white-space:pre-wrap; max-height:400px; overflow:auto;"></pre>
+</div>
+
+<script>
+const GEMINI_KEY = "AIzaSyAdEi-meJ4thCwuv1iBUxriLGYx7ruCJr4";
+
+async function recognizeMenu() {
+  const file = document.getElementById('ai-menu-img').files[0];
+  const out = document.getElementById('ai-menu-result');
+  if (!file) { alert('請先選一張圖'); return; }
+  out.textContent = '辨識中,稍等…';
+
+  const base64 = await new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.readAsDataURL(file);
+  });
+
+  const prompt = `你是菜單辨識助手。請從這張菜單圖片抽取所有品項,輸出 JSON 陣列,每個品項格式:
+{"name":"品項名稱","price":價格數字,"category":"分類(主餐/飲料/小菜/其他)"}
+只輸出純 JSON,不要包 markdown code block,不要任何說明文字。`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { text: prompt },
+          { inline_data: { mime_type: file.type, data: base64 } }
+        ]}]
+      })
+    });
+    const data = await r.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data, null, 2);
+    out.textContent = text;
+  } catch (e) {
+    out.textContent = '錯誤:' + e.message;
+  }
+}
+</script>
+
 </body>
 </html>
