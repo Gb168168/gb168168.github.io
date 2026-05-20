@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1</title>
+  <title>GoldBricks 呷奔👽｜管理2</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1025,6 +1025,7 @@
                     必選（擇一用）
                   </label>
                   <button class="btnSmall btnOk" id="btnStartGroup" type="button">新增群組</button>
+                  <button class="btnSmall" id="btnPresetPortion" type="button">快速加入「大小份」模板</button>
                 </div>
               </div>
 
@@ -2855,6 +2856,25 @@ $("btnCommitSetMeal").onclick = ()=>{
 renderSetMealTemplates();
 renderSetMealPickList();
 
+    $("btnPresetPortion").onclick = ()=>{
+      const bigUp = Number(prompt("大份加價（預設 20）", "20"));
+      if(isNaN(bigUp) || bigUp < 0) return alert("加價不正確");
+      const g = {
+        id: ogUid(),
+        name: "份量",
+        type: "single",
+        required: true,
+        choices: [
+          { name: "小份", price: 0 },
+          { name: "大份", price: bigUp }
+        ]
+      };
+      draftGroups.push(g);
+      if(g.id) menuOptionGroupSelected.add(g.id);
+      renderGroups();
+      alert(`已加入模板：小份(+0)、大份(+${bigUp})`);
+    };
+    
     $("btnStartGroup").onclick = ()=>{
       const name = $("og_name").value.trim();
       const type = $("og_type").value;
