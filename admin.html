@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理7</title>
+  <title>GoldBricks 呷奔👽｜管理8</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -7706,32 +7706,53 @@ document.getElementById("btnConfirmClose")?.addEventListener("click", () => {
 
 </script>
 <div id="ai-menu-block" style="border:2px dashed #888; padding:16px; margin:16px 0; border-radius:8px;">
-  <h3>📸 AI 菜單辨識(測試)</h3>
+  <h3>📸 AI 菜單辨識 / 批次寫入（測試）</h3>
+  <label>餐廳 RID（restaurants/{rid}）：<input id="bulk-rid" placeholder="請貼上 rid" style="min-width:280px"></label><br><br>
   <input type="file" id="ai-menu-img" accept="image/*">
-  <button type="button" onclick="recognizeMenu()">開始辨識</button>
-  <pre id="ai-menu-result" style="background:#f4f4f4; padding:8px; white-space:pre-wrap; max-height:400px; overflow:auto;"></pre>
+  <button type="button" id="btn-recognize">① 開始辨識</button>
+  <button type="button" id="btn-write-all">② 全部寫入 Firebase</button>
+  <div id="bulk-status" style="margin-top:8px;color:#334155"></div>
+  <textarea id="ai-menu-json" style="width:100%;min-height:240px;margin-top:10px" placeholder='辨識結果會出現在這裡（JSON）'></textarea>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, collection, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdgOddTGAfqqHLnhnaJRv2_y7gyweuQEo",
+  authDomain: "goldbricks-order.firebaseapp.com",
+  projectId: "goldbricks-order",
+  storageBucket: "goldbricks-order.firebasestorage.app",
+  messagingSenderId: "463709758954",
+  appId: "1:463709758954:web:429dc920f2f812d51cbe93",
+  measurementId: "G-YQK8ZCC26R"
+};
+
+const db = getFirestore(initializeApp(firebaseConfig, "bulk-menu-import"));
 const GEMINI_KEY = "AIzaSyAdEi-meJ4thCwuv1iBUxriLGYx7ruCJr4";
 
-async function recognizeMenu() {
-  const file = document.getElementById('ai-menu-img').files[0];
-  const out = document.getElementById('ai-menu-result');
-  if (!file) { alert('請先選一張圖'); return; }
-  out.textContent = '辨識中,稍等…';
+const fileEl = document.getElementById('ai-menu-img');
+const jsonEl = document.getElementById('ai-menu-json');
+const statusEl = document.getElementById('bulk-status');
+const ridEl = document.getElementById('bulk-rid');
+
+document.getElementById('btn-recognize')?.addEventListener('click', async ()=>{
+  const file = fileEl.files?.[0];
+  if (!file) return alert('請先選一張圖');
+  statusEl.textContent = '辨識中，請稍候...';
 
   const base64 = await new Promise(res => {
     const r = new FileReader();
-    r.onload = () => res(r.result.split(',')[1]);
+    r.onload = () => res(String(r.result || '').split(',')[1]);
     r.readAsDataURL(file);
   });
 
-  const prompt = `你是菜單辨識助手。請從這張菜單圖片抽取所有品項,輸出 JSON 陣列,每個品項格式:
+  const prompt = `你是菜單辨識助手。請從這張菜單圖片抽取所有品項，輸出 JSON 陣列，每個品項格式:
 {"name":"品項名稱","price":價格數字,"category":"分類(主餐/飲料/小菜/其他)"}
-只輸出純 JSON,不要包 markdown code block,不要任何說明文字。`;
-
+只輸出純 JSON，不要包 markdown code block，不要任何說明文字。`;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+  
   try {
     const r = await fetch(url, {
       method: 'POST',
@@ -7744,12 +7765,51 @@ async function recognizeMenu() {
       })
     });
     const data = await r.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data, null, 2);
-    out.textContent = text;
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    jsonEl.value = text.trim();
+    statusEl.textContent = '辨識完成，可先檢查 / 編輯 JSON。';
   } catch (e) {
-    out.textContent = '錯誤:' + e.message;
+    statusEl.textContent = `❌ 辨識失敗：${e.message}`;
   }
-}
+});
+
+document.getElementById('btn-write-all')?.addEventListener('click', async ()=>{
+  try {
+    const rid = ridEl.value.trim();
+    if (!rid) return alert('請先填 RID');
+
+    const raw = jsonEl.value.trim();
+    if (!raw) return alert('請先辨識或貼上 JSON');
+
+    const items = JSON.parse(raw);
+    if (!Array.isArray(items) || items.length === 0) return alert('JSON 不是有效陣列或沒有資料');
+
+    if (!confirm(`將寫入 ${items.length} 筆到 restaurants/${rid}/menu，確定？`)) return;
+
+    statusEl.textContent = '寫入中...';
+
+    const batch = writeBatch(db);
+    const now = Date.now();
+    for (const it of items) {
+      const ref = doc(collection(db, 'restaurants', rid, 'menu'));
+      batch.set(ref, {
+        category: it.category || '',
+        name: it.name || '',
+        content: '',
+        price: Number(it.price) || 0,
+        defaultQty: 1,
+        optionGroups: [],
+        setMealTemplateIds: [],
+        createdAt: now
+      });
+    }
+    await batch.commit();
+    statusEl.textContent = `✅ 已寫入 ${items.length} 個品項`;
+  } catch (e) {
+    statusEl.textContent = '❌ 寫入失敗: ' + e.message;
+    console.error(e);
+  }
+});
 </script>
 
 </body>
