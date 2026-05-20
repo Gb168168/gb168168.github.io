@@ -7706,18 +7706,23 @@ document.getElementById("btnConfirmClose")?.addEventListener("click", () => {
 
 </script>
 <div id="ai-menu-block" style="border:2px dashed #888; padding:16px; margin:16px 0; border-radius:8px;">
-  <h3>📸 AI 菜單辨識 + 一鍵寫入 Firebase(Firebase AI Logic 版)</h3>
+  <h3>📸 菜單照片 → AI 辨識 → 寫入 Firebase</h3>
+  <div class="muted mini" style="margin:6px 0 10px; line-height:1.6;">
+    只要 3 步驟：① 填餐廳 ID、② 上傳菜單圖並辨識、③ 確認 JSON 後寫入。<br>
+    小提醒：若價格或分類有誤，可先在下方 JSON 手動修改再寫入。
+  </div>
   <div style="margin:8px 0;">
-    <label>Restaurant ID (rid):</label>
+    <label for="ai-menu-rid">Restaurant ID (rid)：</label>
     <input type="text" id="ai-menu-rid" placeholder="例如 r001" style="width:200px;">
   </div>
-  <div style="margin:8px 0;">
+  <div style="margin:8px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
     <input type="file" id="ai-menu-img" accept="image/*">
-    <button type="button" id="ai-menu-recognize-btn">① 開始辨識</button>
+    <button type="button" id="ai-menu-recognize-btn">② 開始辨識</button>
   </div>
-  <textarea id="ai-menu-json" style="width:100%; height:240px; font-family:monospace; font-size:12px;" placeholder="辨識結果 JSON,寫入前可手動編輯"></textarea>
-  <div style="margin:8px 0;">
-    <button type="button" id="ai-menu-write-btn">② 全部寫入 Firebase</button>
+  <textarea id="ai-menu-json" style="width:100%; height:240px; font-family:monospace; font-size:12px;" placeholder='辨識結果 JSON（可編輯）
+格式範例：[{"name":"滷肉飯","price":45,"category":"主餐"}]'></textarea>
+  <div style="margin:8px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <button type="button" id="ai-menu-write-btn">③ 全部寫入 Firebase</button>
     <span id="ai-menu-status" style="margin-left:8px;"></span>
   </div>
 </div>
@@ -7744,7 +7749,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebas
   document.getElementById("ai-menu-recognize-btn").addEventListener("click", async () => {
     const file = document.getElementById("ai-menu-img").files[0];
     const out = document.getElementById("ai-menu-json");
-    if (!file) { alert("請先選一張圖"); return; }
+    if (!file) { alert("請先上傳一張菜單圖片"); return; }
     out.value = "辨識中…";
     const base64 = await new Promise((res) => {
       const r = new FileReader();
@@ -7771,8 +7776,8 @@ document.getElementById("ai-menu-write-btn").addEventListener("click", async () 
     const rid = document.getElementById("ai-menu-rid").value.trim();
     const jsonText = document.getElementById("ai-menu-json").value.trim();
     const statusEl = document.getElementById("ai-menu-status");
-    if (!rid) { alert("請填 Restaurant ID"); return; }
-    if (!jsonText) { alert("請先辨識或貼 JSON"); return; }
+    if (!rid) { alert("請先填 Restaurant ID（例如 r001）"); return; }
+    if (!jsonText) { alert("請先完成辨識，或貼上 JSON"); return; }
     let items;
     try {
       items = JSON.parse(jsonText);
