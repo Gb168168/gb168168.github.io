@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理1</title>
+  <title>GoldBricks 呷奔👽｜管理2</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1168,8 +1168,8 @@
   <div class="hr"></div>
   <h3 style="margin-top:0">🤖 AI 菜單圖片匯入</h3>
   <div class="muted mini">上傳菜單圖片後，AI 會自動解析成「餐點清單」。建議圖片清晰、包含品名/價格。</div>
-  <label>OpenAI API Key（只存在當前瀏覽器）</label>
-  <input id="ai_apiKey" type="password" placeholder="sk-..." autocomplete="off"/>
+  <label>Gemini API Key（免費額度，只存在當前瀏覽器）</label>
+  <input id="ai_apiKey" type="password" placeholder="AIza..." autocomplete="off"/>
   <div class="row" style="margin-top:8px">
     <div>
       <label>菜單圖片</label>
@@ -2910,7 +2910,7 @@ renderSetMealPickList();
 
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
-    const AI_MENU_IMPORT_KEY = "gb_openai_api_key";
+    const AI_MENU_IMPORT_KEY = "gb_gemini_api_key";
 
     function fileToDataUrl(file){
       return new Promise((resolve, reject)=>{
@@ -3020,7 +3020,7 @@ renderSetMealPickList();
 
     $("btnAiImportMenu").onclick = async ()=>{
       const key = (aiApiKeyInput?.value || "").trim();
-      if(!key) return alert("請先填入 OpenAI API Key");
+      if(!key) return alert("請先填入 Gemini API Key");
       const file = aiImageInput?.files?.[0];
       if(!file) return alert("請先選擇菜單圖片");
 
@@ -3029,57 +3029,55 @@ renderSetMealPickList();
       statusPill.textContent = "AI 解析菜單中…";
       try{
         const imageDataUrl = await fileToDataUrl(file);
-        const response = await fetch("https://api.openai.com/v1/responses", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${key}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4.1-mini",
-            input: [{
-              role: "user",
-              content: [
-                { type: "input_text", text: `請讀取這張菜單圖片，輸出 JSON：{"items":[{"category":"分類","name":"品名","content":"描述","price":120}]}\n規則：1. 只輸出 JSON，不要有 markdown。2. price 必須是數字。3. 若無分類可填空。` },
-                { type: "input_image", image_url: imageDataUrl }
-              ]
-            }],
-            text: {
-              format: {
-                type: "json_schema",
-                name: "menu_items",
-                schema: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    items: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        additionalProperties: false,
-                        properties: {
-                          category: { type: "string" },
-                          name: { type: "string" },
-                          content: { type: "string" },
-                          price: { type: "number" }
-                        },
-                        required: ["category", "name", "content", "price"]
+        const base64 = imageDataUrl.split(",")[1];
+        const mimeType = file.type || "image/jpeg";
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: `請讀取這張菜單圖片，輸出 JSON：
+{"items":[{"category":"分類","name":"品名","content":"描述","price":120}]}
+
+規則：
+1. 只輸出 JSON，不要 markdown
+2. price 必須是數字
+3. 若無分類可填空
+4. 不要加入圖片上沒有的餐點
+5. 品名要盡量照圖片文字`
+                    },
+                    {
+                      inline_data: {
+                        mime_type: mimeType,
+                        data: base64
                       }
                     }
-                  },
-                  required: ["items"]
+                  ]
                 }
+              ],
+              generationConfig: {
+                responseMimeType: "application/json"
               }
-            }
-          })
-        });
+            })
+          }
+        );
 
         if(!response.ok){
           const errorText = await response.text();
-          throw new Error(`OpenAI API 失敗：${response.status} ${errorText}`);
+          throw new Error(`Gemini API 失敗：${response.status} ${errorText}`);
         }
         const result = await response.json();
-        const outputText = result?.output_text || "{}";
+        const outputText =
+  result?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
         const data = JSON.parse(outputText);
         const items = parseAiMenuItems(data, fallbackCategory);
         if(!items.length) throw new Error("AI 沒有解析到可用的餐點");
