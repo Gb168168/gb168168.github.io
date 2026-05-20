@@ -1163,6 +1163,28 @@
   <h3 style="margin-top:0">餐點清單（將一起新增）</h3>
   <div id="menuQueueWrap" class="muted">尚未加入餐點。</div>
 </div>
+      
+<div style="grid-column: 1 / -1">
+  <div class="hr"></div>
+  <h3 style="margin-top:0">🤖 AI 菜單圖片匯入</h3>
+  <div class="muted mini">上傳菜單圖片後，AI 會自動解析成「餐點清單」。建議圖片清晰、包含品名/價格。</div>
+  <label>OpenAI API Key（只存在當前瀏覽器）</label>
+  <input id="ai_apiKey" type="password" placeholder="sk-..." autocomplete="off"/>
+  <div class="row" style="margin-top:8px">
+    <div>
+      <label>菜單圖片</label>
+      <input id="ai_menuImage" type="file" accept="image/*"/>
+    </div>
+    <div>
+      <label>預設餐點類別（AI 沒判斷到時使用）</label>
+      <input id="ai_defaultCategory" placeholder="例：主餐" value="主餐"/>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="primary" id="btnAiImportMenu" type="button">AI 解析並加入餐點清單</button>
+  </div>
+  <div id="aiImportStatus" class="muted mini" style="margin-top:8px">尚未執行。</div>
+</div>
           
       </section>
 
@@ -2888,6 +2910,28 @@ renderSetMealPickList();
 
     // ====== 新增餐廳：餐點清單（含選項群組） ======
     let menuQueue = [];
+    const AI_MENU_IMPORT_KEY = "gb_openai_api_key";
+
+    function fileToDataUrl(file){
+      return new Promise((resolve, reject)=>{
+        const reader = new FileReader();
+        reader.onload = ()=> resolve(reader.result);
+        reader.onerror = ()=> reject(new Error("圖片讀取失敗"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function parseAiMenuItems(payload, fallbackCategory){
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      return items
+        .map(item=>({
+          category: (item?.category || "").trim() || fallbackCategory,
+          name: (item?.name || "").trim(),
+          content: (item?.content || "").trim(),
+          price: Math.max(0, Number(item?.price || 0))
+        }))
+        .filter(item=> !!item.name);
+    }
 
     function summarizeGroups(groups){
       const gs = Array.isArray(groups) ? groups : [];
@@ -2961,6 +3005,105 @@ renderSetMealPickList();
   });
 }
     renderMenuQueue();
+
+    const aiApiKeyInput = $("ai_apiKey");
+    const aiStatus = $("aiImportStatus");
+    const aiDefaultCategory = $("ai_defaultCategory");
+    const aiImageInput = $("ai_menuImage");
+    const aiStoredKey = localStorage.getItem(AI_MENU_IMPORT_KEY) || "";
+    if(aiApiKeyInput && aiStoredKey) aiApiKeyInput.value = aiStoredKey;
+    aiApiKeyInput?.addEventListener("change", ()=>{
+      const key = aiApiKeyInput.value.trim();
+      if(key) localStorage.setItem(AI_MENU_IMPORT_KEY, key);
+      else localStorage.removeItem(AI_MENU_IMPORT_KEY);
+    });
+
+    $("btnAiImportMenu").onclick = async ()=>{
+      const key = (aiApiKeyInput?.value || "").trim();
+      if(!key) return alert("請先填入 OpenAI API Key");
+      const file = aiImageInput?.files?.[0];
+      if(!file) return alert("請先選擇菜單圖片");
+
+      const fallbackCategory = (aiDefaultCategory?.value || "").trim() || "未分類";
+      aiStatus.textContent = "AI 解析中，請稍候…";
+      statusPill.textContent = "AI 解析菜單中…";
+      try{
+        const imageDataUrl = await fileToDataUrl(file);
+        const response = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${key}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4.1-mini",
+            input: [{
+              role: "user",
+              content: [
+                { type: "input_text", text: `請讀取這張菜單圖片，輸出 JSON：{"items":[{"category":"分類","name":"品名","content":"描述","price":120}]}\n規則：1. 只輸出 JSON，不要有 markdown。2. price 必須是數字。3. 若無分類可填空。` },
+                { type: "input_image", image_url: imageDataUrl }
+              ]
+            }],
+            text: {
+              format: {
+                type: "json_schema",
+                name: "menu_items",
+                schema: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    items: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        additionalProperties: false,
+                        properties: {
+                          category: { type: "string" },
+                          name: { type: "string" },
+                          content: { type: "string" },
+                          price: { type: "number" }
+                        },
+                        required: ["category", "name", "content", "price"]
+                      }
+                    }
+                  },
+                  required: ["items"]
+                }
+              }
+            }
+          })
+        });
+
+        if(!response.ok){
+          const errorText = await response.text();
+          throw new Error(`OpenAI API 失敗：${response.status} ${errorText}`);
+        }
+        const result = await response.json();
+        const outputText = result?.output_text || "{}";
+        const data = JSON.parse(outputText);
+        const items = parseAiMenuItems(data, fallbackCategory);
+        if(!items.length) throw new Error("AI 沒有解析到可用的餐點");
+
+        for(const item of items){
+          menuQueue.push({
+            category: item.category,
+            name: item.name,
+            content: item.content,
+            price: item.price,
+            defaultQty: 1,
+            optionGroups: [],
+            setMealTemplateIds: []
+          });
+        }
+        renderMenuQueue();
+        aiStatus.textContent = `完成：已加入 ${items.length} 道餐點。你可以在上方清單再調整。`;
+        statusPill.textContent = "AI 菜單解析完成 ✅";
+      }catch(err){
+        console.error(err);
+        aiStatus.textContent = `失敗：${err?.message || err}`;
+        statusPill.textContent = "AI 菜單解析失敗（看 console）";
+      }
+    };
 
     function syncQtyMode(selectEl, qtyInput, hintEl){
     if(!selectEl || !qtyInput) return;
