@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理11</title>
+  <title>GoldBricks 呷奔👽｜管理1</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -7777,8 +7777,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebas
       r.readAsDataURL(file);
     });
    const prompt = `你是菜單辨識助手。請從這張菜單圖片抽取所有品項,輸出 JSON 陣列,每個品項格式:
-{"name":"品項名稱","price":價格數字,"category":"分類(主餐/飲料/小菜/其他)"}
-只輸出純 JSON,不要包 markdown code block,不要任何說明文字。`;
+{"name":"品項名稱","price":價格數字,"category":"分類"}
+
+【分類規則】優先依照菜單上原本的分類標題(例如菜單上有寫「麵類」「飯類」「湯類」「小菜」「飲料」就直接照用,不要翻譯也不要改字)。如果該品項在菜單上沒有歸在任何分類底下,才退而求其次用通用詞「其他」。
+
+只輸出純 JSON 陣列,不要包 markdown code block,不要任何說明文字。`;
     try {
       const result = await model.generateContent([
         prompt,
