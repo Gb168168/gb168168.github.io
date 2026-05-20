@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理5</title>
+  <title>GoldBricks 呷奔👽｜管理6</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2981,11 +2981,13 @@ renderSetMealPickList();
         .trim();
 
       const isLikelyDishName = (name)=>{
-        if(!name || name.length < 2 || name.length > 18) return false;
+        if(!name || name.length < 2 || name.length > 24) return false;
         const zhCount = (name.match(/[\u4e00-\u9fff]/g) || []).length;
         const latinCount = (name.match(/[A-Za-z]/g) || []).length;
         if(zhCount < 2) return false;
-        if(latinCount > 0) return false;
+        // OCR 偶爾會把「麵/湯/餃」誤辨識成少量英文字，放寬容錯
+        if(latinCount > 2) return false;
+        if(/^(小|大|價格|數量|內用|外帶|電話|地址|營業時間|總計)$/.test(name)) return false;
         return true;
       };
 
@@ -2994,11 +2996,13 @@ renderSetMealPickList();
       for(const line of lines){
         if(/(菜單|總計|電話|地址|營業時間|內用|外帶|數量|價格|點心類|湯類|麵類|特製)/.test(line)) continue;
 
-        const pairRegex = /([\u4e00-\u9fff（）()、\/·\s]{2,20}?)\s*(\d{2,4})(?=\s|$)/g;
+       const pairRegex = /([\u4e00-\u9fffA-Za-z（）()、\/·\s]{2,30}?)\s*(\d{2,4})(?:\s+(\d{2,4}))?(?=\s|$)/g;
         let foundInLine = false;
         for(const m of line.matchAll(pairRegex)){
           const name = sanitizeName(m[1]);
-          const price = Number(m[2]);
+          const p1 = Number(m[2]);
+          const p2 = m[3] ? Number(m[3]) : null;
+          const price = p2 && p2 > 0 ? Math.min(p1, p2) : p1;
           if(!isLikelyDishName(name)) continue;
           if(price <= 0 || price > 9999) continue;
           items.push({ category: fallbackCategory || "未分類", name, content: "", price });
@@ -3006,13 +3010,14 @@ renderSetMealPickList();
         }
         if(foundInLine) continue;
         
-        const tail = line.match(/(.+?)\s*(?:\$|NT\$|NTD)?\s*(\d{2,4})(?:\s*元)?$/);
-        if(!tail) continue;
-        const name = sanitizeName(tail[1]);
-        const price = Number(tail[2]);
-        if(!isLikelyDishName(name)) continue;
-        if(price <= 0 || price > 9999) continue;
-        items.push({ category: fallbackCategory || "未分類", name, content: "", price });
+        const numbers = [...line.matchAll(/\d{2,4}/g)].map(m=> Number(m[0]));
+        if(numbers.length===0) continue;
+        const namePart = sanitizeName(line.replace(/\d{2,4}/g, " "));
+        const validNumbers = numbers.filter(n=> n > 0 && n <= 9999);
+        if(validNumbers.length===0) continue;
+        const price = Math.min(...validNumbers);
+        if(!isLikelyDishName(namePart)) continue;
+        items.push({ category: fallbackCategory || "未分類", name: namePart, content: "", price });
       }
 
       const seen = new Set();
