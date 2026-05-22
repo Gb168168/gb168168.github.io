@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GoldBricks 呷奔👽｜管理4</title>
+  <title>GoldBricks 呷奔👽｜管理5</title>
 
   <!-- ✅ 類別拖曳排序用 -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -7457,8 +7457,34 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebas
   };
   const app = initializeApp(firebaseConfig, "ai-menu-block");
   const ai = getAI(app, { backend: new GoogleAIBackend() });
-  const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+  const primaryModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+  const fallbackModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
   const db = getFirestore(app);
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const isRetryableAiError = (err) => {
+    const msg = String(err?.message || err || "").toLowerCase();
+    return msg.includes("ai/fetch-error")
+      || msg.includes("high demand")
+      || msg.includes("500")
+      || msg.includes("429")
+      || msg.includes("503");
+  };
+  const generateWithRetry = async (modelInstance, payload, maxRetries = 4) => {
+    let lastErr;
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      try {
+        return await modelInstance.generateContent(payload);
+      } catch (err) {
+        lastErr = err;
+        if (attempt === maxRetries || !isRetryableAiError(err)) throw err;
+        const expDelay = Math.min(8000, 700 * (2 ** attempt));
+        const jitter = Math.floor(Math.random() * 300);
+        await sleep(expDelay + jitter);
+      }
+    }
+    throw lastErr;
+  };
 
   document.getElementById("ai-menu-recognize-btn").addEventListener("click", async () => {
     const file = document.getElementById("ai-menu-img").files[0];
@@ -7484,9 +7510,18 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebas
 
 只輸出純 JSON 陣列，不要包 markdown code block，不要任何說明文字。`;
     try {
-      const result = await model.generateContent([
+      const payload = [
         prompt,
         { inlineData: { data: base64, mimeType: file.type } }
+         ];
+      let result;
+      try {
+        result = await generateWithRetry(primaryModel, payload, 4);
+      } catch (primaryErr) {
+        if (!isRetryableAiError(primaryErr)) throw primaryErr;
+        result = await generateWithRetry(fallbackModel, payload, 3);
+      }
+        
       ]);
       const text = result.response.text();
       out.value = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
