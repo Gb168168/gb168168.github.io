@@ -640,6 +640,12 @@
       flex-wrap:wrap;
       gap:6px 14px;
     }
+    .schShiftGroup{
+      display:flex;
+      flex-wrap:wrap;
+      width:100%;
+      gap:6px 8px;
+    }
     .schStaff{
       font-size:13px;
       display:flex;
@@ -3697,10 +3703,34 @@ async function refreshStaffList(){
       return "";
     }
 
+    function getScheduleStaffShiftRank(s){
+      if(s?.shiftMorning) return 0;
+      if(s?.shiftEvening) return 1;
+      return 2;
+    }
+
+    function sortScheduleStaffByShift(list){
+      return [...list].sort((a,b)=>{
+        const sa = getScheduleStaffShiftRank(a);
+        const sb = getScheduleStaffShiftRank(b);
+        if(sa !== sb) return sa - sb;
+
+        const oa = Number(a.order || 0);
+        const ob = Number(b.order || 0);
+        if(oa !== ob) return oa - ob;
+
+        const ta = Number(a.createdAt || 0);
+        const tb = Number(b.createdAt || 0);
+        if(ta !== tb) return ta - tb;
+
+        return (a.name || "").localeCompare((b.name || ""), "zh-Hant");
+      });
+    }
+
     function filterScheduleStaffByShift(list){
       const shift = getSelectedScheduleShift();
-      if(!shift) return list;
-      return list.filter(s=> shift === "morning" ? s.shiftMorning : s.shiftEvening);
+      const filtered = !shift ? list : list.filter(s=> shift === "morning" ? s.shiftMorning : s.shiftEvening);
+      return sortScheduleStaffByShift(filtered);
     }
 
     function buildScheduleDeptOptions(){
@@ -3734,9 +3764,22 @@ async function refreshStaffList(){
           const d = (s.dept||"未分部門").trim() || "未分部門";
           return dept && d === dept;
         });
+      const shift = getSelectedScheduleShift();
+      const staffOptions = shift
+        ? list.map(s=>`<option value="${esc(s.name||"")}">${esc(s.name||"")}</option>`).join("")
+        : [
+            { label:"早班", rank:0 },
+            { label:"晚班", rank:1 },
+            { label:"未設定班別", rank:2 }
+          ].map(group=>{
+            const members = list.filter(s=>getScheduleStaffShiftRank(s) === group.rank);
+            if(!members.length) return "";
+            return `<optgroup label="${group.label}">${members.map(s=>`<option value="${esc(s.name||"")}">${esc(s.name||"")}</option>`).join("")}</optgroup>`;
+          }).join("");
+
       staffSel.innerHTML = `
         <option value="">請選人員</option>
-        ${list.map(s=>`<option value="${esc(s.name||"")}">${esc(s.name||"")}</option>`).join("")}
+        ${staffOptions}
       `;
       if(list.some(s=>s.name === prevValue)) staffSel.value = prevValue;
     }
@@ -3792,9 +3835,25 @@ async function refreshStaffList(){
               return !workerSet.has(key);
           });
           totalWorking += people.length;
-          const peopleHtml = people.map(p=>`
-            <span class="tag" style="border-style:dashed;">${esc(p.name||"")}</span>
-          `).join("") || `<div class="muted mini">（本部門當日無上班人員）</div>`;
+          const orderedPeople = sortScheduleStaffByShift(people);
+          const peopleHtml = orderedPeople.length
+            ? [
+                { label:"早班", rank:0 },
+                { label:"晚班", rank:1 },
+                { label:"未設定班別", rank:2 }
+              ].map(group=>{
+                const members = orderedPeople.filter(p=>getScheduleStaffShiftRank(p) === group.rank);
+                if(!members.length) return "";
+                return `
+                  <div class="schShiftGroup">
+                    <div class="muted mini" style="width:100%; margin:4px 0 2px;">${group.label}</div>
+                    ${members.map(p=>`
+                      <span class="tag" style="border-style:dashed;">${esc(p.name||"")}</span>
+                    `).join("")}
+                  </div>
+                `;
+              }).join("")
+            : `<div class="muted mini">（本部門當日無上班人員）</div>`;
 
           return `
             <div class="schDeptBlock">
